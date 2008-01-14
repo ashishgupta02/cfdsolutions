@@ -1,0 +1,40 @@
+.SUFFIXES:  .o .c
+
+
+VPATH =  
+
+CC = cc
+CC_FLAGS = -g -O2 -Wall
+CC_INCLUDES = -I../lib/CGNS -I/opt/graphics/OpenGL/contrib/libglut -I/opt/graphics/OpenGL/include 
+CC_DEFINES =  
+PostCFD_LIBS = ../lib/CGNS/libcgns-hpux.a -lGL -lGLU -lglut -lXext -lX11 -lm
+CC_LIBDIR = -L/opt/graphics/OpenGL/contrib/libglut -L/opt/graphics/OpenGL/lib
+LINKER = cc
+LINKER_FLAGS = 
+LINKER_ENTRY = 
+PostCFD_OBJECTS = Main.o Error.o Algebra.o Vector.o \
+		FluidProperties.o ReferenceQuantities.o \
+		CGNSIO.o CGNSPatch.o Read_CGNS.o Convert.o \
+		Gradient_2D.o Interpolation_2D.o PPInitializeSolution_2D.o PostAnalysis_2D.o \
+		PostProcessingInitialize_2D.o PostProcessing_2D.o PrePostProcessing_2D.o \
+		DrawMesh_2D.o PPOptions_2D.o PPScalarFlowVariables_2D.o \
+		PPTensorFlowVariables_2D.o PPSolutionGradients_2D.o \
+		ColorCode_2D.o ColorPlot_2D.o ContourPlot_2D.o Graphics_2D.o \
+		CellPointOperation_2D.o VectorPlot_2D.o Streamline_2D.o Boundary_2D.o \
+		Stream_2D.o VectorTopology_2D.o ScalarTopology_2D.o
+
+all: PostCFD
+
+PostCFD: $(PostCFD_OBJECTS)
+	$(LINKER) -o PostCFD $(LINKER_ENTRY) $(LINKER_FLAGS) $(PostCFD_OBJECTS) $(CC_LIBDIR) $(PostCFD_LIBS)
+
+.c.o:
+	$(CC) -c $< $(CC_FLAGS) $(CC_DEFINES) $(CC_INCLUDES)
+
+clean:
+	rm -f *.o
+
+rclean:
+	rm -f *.o
+	rm -f PostCFD
+
