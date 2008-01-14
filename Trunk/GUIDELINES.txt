@@ -1,0 +1,55 @@
+/*******************************************************/
+Guidelines to coding practices followed in this project
+/*******************************************************/
+PRINCIPLE OF THOUGHT: 
+It is more important to have something that works than nothing at all.
+
+0. Please insert the GNU GPL copyright notice in every source code file you 
+check in.
+
+1. All coding is currently being done in C, for pure love.
+The aim is to support more than just GNU gcc as a compiler and more operating
+systems, hence we stick to a standard C writing style, preferable K&R C or ANSI C.
+
+2. Platform specific code - All platform specific #ifdef's and header file includes
+should be in "platform.h". Unless inevitable, it would be a good practice to
+not use a lot of #ifdef's for different platforms in the main code to avoid
+clutter.
+
+3.Writing  comments: 
+a) Permanent comments in the source code should begin with "/*" 
+and should end with obviously "*/". Every new line should begin with
+a "*" sign. For example, look at airfoil_internal.h. Use a good editor and it
+should be easy to do.
+
+b) Temporary comments in the souce code can begin with "//". The difference
+between this and the above is that some proprietary C compilers do not support "//"
+as this is a C++ syntax.
+
+c) Tags - Preferable tags are FIXME and TODO as editors like vi and emacs highlight them
+for the user to notice. These tags should be used in the comments if some bug or 
+some inefficient method is used "for now" and will need to be optimized later for better
+performance, or also when a certain feature needs to be added.
+
+4. Header files:  The following order should be followed while writing a
+header file.
+a) A  #ifndef statement check for whether the header file
+has been included or not.
+b) Any other header files that will be included should be placed here.
+c) All macro definitions should come here.
+d) All variable and structure declarations should come here.
+e) All function declarations should come here with /*comments*/ explaining
+what the function does.
+f) A #endif statement followed by the constant it is ending in comments. 
+For example, look at airfoil_internal.h and errlog.h 
+Preferably, structure declarations and function declarations should be in
+separate files for cleanliness.
+
+//TODO
+ Variable/Structure/Function naming style
+//TODO
+ C code files
+//TODO
+ Makefiles
+
+
