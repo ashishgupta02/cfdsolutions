@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="62">
+  <logicalFolder name="root" displayName="root" projectFiles="true">
+    <logicalFolder name="ADAPTREFINE" displayName="ADAPTREFINE" projectFiles="true">
+      <logicalFolder name="include" displayName="include" projectFiles="true">
+        <itemPath>ADAPTREFINE/include/TriangleAdaptiveRefinement.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="src" displayName="src" projectFiles="true">
+        <itemPath>ADAPTREFINE/src/TriangleAdaptiveRefinement.cpp</itemPath>
+      </logicalFolder>
+    </logicalFolder>
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="LESMOOTH" displayName="LESMOOTH" projectFiles="true">
+      <logicalFolder name="include" displayName="include" projectFiles="true">
+        <itemPath>LESMOOTH/include/TriangleLinearElasticSmoother.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="src" displayName="src" projectFiles="true">
+        <itemPath>LESMOOTH/src/TriangleLinearElasticSmoother.cpp</itemPath>
+      </logicalFolder>
+    </logicalFolder>
+    <logicalFolder name="MESHER" displayName="MESHER" projectFiles="true">
+      <logicalFolder name="include" displayName="include" projectFiles="true">
+        <itemPath>MESHER/include/Bowyer_Watson.h</itemPath>
+        <itemPath>MESHER/include/Grid_Utils.h</itemPath>
+        <itemPath>MESHER/include/TriangleMesh.h</itemPath>
+        <itemPath>MESHER/include/TriangleMesher2D.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="src" displayName="src" projectFiles="true">
+        <itemPath>MESHER/src/Bowyer_Watson.cpp</itemPath>
+        <itemPath>MESHER/src/Grid_Utils.cpp</itemPath>
+        <itemPath>MESHER/src/TriangleMesh.cpp</itemPath>
+        <itemPath>MESHER/src/TriangleMesher2D.cpp</itemPath>
+      </logicalFolder>
+    </logicalFolder>
+    <logicalFolder name="MESHIO" displayName="MESHIO" projectFiles="true">
+      <logicalFolder name="include" displayName="include" projectFiles="true">
+        <itemPath>MESHIO/include/TriangleMeshDB.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="src" displayName="src" projectFiles="true">
+        <itemPath>MESHIO/src/TriangleMeshDB.cpp</itemPath>
+      </logicalFolder>
+    </logicalFolder>
+    <logicalFolder name="OPTIMESH" displayName="OPTIMESH" projectFiles="true">
+      <logicalFolder name="include" displayName="include" projectFiles="true">
+        <itemPath>OPTIMESH/include/TriangleMeshOptimizer.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="src" displayName="src" projectFiles="true">
+        <itemPath>OPTIMESH/src/TriangleMeshOptimizer.cpp</itemPath>
+      </logicalFolder>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <itemPath>main.cpp</itemPath>
+    </logicalFolder>
+    <logicalFolder name="UTILS" displayName="UTILS" projectFiles="true">
+      <logicalFolder name="include" displayName="include" projectFiles="true">
+        <itemPath>UTILS/include/List.h</itemPath>
+        <itemPath>UTILS/include/MUtils.h</itemPath>
+        <itemPath>UTILS/include/NDM_TypeDefs.h</itemPath>
+        <itemPath>UTILS/include/Utils.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="src" displayName="src" projectFiles="true">
+        <itemPath>UTILS/src/List.cpp</itemPath>
+        <itemPath>UTILS/src/MUtils.c</itemPath>
+        <itemPath>UTILS/src/Utils.c</itemPath>
+      </logicalFolder>
+    </logicalFolder>
+    <logicalFolder name="WINSLOW" displayName="WINSLOW" projectFiles="true">
+      <logicalFolder name="include" displayName="include" projectFiles="true">
+        <itemPath>WINSLOW/include/TriangleWinslowSmoother.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="src" displayName="src" projectFiles="true">
+        <itemPath>WINSLOW/src/TriangleWinslowSmoother.cpp</itemPath>
+      </logicalFolder>
+    </logicalFolder>
+    <logicalFolder name="WINSLOWVV" displayName="WINSLOWVV" projectFiles="true">
+      <logicalFolder name="include" displayName="include" projectFiles="true">
+        <itemPath>WINSLOWVV/include/TriangleWinslowVirtualVolumeSmoother.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="src" displayName="src" projectFiles="true">
+        <itemPath>WINSLOWVV/src/TriangleWinslowVirtualVolumeSmoother.cpp</itemPath>
+      </logicalFolder>
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <sourceRootList>
+    <Elem>UTILS</Elem>
+    <Elem>MESHER</Elem>
+    <Elem>OPTIMESH</Elem>
+    <Elem>WINSLOW</Elem>
+    <Elem>LESMOOTH</Elem>
+    <Elem>WINSLOWVV</Elem>
+    <Elem>ADAPTREFINE</Elem>
+    <Elem>MESHIO</Elem>
+  </sourceRootList>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="1">
+      <toolsSet>
+        <developmentServer>localhost</developmentServer>
+        <compilerSet>GNU|GNU</compilerSet>
+        <platform>2</platform>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <incDir>
+            <pElem>MESHER/include</pElem>
+            <pElem>OPTIMESH/include</pElem>
+            <pElem>UTILS/include</pElem>
+            <pElem>WINSLOW/include</pElem>
+            <pElem>LESMOOTH/include</pElem>
+            <pElem>WINSLOWVV/include</pElem>
+            <pElem>ADAPTREFINE/include</pElem>
+            <pElem>MESHIO/include</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>LINUX_AMD64</Elem>
+            <Elem>BUILD_LIB</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <incDir>
+            <pElem>MESHER/include</pElem>
+            <pElem>OPTIMESH/include</pElem>
+            <pElem>UTILS/include</pElem>
+            <pElem>WINSLOW/include</pElem>
+            <pElem>LESMOOTH/include</pElem>
+            <pElem>WINSLOWVV/include</pElem>
+            <pElem>ADAPTREFINE/include</pElem>
+            <pElem>MESHIO/include</pElem>
+          </incDir>
+          <commandLine>-Wno-write-strings</commandLine>
+          <preprocessorList>
+            <Elem>LINUX_AMD64</Elem>
+            <Elem>BUILD_LIB</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <linkerTool>
+          <linkerAddLib>
+            <pElem>../../00-Applications/HPC_LIBS/lib</pElem>
+          </linkerAddLib>
+          <linkerLibItems>
+            <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+    </conf>
+    <conf name="Release" type="1">
+      <toolsSet>
+        <developmentServer>localhost</developmentServer>
+        <compilerSet>GNU|GNU</compilerSet>
+        <platform>2</platform>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>MESHER/include</pElem>
+            <pElem>OPTIMESH/include</pElem>
+            <pElem>UTILS/include</pElem>
+            <pElem>WINSLOW/include</pElem>
+            <pElem>LESMOOTH/include</pElem>
+            <pElem>WINSLOWVV/include</pElem>
+            <pElem>ADAPTREFINE/include</pElem>
+            <pElem>MESHIO/include</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>LINUX_AMD64</Elem>
+            <Elem>BUILD_LIB</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>MESHER/include</pElem>
+            <pElem>OPTIMESH/include</pElem>
+            <pElem>UTILS/include</pElem>
+            <pElem>WINSLOW/include</pElem>
+            <pElem>LESMOOTH/include</pElem>
+            <pElem>WINSLOWVV/include</pElem>
+            <pElem>ADAPTREFINE/include</pElem>
+            <pElem>MESHIO/include</pElem>
+          </incDir>
+          <commandLine>-Wno-write-strings</commandLine>
+          <preprocessorList>
+            <Elem>LINUX_AMD64</Elem>
+            <Elem>BUILD_LIB</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <linkerTool>
+          <linkerAddLib>
+            <pElem>../../00-Applications/HPC_LIBS/lib</pElem>
+          </linkerAddLib>
+          <linkerLibItems>
+            <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+    </conf>
+  </confs>
+</configurationDescriptor>
