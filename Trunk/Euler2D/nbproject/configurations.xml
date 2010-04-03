@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="62">
+  <logicalFolder name="root" displayName="root" projectFiles="true">
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="MATCOMP" displayName="MATCOMP" projectFiles="true">
+      <logicalFolder name="include" displayName="include" projectFiles="true">
+        <itemPath>MATCOMP/include/MC.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="src" displayName="src" projectFiles="true">
+        <itemPath>MATCOMP/src/MC_Iterative_Jacobi.c</itemPath>
+      </logicalFolder>
+    </logicalFolder>
+    <logicalFolder name="MESH" displayName="MESH" projectFiles="true">
+      <logicalFolder name="include" displayName="include" projectFiles="true">
+        <itemPath>MESH/include/Euler2D_Mesh.h</itemPath>
+        <itemPath>MESH/include/Mesh.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="src" displayName="src" projectFiles="true">
+        <itemPath>MESH/src/Euler2D_Mesh.cpp</itemPath>
+      </logicalFolder>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="SOLVER" displayName="SOLVER" projectFiles="true">
+      <logicalFolder name="include" displayName="include" projectFiles="true">
+        <itemPath>SOLVER/include/Euler2D_Solver_AUSM.h</itemPath>
+        <itemPath>SOLVER/include/Euler2D_Solver_LDFSS.h</itemPath>
+        <itemPath>SOLVER/include/Euler2D_Solver_Osher.h</itemPath>
+        <itemPath>SOLVER/include/Euler2D_Solver_Roe.h</itemPath>
+        <itemPath>SOLVER/include/Euler2D_Solver_StegerWarming.h</itemPath>
+        <itemPath>SOLVER/include/Euler2D_Solver_VanLeer.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="src" displayName="src" projectFiles="true">
+        <itemPath>SOLVER/src/Euler2D_Solver_AUSM.cpp</itemPath>
+        <itemPath>SOLVER/src/Euler2D_Solver_LDFSS.cpp</itemPath>
+        <itemPath>SOLVER/src/Euler2D_Solver_Osher.cpp</itemPath>
+        <itemPath>SOLVER/src/Euler2D_Solver_Roe.cpp</itemPath>
+        <itemPath>SOLVER/src/Euler2D_Solver_StegerWarming.cpp</itemPath>
+        <itemPath>SOLVER/src/Euler2D_Solver_VanLeer.cpp</itemPath>
+      </logicalFolder>
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <itemPath>main.cpp</itemPath>
+    </logicalFolder>
+    <logicalFolder name="UTILS" displayName="UTILS" projectFiles="true">
+      <logicalFolder name="include" displayName="include" projectFiles="true">
+        <itemPath>UTILS/include/List.h</itemPath>
+        <itemPath>UTILS/include/MUtils.h</itemPath>
+        <itemPath>UTILS/include/NDM_TypeDefs.h</itemPath>
+        <itemPath>UTILS/include/Utils.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="src" displayName="src" projectFiles="true">
+        <itemPath>UTILS/src/List.cpp</itemPath>
+        <itemPath>UTILS/src/MUtils.c</itemPath>
+        <itemPath>UTILS/src/Utils.c</itemPath>
+      </logicalFolder>
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <sourceRootList>
+    <Elem>UTILS</Elem>
+    <Elem>MATCOMP</Elem>
+    <Elem>MESH</Elem>
+    <Elem>SOLVER</Elem>
+  </sourceRootList>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="1">
+      <toolsSet>
+        <developmentServer>localhost</developmentServer>
+        <compilerSet>GNU|GNU</compilerSet>
+        <platform>2</platform>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <incDir>
+            <pElem>UTILS/include</pElem>
+            <pElem>MATCOMP/include</pElem>
+            <pElem>MESH/include</pElem>
+            <pElem>SOLVER/include</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <incDir>
+            <pElem>UTILS/include</pElem>
+            <pElem>MATCOMP/include</pElem>
+            <pElem>MESH/include</pElem>
+            <pElem>SOLVER/include</pElem>
+          </incDir>
+          <commandLine>-Wno-write-strings</commandLine>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+    </conf>
+    <conf name="Release" type="1">
+      <toolsSet>
+        <developmentServer>localhost</developmentServer>
+        <compilerSet>GNU|GNU</compilerSet>
+        <platform>2</platform>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>UTILS/include</pElem>
+            <pElem>MATCOMP/include</pElem>
+            <pElem>MESH/include</pElem>
+            <pElem>SOLVER/include</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>UTILS/include</pElem>
+            <pElem>MATCOMP/include</pElem>
+            <pElem>MESH/include</pElem>
+            <pElem>SOLVER/include</pElem>
+          </incDir>
+          <commandLine>-Wno-write-strings</commandLine>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+    </conf>
+  </confs>
+</configurationDescriptor>
