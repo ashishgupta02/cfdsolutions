@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <iostream>
+#include <string.h>
 
 #include "Utils.h"
 #include "MUtils.h"
@@ -176,7 +177,7 @@ void TriangleAdaptiveRefinement::AdaptiveRefinement() {
         NNode_Refine = NNode;
         
         // Function Loop
-        for (iField = 0; iField < NField; iField++) {
+        for (iField = NVariable; iField < NField; iField++) {
             // Compute Gradient also on Boundary
             Compute_Gauss_Gradient(1, Field[iField], Fx, Fy);
 
@@ -959,6 +960,26 @@ void TriangleAdaptiveRefinement::Delete_Mesh_Connectivity() {
             }
         }
     }
+
+    if (FuncType == 0) {
+        if (NField > NVariable) {
+            for (i = 0; i < NVariable; i++)
+                Field[i] = NULL;
+            for (i = NVariable; i < NField; i++) {
+                if (Field[i] != NULL)
+                    delete[] Field[i];
+            }
+            delete[] Field;
+        }
+        
+        if (FieldName != NULL) {
+            for (i = 0; i < NField; i++) {
+                if (FieldName[i] != NULL)
+                    delete FieldName[i];
+            }
+            delete FieldName;
+        }
+    }
     
     if (Node2Cell != NULL) {
         for (i = 0; i < NNode_Old; i++) {
@@ -985,6 +1006,7 @@ void TriangleAdaptiveRefinement::Delete_Mesh_Connectivity() {
     }
 
     Field = NULL;
+    FieldName = NULL;
     Node2Cell = NULL;
     Cell2Cell = NULL;
     Node2Node = NULL;
@@ -999,8 +1021,7 @@ void TriangleAdaptiveRefinement::Get_Field_Data() {
     if (FuncType == 0) {
         if (NVariable <= 0)
             error("AdaptiveRefinement: %s\n", "No Field Variables Found");
-        NField = NVariable;
-        Field = Variable;
+        Compute_Derived_FlowField();
     } else {
         // Allocate the Memory for Functions
         NField = 1;
@@ -1181,5 +1202,93 @@ void TriangleAdaptiveRefinement::Generate_BowyerWatson_Delaunay_TriMesh() {
     Tri = Tri_New;
     NTri = nt;
     Tri_New = NULL;
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void TriangleAdaptiveRefinement::Compute_Derived_FlowField() {
+    int  i, iNode;
+    double Q1, Q2, Q3, Q4, Gamma;
+    double var1;
+    
+    // Check if Flow Field is active
+    if (FuncType != 0)
+        return;
+
+    if (NVariable == 0)
+        error("Compute_Derived_FlowField: %s", "No Flow Field Variables Found");
+
+    // Check if Flow Field has atleast 4 Variables
+    if (NVariable != 4) {
+        warn("Compute_Derived_FlowField: %s", "Unable to Compute Derived Quantities");
+        return;
+    }
+
+    // Allocate Memory to Store Derived Variables
+    NField = NVariable + 3;
+    Field = NULL;
+    Field = new double*[NField];
+#ifdef DEBUG
+    if (Field == NULL)
+        error("Compute_Derived_FlowField: %s\n", "Error Allocating Memory 1");
+#endif
+    for (i = NVariable; i < NField; i++) {
+        Field[i] = NULL;
+        Field[i] = new double[NNode];
+#ifdef DEBUG
+        if (Field[i] == NULL)
+            error("Compute_Derived_FlowField: %s\n", "Error Allocating Memory 2");
+#endif
+    }
+
+    // Get the conserved variables
+    for (i = 0; i < NVariable; i++)
+        Field[i] = Variable[i];
+
+    // Compute Derived Variables
+    Gamma = Constant[3];
+    for (iNode = 0; iNode < NNode; iNode++) {
+        Q1 = Variable[0][iNode];
+        Q2 = Variable[1][iNode];
+        Q3 = Variable[2][iNode];
+        Q4 = Variable[3][iNode];
+
+        var1 = (Q2*Q2 + Q3*Q3)/(Q1*Q1);
+
+        // Compute Velocity Magnitude
+        Field[NVariable+0][iNode] = sqrt(var1);
+
+        // Compute Pressure
+        Field[NVariable+1][iNode] = (Gamma - 1.0)*Q1*((Q4/Q1) - 0.5*var1);
+
+        // Compute Mach Number
+        var1 = sqrt(Gamma*Field[NVariable+1][iNode]/Q1);
+        Field[NVariable+2][iNode] = Field[NVariable+0][iNode]/var1;
+    }
+
+    // Get the Name of Variables
+    FieldName = NULL;
+    FieldName = new char*[NField];
+#ifdef DEBUG
+    if (FieldName == NULL)
+        error("Compute_Derived_FlowField: %s\n", "Error Allocating Memory 3");
+#endif
+    for (i = 0; i < NField; i++) {
+        FieldName[i] = NULL;
+        FieldName[i] = new char[33];
+#ifdef DEBUG
+        if (FieldName[i] == NULL)
+            error("Compute_Derived_FlowField: %s\n", "Error Allocating Memory 4");
+#endif
+    }
+
+    // Get the conserved variables Names
+    for (i = 0; i < NVariable; i++)
+        strcpy(FieldName[i], VariableName[i]);
+    
+    // Get the Name of Derived Variables
+    strcpy(FieldName[NVariable+0], "Velocity_Magnitude");
+    strcpy(FieldName[NVariable+1], "Pressure");
+    strcpy(FieldName[NVariable+2], "Mach_Number");
 }
 
