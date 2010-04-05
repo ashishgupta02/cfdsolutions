@@ -20,6 +20,7 @@ protected:
     // Solution Fields
     int    NField;
     double **Field;
+    char   **FieldName;
     // Adaptation Function
     int    AFType;
     int    Frefine;
@@ -56,6 +57,7 @@ protected:
     void Get_Field_Data();
     void Compress_Coarsen_Nodes();
     void Generate_BowyerWatson_Delaunay_TriMesh();
+    void Compute_Derived_FlowField();
 private:
     void Init();
 };
