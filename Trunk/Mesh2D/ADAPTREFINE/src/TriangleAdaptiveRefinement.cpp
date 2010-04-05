@@ -69,15 +69,13 @@ TriangleAdaptiveRefinement::~TriangleAdaptiveRefinement() {
     if (NodeCoarsen != NULL)
         delete[] NodeCoarsen;
     
-    if  (FuncType != 0) {
-        if (NField > 0) {
-            if (Field != NULL) {
-                for (i = 0; i < NField; i++) {
-                    if (Field[i] != NULL)
-                        delete[] Field[i];
-                }
-                delete[] Field;
+    if (NField > 0) {
+        if (Field != NULL) {
+            for (i = 0; i < NField; i++) {
+                if (Field[i] != NULL)
+                    delete[] Field[i];
             }
+            delete[] Field;
         }
     }
 }
@@ -964,8 +962,10 @@ void TriangleAdaptiveRefinement::Delete_Mesh_Connectivity() {
 
     if (FuncType == 0) {
         if (NField > NVariable) {
-            for (i = 0; i < NVariable; i++)
+            for (i = 0; i < NVariable; i++) {
+                Variable[i] = Field[i];
                 Field[i] = NULL;
+            }
             for (i = NVariable; i < NField; i++) {
                 if (Field[i] != NULL)
                     delete[] Field[i];
@@ -1147,7 +1147,7 @@ void TriangleAdaptiveRefinement::Compress_Coarsen_Nodes() {
         Field[iField] = Field_New;
         Field_New = NULL;
     }
-
+    
     // Delete the Coarsen Node Tag
     if (NodeCoarsen != NULL)
         delete[] NodeCoarsen;
