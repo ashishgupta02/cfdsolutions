@@ -38,6 +38,7 @@ void TriangleAdaptiveRefinement::Init() {
     NodeCoarsen  = NULL;
     NField       = 0;
     Field        = NULL;
+    FieldName    = NULL;
     AFType       = 1;
     Frefine      = 0;
     Fcoarsen     = 0;
@@ -67,7 +68,7 @@ TriangleAdaptiveRefinement::~TriangleAdaptiveRefinement() {
 
     if (NodeCoarsen != NULL)
         delete[] NodeCoarsen;
-
+    
     if  (FuncType != 0) {
         if (NField > 0) {
             if (Field != NULL) {
@@ -1252,7 +1253,7 @@ void TriangleAdaptiveRefinement::Compute_Derived_FlowField() {
         Q2 = Variable[1][iNode];
         Q3 = Variable[2][iNode];
         Q4 = Variable[3][iNode];
-
+        
         var1 = (Q2*Q2 + Q3*Q3)/(Q1*Q1);
 
         // Compute Velocity Magnitude
