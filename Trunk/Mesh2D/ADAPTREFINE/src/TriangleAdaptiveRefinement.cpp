@@ -37,6 +37,7 @@ void TriangleAdaptiveRefinement::Init() {
     Cell2Node_6  = NULL;
     NodeCoarsen  = NULL;
     NField       = 0;
+    FieldTag     = NULL;
     Field        = NULL;
     FieldName    = NULL;
     AFType       = 1;
@@ -68,6 +69,9 @@ TriangleAdaptiveRefinement::~TriangleAdaptiveRefinement() {
 
     if (NodeCoarsen != NULL)
         delete[] NodeCoarsen;
+
+    if (FieldTag != NULL)
+        delete[] FieldTag;
     
     if (NField > 0) {
         if (Field != NULL) {
@@ -77,6 +81,14 @@ TriangleAdaptiveRefinement::~TriangleAdaptiveRefinement() {
             }
             delete[] Field;
         }
+    }
+
+    if (FieldName != NULL) {
+        for (i = 0; i < NField; i++) {
+            if (FieldName[i] != NULL)
+                delete FieldName[i];
+        }
+        delete FieldName;
     }
 }
 
@@ -117,7 +129,7 @@ void TriangleAdaptiveRefinement::Get_Input_Parameters() {
         error("AdaptiveRefinement: %s\n", "Invalid Adaptation Method");
 
     FuncType = -1;
-    std::cout << "Input Function To Adapt Options                : " << std::endl;
+    std::cout << "Input Function To Adapt Options                ? " << std::endl;
     std::cout << "Flow Field = 0 " << std::endl;
     std::cout << "Circle     = 1 " << std::endl;
     std::cout << "Cosine     = 2 " << std::endl;
@@ -126,7 +138,43 @@ void TriangleAdaptiveRefinement::Get_Input_Parameters() {
     std::cin  >> FuncType;
     if ((FuncType < 0) || (FuncType > 3))
         error("AdaptiveRefinement: %s\n", "Invalid Analytic Function");
-    
+
+    Tag_FlowField();
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void TriangleAdaptiveRefinement::Tag_FlowField() {
+    int i;
+
+    if (FuncType != 0)
+        return;
+
+    // Allocate Memory
+    FieldTag = new int[NVariable+3];
+#ifdef DEBUG
+    if (FieldTag == NULL)
+        error("Tag_FlowField: %s\n", "Error Allocating Memory 1");
+#endif
+
+    // Select the Adaptaion Function
+    std::cout << "Select Flow Field Variables for Adaptation     ? " << std::endl;
+    for (i = 0; i < NVariable; i++) {
+        FieldTag[i] = 0;
+        std::cout << "Field: " << i+1 << " = " << VariableName[i] << " : (0/1) : ";
+        std::cin  >> FieldTag[i];
+    }
+
+    // Derived Variables
+    FieldTag[NVariable+0] = 0;
+    std::cout << "Field: " << NVariable+1 << " = Velocity_Magnitude " << ": (0/1) : ";
+    std::cin  >> FieldTag[NVariable+0];
+    FieldTag[NVariable+1] = 0;
+    std::cout << "Field: " << NVariable+2 << " = Pressure " << ": (0/1) : ";
+    std::cin  >> FieldTag[NVariable+1];
+    FieldTag[NVariable+2] = 0;
+    std::cout << "Field: " << NVariable+3 << " = Mach_Number " << ": (0/1) : ";
+    std::cin  >> FieldTag[NVariable+2];
 }
 
 // *****************************************************************************
@@ -147,13 +195,13 @@ void TriangleAdaptiveRefinement::AdaptiveRefinement() {
         
         // Create Interior and Boundary Node Tagging
         Create_Interior_Boundary_Tag();
-
+        
         // Create All Possible Connectivities and Sorted
         Create_Connectivity(1);
-
+        
         // Expand Connectivity to Higher Order
         Create_Tri6_Connectivity();
-
+        
         // Free the Triangle Memory
         if (Tri != NULL) {
             delete[] Tri;
@@ -176,7 +224,11 @@ void TriangleAdaptiveRefinement::AdaptiveRefinement() {
         NNode_Refine = NNode;
         
         // Function Loop
-        for (iField = NVariable; iField < NField; iField++) {
+        for (iField = 0; iField < NField; iField++) {
+            if (FuncType == 0) {
+                if (FieldTag[iField] == 0)
+                    continue;
+            }
             // Compute Gradient also on Boundary
             Compute_Gauss_Gradient(1, Field[iField], Fx, Fy);
 
@@ -225,8 +277,8 @@ void TriangleAdaptiveRefinement::AdaptiveRefinement() {
             delete[] Fy;
 
         info("Adaptive Refine: %2.0d - Nodes %7.0d - Triangles %7.0d", iAdapt+1, NNode, NTri);
+        printf("---------------------------------------------------\n");
     }
-    printf("---------------------------------------------------\n");
 }
 
 // *****************************************************************************
