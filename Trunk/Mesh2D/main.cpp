@@ -140,11 +140,11 @@ int main(int argc, char *argv[]) {
         {
             /* Mesh Winslow Smoothing */
             TriangleWinslowSmoother MeshWSmooth;
-            MeshWSmooth.SimCenterMeshReader(argv[2]);
+            MeshWSmooth.SLK_MeshReader(argv[2]);
             MeshWSmooth.Rotate_Boundary(0);
             MeshWSmooth.WinslowSmooth();
-            MeshWSmooth.SimCenterMeshWriter("Triangle.mesh");
-            MeshWSmooth.GnuplotWriter("Triangle.dat");
+            MeshWSmooth.SLK_MeshWriter("Triangle.mesh");
+            MeshWSmooth.SLK_GnuplotWriter("Triangle.dat");
         }
             break;
         case 3:
