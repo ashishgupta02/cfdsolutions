@@ -128,11 +128,11 @@ int main(int argc, char *argv[]) {
         {
             /* Mesh Optimization */
             TriangleMeshOptimizer MeshOpti;
-            MeshOpti.SimCenterMeshReader(argv[2]);
+            MeshOpti.SLK_MeshReader(argv[2]);
             MeshOpti.Rotate_Boundary(0);
             MeshOpti.Optimize();
-            MeshOpti.SimCenterMeshWriter("Triangle.mesh");
-            MeshOpti.GnuplotWriter("Triangle.dat");
+            MeshOpti.SLK_MeshWriter("Triangle.mesh");
+            MeshOpti.SLK_GnuplotWriter("Triangle.dat");
         }
             break;
         case 2:
