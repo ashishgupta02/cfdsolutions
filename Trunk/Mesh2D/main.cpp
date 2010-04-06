@@ -22,7 +22,7 @@
 /* Define to the version of this package. */
 #define PACKAGE_VERSION ""
 /* Version number of package */
-#define VERSION "0.1"
+#define VERSION "1.0"
 #endif
 
 #include <stdio.h>
@@ -162,11 +162,11 @@ int main(int argc, char *argv[]) {
         {
             /* Mesh Winslow Virtual Control Volume Smoothing */
             TriangleWinslowVirtualVolumeSmoother MeshWVVSmooth;
-            MeshWVVSmooth.SimCenterMeshReader(argv[2]);
+            MeshWVVSmooth.SLK_MeshReader(argv[2]);
             MeshWVVSmooth.Rotate_Boundary(0);
             MeshWVVSmooth.WinslowVirtualVolumeSmooth();
-            MeshWVVSmooth.SimCenterMeshWriter("Triangle.mesh");
-            MeshWVVSmooth.GnuplotWriter("Triangle.dat");
+            MeshWVVSmooth.SLK_MeshWriter("Triangle.mesh");
+            MeshWVVSmooth.SLK_GnuplotWriter("Triangle.dat");
         }
             break;
         case 5:
