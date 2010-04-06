@@ -65,6 +65,12 @@ int Point_In_Triangle_Mesh(int seed, double xt, double yt, double x[], double y[
     double x0, x1, y0, y1;
     double DotProduct[3], MaxDotProduct;
 
+    // Initialize
+    x0 = 0.0;
+    y0 = 0.0;
+    x1 = 0.0;
+    y1 = 0.0;
+    
     // Start the Search
     limit = 0;
     while (limit < INT_MAX) {
@@ -517,7 +523,11 @@ int Boundary_Edge_Recovery(int nn, int nb, int nbs[], int ***bs,
                 BndEdgeVectorY /= Magnitude;
 
                 int bnode, Node0, Node1, Node2, OppTri;
-                Node0 = -1;
+                Node0  = -1;
+                Node1  = -1;
+                Node2  = -1;
+                bnode  = -1;
+                OppTri = -1;
                 // Swap Edges Until Desired Boundary Edge is Achieved
                 while (Node0 != BndNode1) {
                     Node0 = -1;

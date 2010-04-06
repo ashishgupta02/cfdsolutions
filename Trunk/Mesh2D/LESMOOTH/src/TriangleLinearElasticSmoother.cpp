@@ -288,6 +288,11 @@ void TriangleLinearElasticSmoother::Compute_CRS_Matrix() {
     
     if (NNode <= 0)
         return;
+
+    // Initialize
+    n0 = -1;
+    n1 = -1;
+    n2 = -1;
     
     // Initialize the CRS_Matrix
     for (i = 0; i < CRS_DIM; i++) {
