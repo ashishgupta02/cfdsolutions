@@ -19,6 +19,7 @@ protected:
     int    *NodeCoarsen;
     // Solution Fields
     int    NField;
+    int    *FieldTag;
     double **Field;
     char   **FieldName;
     // Adaptation Function
@@ -58,6 +59,7 @@ protected:
     void Compress_Coarsen_Nodes();
     void Generate_BowyerWatson_Delaunay_TriMesh();
     void Compute_Derived_FlowField();
+    void Tag_FlowField();
 private:
     void Init();
 };

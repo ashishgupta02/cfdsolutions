@@ -46,6 +46,8 @@ int Bowyer_Watson_Triangulation(int nn, int tdim, double x[], double y[],
     
     printf("START: Bowyer Watson Triangulation\n");
     printf("BOWYER_WATSON: Found (%d) Number of Points for Insertion\n", nn-4);
+    printf("BOWYER_WATSON: ");
+    fflush(stdout);
     int progress1, progress2;
     // Start inserting Non Bonding Box Seed Points
     for (n = 4; n < nn; n++) 
@@ -55,8 +57,11 @@ int Bowyer_Watson_Triangulation(int nn, int tdim, double x[], double y[],
             progress1 = (int)(((double)n)/((double)nn)*100.0);
             if (progress1 != progress2) {
                 progress2 = progress1;
-                if ((progress1%10) == 0)
-                    printf("BOWYER_WATSON: Triangulation (%d) Percent Complete\n", progress1);
+                if ((progress1%10) == 0) {
+                    printf(". ");
+                    fflush(stdout);
+                    //printf("BOWYER_WATSON: Triangulation (%d) Percent Complete\n", progress1);
+                }
             }
         }
         // Find Triangle Containing Seed Point in the Triangle Mesh
@@ -182,7 +187,7 @@ int Bowyer_Watson_Triangulation(int nn, int tdim, double x[], double y[],
         Update_Cell2Cell_Connectivity(tri, cell2cell, node2cell, new_tri);
         
     }
-    printf("BOWYER_WATSON: Created (%d) Triangles with (%d) Seed Points\n", ntri, n-4);
+    printf("\nBOWYER_WATSON: Created (%d) Triangles with (%d) Seed Points\n", ntri, n-4);
     printf("END: Bowyer Watson Triangulation\n");
     
     // Free Used Memory
