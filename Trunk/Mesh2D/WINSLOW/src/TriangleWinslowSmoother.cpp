@@ -387,6 +387,11 @@ void TriangleWinslowSmoother::Compute_CRS_Matrix(double *F, double *Fx, double *
             (G == NULL) || (Gx == NULL) || (Gy == NULL) || (NNode <= 0))
         return;
 
+    // Initialize
+    n0 = -1;
+    n1 = -1;
+    n2 = -1;
+    
     // Initialize the CRS_Matrix
     for (i = 0; i < CRS_DIM; i++) {
         // First Row
@@ -489,6 +494,10 @@ double TriangleWinslowSmoother::Solve_CRS_Linear_Equation(int Iteration, double 
     double RHSf, RHSg, det, df, dg, ds, rms;
     double InvMat[2][2];
 
+    // Initialize
+    nrms = 0;
+    rms  = 0.0;
+    
     // Compute the Inverse of Matrix
     for (iNode = 0; iNode < NNode; iNode++) {
         if (IBTag[iNode] > -1)
@@ -540,7 +549,7 @@ double TriangleWinslowSmoother::Solve_CRS_Linear_Equation(int Iteration, double 
             F[iNode] += Relax*df;
             G[iNode] += Relax*dg;
         }
-        rms /= nrms;
+        rms /= ((double)nrms);
         rms = sqrt(rms);
     }
     return rms;

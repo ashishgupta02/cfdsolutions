@@ -526,6 +526,10 @@ double TriangleWinslowVirtualVolumeSmoother::Solve_CRS_Linear_Equation(int Itera
     double RHSf, RHSg, det, df, dg, ds, rms;
     double InvMat[2][2];
 
+    // Initialize
+    rms = 0.0;
+    nrms = 0;
+    
     // Compute the Inverse of Matrix
     for (iNode = 0; iNode < NNode; iNode++) {
         if (IBTag[iNode] > -1)
@@ -577,7 +581,7 @@ double TriangleWinslowVirtualVolumeSmoother::Solve_CRS_Linear_Equation(int Itera
             F[iNode] += Relax*df;
             G[iNode] += Relax*dg;
         }
-        rms /= nrms;
+        rms /= ((double)nrms);
         rms = sqrt(rms);
     }
     return rms;

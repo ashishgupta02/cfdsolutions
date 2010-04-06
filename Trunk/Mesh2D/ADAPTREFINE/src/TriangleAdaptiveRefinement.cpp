@@ -763,6 +763,10 @@ void TriangleAdaptiveRefinement::Generate_Refine_New_Nodes_And_Solution() {
     if ((NNode_Refine <= NNode) && (NNode_Refine != 0))
         error("Generate_New_Nodes_And_Solution: %s\n", "Found Anomaly 1");
 
+    // Initialize
+    node1 = -1;
+    node2 = -1;
+    
     // Allocate Memory for coordinates
     X_new = NULL;
     Y_new = NULL;
@@ -869,6 +873,9 @@ void TriangleAdaptiveRefinement::Generate_Refine_New_Nodes_And_Solution() {
 void TriangleAdaptiveRefinement::Update_Boundaries() {
     int i, j, k, ibnd, ibs, node1, node2, cellid, edgeid;
     int nbs_new, nodeid;
+
+    // Initialize
+    edgeid = -1;
     
     for (ibnd = 0; ibnd < NBoundary; ibnd++) {
         nbs_new = NBoundarySegments[ibnd];

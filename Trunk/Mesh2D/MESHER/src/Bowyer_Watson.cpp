@@ -16,6 +16,10 @@ int Bowyer_Watson_Triangulation(int nn, int tdim, double x[], double y[],
         int &ntri, int tri[][3], int cell2cell[][3], List* node2cell[]) {
     int i, j, k, t, n, n0, n1;
     int seed, edgeCount, nbrTri;
+
+    // Intialize
+    n0 = -1;
+    n1 = -1;
     
     // Create Map Array use for Triangle Compression
     int* map = NULL;
@@ -48,7 +52,7 @@ int Bowyer_Watson_Triangulation(int nn, int tdim, double x[], double y[],
     printf("BOWYER_WATSON: Found (%d) Number of Points for Insertion\n", nn-4);
     printf("BOWYER_WATSON: ");
     fflush(stdout);
-    int progress1, progress2;
+    int progress1, progress2 = -1;
     // Start inserting Non Bonding Box Seed Points
     for (n = 4; n < nn; n++) 
     {
