@@ -459,13 +459,21 @@ void Euler2D_Mesh::SLK_MeshWriter(const char* FileName) {
     }
 
     // Constants
+    NQuad = 4;
     fprintf(fp, "# Number of Constants\n");
     fprintf(fp, "%d\n", NQuad);
-
+    fprintf(fp, "0.0\n");
+    fprintf(fp, "0.0\n");
+    fprintf(fp, "0.0\n");
+    fprintf(fp, "1.4\n");
     // Variables
     fprintf(fp, "# Number of Variables\n");
     NQuad = 4;
     fprintf(fp, "%d\n", NQuad);
+    fprintf(fp, "density\n");
+    fprintf(fp, "x-momentum\n");
+    fprintf(fp, "y-momentum\n");
+    fprintf(fp, "energy\n");
     for (i = 0; i < mesh.nnodes; i++)
         fprintf(fp, "%22.15e %22.15e %22.15e %22.15e\n",
                 node[i].Q[0], node[i].Q[1], node[i].Q[2], node[i].Q[3]);
