@@ -3,6 +3,7 @@
  * Author: Ashish Gupta
  * 
  * Created on February 5, 2010, 7:22 PM
+ * Modified on April 6, 2010
  */
 
 #ifdef HAVE_CONFIG_H
@@ -150,11 +151,11 @@ int main(int argc, char *argv[]) {
         {
             /* Linear Elasticity Smoothing */
             TriangleLinearElasticSmoother MeshLESmooth;
-            MeshLESmooth.SimCenterMeshReader(argv[2]);
+            MeshLESmooth.SLK_MeshReader(argv[2]);
             MeshLESmooth.Rotate_Boundary(0);
             MeshLESmooth.LESmooth();
-            MeshLESmooth.SimCenterMeshWriter("Triangle.mesh");
-            MeshLESmooth.GnuplotWriter("Triangle.dat");
+            MeshLESmooth.SLK_MeshWriter("Triangle.mesh");
+            MeshLESmooth.SLK_GnuplotWriter("Triangle.dat");
         }
             break;
         case 4:
