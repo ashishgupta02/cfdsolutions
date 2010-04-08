@@ -26,6 +26,7 @@ Euler2D_Solver_VanLeer::Euler2D_Solver_VanLeer() {
 // *****************************************************************************
 // *****************************************************************************
 void Euler2D_Solver_VanLeer::Init() {
+    Order                  = 2;
     NIteration             = 0;
     InnerNIteration        = 0;
     Relaxation             = 1.0;
@@ -52,6 +53,8 @@ void Euler2D_Solver_VanLeer::Init() {
     BlockMatrix.JA         = NULL;
     BlockMatrix.X          = NULL;
     DeltaT                 = NULL;
+    Qx                     = NULL;
+    Qy                     = NULL;
 }
 
 // *****************************************************************************
@@ -94,6 +97,22 @@ Euler2D_Solver_VanLeer::~Euler2D_Solver_VanLeer() {
 
     if (DeltaT != NULL)
         delete[] DeltaT;
+
+    if (Qx != NULL) {
+        for (i = 0; i < mesh.nnodes; i++) {
+            if (Qx[i] != NULL)
+                delete[] Qx[i];
+        }
+        delete[] Qx;
+    }
+
+    if (Qy != NULL) {
+        for (i = 0; i < mesh.nnodes; i++) {
+            if (Qy[i] != NULL)
+                delete[] Qy[i];
+        }
+        delete[] Qy;
+    }
 }
 
 // *****************************************************************************
@@ -113,6 +132,14 @@ void Euler2D_Solver_VanLeer::Get_Reference_Conditions() {
     std::cin  >> Ref_Alpha;
     Ref_Alpha       = Ref_Alpha * M_PI / 180.0;
 
+    // Get the order of solver
+    Order = 2;
+    std::cout << "Solver Order (1/2): ";
+    std::cin  >> Order;
+
+    if ((Order < 1) || (Order > 2))
+        error("Get_Reference_Conditions: %s\n", "Invalid Solver Order");
+    
     // Get CFL Numbers
     CFL_Min         = 1.0;
     CFL_Max         = 20.0;
@@ -246,9 +273,34 @@ void Euler2D_Solver_VanLeer::Initialize_Solution() {
     // Allocate the Memory to store Local Time Stepping
     DeltaT = new double[mesh.nnodes];
 #ifdef DEBUG
-        if (DeltaT == NULL)
-            error("Initialize_Solution: %s\n", "Error Allocating Memory 1");
+    if (DeltaT == NULL)
+        error("Initialize_Solution: %s\n", "Error Allocating Memory 1");
 #endif
+
+    if (Order == 2) {
+        // Allocate Memory to store gradient of conserved variables
+        Qx = new double*[mesh.nnodes];
+        Qy = new double*[mesh.nnodes];
+#ifdef DEBUG
+        if ((Qx == NULL) || (Qy == NULL))
+            error("Initialize_Solution: %s\n", "Error Allocating Memory 2");
+#endif
+        for (iNode = 0; iNode < mesh.nnodes; iNode++) {
+            Qx[iNode] = NULL;
+            Qy[iNode] = NULL;
+            Qx[iNode] = new double[4];
+            Qy[iNode] = new double[4];
+#ifdef DEBUG
+            if ((Qx[iNode] == NULL) || (Qy[iNode] == NULL))
+                error("Initialize_Solution: %s\n", "Error Allocating Memory 3");
+#endif
+            // Initialize
+            for (i = 0; i < 4; i++) {
+                Qx[iNode][i] = 0.0;
+                Qy[iNode][i] = 0.0;
+            }
+        }
+    }
     
     // Calculte Q
     Q[0] = 1.0;
@@ -268,6 +320,132 @@ void Euler2D_Solver_VanLeer::Initialize_Solution() {
 
 // *****************************************************************************
 // *****************************************************************************
+void Euler2D_Solver_VanLeer::Compute_Gauss_Gradient() {
+    int i, n1, n2, n3, iNode, iCell;
+    double Q1, Q2, Q3, Q4;
+    double tx, ty;
+    double Partx[4], Party[4];
+    
+    if (Order != 2)
+        return;
+
+    // Initialize
+    for (iNode = 0; iNode < mesh.nnodes; iNode++) {
+        for (i = 0; i < 4; i++) {
+            Qx[iNode][i] = 0.0;
+            Qy[iNode][i] = 0.0;
+        }
+    }
+
+    for (iCell = 0; iCell  < mesh.inside; iCell++) {
+        n1 = cell[iCell].node1;
+        n2 = cell[iCell].node2;
+        n3 = cell[iCell].node3;
+
+        // Node 1
+        Q1 = 0.5*(node[n2].Q[0] + node[n3].Q[0]);
+        Q2 = 0.5*(node[n2].Q[1] + node[n3].Q[1]);
+        Q3 = 0.5*(node[n2].Q[2] + node[n3].Q[2]);
+        Q4 = 0.5*(node[n2].Q[3] + node[n3].Q[3]);
+
+        tx = cell[iCell].nx23*cell[iCell].mag23;
+        ty = cell[iCell].ny23*cell[iCell].mag23;
+
+        Partx[0] = Q1*tx;
+        Partx[1] = Q2*tx;
+        Partx[2] = Q3*tx;
+        Partx[3] = Q4*tx;
+        
+        Party[0] = Q1*ty;
+        Party[1] = Q2*ty;
+        Party[2] = Q3*ty;
+        Party[3] = Q4*ty;
+        
+        // Node 2
+        Q1 = 0.5*(node[n3].Q[0] + node[n1].Q[0]);
+        Q2 = 0.5*(node[n3].Q[1] + node[n1].Q[1]);
+        Q3 = 0.5*(node[n3].Q[2] + node[n1].Q[2]);
+        Q4 = 0.5*(node[n3].Q[3] + node[n1].Q[3]);
+
+        tx = cell[iCell].nx31*cell[iCell].mag31;
+        ty = cell[iCell].ny31*cell[iCell].mag31;
+
+        Partx[0] += Q1*tx;
+        Partx[1] += Q2*tx;
+        Partx[2] += Q3*tx;
+        Partx[3] += Q4*tx;
+
+        Party[0] += Q1*ty;
+        Party[1] += Q2*ty;
+        Party[2] += Q3*ty;
+        Party[3] += Q4*ty;
+
+        // Node 3
+        Q1 = 0.5*(node[n1].Q[0] + node[n2].Q[0]);
+        Q2 = 0.5*(node[n1].Q[1] + node[n2].Q[1]);
+        Q3 = 0.5*(node[n1].Q[2] + node[n2].Q[2]);
+        Q4 = 0.5*(node[n1].Q[3] + node[n2].Q[3]);
+
+        tx = cell[iCell].nx12*cell[iCell].mag12;
+        ty = cell[iCell].ny12*cell[iCell].mag12;
+
+        Partx[0] += Q1*tx;
+        Partx[1] += Q2*tx;
+        Partx[2] += Q3*tx;
+        Partx[3] += Q4*tx;
+
+        Party[0] += Q1*ty;
+        Party[1] += Q2*ty;
+        Party[2] += Q3*ty;
+        Party[3] += Q4*ty;
+
+        // Finally the Gradients
+        // Node 1
+        Qx[n1][0] += Partx[0];
+        Qx[n1][1] += Partx[1];
+        Qx[n1][2] += Partx[2];
+        Qx[n1][3] += Partx[3];
+
+        Qy[n1][0] += Party[0];
+        Qy[n1][1] += Party[1];
+        Qy[n1][2] += Party[2];
+        Qy[n1][3] += Party[3];
+
+        // Node 2
+        Qx[n2][0] += Partx[0];
+        Qx[n2][1] += Partx[1];
+        Qx[n2][2] += Partx[2];
+        Qx[n2][3] += Partx[3];
+
+        Qy[n2][0] += Party[0];
+        Qy[n2][1] += Party[1];
+        Qy[n2][2] += Party[2];
+        Qy[n2][3] += Party[3];
+
+        // Node 3
+        Qx[n3][0] += Partx[0];
+        Qx[n3][1] += Partx[1];
+        Qx[n3][2] += Partx[2];
+        Qx[n3][3] += Partx[3];
+
+        Qy[n3][0] += Party[0];
+        Qy[n3][1] += Party[1];
+        Qy[n3][2] += Party[2];
+        Qy[n3][3] += Party[3];
+    }
+    
+    // Finally Division by Area
+    // Median Dual Area is 1/3 times the area enclosed by connected triangles
+    for (iNode = 0; iNode < mesh.nnodes; iNode++) {
+        for (i = 0; i < 4; i++) {
+            Qx[iNode][i] /= 3.0*node[iNode].area;
+            Qy[iNode][i] /= 3.0*node[iNode].area;
+        }
+    }
+}
+
+// *****************************************************************************
+// *****************************************************************************
 void Euler2D_Solver_VanLeer::Compute_Residual() {
     int i, n1, n2, n3, iNode, iCell;
     double Flux[4], Fplus[4], Fminus[4];
@@ -277,39 +455,106 @@ void Euler2D_Solver_VanLeer::Compute_Residual() {
         for (i = 0; i < 4; i++)
             node[iNode].Resi[i] = 0.0;
     }
-    
-    // Compute Residual of All Nodes
-    for (iCell = 0; iCell < mesh.inside; iCell++) {
-        n1 = cell[iCell].node1;
-        n2 = cell[iCell].node2;
-        n3 = cell[iCell].node3;
 
-        // Get the Flux Across the Median Dual Line
-        // Edge 1-2
-        Compute_Fplus(node[n1].Q, cell[iCell].nxc12, cell[iCell].nyc12, cell[iCell].magc12, Fplus);
-        Compute_Fminus(node[n2].Q, cell[iCell].nxc12, cell[iCell].nyc12, cell[iCell].magc12, Fminus);
-        for (i = 0; i < 4; i++) {
-            Flux[i] = Fplus[i] + Fminus[i];
-            node[n1].Resi[i] += Flux[i];
-            node[n2].Resi[i] -= Flux[i];
+    // First Order
+    if (Order == 1) {
+        // Compute Residual of All Nodes
+        for (iCell = 0; iCell < mesh.inside; iCell++) {
+            n1 = cell[iCell].node1;
+            n2 = cell[iCell].node2;
+            n3 = cell[iCell].node3;
+
+            // Get the Flux Across the Median Dual Line
+            // Edge 1-2
+            Compute_Fplus(node[n1].Q, cell[iCell].nxc12, cell[iCell].nyc12, cell[iCell].magc12, Fplus);
+            Compute_Fminus(node[n2].Q, cell[iCell].nxc12, cell[iCell].nyc12, cell[iCell].magc12, Fminus);
+            for (i = 0; i < 4; i++) {
+                Flux[i] = Fplus[i] + Fminus[i];
+                node[n1].Resi[i] += Flux[i];
+                node[n2].Resi[i] -= Flux[i];
+            }
+
+            // Edge 2-3
+            Compute_Fplus(node[n2].Q, cell[iCell].nxc23, cell[iCell].nyc23, cell[iCell].magc23, Fplus);
+            Compute_Fminus(node[n3].Q, cell[iCell].nxc23, cell[iCell].nyc23, cell[iCell].magc23, Fminus);
+            for (i = 0; i < 4; i++) {
+                Flux[i] = Fplus[i] + Fminus[i];
+                node[n2].Resi[i] += Flux[i];
+                node[n3].Resi[i] -= Flux[i];
+            }
+
+            // Edge 3-1
+            Compute_Fplus(node[n3].Q, cell[iCell].nxc31, cell[iCell].nyc31, cell[iCell].magc31, Fplus);
+            Compute_Fminus(node[n1].Q, cell[iCell].nxc31, cell[iCell].nyc31, cell[iCell].magc31, Fminus);
+            for (i = 0; i < 4; i++) {
+                Flux[i] = Fplus[i] + Fminus[i];
+                node[n3].Resi[i] += Flux[i];
+                node[n1].Resi[i] -= Flux[i];
+            }
         }
+    }
 
-        // Edge 2-3
-        Compute_Fplus(node[n2].Q, cell[iCell].nxc23, cell[iCell].nyc23, cell[iCell].magc23, Fplus);
-        Compute_Fminus(node[n3].Q, cell[iCell].nxc23, cell[iCell].nyc23, cell[iCell].magc23, Fminus);
-        for (i = 0; i < 4; i++) {
-            Flux[i] = Fplus[i] + Fminus[i];
-            node[n2].Resi[i] += Flux[i];
-            node[n3].Resi[i] -= Flux[i];
-        }
+    // Second Order
+    if (Order == 2) {
+        double QL[4], QR[4];
+        double xf, yf;
+        // Compute Residual of All Nodes
+        for (iCell = 0; iCell < mesh.inside; iCell++) {
+            n1 = cell[iCell].node1;
+            n2 = cell[iCell].node2;
+            n3 = cell[iCell].node3;
 
-        // Edge 3-1
-        Compute_Fplus(node[n3].Q, cell[iCell].nxc31, cell[iCell].nyc31, cell[iCell].magc31, Fplus);
-        Compute_Fminus(node[n1].Q, cell[iCell].nxc31, cell[iCell].nyc31, cell[iCell].magc31, Fminus);
-        for (i = 0; i < 4; i++) {
-            Flux[i] = Fplus[i] + Fminus[i];
-            node[n3].Resi[i] += Flux[i];
-            node[n1].Resi[i] -= Flux[i];
+            // Get the Flux Across the Median Dual Line
+            // Edge 1-2
+            // Get QLeft and QRight
+            xf = 0.5*cell[iCell].xc + 0.25*(node[n1].x + node[n2].x);
+            yf = 0.5*cell[iCell].yc + 0.25*(node[n1].y + node[n2].y);
+            for (i = 0; i < 4; i++) {
+                QL[i] = node[n1].Q[i] + Qx[n1][i]*(xf - node[n1].x) + Qy[n1][i]*(yf - node[n1].y);
+                QR[i] = node[n2].Q[i] + Qx[n2][i]*(xf - node[n2].x) + Qy[n2][i]*(yf - node[n2].y);
+            }
+            
+            Compute_Fplus(QL, cell[iCell].nxc12, cell[iCell].nyc12, cell[iCell].magc12, Fplus);
+            Compute_Fminus(QR, cell[iCell].nxc12, cell[iCell].nyc12, cell[iCell].magc12, Fminus);
+            for (i = 0; i < 4; i++) {
+                Flux[i] = Fplus[i] + Fminus[i];
+                node[n1].Resi[i] += Flux[i];
+                node[n2].Resi[i] -= Flux[i];
+            }
+
+            // Edge 2-3
+            // Get QLeft and QRight
+            xf = 0.5*cell[iCell].xc + 0.25*(node[n2].x + node[n3].x);
+            yf = 0.5*cell[iCell].yc + 0.25*(node[n2].y + node[n3].y);
+            for (i = 0; i < 4; i++) {
+                QL[i] = node[n2].Q[i] + Qx[n2][i]*(xf - node[n2].x) + Qy[n2][i]*(yf - node[n2].y);
+                QR[i] = node[n3].Q[i] + Qx[n3][i]*(xf - node[n3].x) + Qy[n3][i]*(yf - node[n3].y);
+            }
+
+            Compute_Fplus(QL, cell[iCell].nxc23, cell[iCell].nyc23, cell[iCell].magc23, Fplus);
+            Compute_Fminus(QR, cell[iCell].nxc23, cell[iCell].nyc23, cell[iCell].magc23, Fminus);
+            for (i = 0; i < 4; i++) {
+                Flux[i] = Fplus[i] + Fminus[i];
+                node[n2].Resi[i] += Flux[i];
+                node[n3].Resi[i] -= Flux[i];
+            }
+
+            // Edge 3-1
+            // Get QLeft and QRight
+            xf = 0.5*cell[iCell].xc + 0.25*(node[n3].x + node[n3].x);
+            yf = 0.5*cell[iCell].yc + 0.25*(node[n1].y + node[n1].y);
+            for (i = 0; i < 4; i++) {
+                QL[i] = node[n3].Q[i] + Qx[n3][i]*(xf - node[n3].x) + Qy[n3][i]*(yf - node[n3].y);
+                QR[i] = node[n1].Q[i] + Qx[n1][i]*(xf - node[n1].x) + Qy[n1][i]*(yf - node[n1].y);
+            }
+
+            Compute_Fplus(QL, cell[iCell].nxc31, cell[iCell].nyc31, cell[iCell].magc31, Fplus);
+            Compute_Fminus(QR, cell[iCell].nxc31, cell[iCell].nyc31, cell[iCell].magc31, Fminus);
+            for (i = 0; i < 4; i++) {
+                Flux[i] = Fplus[i] + Fminus[i];
+                node[n3].Resi[i] += Flux[i];
+                node[n1].Resi[i] -= Flux[i];
+            }
         }
     }
 }

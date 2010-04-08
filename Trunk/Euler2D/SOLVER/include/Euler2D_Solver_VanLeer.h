@@ -14,6 +14,7 @@
 class Euler2D_Solver_VanLeer: virtual public Euler2D_Mesh {
 protected:
     // Iterations
+    int Order;
     int NIteration;
     int InnerNIteration;
     double Relaxation;
@@ -30,6 +31,9 @@ protected:
     double CFL_Max;
     // Local Time
     double *DeltaT;
+    // Gradients
+    double **Qx;
+    double **Qy;
     // Matrix Computation Compressed Row Storage
     MC_CRS BlockMatrix;
 public:
@@ -41,6 +45,9 @@ protected:
     // Initialize the Solution
     void Initialize_Solution();
 
+    // Compute Gauss Gradients
+    void Compute_Gauss_Gradient();
+    
     // Compute Residuals across Median Dual
     void Compute_Residual();
 
