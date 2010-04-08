@@ -128,8 +128,7 @@ int main(int argc, char *argv[]) {
             VanLeer.Get_Reference_Conditions();
             VanLeer.Solve();
             VanLeer.SLK_MeshWriter("Solution.slkmesh");
-            VanLeer.Write_TecplotFile("Solution.plt");
-            VanLeer.Write_Solution_GnuplotFile("Solution.gplt");
+            VanLeer.Write_VTK_Unstructured_File("Solution.vtu");
         }
             break;
         case 1:

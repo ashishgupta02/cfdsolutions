@@ -36,6 +36,8 @@ public:
     void Write_Solution_GnuplotFile(const char* FileName);
     // Export Tecplot File
     void Write_TecplotFile(const char* FileName);
+    // Export VTK Unstructured .vtu file
+    void Write_VTK_Unstructured_File(const char* FileName);
 protected:
     void WKA_ExtractCells(void);
     void Tag_Boundary_Nodes(void);

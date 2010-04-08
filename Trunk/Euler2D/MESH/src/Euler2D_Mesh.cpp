@@ -77,7 +77,7 @@ void Euler2D_Mesh::WKA_MeshReader(const char* FileName) {
     char dumstring[100];
     int *tag = NULL;
 
-    printf("============================================================\n");
+    printf("=============================================================================\n");
     info("Reading Mesh File %s", FileName);
 
     // Open Mesh File
@@ -186,7 +186,7 @@ void Euler2D_Mesh::WKA_MeshReader(const char* FileName) {
     if (tag != NULL)
         free(tag);
 
-    printf("============================================================\n");
+    printf("=============================================================================\n");
 }
 
 // *****************************************************************************
@@ -297,7 +297,7 @@ void Euler2D_Mesh::WKA_ExtractCells(void) {
     }
     info("Cell Area: MAX = %lf MIN = %lf", areamax, areamin);
     info("Cell ID Min Area: %d Area = %le", imin, cell[imin].area);
-    printf("============================================================\n");
+    printf("=============================================================================\n");
 }
 
 // *****************************************************************************
@@ -348,7 +348,7 @@ void Euler2D_Mesh::Read_RestartFile(const char* FileName) {
     int iNode, var;
     FILE *fp;
 
-    printf("============================================================\n");
+    printf("=============================================================================\n");
     info("Reading Restart File %s", FileName);
     
     // Open Mesh File
@@ -369,7 +369,7 @@ void Euler2D_Mesh::Read_RestartFile(const char* FileName) {
     }
 
     fclose(fp);
-    printf("============================================================\n");
+    printf("=============================================================================\n");
 }
 
 // *****************************************************************************
@@ -378,7 +378,7 @@ void Euler2D_Mesh::Write_RestartFile(const char* FileName) {
     int iNode, var;
     FILE *fp;
 
-    printf("============================================================\n");
+    printf("=============================================================================\n");
     info("Writing Restart File %s", FileName);
 
     // Open Mesh File
@@ -396,7 +396,7 @@ void Euler2D_Mesh::Write_RestartFile(const char* FileName) {
     }
     
     fclose(fp);
-    printf("============================================================\n");
+    printf("=============================================================================\n");
 }
 
 // *****************************************************************************
@@ -535,6 +535,89 @@ void Euler2D_Mesh::Write_TecplotFile(const char* FileName) {
     fprintf(fp, "\n");
     for (i = 0; i < mesh.inside; i++)
         fprintf(fp, "%d %d %d\n", cell[i].node1+1, cell[i].node2+1, cell[i].node3+1);
+
+    // Close File
+    fclose(fp);
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Mesh::Write_VTK_Unstructured_File(const char* FileName) {
+    int i;
+    double Pressure, Gamma;
+    FILE *fp;
+    
+    // Open file for write
+    if ((fp = fopen(FileName, "w")) == 0)
+        error("Write_VTK_Unstructured_File: %s %s\n", "Couldn't Open File:", FileName);
+
+    info("Writing VTK File: %s", FileName);
+    Gamma = 1.4;
+
+    fprintf(fp, "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n");
+    fprintf(fp, "<UnstructuredGrid>\n");
+    fprintf(fp, "<Piece Name=\"Variables\" NumberOfPoints=\"%d\" NumberOfCells=\"%d\">\n", mesh.nnodes, mesh.inside);
+    fprintf(fp, "<PointData>\n");
+    // Density
+    fprintf(fp, "<DataArray Name=\"Density\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">\n");
+    for (i = 0; i < mesh.nnodes; i++)
+        fprintf(fp, "%22.15e\n", node[i].Q[0]);
+    fprintf(fp, "</DataArray>\n");
+    // U_Velocity
+    fprintf(fp, "<DataArray Name=\"U_Velocity\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">\n");
+    for (i = 0; i < mesh.nnodes; i++)
+        fprintf(fp, "%22.15e\n", (node[i].Q[1]/node[i].Q[0]));
+    fprintf(fp, "</DataArray>\n");
+    // V_Velocity
+    fprintf(fp, "<DataArray Name=\"V_Velocity\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">\n");
+    for (i = 0; i < mesh.nnodes; i++)
+        fprintf(fp, "%22.15e\n", (node[i].Q[2]/node[i].Q[0]));
+    fprintf(fp, "</DataArray>\n");
+    // Internal Energy
+    fprintf(fp, "<DataArray Name=\"Internal_Energy\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">\n");
+    for (i = 0; i < mesh.nnodes; i++)
+        fprintf(fp, "%22.15e\n", node[i].Q[3]);
+    fprintf(fp, "</DataArray>\n");
+    // Pressure
+    fprintf(fp, "<DataArray Name=\"Pressure\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">\n");
+    for (i = 0; i < mesh.nnodes; i++) {
+        Pressure = (Gamma - 1.0)*(node[i].Q[3] - 0.5*node[i].Q[0]*((node[i].Q[1]/node[i].Q[0])*(node[i].Q[1]/node[i].Q[0])
+                + (node[i].Q[2]/node[i].Q[0])*(node[i].Q[2]/node[i].Q[0])));
+        fprintf(fp, "%22.15e\n", Pressure);
+    }
+    fprintf(fp, "</DataArray>\n");
+    fprintf(fp, "</PointData>\n");
+    fprintf(fp, "<CellData />\n");
+
+    // Coordinates x, y, z
+    fprintf(fp, "<Points>\n");
+    fprintf(fp, "<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n");
+    for (i = 0; i < mesh.nnodes; i++)
+        fprintf(fp, "%22.15e %22.15e 0.0\n", node[i].x, node[i].y);
+    fprintf(fp, "</DataArray>\n");
+    fprintf(fp, "</Points>\n");
+
+    fprintf(fp, "<Cells>\n");
+    fprintf(fp, "<DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">\n");
+    for (i = 0; i < mesh.inside; i++)
+        fprintf(fp, "%d %d %d ", cell[i].node1, cell[i].node2, cell[i].node3);
+    fprintf(fp, "\n");
+    fprintf(fp, "</DataArray>\n");
+    fprintf(fp, "<DataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\">\n");
+    for (i = 0; i < mesh.inside; i++)
+        fprintf(fp, "%d ", 3*(i+1));
+    fprintf(fp, "\n");
+    fprintf(fp, "</DataArray>\n");
+    fprintf(fp, "<DataArray type=\"Int32\" Name=\"types\" format=\"ascii\">\n");
+    for (i = 0; i < mesh.inside; i++)
+        fprintf(fp, "5 ");
+    fprintf(fp, "\n");
+    fprintf(fp, "</DataArray>\n");
+    fprintf(fp, "</Cells>\n");
+
+    fprintf(fp, "</Piece>\n");
+    fprintf(fp, "</UnstructuredGrid>\n");
+    fprintf(fp, "</VTKFile>\n");
 
     // Close File
     fclose(fp);

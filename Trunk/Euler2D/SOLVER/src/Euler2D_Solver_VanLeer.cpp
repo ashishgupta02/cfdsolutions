@@ -15,9 +15,9 @@
 // *****************************************************************************
 // *****************************************************************************
 Euler2D_Solver_VanLeer::Euler2D_Solver_VanLeer() {
-    printf("============================================================\n");
-    printf("      Euler2D : Van Leer Flux Vector Splitting              \n");
-    printf("============================================================\n");
+    printf("=============================================================================\n");
+    printf("      Euler2D : Van Leer Flux Vector Splitting                               \n");
+    printf("=============================================================================\n");
     
     // Initialize the Data
     Init();
@@ -34,6 +34,7 @@ void Euler2D_Solver_VanLeer::Init() {
     RMS[1]                 = DBL_MIN;
     RMS[2]                 = DBL_MIN;
     RMS[3]                 = DBL_MIN;
+    RMS_Res                = DBL_MIN;
     Gamma                  = 1.4;
     Ref_Mach               = 0.0;
     Ref_Alpha              = 0.0;
@@ -188,14 +189,15 @@ void Euler2D_Solver_VanLeer::Solve() {
 
     // Read Restart File
     if (restart == 1)
-        Read_RestartFile("Restart.q");
+        Read_RestartFile("Solution.q");
 
     // Create CRS Matrix
     Create_CRS_BlockMatrix();
 
     info("Euler2D Computation Starts");
-    printf("------------------------------------------------------------\n");
-    info(" Iter         RMS       LSRMS");
+    printf("-----------------------------------------------------------------------------\n");
+    printf(" Iter        LRMS     RMS_RHO    RMS_RHOU    RMS_RHOV       RMS_E     RMS_RES\n");
+    printf("-----------------------------------------------------------------------------\n");
 
     for (iter = 0; iter < NIteration; iter++) {
         // Compute Local Time Stepping
@@ -239,27 +241,12 @@ void Euler2D_Solver_VanLeer::Solve() {
         // Compute RMS
         max_rms = Compute_RMS();
         
-        if (!(iter%10)) {
-            info("%5d %10.5e %10.5e", iter, max_rms, lrms);
-            if (!(iter%100)&&(iter > 0)) {
-                printf("------------------------------------------------------------\n");
-                printf("       Iter     RMS_RHO    RMS_RHOU    RMS_RHOV       RMS_E\n");
-                printf("------------------------------------------------------------\n");
-                info("%5d %10.5e %10.5e %10.5e %10.5e", iter, RMS[0], RMS[1], RMS[2], RMS[3]);
-                printf("------------------------------------------------------------\n");
-            }
-        }
+        printf("%5d %10.5e %10.5e %10.5e %10.5e %10.5e %10.5e\n", iter+1, lrms, RMS[0], RMS[1], RMS[2], RMS[3], RMS_Res);
         
-        if ((max_rms < (DBL_EPSILON*10.0))|| ((iter+1) == NIteration)) {
-            printf("------------------------------------------------------------\n");
-            printf("       Iter     RMS_RHO    RMS_RHOU    RMS_RHOV       RMS_E\n");
-            printf("------------------------------------------------------------\n");
-            info("%5d %10.5e %10.5e %10.5e %10.5e", iter+1, RMS[0], RMS[1], RMS[2], RMS[3]);
-            printf("------------------------------------------------------------\n");
+        if ((max_rms < (DBL_EPSILON*10.0))|| ((iter+1) == NIteration))
             iter = NIteration + 1;
-        }
     }
-    
+    printf("-----------------------------------------------------------------------------\n");
     if (restart)
         Write_RestartFile("Solution.q");
 }
@@ -1534,18 +1521,21 @@ double Euler2D_Solver_VanLeer::Compute_RMS() {
     int i, j;
     double max_rms = DBL_MIN;
     
-    RMS[0] = RMS[1] = RMS[2] = RMS[3] = 0.0;
+    RMS[0] = RMS[1] = RMS[2] = RMS[3] = RMS_Res = 0.0;
     // DelataQ = Q(n+1) - Q(n)
     for (i = 0; i < mesh.nnodes; i++) {
-        for (j = 0; j < 4; j++)
+        for (j = 0; j < 4; j++) {
             RMS[j] += BlockMatrix.X[i][j]*BlockMatrix.X[i][j];
+            RMS_Res += node[i].Resi[j]*node[i].Resi[j];
+        }
     }
 
     for (i = 0; i < 4; i++) {
         RMS[i] = sqrt(RMS[i])/mesh.nnodes;
         max_rms = MAX(max_rms, RMS[i]);
     }
-
+    RMS_Res = sqrt(RMS_Res)/mesh.nnodes;
+    max_rms = MAX(max_rms, RMS_Res);
     return max_rms;
 }
 
