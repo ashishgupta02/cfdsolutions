@@ -19,6 +19,7 @@ protected:
     int InnerNIteration;
     double Relaxation;
     double RMS[4];
+    double RMS_Res;
     // Constants
     double Gamma;
     // Reference Conditions

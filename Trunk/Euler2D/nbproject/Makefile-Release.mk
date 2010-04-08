@@ -16,7 +16,7 @@ CC=gcc
 CCC=g++
 CXX=g++
 FC=gfortran
-AS=as
+AS=
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
