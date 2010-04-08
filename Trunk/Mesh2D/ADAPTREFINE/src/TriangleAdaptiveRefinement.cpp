@@ -45,6 +45,7 @@ void TriangleAdaptiveRefinement::Init() {
     Fcoarsen     = 0;
     FuncType     = 0;
     NAdapt       = 0;
+    ForceTriMesh = 0;
     AFrefine     = 0.0;
     AFcoarsen    = 0.0;
     AFavg        = 0.0;
@@ -140,6 +141,12 @@ void TriangleAdaptiveRefinement::Get_Input_Parameters() {
         error("AdaptiveRefinement: %s\n", "Invalid Analytic Function");
 
     Tag_FlowField();
+
+    ForceTriMesh = 0;
+    std::cout << "Force Triangular Mesher (0: No, 1: Yes)        : ";
+    std::cin  >> ForceTriMesh;
+    if ((ForceTriMesh < 0) || (ForceTriMesh > 1))
+        error("AdaptiveRefinement: %s\n", "Force Triangular Mesher - Invalid Valid");
 }
 
 // *****************************************************************************
@@ -628,7 +635,7 @@ void TriangleAdaptiveRefinement::Compute_Adaptation_Threshold(double *F, double 
             }
         }
     }
-    AFavg /= nEdge;
+    AFavg /= ((double)nEdge);
 
     // Compute the Sigma or Standard Deviation
     for (iNode = 0; iNode < NNode; iNode++) {
@@ -750,6 +757,12 @@ void TriangleAdaptiveRefinement::Adaptation_Coarsen_Mark_Nodes(double* F, double
                 NodeCoarsen[iNode] = -1;
                 count++;
             }
+        }
+        // Check if Coarsening is Requrired
+        // This will avoid call to Tri Mesher
+        if (count == 0) {
+            Fcoarsen = 0;
+            info("Adaptation_Coarsen_Mark_Nodes: No Node Found for Coarsening: Deactivating");
         }
     }
 }

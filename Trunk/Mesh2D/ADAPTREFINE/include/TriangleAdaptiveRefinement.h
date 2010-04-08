@@ -28,6 +28,7 @@ protected:
     int    Fcoarsen;
     int    FuncType;
     int    NAdapt;
+    int    ForceTriMesh;
     double AFrefine;
     double AFcoarsen;
     double AFavg;
