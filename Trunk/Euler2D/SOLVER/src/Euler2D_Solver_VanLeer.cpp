@@ -204,6 +204,7 @@ void Euler2D_Solver_VanLeer::Solve() {
         Compute_DeltaTime(iter);
 
         // Compute Residials
+        Compute_Gauss_Gradient();
         Compute_Residual();
         Compute_Boundary_Residual();
 
@@ -240,11 +241,21 @@ void Euler2D_Solver_VanLeer::Solve() {
 
         // Compute RMS
         max_rms = Compute_RMS();
-        
+
         printf("%5d %10.5e %10.5e %10.5e %10.5e %10.5e %10.5e\n", iter+1, lrms, RMS[0], RMS[1], RMS[2], RMS[3], RMS_Res);
         
         if ((max_rms < (DBL_EPSILON*10.0))|| ((iter+1) == NIteration))
             iter = NIteration + 1;
+
+        if (isnan(max_rms)) {
+            info("Solve: Outer Iteration: NAN Encountered ! - Abort");
+            iter = NIteration + 1;
+        }
+
+        if (isnan(lrms)) {
+            info("Solve: Liner Solver Iteration: NAN Encountered ! - Abort");
+            iter = NIteration + 1;
+        }
     }
     printf("-----------------------------------------------------------------------------\n");
     if (restart)
