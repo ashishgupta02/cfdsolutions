@@ -260,7 +260,7 @@ void TriangleAdaptiveRefinement::AdaptiveRefinement() {
             Update_Boundaries();
         }
         // Create New Triangles only if "only" Refinement is Active
-        if ((Frefine == 1) && (Fcoarsen != 1)) {
+        if ((ForceTriMesh == 0) && (Frefine == 1) && (Fcoarsen != 1)) {
             // Update and Expand the Triangle Connectivities
             Update_Triangles();
         } else {
@@ -762,7 +762,8 @@ void TriangleAdaptiveRefinement::Adaptation_Coarsen_Mark_Nodes(double* F, double
         // This will avoid call to Tri Mesher
         if (count == 0) {
             Fcoarsen = 0;
-            info("Adaptation_Coarsen_Mark_Nodes: No Node Found for Coarsening: Deactivating");
+            info("Adaptation_Coarsen_Mark_Nodes: No Node Found");
+            info("Coarsening: Deactivate");
         }
     }
 }
