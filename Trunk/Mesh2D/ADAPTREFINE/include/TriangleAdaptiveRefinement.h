@@ -26,9 +26,13 @@ protected:
     int    AFType;
     int    Frefine;
     int    Fcoarsen;
+    int    Fcoarsen_Old;
     int    FuncType;
     int    NAdapt;
+    int    NFieldAdapt;
     int    ForceTriMesh;
+    int    NLimitCoarsen;
+    int    NLimitRefine;
     double AFrefine;
     double AFcoarsen;
     double AFavg;
@@ -53,10 +57,11 @@ protected:
     void Adaptation_Refine_Mark_Edges(double *F, double *Fx, double *Fy);
     void Adaptation_Coarsen_Mark_Nodes(double *F, double *Fx, double *Fy);
     void Generate_Refine_New_Nodes_And_Solution();
-    void Update_Boundaries();
-    void Update_Triangles();
+    void Update_Refine_Boundaries();
+    void Update_Refine_Triangles();
     void Delete_Mesh_Connectivity();
     void Get_Field_Data();
+    void Finalize_Coarsen_Mark_Nodes();
     void Compress_Coarsen_Nodes();
     void Generate_BowyerWatson_Delaunay_TriMesh();
     void Compute_Derived_FlowField();
