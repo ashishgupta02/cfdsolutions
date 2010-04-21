@@ -16,6 +16,7 @@
 #include "MUtils.h"
 #include "TriangleAdaptiveRefinement.h"
 #include "TriangleMesh.h"
+#include "TriangleMeshSLK.h"
 
 // *****************************************************************************
 // *****************************************************************************
@@ -348,7 +349,7 @@ double TriangleAdaptiveRefinement::Analytic_Function(double CoordX, double Coord
                 value = 1.0;
             break;
         case 3: // Cos and Sin Function
-            value = cos(2.0*M_PI*CoordX) + sin(2.0*M_PI*CoordY);
+            value = (cos(2.0*M_PI*CoordX) + sin(2.0*M_PI*CoordY));
             break;
     }
     return value;
@@ -1237,6 +1238,7 @@ void TriangleAdaptiveRefinement::Compress_Coarsen_Nodes() {
 void TriangleAdaptiveRefinement::Generate_BowyerWatson_Delaunay_TriMesh() {
     int tdim, nt;
     int (*Tri_New)[3];
+    TriangleMeshSLK Mesher;
 
     // initial guess for number of triangles
     tdim = NNode * 3;
@@ -1249,7 +1251,8 @@ void TriangleAdaptiveRefinement::Generate_BowyerWatson_Delaunay_TriMesh() {
     // iterative loop to allocate space for triangle indices
     nt = -1;
     while (nt < 0) {
-        nt = trimesh(NNode, tdim, NBoundary, NBoundarySegments, BoundarySegments, X, Y, Tri_New);
+        nt  = Mesher.trimesh(NNode, tdim, NBoundary, NBoundarySegments, BoundarySegments, X, Y, Tri_New);
+        //nt = trimesh(NNode, tdim, NBoundary, NBoundarySegments, BoundarySegments, X, Y, Tri_New);
 
         if (nt < 0) {
             info("Expanding New Triangle Dimension from %d to %d", tdim, tdim + NNode);

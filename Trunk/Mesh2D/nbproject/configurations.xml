@@ -9,6 +9,16 @@
         <itemPath>ADAPTREFINE/src/TriangleAdaptiveRefinement.cpp</itemPath>
       </logicalFolder>
     </logicalFolder>
+    <logicalFolder name="GEOMETRY" displayName="GEOMETRY" projectFiles="true">
+      <logicalFolder name="include" displayName="include" projectFiles="true">
+        <itemPath>GEOMETRY/include/Point2D.h</itemPath>
+        <itemPath>GEOMETRY/include/Vector2D.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="src" displayName="src" projectFiles="true">
+        <itemPath>GEOMETRY/src/Point2D.cpp</itemPath>
+        <itemPath>GEOMETRY/src/Vector2D.cpp</itemPath>
+      </logicalFolder>
+    </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
@@ -26,12 +36,14 @@
         <itemPath>MESHER/include/Bowyer_Watson.h</itemPath>
         <itemPath>MESHER/include/Grid_Utils.h</itemPath>
         <itemPath>MESHER/include/TriangleMesh.h</itemPath>
+        <itemPath>MESHER/include/TriangleMeshSLK.h</itemPath>
         <itemPath>MESHER/include/TriangleMesher2D.h</itemPath>
       </logicalFolder>
       <logicalFolder name="src" displayName="src" projectFiles="true">
         <itemPath>MESHER/src/Bowyer_Watson.cpp</itemPath>
         <itemPath>MESHER/src/Grid_Utils.cpp</itemPath>
         <itemPath>MESHER/src/TriangleMesh.cpp</itemPath>
+        <itemPath>MESHER/src/TriangleMeshSLK.cpp</itemPath>
         <itemPath>MESHER/src/TriangleMesher2D.cpp</itemPath>
       </logicalFolder>
     </logicalFolder>
@@ -62,12 +74,14 @@
     </logicalFolder>
     <logicalFolder name="UTILS" displayName="UTILS" projectFiles="true">
       <logicalFolder name="include" displayName="include" projectFiles="true">
+        <itemPath>UTILS/include/Linked_List.h</itemPath>
         <itemPath>UTILS/include/List.h</itemPath>
         <itemPath>UTILS/include/MUtils.h</itemPath>
         <itemPath>UTILS/include/NDM_TypeDefs.h</itemPath>
         <itemPath>UTILS/include/Utils.h</itemPath>
       </logicalFolder>
       <logicalFolder name="src" displayName="src" projectFiles="true">
+        <itemPath>UTILS/src/Linked_List.cpp</itemPath>
         <itemPath>UTILS/src/List.cpp</itemPath>
         <itemPath>UTILS/src/MUtils.c</itemPath>
         <itemPath>UTILS/src/Utils.c</itemPath>
@@ -104,6 +118,7 @@
     <Elem>WINSLOWVV</Elem>
     <Elem>ADAPTREFINE</Elem>
     <Elem>MESHIO</Elem>
+    <Elem>GEOMETRY</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -115,6 +130,7 @@
       </toolsSet>
       <compileType>
         <cTool>
+          <commandlineTool>gcc</commandlineTool>
           <incDir>
             <pElem>MESHER/include</pElem>
             <pElem>OPTIMESH/include</pElem>
@@ -124,6 +140,7 @@
             <pElem>WINSLOWVV/include</pElem>
             <pElem>ADAPTREFINE/include</pElem>
             <pElem>MESHIO/include</pElem>
+            <pElem>GEOMETRY/include</pElem>
           </incDir>
           <preprocessorList>
             <Elem>LINUX_AMD64</Elem>
@@ -132,6 +149,7 @@
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
+          <commandlineTool>g++</commandlineTool>
           <incDir>
             <pElem>MESHER/include</pElem>
             <pElem>OPTIMESH/include</pElem>
@@ -141,6 +159,7 @@
             <pElem>WINSLOWVV/include</pElem>
             <pElem>ADAPTREFINE/include</pElem>
             <pElem>MESHIO/include</pElem>
+            <pElem>GEOMETRY/include</pElem>
           </incDir>
           <commandLine>-Wno-write-strings</commandLine>
           <preprocessorList>
@@ -153,12 +172,11 @@
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
         <linkerTool>
-          <linkerAddLib>
-            <pElem>../../00-Applications/HPC_LIBS/lib</pElem>
-          </linkerAddLib>
+          <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
             <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
           </linkerLibItems>
+          <commandLine>-lstdc++</commandLine>
         </linkerTool>
       </compileType>
     </conf>
@@ -180,6 +198,7 @@
             <pElem>WINSLOWVV/include</pElem>
             <pElem>ADAPTREFINE/include</pElem>
             <pElem>MESHIO/include</pElem>
+            <pElem>GEOMETRY/include</pElem>
           </incDir>
           <preprocessorList>
             <Elem>LINUX_AMD64</Elem>
@@ -198,6 +217,7 @@
             <pElem>WINSLOWVV/include</pElem>
             <pElem>ADAPTREFINE/include</pElem>
             <pElem>MESHIO/include</pElem>
+            <pElem>GEOMETRY/include</pElem>
           </incDir>
           <commandLine>-Wno-write-strings</commandLine>
           <preprocessorList>
@@ -211,12 +231,10 @@
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
         <linkerTool>
-          <linkerAddLib>
-            <pElem>../../00-Applications/HPC_LIBS/lib</pElem>
-          </linkerAddLib>
           <linkerLibItems>
             <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
           </linkerLibItems>
+          <commandLine>-lstdc++</commandLine>
         </linkerTool>
       </compileType>
     </conf>
