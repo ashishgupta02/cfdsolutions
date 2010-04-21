@@ -13,11 +13,6 @@
 #include "Grid_Utils.h"
 #include "Bowyer_Watson.h"
 
-#ifdef GUI
-#include "GUI_Framework.h"
-#endif
-
-
 int trimesh(int nn, int tdim, int nb, int nbs[], int*** bs,
         double x[], double y[], int tri[][3]) {
     int i, ntri;
@@ -55,12 +50,6 @@ int trimesh(int nn, int tdim, int nb, int nbs[], int*** bs,
         BBoxX[i] = x[i - 4];
         BBoxY[i] = y[i - 4];
     }
-
-#ifdef GUI
-    pGL_Widget->setDomain(Xmin, Xmax, Ymin, Ymax);
-    BuildDisplay(1);
-    pGL_Widget->updateGL();
-#endif
 
     // Add Bounding Box Triangle to Triangle List
     tri[0][0] = 0;

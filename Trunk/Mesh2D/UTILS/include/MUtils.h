@@ -15,6 +15,7 @@ extern "C" {
 double DetMat2x2(double a, double b, double c, double d);
 void InvMat2x2(double* M, double* N);
 void MulMat2x2(double* M, double* N, double* O);
+double DetMat3X3(double m[3][3]);
 
 #ifdef	__cplusplus
 }
