@@ -277,6 +277,9 @@ int unlink_name(char *name);
 void copy_file(char *oldfile, char *newfile);
 /* Blank the string */
 void str_blank(char *str);
+/* Sorting Functions */
+void sort_low2high(int n, int list[], double f[]);
+void sort_high2low(int n, int list[], double f[]);
 
 /*******************************************************************************
  * Keep C++ compilers from getting confused

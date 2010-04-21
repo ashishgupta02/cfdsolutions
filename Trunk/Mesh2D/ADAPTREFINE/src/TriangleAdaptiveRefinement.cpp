@@ -14,6 +14,7 @@
 
 #include "Utils.h"
 #include "MUtils.h"
+#include "MemUtils.h"
 #include "TriangleAdaptiveRefinement.h"
 #include "TriangleMesh.h"
 #include "TriangleMeshSLK.h"
@@ -44,9 +45,13 @@ void TriangleAdaptiveRefinement::Init() {
     AFType       = 1;
     Frefine      = 0;
     Fcoarsen     = 0;
+    Fcoarsen_Old = 0;
     FuncType     = 0;
     NAdapt       = 0;
+    NFieldAdapt  = 0;
     ForceTriMesh = 0;
+    NLimitCoarsen= -1;
+    NLimitRefine = -1;
     AFrefine     = 0.0;
     AFcoarsen    = 0.0;
     AFavg        = 0.0;
@@ -108,11 +113,15 @@ void TriangleAdaptiveRefinement::Get_Input_Parameters() {
     if (Frefine == 1) {
         std::cout << "Input Refinement Coefficient (Cr)              : ";
         std::cin  >> Cr;
+        std::cout << "Input Max Refinement Node Creation Limit       : ";
+        std::cin  >> NLimitRefine;
     }
 
     if (Fcoarsen == 1) {
         std::cout << "Input Coarsening Coefficient (Cc)              : ";
         std::cin  >> Cc;
+        std::cout << "Input Max Coarsening Node Deletion Limit       : ";
+        std::cin  >> NLimitCoarsen;
     }
 
     if ((Frefine != 1) && (Fcoarsen !=1))
@@ -143,11 +152,14 @@ void TriangleAdaptiveRefinement::Get_Input_Parameters() {
 
     Tag_FlowField();
 
-    ForceTriMesh = 0;
-    std::cout << "Force Triangular Mesher (0: No, 1: Yes)        : ";
-    std::cin  >> ForceTriMesh;
-    if ((ForceTriMesh < 0) || (ForceTriMesh > 1))
-        error("AdaptiveRefinement: %s\n", "Force Triangular Mesher - Invalid Valid");
+    if (Fcoarsen != 1) {
+        ForceTriMesh = 0;
+        std::cout << "Force Triangular Mesher (0: No, 1: Yes)        : ";
+        std::cin  >> ForceTriMesh;
+        if ((ForceTriMesh < 0) || (ForceTriMesh > 1))
+            error("AdaptiveRefinement: %s\n", "Force Triangular Mesher - Invalid Valid");
+    } else
+        ForceTriMesh = 1;
 }
 
 // *****************************************************************************
@@ -197,9 +209,13 @@ void TriangleAdaptiveRefinement::AdaptiveRefinement() {
     
     info("Adaptive Refine: Ini: Nodes %7.0d - Triangles %7.0d", NNode, NTri);
     
+    // Save Coarsening Flag: This is done because Coarsening may be deactivated
+    Fcoarsen_Old = Fcoarsen;
+
     for (iAdapt = 0; iAdapt < NAdapt; iAdapt++) {
         NNode_Old = NNode;
-        NTri_Old = NTri;
+        NTri_Old  = NTri;
+        Fcoarsen  = Fcoarsen_Old;
         
         // Create Interior and Boundary Node Tagging
         Create_Interior_Boundary_Tag();
@@ -228,8 +244,20 @@ void TriangleAdaptiveRefinement::AdaptiveRefinement() {
             error("AdaptiveRefinement: %s\n", "Error Allocating Memory 1");
 #endif
 
+        // Create Coarsen Tag Array and Initialize
+        if (Fcoarsen == 1) {
+            NodeCoarsen = new int [NNode];
+#ifdef DEBUG
+            if (NodeCoarsen == NULL)
+                error("AdaptiveRefinement: %s\n", "Error Allocating Memory 2");
+#endif
+            for (int iNode = 0; iNode < NNode; iNode++)
+                NodeCoarsen[iNode] = 0;
+        }
+
         // Initialize
         NNode_Refine = NNode;
+        NFieldAdapt  = 0;
         
         // Function Loop
         for (iField = 0; iField < NField; iField++) {
@@ -237,6 +265,8 @@ void TriangleAdaptiveRefinement::AdaptiveRefinement() {
                 if (FieldTag[iField] == 0)
                     continue;
             }
+
+            NFieldAdapt++;
             // Compute Gradient also on Boundary
             Compute_Gauss_Gradient(1, Field[iField], Fx, Fy);
 
@@ -246,30 +276,49 @@ void TriangleAdaptiveRefinement::AdaptiveRefinement() {
             // Edge Loop: Test, Mark Each Edge and Notify Neighbour
             if (Frefine == 1)
                 Adaptation_Refine_Mark_Edges(Field[iField], Fx, Fy);
-
+            
             // Mark Nodes for Coarsening
             if (Fcoarsen == 1)
                 Adaptation_Coarsen_Mark_Nodes(Field[iField], Fx, Fy);
         }
-
         
         if (Frefine == 1) {
            // Generate New Nodes and Interpolate Solution Field
            Generate_Refine_New_Nodes_And_Solution();
 
            // Update Boundaries with New Segements
-            Update_Boundaries();
+            Update_Refine_Boundaries();
         }
+        
         // Create New Triangles only if "only" Refinement is Active
         if ((ForceTriMesh == 0) && (Frefine == 1) && (Fcoarsen != 1)) {
             // Update and Expand the Triangle Connectivities
-            Update_Triangles();
+            Update_Refine_Triangles();
         } else {
-            // Compress Nodes Tagged while Coarsening
+            // Check if Coarsening is Required
             if (Fcoarsen == 1)
-                Compress_Coarsen_Nodes();
-            // Call Mesher
-            Generate_BowyerWatson_Delaunay_TriMesh();
+                Finalize_Coarsen_Mark_Nodes();
+
+            if ((Fcoarsen == 1) || (Frefine == 1)) {
+                // Compress Nodes Tagged while Coarsening
+                if (Fcoarsen == 1)
+                    Compress_Coarsen_Nodes();
+                
+                // Call Mesher
+                Generate_BowyerWatson_Delaunay_TriMesh();
+            } else {
+                // No Refinement and Coasening is Done Restore Triangle Connectivity
+                Tri = new int[NTri][3];
+#ifdef DEBUG
+                if (Tri == NULL)
+                    error("AdaptiveRefinement: %s\n", "Error Allocating Memory 3");
+#endif
+                for (int iTri = 0; iTri < NTri; iTri++) {
+                    // Copy Values and Initialize
+                    for (int i = 0; i < 3; i++)
+                        Tri[iTri][i] = Cell2Node_6[iTri][i];
+                }
+            }
         }
 
         // Delete Expanded Connectivity
@@ -725,20 +774,11 @@ void TriangleAdaptiveRefinement::Adaptation_Refine_Mark_Edges(double *F, double 
 // *****************************************************************************
 // *****************************************************************************
 void TriangleAdaptiveRefinement::Adaptation_Coarsen_Mark_Nodes(double* F, double* Fx, double* Fy) {
-    int i, iNode, nodeid, cflag, count;
+    int i, iNode, nodeid, cflag;
     double var;
     
     // Check if Coarsen is Asked
     if (Fcoarsen == 1) {
-        NodeCoarsen = new int [NNode];
-#ifdef DEBUG
-        if (NodeCoarsen == NULL)
-            error("Adaptation_Coarsen_Mark_Nodes: %s\n", "Error Allocating Memory 1");
-#endif
-        for (iNode = 0; iNode < NNode; iNode++)
-            NodeCoarsen[iNode] =  0;
-
-        count = 0;
         // Edge Loop: Test, Mark Each Edge and Notify Neighbour
         for (iNode = 0; iNode < NNode; iNode++) {
             // Check if Node is Boundary
@@ -754,16 +794,42 @@ void TriangleAdaptiveRefinement::Adaptation_Coarsen_Mark_Nodes(double* F, double
                    cflag++;
             }
             // Mark Node for Deletion only if all connected edge fails
-            if (cflag == Node2Node[iNode]->max) {
+            if (cflag == Node2Node[iNode]->max)
+                NodeCoarsen[iNode] += -1;
+        }
+    }
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void TriangleAdaptiveRefinement::Finalize_Coarsen_Mark_Nodes() {
+    int iNode, count;
+
+    // Check if Coarsen is Asked
+    if (Fcoarsen == 1) {
+        count = 0;
+        // Edge Loop: Test, Mark Each Edge and Notify Neighbour
+        for (iNode = 0; iNode < NNode; iNode++) {
+            // Check if Node is Boundary
+            if (IBTag[iNode] != -1)
+                continue;
+
+            // Mark Node for Deletion only if all Adaptive Field Fails
+            if (NodeCoarsen[iNode] == -NFieldAdapt) {
                 NodeCoarsen[iNode] = -1;
                 count++;
-            }
+            } else
+                NodeCoarsen[iNode] = 0;
         }
-        // Check if Coarsening is Requrired
+        // Check if Coarsening is Required
         // This will avoid call to Tri Mesher
         if (count == 0) {
             Fcoarsen = 0;
-            info("Adaptation_Coarsen_Mark_Nodes: No Node Found");
+            // Delete the Coarsen Node Tag
+            if (NodeCoarsen != NULL)
+                delete[] NodeCoarsen;
+            NodeCoarsen = NULL;
+            info("Finalize_Coarsen_Mark_Nodes: No Node Found");
             info("Coarsening: Deactivate");
         }
     }
@@ -885,7 +951,7 @@ void TriangleAdaptiveRefinement::Generate_Refine_New_Nodes_And_Solution() {
 
 // *****************************************************************************
 // *****************************************************************************
-void TriangleAdaptiveRefinement::Update_Boundaries() {
+void TriangleAdaptiveRefinement::Update_Refine_Boundaries() {
     int i, j, k, ibnd, ibs, node1, node2, cellid, edgeid;
     int nbs_new, nodeid;
 
@@ -948,7 +1014,7 @@ void TriangleAdaptiveRefinement::Update_Boundaries() {
 
 // *****************************************************************************
 // *****************************************************************************
-void TriangleAdaptiveRefinement::Update_Triangles() {
+void TriangleAdaptiveRefinement::Update_Refine_Triangles() {
     int i, j, iTri, nsubtri, count, NTri_New;
     int (*subtri)[3];
     

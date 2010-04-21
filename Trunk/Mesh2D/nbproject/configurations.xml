@@ -77,6 +77,7 @@
         <itemPath>UTILS/include/Linked_List.h</itemPath>
         <itemPath>UTILS/include/List.h</itemPath>
         <itemPath>UTILS/include/MUtils.h</itemPath>
+        <itemPath>UTILS/include/MemUtils.h</itemPath>
         <itemPath>UTILS/include/NDM_TypeDefs.h</itemPath>
         <itemPath>UTILS/include/Utils.h</itemPath>
       </logicalFolder>
@@ -84,6 +85,7 @@
         <itemPath>UTILS/src/Linked_List.cpp</itemPath>
         <itemPath>UTILS/src/List.cpp</itemPath>
         <itemPath>UTILS/src/MUtils.c</itemPath>
+        <itemPath>UTILS/src/MemUtils.cpp</itemPath>
         <itemPath>UTILS/src/Utils.c</itemPath>
       </logicalFolder>
     </logicalFolder>
