@@ -74,6 +74,10 @@ void TriangleMeshDB::Delete_Connectivity() {
         }
         delete Node2Node;
     }
+
+    Node2Cell = NULL;
+    Cell2Cell = NULL;
+    Node2Node = NULL;
 }
 
 // *****************************************************************************
@@ -423,6 +427,15 @@ void TriangleMeshDB::Create_Interior_Boundary_Tag() {
             n1 = BoundarySegments[ib][ibs][1];
             IBTag[n0] = IBTag[n1] = ib;
         }
+    }
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void TriangleMeshDB::Delete_Interior_Boundary_Tag() {
+    if (IBTag != NULL) {
+        delete[] IBTag;
+        IBTag = NULL;
     }
 }
 

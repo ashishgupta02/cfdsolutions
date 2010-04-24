@@ -3,9 +3,11 @@
   <logicalFolder name="root" displayName="root" projectFiles="true">
     <logicalFolder name="ADAPTREFINE" displayName="ADAPTREFINE" projectFiles="true">
       <logicalFolder name="include" displayName="include" projectFiles="true">
+        <itemPath>ADAPTREFINE/include/Edge2D.h</itemPath>
         <itemPath>ADAPTREFINE/include/TriangleAdaptiveRefinement.h</itemPath>
       </logicalFolder>
       <logicalFolder name="src" displayName="src" projectFiles="true">
+        <itemPath>ADAPTREFINE/src/Edge2D.cpp</itemPath>
         <itemPath>ADAPTREFINE/src/TriangleAdaptiveRefinement.cpp</itemPath>
       </logicalFolder>
     </logicalFolder>
