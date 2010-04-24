@@ -12,8 +12,8 @@
         <configurationname>GizmoSimple</configurationname>
       </gizmo_options>
       <runprofile version="6">
-        <args></args>
-        <rundir></rundir>
+        <args>-f Square.mesh &lt; Refine.inp</args>
+        <rundir>/home/agupta/Ossillation</rundir>
         <buildfirst>true</buildfirst>
         <console-type>0</console-type>
         <terminal-type>0</terminal-type>

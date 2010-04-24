@@ -409,7 +409,7 @@ void sort_low2high(int n, int list[], double f[]) {
                 list[0] = ira;
                 break;
             }
-        }
+        }    
         i = l;
         j = l * 2;
         while (j <= ir) {

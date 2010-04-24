@@ -47,6 +47,7 @@ public:
     void WKA_GnuplotWriter(const char* FileName);
     // Topology Operations
     void Create_Interior_Boundary_Tag();
+    void Delete_Interior_Boundary_Tag();
     void Create_Connectivity(int Sort);
 protected:
     void Create_Node2Cell_Connectivity();
