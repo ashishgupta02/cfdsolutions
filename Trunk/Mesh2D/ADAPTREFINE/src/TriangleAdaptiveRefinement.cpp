@@ -472,6 +472,7 @@ void TriangleAdaptiveRefinement::Coarsen_Mesh() {
         // Delete Interior and Boundary Node Tagging
         Delete_Interior_Boundary_Tag();
 
+        info("Coaren: Deleted %4d Nodes - %6d NODES %6d TRIANGLE", (NLimitCoarsen-NLC-iCNodes+2), NNode, NTri);
         // Finally Decrement
         NLC = NLC - iCNodes;
     }
