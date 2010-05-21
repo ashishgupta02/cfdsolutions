@@ -49,19 +49,6 @@
                    projectFiles="true">
       <itemPath>main.cpp</itemPath>
     </logicalFolder>
-    <logicalFolder name="UTILS" displayName="UTILS" projectFiles="true">
-      <logicalFolder name="include" displayName="include" projectFiles="true">
-        <itemPath>UTILS/include/List.h</itemPath>
-        <itemPath>UTILS/include/MUtils.h</itemPath>
-        <itemPath>UTILS/include/NDM_TypeDefs.h</itemPath>
-        <itemPath>UTILS/include/Utils.h</itemPath>
-      </logicalFolder>
-      <logicalFolder name="src" displayName="src" projectFiles="true">
-        <itemPath>UTILS/src/List.cpp</itemPath>
-        <itemPath>UTILS/src/MUtils.c</itemPath>
-        <itemPath>UTILS/src/Utils.c</itemPath>
-      </logicalFolder>
-    </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
                    projectFiles="false">
@@ -69,7 +56,6 @@
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
-    <Elem>UTILS</Elem>
     <Elem>MATCOMP</Elem>
     <Elem>MESH</Elem>
     <Elem>SOLVER</Elem>
@@ -85,7 +71,7 @@
       <compileType>
         <cTool>
           <incDir>
-            <pElem>UTILS/include</pElem>
+            <pElem>../UTILS/include</pElem>
             <pElem>MATCOMP/include</pElem>
             <pElem>MESH/include</pElem>
             <pElem>SOLVER/include</pElem>
@@ -94,7 +80,7 @@
         </cTool>
         <ccTool>
           <incDir>
-            <pElem>UTILS/include</pElem>
+            <pElem>../UTILS/include</pElem>
             <pElem>MATCOMP/include</pElem>
             <pElem>MESH/include</pElem>
             <pElem>SOLVER/include</pElem>
@@ -108,8 +94,32 @@
         <linkerTool>
           <linkerLibItems>
             <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Debug"
+                            AC="true"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Debug"
+                            CC="${MAKE}  -f Makefile CONF=Debug clean"
+                            OP="dist/Debug/GNU-Linux-x86/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
           </linkerLibItems>
         </linkerTool>
+        <requiredProjects>
+          <makeArtifact PL="../UTILS"
+                        CT="2"
+                        CN="Debug"
+                        AC="true"
+                        BL="true"
+                        WD="../UTILS"
+                        BC="${MAKE}  -f Makefile CONF=Debug"
+                        CC="${MAKE}  -f Makefile CONF=Debug clean"
+                        OP="dist/Debug/GNU-Linux-x86/libUTILS.so">
+          </makeArtifact>
+        </requiredProjects>
       </compileType>
     </conf>
     <conf name="Release" type="1">
@@ -122,7 +132,7 @@
         <cTool>
           <developmentMode>5</developmentMode>
           <incDir>
-            <pElem>UTILS/include</pElem>
+            <pElem>../UTILS/include</pElem>
             <pElem>MATCOMP/include</pElem>
             <pElem>MESH/include</pElem>
             <pElem>SOLVER/include</pElem>
@@ -132,7 +142,7 @@
         <ccTool>
           <developmentMode>5</developmentMode>
           <incDir>
-            <pElem>UTILS/include</pElem>
+            <pElem>../UTILS/include</pElem>
             <pElem>MATCOMP/include</pElem>
             <pElem>MESH/include</pElem>
             <pElem>SOLVER/include</pElem>
@@ -147,8 +157,32 @@
         <linkerTool>
           <linkerLibItems>
             <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Release"
+                            AC="false"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Release"
+                            CC="${MAKE}  -f Makefile CONF=Release clean"
+                            OP="dist/Release/GNU-Linux-x86/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
           </linkerLibItems>
         </linkerTool>
+        <requiredProjects>
+          <makeArtifact PL="../UTILS"
+                        CT="2"
+                        CN="Release"
+                        AC="false"
+                        BL="true"
+                        WD="../UTILS"
+                        BC="${MAKE}  -f Makefile CONF=Release"
+                        CC="${MAKE}  -f Makefile CONF=Release clean"
+                        OP="dist/Release/GNU-Linux-x86/libUTILS.so">
+          </makeArtifact>
+        </requiredProjects>
       </compileType>
     </conf>
   </confs>

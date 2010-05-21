@@ -72,9 +72,10 @@ Euler2D_Mesh::~Euler2D_Mesh() {
 void Euler2D_Mesh::WKA_MeshReader(const char* FileName) {
     int i, icount;
     int node1, node2;
-    int idum;
+    int idum, iret;
     FILE *inputMesh;
     char dumstring[100];
+    char *cdum;
     int *tag = NULL;
 
     printf("=============================================================================\n");
@@ -85,7 +86,7 @@ void Euler2D_Mesh::WKA_MeshReader(const char* FileName) {
         error("Unable to Open Mesh File %s", FileName);
 
     // Read mesh sizes
-    fscanf(inputMesh, "%d %d %d %d %d %d", &mesh.nnodes, &mesh.nedges, &mesh.ncells, &mesh.nbedges, &idum, &idum);
+    iret = fscanf(inputMesh, "%d %d %d %d %d %d", &mesh.nnodes, &mesh.nedges, &mesh.ncells, &mesh.nbedges, &idum, &idum);
     info("NNodes = %d NEdges = %d NCells = %d NBEdge = %d", mesh.nnodes, mesh.nedges, mesh.ncells, mesh.nbedges);
 
     mesh.inside = mesh.ncells - mesh.nbedges;
@@ -97,7 +98,7 @@ void Euler2D_Mesh::WKA_MeshReader(const char* FileName) {
 
     icount = 0;
     for (i = 0; i < mesh.nedges; i++) {
-        fscanf(inputMesh, "%d %d %d %d", &edge[i].node1, &edge[i].node2, &edge[i].cell1, &edge[i].cell2);
+        iret = fscanf(inputMesh, "%d %d %d %d", &edge[i].node1, &edge[i].node2, &edge[i].cell1, &edge[i].cell2);
         /* Subtract 1; mesh written assuming number starts at 1 */
         /* but number really starts at 0 because this is C      */
         if (changeIndex == 1) {
@@ -112,10 +113,10 @@ void Euler2D_Mesh::WKA_MeshReader(const char* FileName) {
     /* Types: 1000 del(q).n = 0 */
     /*        2000 q = x        */
     /*        2001 q = c1       */
-    fscanf(inputMesh, "\n");
-    fgets(dumstring, 100, inputMesh);
+    iret = fscanf(inputMesh, "\n");
+    cdum = fgets(dumstring, 100, inputMesh);
     for (i = 0; i < mesh.nbedges; i++) {
-        fscanf(inputMesh, "%d %d %lf %lf", &idum, &(boundaryEdge[i].bcType), &(boundaryEdge[i].c1), &(boundaryEdge[i].c2));
+        iret = fscanf(inputMesh, "%d %d %lf %lf", &idum, &(boundaryEdge[i].bcType), &(boundaryEdge[i].c1), &(boundaryEdge[i].c2));
         if (changeIndex == 1)
             boundaryEdge[i].edgeNumber = idum - 1;
         else
@@ -123,11 +124,11 @@ void Euler2D_Mesh::WKA_MeshReader(const char* FileName) {
     }
 
     /* Now read the mesh coordinates */
-    fscanf(inputMesh, "\n");
-    fgets(dumstring, 100, inputMesh);
+    iret = fscanf(inputMesh, "\n");
+    cdum = fgets(dumstring, 100, inputMesh);
     node = (NODE *) calloc(mesh.nnodes, sizeof (NODE));
     for (i = 0; i < mesh.nnodes; i++)
-        fscanf(inputMesh, "%le %le", &node[i].x, &node[i].y);
+        iret = fscanf(inputMesh, "%le %le", &node[i].x, &node[i].y);
 
     /* Fill boundaryNode array (used for Dirchlet boundary condition) */
     tag = (int *) calloc(mesh.nnodes, sizeof (int));
@@ -346,6 +347,7 @@ void Euler2D_Mesh::Tag_Boundary_Nodes() {
 // *****************************************************************************
 void Euler2D_Mesh::Read_RestartFile(const char* FileName) {
     int iNode, var;
+    size_t sdum;
     FILE *fp;
 
     printf("=============================================================================\n");
@@ -356,16 +358,16 @@ void Euler2D_Mesh::Read_RestartFile(const char* FileName) {
         error("Read_RestartFile: Unable to Open Mesh File %s", FileName);
     
     var = 0;
-    fread(&var, sizeof(int), 1, fp);
+    sdum = fread(&var, sizeof(int), 1, fp);
     if (var != mesh.nnodes)
         error("Read_RestartFile: Mismatched in Restart and Mesh File %s", FileName);
     var = 0;
-    fread(&var, sizeof(int), 1, fp);
+    sdum = fread(&var, sizeof(int), 1, fp);
     for (iNode = 0; iNode < mesh.nnodes; iNode++) {
-        fread(&node[iNode].Q[0], sizeof (double), 1, fp);
-        fread(&node[iNode].Q[1], sizeof (double), 1, fp);
-        fread(&node[iNode].Q[2], sizeof (double), 1, fp);
-        fread(&node[iNode].Q[3], sizeof (double), 1, fp);
+        sdum = fread(&node[iNode].Q[0], sizeof (double), 1, fp);
+        sdum = fread(&node[iNode].Q[1], sizeof (double), 1, fp);
+        sdum = fread(&node[iNode].Q[2], sizeof (double), 1, fp);
+        sdum = fread(&node[iNode].Q[3], sizeof (double), 1, fp);
     }
 
     fclose(fp);
