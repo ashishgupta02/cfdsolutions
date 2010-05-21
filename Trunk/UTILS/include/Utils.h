@@ -46,6 +46,17 @@ extern "C" {
 #endif
 
 /*------------------------------------------------------------------------------
+| define OK and ERROR conditionals
+------------------------------------------------------------------------------*/
+#ifndef OK
+#define OK 0
+#endif
+
+#ifndef ERROR
+#define ERROR 1
+#endif
+
+/*------------------------------------------------------------------------------
 | define MAXIMUM AND MINIMUM FLOATS/DOUBLES TO AVOID OVERFLOW/UNDERFLOW
 | these are system dependent constants
 ------------------------------------------------------------------------------*/
