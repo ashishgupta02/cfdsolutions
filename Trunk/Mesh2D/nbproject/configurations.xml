@@ -21,9 +21,7 @@
         <itemPath>GEOMETRY/src/Vector2D.cpp</itemPath>
       </logicalFolder>
     </logicalFolder>
-    <logicalFolder name="HeaderFiles"
-                   displayName="Header Files"
-                   projectFiles="true">
+    <logicalFolder name="f1" displayName="Header Files" projectFiles="true">
     </logicalFolder>
     <logicalFolder name="LESMOOTH" displayName="LESMOOTH" projectFiles="true">
       <logicalFolder name="include" displayName="include" projectFiles="true">
@@ -74,23 +72,6 @@
                    projectFiles="true">
       <itemPath>main.cpp</itemPath>
     </logicalFolder>
-    <logicalFolder name="UTILS" displayName="UTILS" projectFiles="true">
-      <logicalFolder name="include" displayName="include" projectFiles="true">
-        <itemPath>UTILS/include/Linked_List.h</itemPath>
-        <itemPath>UTILS/include/List.h</itemPath>
-        <itemPath>UTILS/include/MUtils.h</itemPath>
-        <itemPath>UTILS/include/MemUtils.h</itemPath>
-        <itemPath>UTILS/include/NDM_TypeDefs.h</itemPath>
-        <itemPath>UTILS/include/Utils.h</itemPath>
-      </logicalFolder>
-      <logicalFolder name="src" displayName="src" projectFiles="true">
-        <itemPath>UTILS/src/Linked_List.cpp</itemPath>
-        <itemPath>UTILS/src/List.cpp</itemPath>
-        <itemPath>UTILS/src/MUtils.c</itemPath>
-        <itemPath>UTILS/src/MemUtils.cpp</itemPath>
-        <itemPath>UTILS/src/Utils.c</itemPath>
-      </logicalFolder>
-    </logicalFolder>
     <logicalFolder name="WINSLOW" displayName="WINSLOW" projectFiles="true">
       <logicalFolder name="include" displayName="include" projectFiles="true">
         <itemPath>WINSLOW/include/TriangleWinslowSmoother.h</itemPath>
@@ -114,7 +95,6 @@
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
-    <Elem>UTILS</Elem>
     <Elem>MESHER</Elem>
     <Elem>OPTIMESH</Elem>
     <Elem>WINSLOW</Elem>
@@ -136,9 +116,9 @@
         <cTool>
           <commandlineTool>gcc</commandlineTool>
           <incDir>
+            <pElem>../UTILS/include</pElem>
             <pElem>MESHER/include</pElem>
             <pElem>OPTIMESH/include</pElem>
-            <pElem>UTILS/include</pElem>
             <pElem>WINSLOW/include</pElem>
             <pElem>LESMOOTH/include</pElem>
             <pElem>WINSLOWVV/include</pElem>
@@ -146,18 +126,14 @@
             <pElem>MESHIO/include</pElem>
             <pElem>GEOMETRY/include</pElem>
           </incDir>
-          <preprocessorList>
-            <Elem>LINUX_AMD64</Elem>
-            <Elem>BUILD_LIB</Elem>
-          </preprocessorList>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
           <commandlineTool>g++</commandlineTool>
           <incDir>
+            <pElem>../UTILS/include</pElem>
             <pElem>MESHER/include</pElem>
             <pElem>OPTIMESH/include</pElem>
-            <pElem>UTILS/include</pElem>
             <pElem>WINSLOW/include</pElem>
             <pElem>LESMOOTH/include</pElem>
             <pElem>WINSLOWVV/include</pElem>
@@ -166,10 +142,6 @@
             <pElem>GEOMETRY/include</pElem>
           </incDir>
           <commandLine>-Wno-write-strings</commandLine>
-          <preprocessorList>
-            <Elem>LINUX_AMD64</Elem>
-            <Elem>BUILD_LIB</Elem>
-          </preprocessorList>
           <warningLevel>2</warningLevel>
         </ccTool>
         <fortranCompilerTool>
@@ -179,9 +151,33 @@
           <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
             <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Debug"
+                            AC="false"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Debug"
+                            CC="${MAKE}  -f Makefile CONF=Debug clean"
+                            OP="dist/Debug/GNU-Linux-x86/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
           </linkerLibItems>
           <commandLine>-lstdc++</commandLine>
         </linkerTool>
+        <requiredProjects>
+          <makeArtifact PL="../UTILS"
+                        CT="2"
+                        CN="Debug"
+                        AC="false"
+                        BL="true"
+                        WD="../UTILS"
+                        BC="${MAKE}  -f Makefile CONF=Debug"
+                        CC="${MAKE}  -f Makefile CONF=Debug clean"
+                        OP="dist/Debug/GNU-Linux-x86/libUTILS.so">
+          </makeArtifact>
+        </requiredProjects>
       </compileType>
     </conf>
     <conf name="Release" type="1">
@@ -194,9 +190,9 @@
         <cTool>
           <developmentMode>5</developmentMode>
           <incDir>
+            <pElem>../UTILS/include</pElem>
             <pElem>MESHER/include</pElem>
             <pElem>OPTIMESH/include</pElem>
-            <pElem>UTILS/include</pElem>
             <pElem>WINSLOW/include</pElem>
             <pElem>LESMOOTH/include</pElem>
             <pElem>WINSLOWVV/include</pElem>
@@ -204,18 +200,14 @@
             <pElem>MESHIO/include</pElem>
             <pElem>GEOMETRY/include</pElem>
           </incDir>
-          <preprocessorList>
-            <Elem>LINUX_AMD64</Elem>
-            <Elem>BUILD_LIB</Elem>
-          </preprocessorList>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
           <developmentMode>5</developmentMode>
           <incDir>
+            <pElem>../UTILS/include</pElem>
             <pElem>MESHER/include</pElem>
             <pElem>OPTIMESH/include</pElem>
-            <pElem>UTILS/include</pElem>
             <pElem>WINSLOW/include</pElem>
             <pElem>LESMOOTH/include</pElem>
             <pElem>WINSLOWVV/include</pElem>
@@ -224,10 +216,6 @@
             <pElem>GEOMETRY/include</pElem>
           </incDir>
           <commandLine>-Wno-write-strings</commandLine>
-          <preprocessorList>
-            <Elem>LINUX_AMD64</Elem>
-            <Elem>BUILD_LIB</Elem>
-          </preprocessorList>
           <warningLevel>2</warningLevel>
         </ccTool>
         <fortranCompilerTool>
@@ -237,9 +225,33 @@
         <linkerTool>
           <linkerLibItems>
             <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Release"
+                            AC="true"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Release"
+                            CC="${MAKE}  -f Makefile CONF=Release clean"
+                            OP="dist/Release/GNU-Linux-x86/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
           </linkerLibItems>
           <commandLine>-lstdc++</commandLine>
         </linkerTool>
+        <requiredProjects>
+          <makeArtifact PL="../UTILS"
+                        CT="2"
+                        CN="Release"
+                        AC="true"
+                        BL="true"
+                        WD="../UTILS"
+                        BC="${MAKE}  -f Makefile CONF=Release"
+                        CC="${MAKE}  -f Makefile CONF=Release clean"
+                        OP="dist/Release/GNU-Linux-x86/libUTILS.so">
+          </makeArtifact>
+        </requiredProjects>
       </compileType>
     </conf>
   </confs>
