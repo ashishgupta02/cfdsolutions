@@ -19,6 +19,7 @@ int TriangleMesher2D(int argcs, char* pArgs[]) {
     int b, i, j, nn, nt, nb, tdim, n0, n1, n2;
     const int bdim = 132;
     char buff[bdim];
+    char *cdum;
     FILE *fp;
     int *nbs, ***bs;
     int (*tri)[3];
@@ -42,8 +43,8 @@ int TriangleMesher2D(int argcs, char* pArgs[]) {
     }
 
     // read number of nodes
-    fgets(buff, bdim, fp);
-    fgets(buff, bdim, fp);
+    cdum = fgets(buff, bdim, fp);
+    cdum = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &nn);
     printf("\nNumber of points = %d", nn);
     fflush(stdout);
@@ -54,20 +55,20 @@ int TriangleMesher2D(int argcs, char* pArgs[]) {
 
     // read in coordinates
     for (i = 0; i < nn; i++) {
-        fgets(buff, bdim, fp);
+        cdum = fgets(buff, bdim, fp);
         sscanf(buff, "%lf %lf", &(x[i]), &(y[i]));
     }
 
     // allocate for points per boundary
-    fgets(buff, bdim, fp);
-    fgets(buff, bdim, fp);
+    cdum = fgets(buff, bdim, fp);
+    cdum = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &nb);
     printf("\nNumber of boundaries = %d", nb);
     nbs = new int[nb];
     bs = (int***) malloc(nb * sizeof (int**));
     for (b = 0; b < nb; b++) {
-        fgets(buff, bdim, fp);
-        fgets(buff, bdim, fp);
+        cdum = fgets(buff, bdim, fp);
+        cdum = fgets(buff, bdim, fp);
         sscanf(buff, "%d", &nbs[b]);
 
         printf("\nBoundary %d has %d segments", b, nbs[b]);
@@ -75,7 +76,7 @@ int TriangleMesher2D(int argcs, char* pArgs[]) {
         bs[b] = (int**) malloc(nbs[b] * sizeof (int*));
         for (i = 0; i < nbs[b]; i++) {
             bs[b][i] = (int*) malloc(2 * sizeof (int));
-            fgets(buff, bdim, fp);
+            cdum = fgets(buff, bdim, fp);
             sscanf(buff, "%d %d", &bs[b][i][0], &bs[b][i][1]);
             bs[b][i][0]--;
             bs[b][i][1]--;

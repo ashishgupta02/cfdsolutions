@@ -128,8 +128,10 @@ TriangleMeshDB::~TriangleMeshDB() {
 // *****************************************************************************
 void TriangleMeshDB::SLK_MeshReader(const char* FileName) {
     int i, b, NQuad = 0;
+    int idum;
     const int bfsize = 132;
     char buff[bfsize];
+    char *cdum;
     FILE *fp;
 
     if ((fp = fopen(FileName, "r")) == 0)
@@ -138,8 +140,8 @@ void TriangleMeshDB::SLK_MeshReader(const char* FileName) {
     info("Reading Mesh File: %s", FileName);
 
     // Read number of nodes
-    fgets(buff, bfsize, fp);
-    fgets(buff, bfsize, fp);
+    cdum = fgets(buff, bfsize, fp);
+    cdum = fgets(buff, bfsize, fp);
     sscanf(buff, "%d", &NNode);
     info("Number of points = %d", NNode);
 
@@ -153,19 +155,19 @@ void TriangleMeshDB::SLK_MeshReader(const char* FileName) {
 
     // Read in coordinates
     for (i = 0; i < NNode; i++) {
-        fgets(buff, bfsize, fp);
+        cdum = fgets(buff, bfsize, fp);
         sscanf(buff, "%lg %lg", &(X[i]), &(Y[i]));
     }
 
     // Read in Number of Blocks
-    fgets(buff, bfsize, fp);
-    fgets(buff, bfsize, fp);
+    cdum = fgets(buff, bfsize, fp);
+    cdum = fgets(buff, bfsize, fp);
     sscanf(buff, "%d", &NBlock);
     info("Number of blocks = %d", NBlock);
 
     // Read in Number of Triangles
-    fgets(buff, bfsize, fp);
-    fgets(buff, bfsize, fp);
+    cdum = fgets(buff, bfsize, fp);
+    cdum = fgets(buff, bfsize, fp);
     sscanf(buff, "%d", &NTri);
     info("Number of Triangles = %d", NTri);
 
@@ -180,7 +182,7 @@ void TriangleMeshDB::SLK_MeshReader(const char* FileName) {
 
     // Read in Triangles
     for (i = 0; i < NTri; i++) {
-        fgets(buff, bfsize, fp);
+        cdum = fgets(buff, bfsize, fp);
         sscanf(buff, "%d %d %d", &(Tri[i][0]), &(Tri[i][1]), &Tri[i][2]);
         Tri[i][0]--;
         Tri[i][1]--;
@@ -188,8 +190,8 @@ void TriangleMeshDB::SLK_MeshReader(const char* FileName) {
     }
 
     // Read in Number of Quadrilaterals
-    fgets(buff, bfsize, fp);
-    fgets(buff, bfsize, fp);
+    cdum = fgets(buff, bfsize, fp);
+    cdum = fgets(buff, bfsize, fp);
     sscanf(buff, "%d", &NQuad);
     info("Number of Quadrilaterals = %d", NQuad);
 
@@ -198,8 +200,8 @@ void TriangleMeshDB::SLK_MeshReader(const char* FileName) {
         error("SLK_MeshReader: %s %s\n", "Input file contains Quads - Use Hybrid Reader", FileName);
 
     // Read in Number of Boundary
-    fgets(buff, bfsize, fp);
-    fgets(buff, bfsize, fp);
+    cdum = fgets(buff, bfsize, fp);
+    cdum = fgets(buff, bfsize, fp);
     sscanf(buff, "%d", &NBoundary);
     info("Number of boundaries = %d", NBoundary);
 
@@ -207,15 +209,15 @@ void TriangleMeshDB::SLK_MeshReader(const char* FileName) {
     NBoundarySegments = new int[NBoundary];
     BoundarySegments = (int***) malloc(NBoundary * sizeof (int**));
     for (b = 0; b < NBoundary; b++) {
-        fgets(buff, bfsize, fp);
-        fgets(buff, bfsize, fp);
+        cdum = fgets(buff, bfsize, fp);
+        cdum = fgets(buff, bfsize, fp);
         sscanf(buff, "%d", &NBoundarySegments[b]);
         info("Boundary %d has %d segments", b, NBoundarySegments[b]);
 
         BoundarySegments[b] = (int**) malloc(NBoundarySegments[b] * sizeof (int*));
         for (i = 0; i < NBoundarySegments[b]; i++) {
             BoundarySegments[b][i] = (int*) malloc(2 * sizeof (int));
-            fgets(buff, bfsize, fp);
+            cdum = fgets(buff, bfsize, fp);
             sscanf(buff, "%d %d", &BoundarySegments[b][i][0], &BoundarySegments[b][i][1]);
             // Decrement for C Indexing Convention
             BoundarySegments[b][i][0]--;
@@ -225,10 +227,10 @@ void TriangleMeshDB::SLK_MeshReader(const char* FileName) {
 
     // Read in Number of Constant
     if (!feof(fp))
-        fgets(buff, bfsize, fp);
+        cdum = fgets(buff, bfsize, fp);
     else return;
     if (!feof(fp))
-        fgets(buff, bfsize, fp);
+        cdum = fgets(buff, bfsize, fp);
     else return;
     sscanf(buff, "%d", &NConstant);
     info("Number of Contants = %d", NConstant);
@@ -237,17 +239,17 @@ void TriangleMeshDB::SLK_MeshReader(const char* FileName) {
     if (NConstant > 0) {
         Constant = new double[NConstant];
         for (i = 0; i < NConstant; i++) {
-            fgets(buff, bfsize, fp);
+            cdum = fgets(buff, bfsize, fp);
             sscanf(buff, "%lg", &Constant[i]);
         }
     }
     
     // Read in Number of Variables
     if (!feof(fp))
-        fgets(buff, bfsize, fp);
+        cdum = fgets(buff, bfsize, fp);
     else return;
     if (!feof(fp))
-        fgets(buff, bfsize, fp);
+        cdum = fgets(buff, bfsize, fp);
     if (!feof(fp))
     sscanf(buff, "%d", &NVariable);
     info("Number of Variables = %d", NVariable);
@@ -259,7 +261,7 @@ void TriangleMeshDB::SLK_MeshReader(const char* FileName) {
             error("SLK_MeshReader: %s\n", "Error Allocating Memory 2");
 #endif
         for (i = 0; i < NVariable; i++) {
-            fgets(buff, bfsize, fp);
+            cdum = fgets(buff, bfsize, fp);
             b = strlen(buff);
             VariableName[i] = NULL;
             VariableName[i] = new char[b-1];
@@ -287,7 +289,7 @@ void TriangleMeshDB::SLK_MeshReader(const char* FileName) {
         }
         for (i = 0; i < NNode; i++) {
             for (b = 0; b < NVariable; b++)
-                fscanf(fp, "%lg", &(Variable[b][i]));
+                idum = fscanf(fp, "%lg", &(Variable[b][i]));
         }
     }
     
