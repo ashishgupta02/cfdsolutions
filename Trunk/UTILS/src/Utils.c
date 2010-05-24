@@ -1,9 +1,8 @@
-/*
- * File:   Utils.c
- * Author: Ashish Gupta
- *
- * Created on February 5, 2010, 7:22 PM
- */
+/*******************************************************************************
+ * File:        Utils.c
+ * Author:      Ashish Gupta
+ * Revision:    1
+ ******************************************************************************/
 
 #include <stdarg.h>
 #include <stdio.h>

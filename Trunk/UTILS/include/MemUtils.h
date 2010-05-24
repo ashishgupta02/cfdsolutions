@@ -1,9 +1,8 @@
-/* 
- * File:   MemUtils.h
- * Author: Ashish Gupta
- *
- * Created on April 21, 2010, 3:30 PM
- */
+/*******************************************************************************
+ * File:        MemUtils.h
+ * Author:      Ashish Gupta
+ * Revision:    1
+ ******************************************************************************/
 
 #include <algorithm>
 #include <iostream>

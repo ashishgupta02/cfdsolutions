@@ -1,9 +1,8 @@
-/*
- * File:   List.cpp
- * Author: Ashish Gupta
- *
- * Created on February 5, 2010, 7:22 PM
- */
+/*******************************************************************************
+ * File:        List.cpp
+ * Author:      Ashish Gupta
+ * Revision:    1
+ ******************************************************************************/
 
 #include <stdio.h>
 #include "List.h"
