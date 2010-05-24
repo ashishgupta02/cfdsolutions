@@ -1,10 +1,8 @@
-/* 
- * File:   List.h
- * Author: Ashish Gupta
- *
- * Created on February 5, 2010, 7:22 PM
- */
-
+/*******************************************************************************
+ * File:        List.h
+ * Author:      Ashish Gupta
+ * Revision:    1
+ ******************************************************************************/
 
 #ifndef _LIST_H
 #define	_LIST_H

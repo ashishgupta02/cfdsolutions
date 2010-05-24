@@ -1,9 +1,8 @@
-/* 
- * File:   MUtils.h
- * Author: Ashish Gupta
- *
- * Created on February 5, 2010, 7:22 PM
- */
+/*******************************************************************************
+ * File:        MUtils.h
+ * Author:      Ashish Gupta
+ * Revision:    1
+ ******************************************************************************/
 
 #ifndef _MUTILS_H
 #define	_MUTILS_H

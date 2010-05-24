@@ -1,9 +1,8 @@
-/* 
- * File:   Linked_List.h
- * Author: Ashish Gupta
- *
- * Created on April 20, 2010, 6:45 PM
- */
+/*******************************************************************************
+ * File:        Linked_List.h
+ * Author:      Ashish Gupta
+ * Revision:    1
+ ******************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>

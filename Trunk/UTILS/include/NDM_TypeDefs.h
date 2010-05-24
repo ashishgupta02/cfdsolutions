@@ -1,9 +1,8 @@
-/* 
- * File:   NDM_TypeDefs.h
- * Author: Ashish Gupta
- *
- * Created on February 5, 2010, 7:22 PM
- */
+/*******************************************************************************
+ * File:        NDM_TypeDefs.h
+ * Author:      Ashish Gupta
+ * Revision:    1
+ ******************************************************************************/
 
 #ifndef _NDM_TYPEDEFS_H
 #define	_NDM_TYPEDEFS_H
