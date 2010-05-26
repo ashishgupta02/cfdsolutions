@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="62">
+  <logicalFolder name="root" displayName="root" projectFiles="true">
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+      <itemPath>include/MESHQA.h</itemPath>
+      <itemPath>include/MESHQABase.h</itemPath>
+      <itemPath>include/MESHQACFDDB.h</itemPath>
+      <itemPath>include/MESHQACellInfo.h</itemPath>
+      <itemPath>include/MESHQACellObject.h</itemPath>
+      <itemPath>include/MESHQACellQualityVector.h</itemPath>
+      <itemPath>include/MESHQACommon.h</itemPath>
+      <itemPath>include/MESHQAConfig.h</itemPath>
+      <itemPath>include/MESHQADefs.h</itemPath>
+      <itemPath>include/MESHQAElemset.h</itemPath>
+      <itemPath>include/MESHQAEnums.h</itemPath>
+      <itemPath>include/MESHQAQualityMetrics.h</itemPath>
+      <itemPath>include/MESHQARoot.h</itemPath>
+      <itemPath>include/MESHQAZone.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <itemPath>src/MAIN.cpp</itemPath>
+      <itemPath>src/MESHQABase.cpp</itemPath>
+      <itemPath>src/MESHQACFDDB.cpp</itemPath>
+      <itemPath>src/MESHQACellInfo.cpp</itemPath>
+      <itemPath>src/MESHQACellObject.cpp</itemPath>
+      <itemPath>src/MESHQACellQualityVector.cpp</itemPath>
+      <itemPath>src/MESHQAElemset.cpp</itemPath>
+      <itemPath>src/MESHQAEnums.cpp</itemPath>
+      <itemPath>src/MESHQAQualityMetrics.cpp</itemPath>
+      <itemPath>src/MESHQARoot.cpp</itemPath>
+      <itemPath>src/MESHQAZone.cpp</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="2">
+      <toolsSet>
+        <developmentServer>localhost</developmentServer>
+        <compilerSet>GNU|GNU</compilerSet>
+        <cRequired>true</cRequired>
+        <platform>2</platform>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../CFDDB/include</pElem>
+            <pElem>../VERDICT/include</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>LINUX_AMD64</Elem>
+            <Elem>MESHQA_SHARED_LIB</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../CFDDB/include</pElem>
+            <pElem>../VERDICT/include</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>LINUX_AMD64</Elem>
+            <Elem>MESHQA_SHARED_LIB</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../VERDICT"
+                            CT="2"
+                            CN="Debug"
+                            AC="true"
+                            BL="true"
+                            WD="../VERDICT"
+                            BC="${MAKE}  -f Makefile CONF=Debug"
+                            CC="${MAKE}  -f Makefile CONF=Debug clean"
+                            OP="dist/Debug/GNU-Linux-x86/libVERDICT.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
+        </linkerTool>
+        <requiredProjects>
+          <makeArtifact PL="../VERDICT"
+                        CT="2"
+                        CN="Debug"
+                        AC="true"
+                        BL="true"
+                        WD="../VERDICT"
+                        BC="${MAKE}  -f Makefile CONF=Debug"
+                        CC="${MAKE}  -f Makefile CONF=Debug clean"
+                        OP="dist/Debug/GNU-Linux-x86/libVERDICT.so">
+          </makeArtifact>
+        </requiredProjects>
+      </compileType>
+    </conf>
+    <conf name="Release" type="2">
+      <toolsSet>
+        <developmentServer>localhost</developmentServer>
+        <compilerSet>GNU|GNU</compilerSet>
+        <cRequired>true</cRequired>
+        <platform>2</platform>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../CFDDB/include</pElem>
+            <pElem>../VERDICT/include</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>LINUX_AMD64</Elem>
+            <Elem>MESHQA_SHARED_LIB</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../CFDDB/include</pElem>
+            <pElem>../VERDICT/include</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>LINUX_AMD64</Elem>
+            <Elem>MESHQA_SHARED_LIB</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../VERDICT"
+                            CT="2"
+                            CN="Release"
+                            AC="false"
+                            BL="true"
+                            WD="../VERDICT"
+                            BC="${MAKE}  -f Makefile CONF=Release"
+                            CC="${MAKE}  -f Makefile CONF=Release clean"
+                            OP="dist/Release/GNU-Linux-x86/libVERDICT.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
+        </linkerTool>
+        <requiredProjects>
+          <makeArtifact PL="../VERDICT"
+                        CT="2"
+                        CN="Release"
+                        AC="false"
+                        BL="true"
+                        WD="../VERDICT"
+                        BC="${MAKE}  -f Makefile CONF=Release"
+                        CC="${MAKE}  -f Makefile CONF=Release clean"
+                        OP="dist/Release/GNU-Linux-x86/libVERDICT.so">
+          </makeArtifact>
+        </requiredProjects>
+      </compileType>
+    </conf>
+  </confs>
+</configurationDescriptor>
