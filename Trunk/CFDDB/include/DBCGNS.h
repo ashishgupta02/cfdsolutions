@@ -11,6 +11,7 @@
 
 // Forward Declearation
 class DBNETCDF;
+class DBUGRID;
 
 class DBCGNS : public DB {
 public :
@@ -25,6 +26,9 @@ public :
     int Export_To_NETCDF(DBNETCDF& other);
     int Import_From_NETCDF(const DBNETCDF& other);
     int Share_With_NETCDF(DBNETCDF& other);
+    int Export_To_UGRID(DBUGRID& other);
+    int Import_From_UGRID(const DBUGRID& other);
+    int Share_With_UGRID(DBUGRID& other);
 private:
     int Read_CGNS_DB(int mode);
     int Read_CGNS_GridFile();

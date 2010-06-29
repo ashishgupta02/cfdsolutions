@@ -4,7 +4,6 @@
  * Revision:    1
  ******************************************************************************/
 
-#include <iostream>
 #include <cstring>
 #include <malloc.h>
 #include "Utils.h"
@@ -531,6 +530,8 @@ int DB::Get_OutputSolution_IOMode() const {
 //! Copies the bit-by-bit CoreDB from other DB
 //------------------------------------------------------------------------------
 void DB::Copy(const ROOT* object) {
+    int desc_len = 0;
+    
     // To avoid self assignment
     if ((object != NULL) && (CoreDB != object)) {
         // Clean the database
@@ -787,8 +788,11 @@ void DB::Copy(const ROOT* object) {
                                                     for (int nd = 0; nd < sol_o->ndesc; nd++, des_o++, des_n++) {
                                                         des_n->id = des_o->id;
                                                         strcpy(des_n->name, des_o->name);
-                                                        if (des_o->desc != NULL)
+                                                        if (des_o->desc != NULL) {
+                                                            desc_len = strlen(des_o->desc);
+                                                            des_n->desc = (char *) malloc(desc_len*sizeof(char));
                                                             strcpy(des_n->desc, des_o->name);
+                                                        }
                                                     }
                                                 }
                                             }
@@ -807,8 +811,11 @@ void DB::Copy(const ROOT* object) {
                                         for (int nd = 0; nd < z_o->ndesc; nd++, des_o++, des_n++) {
                                             des_n->id = des_o->id;
                                             strcpy(des_n->name, des_o->name);
-                                            if (des_o->desc != NULL)
+                                            if (des_o->desc != NULL) {
+                                                desc_len = strlen(des_o->desc);
+                                                des_n->desc = (char *) malloc(desc_len*sizeof(char));
                                                 strcpy(des_n->desc, des_o->desc);
+                                            }
                                         }
                                     }
                                 }
@@ -827,8 +834,11 @@ void DB::Copy(const ROOT* object) {
                             for (int nd = 0; nd < b_o->ndesc; nd++, des_o++, des_n++) {
                                 des_n->id = des_o->id;
                                 strcpy(des_n->name, des_o->name);
-                                if (des_o->desc != NULL)
+                                if (des_o->desc != NULL) {
+                                    desc_len = strlen(des_o->desc);
+                                    des_n->desc = (char *) malloc(desc_len*sizeof(char));
                                     strcpy(des_n->desc, des_o->desc);
+                                }
                             }
                         }
                     }
@@ -847,8 +857,11 @@ void DB::Copy(const ROOT* object) {
                 for (int nd = 0; nd < object->ndesc; nd++, des_o++, des_n++) {
                     des_n->id = des_o->id;
                     strcpy(des_n->name, des_o->name);
-                    if (des_o->desc != NULL)
+                    if (des_o->desc != NULL) {
+                        desc_len = strlen(des_o->desc);
+                        des_n->desc = (char *) malloc(desc_len*sizeof(char));
                         strcpy(des_n->desc, des_o->desc);
+                    }
                 }
             }
         }

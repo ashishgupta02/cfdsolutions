@@ -34,7 +34,7 @@ static void CORELIB_FATAL(char *procname, char *errmsg) {
  *---------------------------------------------------------------------*/
 
 ROOT *new_root(void) {
-    ROOT *newroot;
+    ROOT *newroot = NULL;
 
     newroot = (ROOT *) calloc(1, sizeof(ROOT));
     if (NULL == newroot)
@@ -54,7 +54,7 @@ ROOT *new_root(void) {
 
 BASE *new_base(int count) {
     int n, i;
-    BASE *newbase;
+    BASE *newbase = NULL;
     
     newbase = (BASE *) calloc(count, sizeof(BASE));
     if (NULL == newbase)
@@ -82,7 +82,7 @@ BASE *new_base(int count) {
 
 ZONE *new_zone(int count) {
     int n;
-    ZONE *newzone;
+    ZONE *newzone = NULL;
     
     newzone = (ZONE *) calloc(count, sizeof(ZONE));
     if (NULL == newzone)
@@ -105,7 +105,7 @@ ZONE *new_zone(int count) {
 
 VERTEX *new_vertex(int nverts) {
     int n;
-    VERTEX *verts;
+    VERTEX *verts = NULL;
     
     verts = (VERTEX *) calloc(nverts, sizeof(VERTEX));
     if (NULL == verts)
@@ -123,7 +123,7 @@ VERTEX *new_vertex(int nverts) {
 
 ELEMSET *new_elemset(int nesets) {
     int n;
-    ELEMSET *esets;
+    ELEMSET *esets = NULL;
     
     esets = (ELEMSET *) calloc(nesets, sizeof(ELEMSET));
     if (NULL == esets)
@@ -150,7 +150,7 @@ ELEMSET *new_elemset(int nesets) {
 
 INTERFACE *new_interface(int nints) {
     int n;
-    INTERFACE *ints;
+    INTERFACE *ints = NULL;
     
     ints = (INTERFACE *) calloc(nints, sizeof(INTERFACE));
     if (NULL == ints)
@@ -168,7 +168,7 @@ INTERFACE *new_interface(int nints) {
 
 CONNECT *new_connect(int nconns) {
     int n;
-    CONNECT *conns;
+    CONNECT *conns = NULL;
     
     conns = (CONNECT *) calloc(nconns, sizeof(CONNECT));
     if (NULL == conns)
@@ -186,7 +186,7 @@ CONNECT *new_connect(int nconns) {
 
 BOCO *new_boco(int nbocos) {
     int n;
-    BOCO *bocos;
+    BOCO *bocos = NULL;
     
     bocos = (BOCO *) calloc(nbocos, sizeof(BOCO));
     if (NULL == bocos)
@@ -204,7 +204,7 @@ BOCO *new_boco(int nbocos) {
 
 SOLUTION *new_solution(int nsols) {
     int n;
-    SOLUTION *sols;
+    SOLUTION *sols = NULL;
     
     sols = (SOLUTION *) calloc(nsols, sizeof(SOLUTION));
     if (NULL == sols)
@@ -222,7 +222,7 @@ SOLUTION *new_solution(int nsols) {
 
 FIELD *new_field(int nflds, int size) {
     int n;
-    FIELD *flds;
+    FIELD *flds = NULL;
     
     flds = (FIELD *) calloc(nflds, sizeof(FIELD));
     if (NULL == flds)
@@ -247,7 +247,7 @@ FIELD *new_field(int nflds, int size) {
 
 DESC *new_desc(int ndesc) {
     int n;
-    DESC *desc;
+    DESC *desc = NULL;
     
     desc = (DESC *) calloc(ndesc, sizeof(DESC));
     if (NULL == desc)

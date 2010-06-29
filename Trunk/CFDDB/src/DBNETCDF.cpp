@@ -4,14 +4,18 @@
  * Revision:    1
  ******************************************************************************/
 
-#include <iostream>
 #include <cstring>
 #include <malloc.h>
+#include <stdlib.h>
 #include "Utils.h"
 #include "DBMANAGER.h"
 #include "DBERROR.h"
 #include "DBCGNS.h"
 #include "DBNETCDF.h"
+#include "DBUGRID.h"
+// Database Specific Header
+#include "corelib.h"
+#include "netcdfIO.h"
 
 //------------------------------------------------------------------------------
 //! Constructor
@@ -225,8 +229,17 @@ void DBNETCDF::Read_DB()
         mode |= 4;
 
     // Read only if Grid File is available
-    if ((mode & 1) == 1)
-        Read_NETCDF_DB(mode);
+    if ((mode & 1) == 1) {
+        // Reset the database if it contains data
+        if (CoreDB != NULL)
+            Set_DB(NULL);
+        
+        if (!Read_NETCDF_DB(mode)) {
+            // Register now with DB Manager
+            state  = 1;
+            parent = 1;
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -249,8 +262,8 @@ void DBNETCDF::Write_DB()
 }
 
 //------------------------------------------------------------------------------
-// Communicate with Other Databases
-// Export
+//! Communicate with Other Databases
+//! Export to CGNS Class object
 //------------------------------------------------------------------------------
 int DBNETCDF::Export_To_CGNS(DBCGNS& other)
 {
@@ -268,8 +281,10 @@ int DBNETCDF::Export_To_CGNS(DBCGNS& other)
 }
 
 //------------------------------------------------------------------------------
+//! Import from CGNS Class Object
 //------------------------------------------------------------------------------
-int DBNETCDF::Import_From_CGNS(const DBCGNS& other) {
+int DBNETCDF::Import_From_CGNS(const DBCGNS& other)
+{
     // Check if CoreDB is not resigned back after multiple share
     // Copy the containts of other
     if (other.Get_DB() == NULL) {
@@ -284,8 +299,10 @@ int DBNETCDF::Import_From_CGNS(const DBCGNS& other) {
 }
 
 //------------------------------------------------------------------------------
+//! Share with CGNS Class Object
 //------------------------------------------------------------------------------
-int DBNETCDF::Share_With_CGNS(DBCGNS& other) {
+int DBNETCDF::Share_With_CGNS(DBCGNS& other)
+{
     // Check if CoreDB is not resigned back after multiple share
     // Share the containts with other
     if (CoreDB == NULL) {
@@ -298,22 +315,135 @@ int DBNETCDF::Share_With_CGNS(DBCGNS& other) {
 }
 
 //------------------------------------------------------------------------------
+//! Communicate with Other Databases
+//! Export to UGRID Class object
+//------------------------------------------------------------------------------
+int DBNETCDF::Export_To_UGRID(DBUGRID& other)
+{
+    // Check if CoreDB is not resigned back after multiple share
+    // Copy the containts to other
+    if (CoreDB == NULL) {
+        return DB_ERROR;
+    } else if (CoreDB != other.Get_DB()) {
+        other.Copy(CoreDB);
+    } else if (!other.isParent()) {
+        other.Set_DB(NULL);
+        other.Copy(CoreDB);
+    }
+    return DB_OK;
+}
+
+//------------------------------------------------------------------------------
+//! Import from UGRID Class Object
+//------------------------------------------------------------------------------
+int DBNETCDF::Import_From_UGRID(const DBUGRID& other)
+{
+    // Check if CoreDB is not resigned back after multiple share
+    // Copy the containts of other
+    if (other.Get_DB() == NULL) {
+        return DB_ERROR;
+    } else if (CoreDB != other.Get_DB()) {
+        Copy(other.Get_DB());
+    } else if (!parent) {
+        Set_DB(NULL);
+        Copy(other.Get_DB());
+    }
+    return DB_OK;
+}
+
+//------------------------------------------------------------------------------
+//! Share with UGRID Class Object
+//------------------------------------------------------------------------------
+int DBNETCDF::Share_With_UGRID(DBUGRID& other)
+{
+    // Check if CoreDB is not resigned back after multiple share
+    // Share the containts with other
+    if (CoreDB == NULL) {
+        return DB_ERROR;
+    } else if (CoreDB != other.Get_DB()) {
+        other.Set_DB(NULL);
+        other.Set_DB(CoreDB);
+    }
+    return DB_OK;
+}
+
+//------------------------------------------------------------------------------
+//! Read the NETCDF File and Get Maximum information available
+//------------------------------------------------------------------------------
+int DBNETCDF::Read_NETCDF_GridFile()
+{
+    return DB_OK;
+}
+
+//------------------------------------------------------------------------------
+//! Read the NETCDF File and Append Solution Data to existing Database
+//------------------------------------------------------------------------------
+int DBNETCDF::Read_NETCDF_SolutionFile()
+{
+    return DB_OK;
+}
+
+//------------------------------------------------------------------------------
+//! Read the Additional Parameters Describes the Simulation Information
+//------------------------------------------------------------------------------
+int DBNETCDF::Read_NETCDF_ParamFile()
+{
+    return DB_OK;
+}
+
+//------------------------------------------------------------------------------
 //! Read the NetCDF DataBase File and Updates the CoreDB
 //------------------------------------------------------------------------------
 int DBNETCDF::Read_NETCDF_DB(int mode)
 {
     // Read Grid File
     if ((mode & 1) == 1) {
+        CoreDB = new_root();
+        if (Read_NETCDF_GridFile()) {
+            return DB_ERROR;
+        }
+    } else
+        return DB_ERROR;
 
-    }
     // Read Solution File
     if ((mode & 2) == 2) {
-
+        if (Read_NETCDF_SolutionFile()) {
+            return DB_ERROR;
+        }
     }
+
     // Read Parameter File
     if ((mode & 4) == 4) {
-
+        if (Read_NETCDF_ParamFile()) {
+            return DB_ERROR;
+        }
     }
+
+    return DB_OK;
+}
+
+//------------------------------------------------------------------------------
+//! Write the Grid and Solution Data into NETCDF File.
+//! Solution Data is ignored if Solution Filename is available
+//------------------------------------------------------------------------------
+int DBNETCDF::Write_NETCDF_GridFile(int mode)
+{
+    return DB_OK;
+}
+
+//------------------------------------------------------------------------------
+//! Write only Solution Data in NETCDF File
+//------------------------------------------------------------------------------
+int DBNETCDF::Write_NETCDF_SolutionFile()
+{
+    return DB_OK;
+}
+
+//------------------------------------------------------------------------------
+//! Write the Additional Parameters Describes the Simulation Information
+//------------------------------------------------------------------------------
+int DBNETCDF::Write_NETCDF_ParamFile()
+{
     return DB_OK;
 }
 
@@ -323,16 +453,25 @@ int DBNETCDF::Read_NETCDF_DB(int mode)
 int DBNETCDF::Write_NETCDF_DB(int mode)
 {
     // Write Grid File
-    if ((mode & 1) == 1) {
+    if (((mode & 1) == 1) && (state == 1)) {
+        if (Write_NETCDF_GridFile(mode)) {
+            return DB_ERROR;
+        }
+    } else
+        return DB_ERROR;
 
-    }
     // Write Solution File
     if ((mode & 2) == 2) {
-
+        if (Write_NETCDF_SolutionFile()) {
+            return DB_ERROR;
+        }
     }
+
     // Write Parameter File
     if ((mode & 4) == 4) {
-
+        if (Write_NETCDF_ParamFile()) {
+            return DB_ERROR;
+        }
     }
     return DB_OK;
 }

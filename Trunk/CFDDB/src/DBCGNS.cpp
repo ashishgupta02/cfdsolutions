@@ -4,16 +4,17 @@
  * Revision:    1
  ******************************************************************************/
 
-#include <iostream>
 #include <cstring>
 #include <malloc.h>
+#include <stdlib.h>
 #include "Utils.h"
 #include "DBMANAGER.h"
 #include "DBERROR.h"
 #include "DBCGNS.h"
 #include "DBNETCDF.h"
-#include "corestruct.h"
+#include "DBUGRID.h"
 // Database Specific Header
+#include "corelib.h"
 #include "cgnsIO.h"
 
 //------------------------------------------------------------------------------
@@ -314,6 +315,59 @@ int DBCGNS::Share_With_NETCDF(DBNETCDF& other)
 }
 
 //------------------------------------------------------------------------------
+//! Communicate with Other Databases
+//! Export to UGRID Class object
+//------------------------------------------------------------------------------
+int DBCGNS::Export_To_UGRID(DBUGRID& other)
+{
+    // Check if CoreDB is not resigned back after multiple share
+    // Copy the containts to other
+    if (CoreDB == NULL) {
+        return DB_ERROR;
+    } else if (CoreDB != other.Get_DB()) {
+        other.Copy(CoreDB);
+    } else if (!other.isParent()) {
+        other.Set_DB(NULL);
+        other.Copy(CoreDB);
+    }
+    return DB_OK;
+}
+
+//------------------------------------------------------------------------------
+//! Import from UGRID Class Object
+//------------------------------------------------------------------------------
+int DBCGNS::Import_From_UGRID(const DBUGRID& other)
+{
+    // Check if CoreDB is not resigned back after multiple share
+    // Copy the containts of other
+    if (other.Get_DB() == NULL) {
+        return DB_ERROR;
+    } else if (CoreDB != other.Get_DB()) {
+        Copy(other.Get_DB());
+    } else if (!parent) {
+        Set_DB(NULL);
+        Copy(other.Get_DB());
+    }
+    return DB_OK;
+}
+
+//------------------------------------------------------------------------------
+//! Share with UGRID Class Object
+//------------------------------------------------------------------------------
+int DBCGNS::Share_With_UGRID(DBUGRID& other)
+{
+    // Check if CoreDB is not resigned back after multiple share
+    // Share the containts with other
+    if (CoreDB == NULL) {
+        return DB_ERROR;
+    } else if (CoreDB != other.Get_DB()) {
+        other.Set_DB(NULL);
+        other.Set_DB(CoreDB);
+    }
+    return DB_OK;
+}
+
+//------------------------------------------------------------------------------
 //! Read the CGNS File and Get Maximum information available
 //------------------------------------------------------------------------------
 int DBCGNS::Read_CGNS_GridFile()
@@ -355,6 +409,7 @@ int DBCGNS::Read_CGNS_GridFile()
                 qbase->zones = NULL;
                 qbase->desc  = NULL;
                 del_base(qbase);
+                qbase = NULL;
             }
         }
     }
@@ -377,7 +432,7 @@ int DBCGNS::Read_CGNS_SolutionFile()
     // Initialize the CGNSIO Library
     CGNSIO_INIT();
 
-    // Open CGNS Grid File to Read in Mode Read only
+    // Open CGNS Solution File to Read in Mode Read only
     int mode = 1;
     if(open_cgns(inputSFile, mode))
         return DB_ERROR;
@@ -408,6 +463,7 @@ int DBCGNS::Read_CGNS_SolutionFile()
                 if (pass == 2) {
                     if (CoreDB->bases[nb-1].nzones != qbase->nzones) {
                         del_base(qbase);
+                        qbase = NULL;
                         continue;
                     }
                     // Update the Solution if already exists add new solution
@@ -483,6 +539,7 @@ int DBCGNS::Read_CGNS_SolutionFile()
                             
                             // Free the Solution
                             del_solution(sol);
+                            sol = NULL;
                         }
                         qbase->zones[nz-1].nsols = 0;
                         qbase->zones[nz-1].sols  = NULL;
@@ -491,6 +548,7 @@ int DBCGNS::Read_CGNS_SolutionFile()
                 
                 // Now Reset the data and free the qbase
                 del_base(qbase);
+                qbase = NULL;
             }
         }
     }
@@ -584,6 +642,7 @@ int DBCGNS::Write_CGNS_GridFile(int mode)
                         z[i].nsols = 0;
                     }
                     del_zone(z);
+                    z = NULL;
                 }
             }
         }
@@ -607,7 +666,7 @@ int DBCGNS::Write_CGNS_SolutionFile()
     // Initialize the CGNSIO Library
     CGNSIO_INIT();
 
-    // Open CGNS Grid File
+    // Open CGNS Solution File
     if(open_cgns(outputSFile, outputSIOMode))
         return DB_ERROR;
     
@@ -657,6 +716,7 @@ int DBCGNS::Write_CGNS_SolutionFile()
                     z[i].ndesc  = 0;
                 }
                 del_zone(z);
+                z = NULL;
             }
         }
     }

@@ -14,7 +14,7 @@
 extern "C" {
 #endif
     
-    #include "corelib.h"
+    #include "corestruct.h"
     
     /* Define Function Libraries */
     /* Exit with error message */

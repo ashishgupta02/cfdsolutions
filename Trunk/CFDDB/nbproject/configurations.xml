@@ -9,10 +9,12 @@
       <itemPath>include/DBERROR.h</itemPath>
       <itemPath>include/DBMANAGER.h</itemPath>
       <itemPath>include/DBNETCDF.h</itemPath>
+      <itemPath>include/DBUGRID.h</itemPath>
       <itemPath>include/cgnsIO.h</itemPath>
       <itemPath>include/corelib.h</itemPath>
       <itemPath>include/corestruct.h</itemPath>
       <itemPath>include/netcdfIO.h</itemPath>
+      <itemPath>include/ugridIO.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -26,9 +28,11 @@
       <itemPath>src/DBERROR.cpp</itemPath>
       <itemPath>src/DBMANAGER.cpp</itemPath>
       <itemPath>src/DBNETCDF.cpp</itemPath>
+      <itemPath>src/DBUGRID.cpp</itemPath>
       <itemPath>src/cgnsIO.c</itemPath>
       <itemPath>src/corelib.c</itemPath>
       <itemPath>src/netcdfIO.c</itemPath>
+      <itemPath>src/ugridIO.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
