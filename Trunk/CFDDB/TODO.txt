@@ -1,0 +1,5 @@
+Things To Do List For CFDDB
+===========================
+1) corelib.h/c: Implement del_* Methods
+2) ugridIO.h/c: Implement Write I/O Methods
+3) netcdfIO.h/c: Harden netcdf I/O and make it inline to corestruct datastructure

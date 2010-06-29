@@ -10,8 +10,8 @@
 #include <cgnslib.h>
 
 /* Application Header Files */
-#include "corestruct.h"
 #include "Utils.h"
+#include "corelib.h"
 #include "cgnsIO.h"
 
 /* Static Variables */

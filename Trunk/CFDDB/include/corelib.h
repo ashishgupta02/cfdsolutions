@@ -7,15 +7,14 @@
 #ifndef _CORELIB_H
 #define	_CORELIB_H
 
-#include "corestruct.h"
-
 /*******************************************************************************
 * Keep C++ compilers from getting confused
 *******************************************************************************/
 #ifdef	__cplusplus
 extern "C" {
 #endif
-    
+    #include "corestruct.h"
+
     #define CORELIB_OK      0
     #define CORELIB_ERROR   1
 

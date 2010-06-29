@@ -37,6 +37,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/DB.o \
 	${OBJECTDIR}/src/cgnsIO.o \
 	${OBJECTDIR}/src/DBMANAGER.o \
+	${OBJECTDIR}/src/ugridIO.o \
+	${OBJECTDIR}/src/DBUGRID.o \
 	${OBJECTDIR}/src/corelib.o \
 	${OBJECTDIR}/src/netcdfIO.o
 
@@ -95,6 +97,16 @@ ${OBJECTDIR}/src/DBMANAGER.o: nbproject/Makefile-${CND_CONF}.mk src/DBMANAGER.cp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -Iinclude -I../UTILS/include -I../../../../00-Applications/HPC_LIBS/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/DBMANAGER.o src/DBMANAGER.cpp
+
+${OBJECTDIR}/src/ugridIO.o: nbproject/Makefile-${CND_CONF}.mk src/ugridIO.c 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.c) -g -Wall -Iinclude -I../UTILS/include -I../../../../00-Applications/HPC_LIBS/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/ugridIO.o src/ugridIO.c
+
+${OBJECTDIR}/src/DBUGRID.o: nbproject/Makefile-${CND_CONF}.mk src/DBUGRID.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -Iinclude -I../UTILS/include -I../../../../00-Applications/HPC_LIBS/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/DBUGRID.o src/DBUGRID.cpp
 
 ${OBJECTDIR}/src/corelib.o: nbproject/Makefile-${CND_CONF}.mk src/corelib.c 
 	${MKDIR} -p ${OBJECTDIR}/src
