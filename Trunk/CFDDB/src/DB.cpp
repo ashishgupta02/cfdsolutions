@@ -328,7 +328,7 @@ void DB::Reset() {
 //------------------------------------------------------------------------------
 //! Sets the Input Grid File Name
 //------------------------------------------------------------------------------
-void DB::Set_InputGrid_Filename(char* filename) {
+void DB::Set_InputGrid_Filename(const char* filename) {
     if (filename != NULL) {
         size_t len = strlen(filename);
         inputGFile = (char *) malloc((len+1)*sizeof(char));
@@ -340,7 +340,7 @@ void DB::Set_InputGrid_Filename(char* filename) {
 //------------------------------------------------------------------------------
 //! Sets the Input Parameter File Name
 //------------------------------------------------------------------------------
-void DB::Set_InputParam_Filename(char* filename) {
+void DB::Set_InputParam_Filename(const char* filename) {
     if (filename != NULL) {
         size_t len = strlen(filename);
         inputPFile = (char *) malloc((len+1)*sizeof(char));
@@ -352,7 +352,7 @@ void DB::Set_InputParam_Filename(char* filename) {
 //------------------------------------------------------------------------------
 //! Sets the Input Solution File Name
 //------------------------------------------------------------------------------
-void DB::Set_InputSolution_Filename(char* filename) {
+void DB::Set_InputSolution_Filename(const char* filename) {
     if (filename != NULL) {
         size_t len = strlen(filename);
         inputSFile = (char *) malloc((len+1)*sizeof(char));
@@ -364,7 +364,7 @@ void DB::Set_InputSolution_Filename(char* filename) {
 //------------------------------------------------------------------------------
 //! Sets the Output Grid File Name
 //------------------------------------------------------------------------------
-void DB::Set_OutputGrid_Filename(char* filename) {
+void DB::Set_OutputGrid_Filename(const char* filename) {
     if (filename != NULL) {
         size_t len = strlen(filename);
         outputGFile = (char *) malloc((len+1)*sizeof(char));
@@ -376,7 +376,7 @@ void DB::Set_OutputGrid_Filename(char* filename) {
 //------------------------------------------------------------------------------
 //! Sets the Output Parameter Files Name
 //------------------------------------------------------------------------------
-void DB::Set_OutputParam_Filename(char* filename) {
+void DB::Set_OutputParam_Filename(const char* filename) {
     if (filename != NULL) {
         size_t len = strlen(filename);
         outputPFile = (char *) malloc((len+1)*sizeof(char));
@@ -388,7 +388,7 @@ void DB::Set_OutputParam_Filename(char* filename) {
 //------------------------------------------------------------------------------
 //! Sets the Output Solution File Name
 //------------------------------------------------------------------------------
-void DB::Set_OutputSolution_Filename(char* filename) {
+void DB::Set_OutputSolution_Filename(const char* filename) {
     if (filename != NULL) {
         size_t len = strlen(filename);
         outputSFile = (char *) malloc((len+1)*sizeof(char));
