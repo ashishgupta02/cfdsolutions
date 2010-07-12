@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="69">
+  <logicalFolder name="root" displayName="root" projectFiles="true">
+    <logicalFolder name="CommMPI" displayName="CommMPI" projectFiles="true">
+      <logicalFolder name="include" displayName="include" projectFiles="true">
+        <itemPath>CommMPI/include/CommMPI.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="src" displayName="src" projectFiles="true">
+        <itemPath>CommMPI/src/CommMPI.cpp</itemPath>
+      </logicalFolder>
+    </logicalFolder>
+    <logicalFolder name="GEOMETRY" displayName="GEOMETRY" projectFiles="true">
+      <logicalFolder name="include" displayName="include" projectFiles="true">
+        <itemPath>GEOMETRY/include/Point2D.h</itemPath>
+        <itemPath>GEOMETRY/include/Point3D.h</itemPath>
+        <itemPath>GEOMETRY/include/Vector2D.h</itemPath>
+        <itemPath>GEOMETRY/include/Vector3D.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="src" displayName="src" projectFiles="true">
+        <itemPath>GEOMETRY/src/Point2D.cpp</itemPath>
+        <itemPath>GEOMETRY/src/Point3D.cpp</itemPath>
+        <itemPath>GEOMETRY/src/Vector2D.cpp</itemPath>
+        <itemPath>GEOMETRY/src/Vector3D.cpp</itemPath>
+      </logicalFolder>
+    </logicalFolder>
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+      <itemPath>Commons.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="MESHIO" displayName="MESHIO" projectFiles="true">
+      <logicalFolder name="include" displayName="include" projectFiles="true">
+        <itemPath>MESHIO/include/BC3D.h</itemPath>
+        <itemPath>MESHIO/include/Cell3D.h</itemPath>
+        <itemPath>MESHIO/include/Face3D.h</itemPath>
+        <itemPath>MESHIO/include/Ghost3D.h</itemPath>
+        <itemPath>MESHIO/include/Grid3D.h</itemPath>
+        <itemPath>MESHIO/include/Mesh3D_IO.h</itemPath>
+        <itemPath>MESHIO/include/Node3D.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="src" displayName="src" projectFiles="true">
+        <itemPath>MESHIO/src/BC3D.cpp</itemPath>
+        <itemPath>MESHIO/src/Cell3D.cpp</itemPath>
+        <itemPath>MESHIO/src/Face3D.cpp</itemPath>
+        <itemPath>MESHIO/src/Ghost3D.cpp</itemPath>
+        <itemPath>MESHIO/src/Grid3D.cpp</itemPath>
+        <itemPath>MESHIO/src/Mesh3D_IO.cpp</itemPath>
+        <itemPath>MESHIO/src/Node3D.cpp</itemPath>
+      </logicalFolder>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="SOLVER" displayName="SOLVER" projectFiles="true">
+      <logicalFolder name="include" displayName="include" projectFiles="true">
+      </logicalFolder>
+      <logicalFolder name="src" displayName="src" projectFiles="true">
+      </logicalFolder>
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <itemPath>Commons.cpp</itemPath>
+      <itemPath>main.cpp</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <sourceRootList>
+    <Elem>MESHIO</Elem>
+    <Elem>CommMPI</Elem>
+    <Elem>GEOMETRY</Elem>
+    <Elem>SOLVER</Elem>
+  </sourceRootList>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="1">
+      <toolsSet>
+        <developmentServer>localhost</developmentServer>
+        <compilerSet>GNU|GNU</compilerSet>
+        <platform>2</platform>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <commandlineTool>/opt/HPC_LIBS/bin/mpic++</commandlineTool>
+          <incDir>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../CFDDB/include</pElem>
+            <pElem>.</pElem>
+            <pElem>CommMPI/include</pElem>
+            <pElem>GEOMETRY/include</pElem>
+            <pElem>MESHIO/include</pElem>
+            <pElem>SOLVER/include</pElem>
+            <pElem>/opt/HPC_LIBS/include</pElem>
+          </incDir>
+          <commandLine>-Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer</commandLine>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <linkerAddLib>
+            <pElem>/opt/HPC_LIBS/lib</pElem>
+          </linkerAddLib>
+          <linkerDynSerch>
+            <pElem>/home/ashish/NetBeansProjects/CFDSolutions/Trunk/Euler3D/dist/Debug/GNU-Linux-x86</pElem>
+          </linkerDynSerch>
+          <commandlineTool>/opt/HPC_LIBS/bin/mpic++</commandlineTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Debug"
+                            AC="true"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Debug"
+                            CC="${MAKE}  -f Makefile CONF=Debug clean"
+                            OP="dist/Debug/GNU-Linux-x86/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../CFDDB"
+                            CT="2"
+                            CN="Debug"
+                            AC="false"
+                            BL="true"
+                            WD="../CFDDB"
+                            BC="${MAKE}  -f Makefile CONF=Debug"
+                            CC="${MAKE}  -f Makefile CONF=Debug clean"
+                            OP="dist/Debug/GNU-Linux-x86/libCFDDB.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerOptionItem>-lcgns -lnetcdf -lparmetis -lmetis</linkerOptionItem>
+          </linkerLibItems>
+        </linkerTool>
+        <requiredProjects>
+          <makeArtifact PL="../UTILS"
+                        CT="2"
+                        CN="Debug"
+                        AC="true"
+                        BL="true"
+                        WD="../UTILS"
+                        BC="${MAKE}  -f Makefile CONF=Debug"
+                        CC="${MAKE}  -f Makefile CONF=Debug clean"
+                        OP="dist/Debug/GNU-Linux-x86/libUTILS.so">
+          </makeArtifact>
+          <makeArtifact PL="../CFDDB"
+                        CT="2"
+                        CN="Debug"
+                        AC="true"
+                        BL="true"
+                        WD="../CFDDB"
+                        BC="${MAKE}  -f Makefile CONF=Debug"
+                        CC="${MAKE}  -f Makefile CONF=Debug clean"
+                        OP="dist/Debug/GNU-Linux-x86/libCFDDB.so">
+          </makeArtifact>
+        </requiredProjects>
+      </compileType>
+    </conf>
+    <conf name="Release" type="1">
+      <toolsSet>
+        <developmentServer>localhost</developmentServer>
+        <compilerSet>GNU|GNU</compilerSet>
+        <platform>2</platform>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <commandlineTool>/opt/HPC_LIBS/bin/mpic++</commandlineTool>
+          <incDir>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../CFDDB/include</pElem>
+            <pElem>.</pElem>
+            <pElem>CommMPI/include</pElem>
+            <pElem>GEOMETRY/include</pElem>
+            <pElem>MESHIO/include</pElem>
+            <pElem>SOLVER/include</pElem>
+            <pElem>/opt/HPC_LIBS/include</pElem>
+          </incDir>
+          <commandLine>-Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer</commandLine>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <linkerAddLib>
+            <pElem>/opt/HPC_LIBS/lib</pElem>
+          </linkerAddLib>
+          <commandlineTool>/opt/HPC_LIBS/bin/mpic++</commandlineTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Release"
+                            AC="false"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Release"
+                            CC="${MAKE}  -f Makefile CONF=Release clean"
+                            OP="dist/Release/GNU-Linux-x86/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../CFDDB"
+                            CT="2"
+                            CN="Release"
+                            AC="false"
+                            BL="true"
+                            WD="../CFDDB"
+                            BC="${MAKE}  -f Makefile CONF=Release"
+                            CC="${MAKE}  -f Makefile CONF=Release clean"
+                            OP="dist/Release/GNU-Linux-x86/libCFDDB.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerOptionItem>-lcgns -lnetcdf -lparmetis -lmetis</linkerOptionItem>
+          </linkerLibItems>
+        </linkerTool>
+        <requiredProjects>
+          <makeArtifact PL="../UTILS"
+                        CT="2"
+                        CN="Release"
+                        AC="false"
+                        BL="true"
+                        WD="../UTILS"
+                        BC="${MAKE}  -f Makefile CONF=Release"
+                        CC="${MAKE}  -f Makefile CONF=Release clean"
+                        OP="dist/Release/GNU-Linux-x86/libUTILS.so">
+          </makeArtifact>
+          <makeArtifact PL="../CFDDB"
+                        CT="2"
+                        CN="Release"
+                        AC="false"
+                        BL="true"
+                        WD="../CFDDB"
+                        BC="${MAKE}  -f Makefile CONF=Release"
+                        CC="${MAKE}  -f Makefile CONF=Release clean"
+                        OP="dist/Release/GNU-Linux-x86/libCFDDB.so">
+          </makeArtifact>
+        </requiredProjects>
+      </compileType>
+    </conf>
+  </confs>
+</configurationDescriptor>
