@@ -43,12 +43,12 @@ public:
     unsigned int getState() const;
     void Reset();
     DB& operator=(const DB& other);
-    void Set_InputGrid_Filename(char* filename);
-    void Set_InputParam_Filename(char* filename);
-    void Set_InputSolution_Filename(char* filename);
-    void Set_OutputGrid_Filename(char* filename);
-    void Set_OutputParam_Filename(char* filename);
-    void Set_OutputSolution_Filename(char* filename);
+    void Set_InputGrid_Filename(const char* filename);
+    void Set_InputParam_Filename(const char* filename);
+    void Set_InputSolution_Filename(const char* filename);
+    void Set_OutputGrid_Filename(const char* filename);
+    void Set_OutputParam_Filename(const char* filename);
+    void Set_OutputSolution_Filename(const char* filename);
     char* Get_InputGrid_Filename() const;
     char* Get_InputParam_Filename() const;
     char* Get_InputSolution_Filename() const;
