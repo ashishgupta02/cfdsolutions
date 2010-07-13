@@ -20,6 +20,7 @@ using namespace std;
 
 // CommMPI Commons
 extern int Rank;
+extern int RankIO;
 extern int NoProc;
 extern vector< vector<int> > sendCells;
 extern vector<int> recvCount;
