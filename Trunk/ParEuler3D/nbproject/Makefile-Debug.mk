@@ -63,19 +63,19 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-L/opt/HPC_LIBS/lib -Wl,-rpath /home/ashish/NetBeansProjects/CFDSolutions/Trunk/Euler3D/dist/Debug/GNU-Linux-x86 -Wl,-rpath ../UTILS/dist/Debug/GNU-Linux-x86 -L../UTILS/dist/Debug/GNU-Linux-x86 -lUTILS -Wl,-rpath ../CFDDB/dist/Debug/GNU-Linux-x86 -L../CFDDB/dist/Debug/GNU-Linux-x86 -lCFDDB -lcgns -lnetcdf -lparmetis -lmetis
+LDLIBSOPTIONS=-L/opt/HPC_LIBS/lib -Wl,-rpath /home/ashish/NetBeansProjects/CFDSolutions/Trunk/ParEuler3D/dist/Debug/GNU-Linux-x86 -Wl,-rpath ../UTILS/dist/Debug/GNU-Linux-x86 -L../UTILS/dist/Debug/GNU-Linux-x86 -lUTILS -Wl,-rpath ../CFDDB/dist/Debug/GNU-Linux-x86 -L../CFDDB/dist/Debug/GNU-Linux-x86 -lCFDDB -lcgns -lnetcdf -lparmetis -lmetis
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-Debug.mk dist/Debug/GNU-Linux-x86/euler3d
+	"${MAKE}"  -f nbproject/Makefile-Debug.mk dist/Debug/GNU-Linux-x86/pareuler3d
 
-dist/Debug/GNU-Linux-x86/euler3d: ../UTILS/dist/Debug/GNU-Linux-x86/libUTILS.so
+dist/Debug/GNU-Linux-x86/pareuler3d: ../UTILS/dist/Debug/GNU-Linux-x86/libUTILS.so
 
-dist/Debug/GNU-Linux-x86/euler3d: ../CFDDB/dist/Debug/GNU-Linux-x86/libCFDDB.so
+dist/Debug/GNU-Linux-x86/pareuler3d: ../CFDDB/dist/Debug/GNU-Linux-x86/libCFDDB.so
 
-dist/Debug/GNU-Linux-x86/euler3d: ${OBJECTFILES}
+dist/Debug/GNU-Linux-x86/pareuler3d: ${OBJECTFILES}
 	${MKDIR} -p dist/Debug/GNU-Linux-x86
-	/opt/HPC_LIBS/bin/mpic++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d ${OBJECTFILES} ${LDLIBSOPTIONS} 
+	/opt/HPC_LIBS/bin/mpic++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/pareuler3d ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
 ${OBJECTDIR}/MESHIO/src/Mesh3D_IO.o: MESHIO/src/Mesh3D_IO.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MESHIO/src
@@ -157,7 +157,7 @@ ${OBJECTDIR}/Commons.o: Commons.cpp
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r build/Debug
-	${RM} dist/Debug/GNU-Linux-x86/euler3d
+	${RM} dist/Debug/GNU-Linux-x86/pareuler3d
 
 # Subprojects
 .clean-subprojects:

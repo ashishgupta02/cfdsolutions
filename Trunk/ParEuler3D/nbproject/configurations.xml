@@ -114,7 +114,7 @@
             <pElem>/opt/HPC_LIBS/lib</pElem>
           </linkerAddLib>
           <linkerDynSerch>
-            <pElem>/home/ashish/NetBeansProjects/CFDSolutions/Trunk/Euler3D/dist/Debug/GNU-Linux-x86</pElem>
+            <pElem>/home/ashish/NetBeansProjects/CFDSolutions/Trunk/ParEuler3D/dist/Debug/GNU-Linux-x86</pElem>
           </linkerDynSerch>
           <commandlineTool>/opt/HPC_LIBS/bin/mpic++</commandlineTool>
           <linkerLibItems>

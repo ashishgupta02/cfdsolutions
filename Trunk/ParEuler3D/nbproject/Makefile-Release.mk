@@ -67,15 +67,15 @@ LDLIBSOPTIONS=-L/opt/HPC_LIBS/lib -Wl,-rpath ../UTILS/dist/Release/GNU-Linux-x86
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-Release.mk dist/Release/GNU-Linux-x86/euler3d
+	"${MAKE}"  -f nbproject/Makefile-Release.mk dist/Release/GNU-Linux-x86/pareuler3d
 
-dist/Release/GNU-Linux-x86/euler3d: ../UTILS/dist/Release/GNU-Linux-x86/libUTILS.so
+dist/Release/GNU-Linux-x86/pareuler3d: ../UTILS/dist/Release/GNU-Linux-x86/libUTILS.so
 
-dist/Release/GNU-Linux-x86/euler3d: ../CFDDB/dist/Release/GNU-Linux-x86/libCFDDB.so
+dist/Release/GNU-Linux-x86/pareuler3d: ../CFDDB/dist/Release/GNU-Linux-x86/libCFDDB.so
 
-dist/Release/GNU-Linux-x86/euler3d: ${OBJECTFILES}
+dist/Release/GNU-Linux-x86/pareuler3d: ${OBJECTFILES}
 	${MKDIR} -p dist/Release/GNU-Linux-x86
-	/opt/HPC_LIBS/bin/mpic++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d ${OBJECTFILES} ${LDLIBSOPTIONS} 
+	/opt/HPC_LIBS/bin/mpic++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/pareuler3d ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
 ${OBJECTDIR}/MESHIO/src/Mesh3D_IO.o: MESHIO/src/Mesh3D_IO.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MESHIO/src
@@ -157,7 +157,7 @@ ${OBJECTDIR}/Commons.o: Commons.cpp
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r build/Release
-	${RM} dist/Release/GNU-Linux-x86/euler3d
+	${RM} dist/Release/GNU-Linux-x86/pareuler3d
 
 # Subprojects
 .clean-subprojects:
