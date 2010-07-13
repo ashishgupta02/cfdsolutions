@@ -58,31 +58,24 @@ int Grid3D::Read_DB() {
 
     // Check for Grid File
     file.open(Input_Grid_File.c_str());
-    if (file.is_open()) {
+    if (file.is_open())
         file.close();
-    } else {
-        if (Rank == 0)
-            error("Unable to Read Grid File: %s", Input_Grid_File.c_str());
-        return 0;
-    }
+    else
+        CommMPI_Error(RankIO, "Unable to Read Grid File: %s", Input_Grid_File.c_str());
 
     // Check for Solution File
     file.open(Input_Solution_File.c_str());
-    if (file.is_open()) {
+    if (file.is_open())
         file.close();
-    } else {
-        if (Rank == 0)
-            warn("Unable to Read Solution File: %s", Input_Solution_File.c_str());
-    }
+    else
+        CommMPI_Warn(RankIO, "Unable to Read Solution File: %s", Input_Solution_File.c_str());
 
     // Check for Parameter File
     file.open(Input_Parameter_File.c_str());
-    if (file.is_open()) {
+    if (file.is_open())
         file.close();
-    } else {
-        if (Rank == 0)
-            warn("Unable to Read Parameter File: %s", Input_Parameter_File.c_str());
-    }
+    else
+        CommMPI_Warn(RankIO, "Unable to Read Parameter File: %s", Input_Parameter_File.c_str());
     
     // Now Read Database
     Mesh3D_IO objectDB;
@@ -92,8 +85,8 @@ int Grid3D::Read_DB() {
     objectDB.Set_InputParam_Filename(Input_Parameter_File.c_str());
     objectDB.Read_DB();
     gridDB = objectDB.Get_DB();
-    if ((gridDB == NULL) && (Rank == 0))
-        error("Grid3D::Read_DB: %s", "Database Read Failed!");
+    if (gridDB == NULL)
+        CommMPI_Error(RankIO, "Grid3D::Read_DB: %s", "Database Read Failed!");
 
     // Create the Basic Connectivity to Start with
     Create_Global_DataStructure();
@@ -121,10 +114,10 @@ void Grid3D::Create_Global_DataStructure() {
 
     // Check for Grid Database
     if (gridDB == NULL)
-        error("GridDB::Create_Connectivity_Base: %s", "No Data Found!");
+        CommMPI_Error(RankIO, "GridDB::Create_Connectivity_Base: %s", "No Data Found!");
 
     if (gridDB->nbases > 1)
-        error("GridDB::Create_Connectivity_Base: %s", "No of Bases > 1 Not Supported!");
+        CommMPI_Error(RankIO, "GridDB::Create_Connectivity_Base: %s", "No of Bases > 1 Not Supported!");
 
     nZones = gridDB->bases[0].nzones;
 
@@ -254,9 +247,8 @@ void Grid3D::Create_Global_DataStructure() {
                         bc_element_list[bcIndex].insert(list[i]);
                     break;
                 default:
-                    if (Rank == 0)
-                        error("GridDB::Create_Connectivity_Base: %s", "Unsupported Boundary Conditions !");
-                    exit(1);
+                    CommMPI_Error(RankIO, "GridDB::Create_Connectivity_Base: %s",
+                            "Unsupported Boundary Conditions !");
             }  
         }
         nBocos = global_bocoNameMap.size();
@@ -417,11 +409,10 @@ void Grid3D::Create_Global_DataStructure() {
             }
         }
     }
-    if ((int)global_x.size() != globalNodeCount) {
-        if (Rank == 0)
-            error("GridDB::Create_Connectivity_Base: %s", "Global Node Count Mis-Matched !");
-        exit(1);
-    }
+
+    if ((int)global_x.size() != globalNodeCount)
+        CommMPI_Error(RankIO, "GridDB::Create_Connectivity_Base: %s",
+                "Global Node Count Mis-Matched !");
 }
 
 //------------------------------------------------------------------------------
@@ -676,7 +667,7 @@ void Grid3D::Create_Local_Connectivity_Face() {
             }
 
             if (tempNodes == NULL)
-                error("Grid3D::Create_Local_Connectivity_Face: %s", "Face Creation Failed !");
+                CommMPI_Error(Rank, "Grid3D::Create_Local_Connectivity_Face: %s", "Face Creation Failed !");
             
             // Face count is incremented everytime a new face is found
             newface.id = faceCount;
@@ -1014,9 +1005,8 @@ void Grid3D::Scale_DB() {
             global_y[n] *= scaleFactor[1];
             global_z[n] *= scaleFactor[2];
         }
-        if (Rank == 0)
-            info("Grid Data Base Scaled: [%lf, %lf, %lf]",
-                    scaleFactor[0], scaleFactor[1], scaleFactor[2]);
+        CommMPI_Info(RankIO, "Grid Data Base Scaled: [%lf, %lf, %lf]",
+                scaleFactor[0], scaleFactor[1], scaleFactor[2]);
     }
 }
 
@@ -1063,10 +1053,9 @@ void Grid3D::Rotate_DB() {
             global_y[n] += rotationCenter[1];
             global_z[n] += rotationCenter[2];
         }
-        if (Rank == 0)
-            info("Grid Data Base Rotated: Center[%lf, %lf, %lf], Angle[%lf, %lf, %lf]",
-                    rotationCenter[0], rotationCenter[1], rotationCenter[2],
-                    rotationAngle[0], rotationAngle[1], rotationAngle[2]);
+        CommMPI_Info(RankIO, "Grid Data Base Rotated: Center[%lf, %lf, %lf], Angle[%lf, %lf, %lf]",
+                rotationCenter[0], rotationCenter[1], rotationCenter[2],
+                rotationAngle[0], rotationAngle[1], rotationAngle[2]);
     }
 }
 
@@ -1191,7 +1180,7 @@ void Grid3D::Parmetis_Partition_DB() {
         if (cellOwner[c] == Rank)
             cellCount++;
     }
-    info("Proc: %d : Number of Cells = %d", Rank, cellCount);
+    CommMPI_Info(Rank, "Number of Cells = %d", cellCount);
 
     myOffset = 0;
     partitionOffset[0] = 0;
@@ -1368,7 +1357,7 @@ void Grid3D::Compute_Grid_Metrics() {
                 patchCentroid = 0.25 * (face[f].centroid + node[face[f].nodes[n]] + node[face[f].nodes[next]] + centroid);
                 cell[c].centroid += patchVolume*patchCentroid;
                 if (patchVolume < 0.0)
-                    error("Grid3D::Compute_Grid_Metrics: cell[%d] %s", c, "Negative Volume Encountered !");
+                    CommMPI_Error(Rank, "Grid3D::Compute_Grid_Metrics: cell[%d] %s", c, "Negative Volume Encountered !");
                 volume += patchVolume;
             }
         }
@@ -1379,15 +1368,15 @@ void Grid3D::Compute_Grid_Metrics() {
 
     double globalTotalVolume = 0.;
     MPI_Allreduce(&totalVolume, &globalTotalVolume, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-    if (NoProc > 1 && Rank == 0)
-        info("Global Total Volume = %lf", globalTotalVolume);
+    if (NoProc > 1)
+        CommMPI_Info(RankIO, "Global Total Volume = %lf", globalTotalVolume);
 
     for (int f = 0; f < faceCount; f++) {
         vtemp1.vec[0] = face[f].centroid.pos[0] - cell[face[f].parent].centroid.pos[0];
         vtemp1.vec[1] = face[f].centroid.pos[1] - cell[face[f].parent].centroid.pos[1];
         vtemp1.vec[2] = face[f].centroid.pos[2] - cell[face[f].parent].centroid.pos[2];
         if (face[f].normal.dot(vtemp1) <= 0.0) {
-            warn("Rank: %d Face[%d]: Negative Normal Detected", Rank, f);
+            CommMPI_Warn(Rank, "Face[%d]: Negative Normal Detected", f);
             face[f].normal *= -1.0;
             // Reverse the Node Order
             face[f].nodes.assign(face[f].nodes.rbegin(), face[f].nodes.rend());

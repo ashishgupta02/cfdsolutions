@@ -8,6 +8,7 @@
 
 // CommMPI Commons
 int                   Rank;
+int                   RankIO;
 int                   NoProc;
 vector< vector<int> > sendCells;
 vector<int>           recvCount;

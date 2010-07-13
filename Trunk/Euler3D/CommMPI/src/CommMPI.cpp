@@ -4,6 +4,9 @@
  * Revision:    1
  ******************************************************************************/
 
+#include <cstdlib>
+#include <cstdio>
+#include <cstdarg>
 #include <mpi.h>
 
 #include "Utils.h"
@@ -15,13 +18,19 @@ MPI_Datatype MPI_GRAD;
 MPI_Datatype MPI_VEC3D;
 MPI_Datatype MPI_GHOST;
 
-void CommMPI_Init(int argc, char *argv[]) {
-    // Initialize mpi
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+void CommMPI_Initialize(int argc, char *argv[]) {
+    // Initialize MPI
     MPI_Init(&argc, &argv);
     // Find the number of processors
     MPI_Comm_size(MPI_COMM_WORLD, &NoProc);
     // Find current processor Rank
     MPI_Comm_rank(MPI_COMM_WORLD, &Rank);
+
+    // Set the I/O Rank
+    RankIO = 0;
 
     sendCells.resize(NoProc);
     recvCount.resize(NoProc);
@@ -63,6 +72,17 @@ void CommMPI_Init(int argc, char *argv[]) {
     return;
 }
 
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+void CommMPI_Finalize(void) {
+    // Free the Infrastructure and Finalize
+    MPI_Finalize();
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
 void CommMPI_Handshake(void) {
 
     int maxGhost = grid.globalCellCount / NoProc * 2;
@@ -82,18 +102,22 @@ void CommMPI_Handshake(void) {
     }
 
     for (int p = 0; p < NoProc; ++p) {
-        MPI_Alltoall(ghosts2receive, maxGhost, MPI_INT, ghosts2send, maxGhost, MPI_INT, MPI_COMM_WORLD);
+        MPI_Alltoall(ghosts2receive, maxGhost, MPI_INT, ghosts2send, maxGhost,
+                MPI_INT, MPI_COMM_WORLD);
     }
     MPI_Barrier(MPI_COMM_WORLD);
 
     // Transfer data to more efficient containers
     for (int p = 0; p < NoProc; ++p) {
-        for (int i = 1; i <= ghosts2send[p][0]; ++i) sendCells[p].push_back(ghosts2send[p][i]);
+        for (int i = 1; i <= ghosts2send[p][0]; ++i)
+            sendCells[p].push_back(ghosts2send[p][i]);
         recvCount[p] = ghosts2receive[p][0];
     }
-
 }
 
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
 void CommMPI_Get_Ghost_Centroids(void) {
 
     for (int p = 0; p < NoProc; ++p) {
@@ -106,16 +130,20 @@ void CommMPI_Get_Ghost_Centroids(void) {
                 sendBuffer[g].ids[0] = grid.cell[id].globalId;
                 sendBuffer[g].ids[1] = grid.myOffset + id;
                 sendBuffer[g].ids[2] = id;
-                for (int i = 0; i < 3; ++i) sendBuffer[g].comp[i] = grid.cell[id].centroid[i];
+                for (int i = 0; i < 3; ++i)
+                    sendBuffer[g].comp[i] = grid.cell[id].centroid[i];
             }
 
-            MPI_Sendrecv(sendBuffer, sendCells[p].size(), MPI_VEC3D, p, 0, recvBuffer, recvCount[p], MPI_VEC3D, p, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Sendrecv(sendBuffer, sendCells[p].size(), MPI_VEC3D, p, 0, 
+                    recvBuffer, recvCount[p], MPI_VEC3D, p, MPI_ANY_TAG,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
             for (int g = 0; g < recvCount[p]; ++g) {
                 id = grid.ghostGlobal2Local[recvBuffer[g].ids[0]];
                 grid.ghost[id].matrix_id = recvBuffer[g].ids[1];
                 grid.ghost[id].id_in_owner = recvBuffer[g].ids[2];
-                for (int i = 0; i < 3; ++i) grid.ghost[id].centroid[i] = recvBuffer[g].comp[i];
+                for (int i = 0; i < 3; ++i)
+                    grid.ghost[id].centroid[i] = recvBuffer[g].comp[i];
             }
         }
     }
@@ -124,6 +152,9 @@ void CommMPI_Get_Ghost_Centroids(void) {
     return;
 }
 
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
 void CommMPI_Update_Ghost_Primitives(void) {
 
     for (int p = 0; p < NoProc; ++p) {
@@ -142,7 +173,9 @@ void CommMPI_Update_Ghost_Primitives(void) {
                 sendBuffer[g].vars[5] = grid.cell[id].rho;
             }
 
-            MPI_Sendrecv(sendBuffer, sendCells[p].size(), MPI_GHOST, p, 0, recvBuffer, recvCount[p], MPI_GHOST, p, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Sendrecv(sendBuffer, sendCells[p].size(), MPI_GHOST, p, 0,
+                    recvBuffer, recvCount[p], MPI_GHOST, p, MPI_ANY_TAG,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
             for (int g = 0; g < recvCount[p]; ++g) {
                 id = grid.ghostGlobal2Local[recvBuffer[g].globalId];
@@ -169,6 +202,9 @@ void CommMPI_Update_Ghost_Primitives(void) {
     return;
 }
 
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
 void CommMPI_Update_Ghost_Gradients(void) {
 
     // Update ghost gradients
@@ -188,7 +224,9 @@ void CommMPI_Update_Ghost_Gradients(void) {
             }
         }
 
-        MPI_Sendrecv(sendBuffer, sendCells[p].size(), MPI_GRAD, p, 0, recvBuffer, recvCount[p], MPI_GRAD, p, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Sendrecv(sendBuffer, sendCells[p].size(), MPI_GRAD, p, 0,
+                recvBuffer, recvCount[p], MPI_GRAD, p, MPI_ANY_TAG,
+                MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
         for (int g = 0; g < recvCount[p]; ++g) {
             id = grid.ghostGlobal2Local[recvBuffer[g].globalId];
@@ -202,5 +240,64 @@ void CommMPI_Update_Ghost_Gradients(void) {
         }
     }
     return;
+}
+
+//------------------------------------------------------------------------------
+//! Print error message to stderr and exit
+//------------------------------------------------------------------------------
+void CommMPI_Error(int procid, const char *fmt, ...) {
+    if (Rank == procid) {
+        va_list args;
+
+        (void) fprintf(stderr, "ERROR  : Rank[%2d ] ", procid);
+
+        va_start(args, fmt);
+        (void) vfprintf(stderr, fmt, args);
+        va_end(args);
+
+        (void) fprintf(stderr, "\n");
+
+        /* To ensure log files are current */
+        (void) fflush(stderr);
+    }
+    
+    CommMPI_Finalize();
+    exit(EXIT_FAILURE);
+}
+
+//------------------------------------------------------------------------------
+//! Print warning message to stderr and continue
+//------------------------------------------------------------------------------
+void CommMPI_Warn(int procid, const char *fmt, ...) {
+    if (Rank == procid) {
+        va_list args;
+
+        (void) fprintf(stderr, "WARNING: Rank[%2d ] ", procid);
+        va_start(args, fmt);
+        (void) vfprintf(stderr, fmt, args);
+        va_end(args);
+
+        (void) fprintf(stderr, "\n");
+        /* To ensure log files are current */
+        (void) fflush(stderr);
+    }
+}
+
+//------------------------------------------------------------------------------
+//! Print information message to stdout and continue
+//------------------------------------------------------------------------------
+void CommMPI_Info(int procid, const char *fmt, ...) {
+    if (Rank == procid) {
+        va_list args;
+
+        (void) fprintf(stdout, "INFO   : Rank[%2d ] ", procid);
+        va_start(args, fmt);
+        (void) vfprintf(stdout, fmt, args);
+        va_end(args);
+
+        (void) fprintf(stdout, "\n");
+        /* To ensure log files are current */
+        (void) fflush(stdout);
+    }
 }
 

@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
     Commons_Init();
     
     // Intialize MPI
-    CommMPI_Init(argc, argv);
+    CommMPI_Initialize(argc, argv);
     
     // Get the argument options
     opt = arguments(argc, argv);
@@ -125,6 +125,10 @@ int main(int argc, char *argv[]) {
     grid.Read_DB();
     grid.Partition_And_Create_Connectivity();
     grid.Compute_Grid_Metrics();
+
+    // Communicate the Ghost Information
+    CommMPI_Handshake();
+    CommMPI_Get_Ghost_Centroids();
     
     /* Selecting the module */
     switch (opt) {
@@ -150,12 +154,12 @@ int main(int argc, char *argv[]) {
 
     // Syncronize the processors
     MPI_Barrier(MPI_COMM_WORLD);
-    
-    // Finalize Commons
-    Commons_Fini();
 
     // Finalize MPI
-    MPI_Finalize();
+    CommMPI_Finalize();
+
+    // Finalize Commons
+    Commons_Fini();
     
     return EXIT_SUCCESS;
 }
