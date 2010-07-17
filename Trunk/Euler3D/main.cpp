@@ -115,10 +115,8 @@ int main(int argc, char *argv[]) {
     UGrid_Reader(argv[2]);
 
     // Create All Connectivity Maps
-    Create_Connectivity_Maps();
-
-    // Reorder Graph Using Cuthill-Mckee Algorithm
-    Cuthill_Mckee_Reorder();
+    int reorder = 0;
+    Create_Connectivity_Maps(reorder);
     
     /* Selecting the module */
     switch (opt) {

@@ -14,8 +14,6 @@
 
 // Cell
 #define NUMBER_OF_ELEM_TYPES            6
-typedef int ELEMTYPE;
-#define INVALID_ELEM_TYPE              -1
 #define TRI                             0
 #define QUAD                            1
 #define TETRA                           2
@@ -89,7 +87,7 @@ void Commons_Init(void);
 void Commons_Finalize(void);
 
 // Create Connectivity Maps
-void Create_Connectivity_Maps(void);
+void Create_Connectivity_Maps(int reOrder);
 // Reordering of Graph to reduce Matrix-Computation Bandwidth
 void Cuthill_Mckee_Reorder(void);
 
