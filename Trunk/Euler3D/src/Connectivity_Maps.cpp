@@ -34,24 +34,6 @@ static void Create_Connectivity_Node2Cell() {
                 node2Cell[cell2Node[etype][elemNode[etype]*c + n]]->Add_To_List(gid);
         }
     }
-
-    // Compress the Information in CRS Format
-    int counter;
-    crs_IA_Node2Cell = (int*) malloc((nNode + 1) * sizeof (int));
-    crs_IA_Node2Cell[0] = 0;
-    for (int n = 1; n < nNode + 1; n++) {
-        crs_IA_Node2Cell[n] = node2Cell[n - 1]->max;
-        crs_IA_Node2Cell[n] += crs_IA_Node2Cell[n - 1];
-    }
-
-    crs_JA_Node2Cell = (int*) malloc(crs_IA_Node2Cell[nNode] * sizeof (int));
-    for (int n = 0; n < nNode; n++) {
-        counter = 0;
-        for (int i = crs_IA_Node2Cell[n]; i < crs_IA_Node2Cell[n + 1]; i++) {
-            crs_JA_Node2Cell[i] = node2Cell[n]->list[counter];
-            counter++;
-        }
-    }
 }
 
 //------------------------------------------------------------------------------
@@ -352,24 +334,6 @@ static void Create_Connectivity_Node2Node() {
                         node2Node[n]->Check_List(node_list[j]);
                 }
             }
-        }
-    }
-
-    // Compress the Information in CRS Format
-    int counter;
-    crs_IA_Node2Node = (int*) malloc((nNode + 1) * sizeof (int));
-    crs_IA_Node2Node[0] = 0;
-    for (int n = 1; n < nNode + 1; n++) {
-        crs_IA_Node2Node[n] = node2Node[n - 1]->max;
-        crs_IA_Node2Node[n] += crs_IA_Node2Node[n - 1];
-    }
-
-    crs_JA_Node2Node = (int*) malloc(crs_IA_Node2Node[nNode] * sizeof (int));
-    for (int n = 0; n < nNode; n++) {
-        counter = 0;
-        for (int i = crs_IA_Node2Node[n]; i < crs_IA_Node2Node[n + 1]; i++) {
-            crs_JA_Node2Node[i] = node2Node[n]->list[counter];
-            counter++;
         }
     }
 }
@@ -751,24 +715,6 @@ static void Create_Connectivity_Cell2Cell() {
             }
         }
     }
-
-    // Compress the Information in CRS Format
-    int counter;
-    crs_IA_Cell2Cell = (int*) malloc((nCell + 1) * sizeof (int));
-    crs_IA_Cell2Cell[0] = 0;
-    for (int c = 1; c < nCell + 1; c++) {
-        crs_IA_Cell2Cell[c] = cell2Cell[c - 1]->max;
-        crs_IA_Cell2Cell[c] += crs_IA_Cell2Cell[c - 1];
-    }
-
-    crs_JA_Cell2Cell = (int*) malloc(crs_IA_Cell2Cell[nCell] * sizeof (int));
-    for (int c = 0; c < nCell; c++) {
-        counter = 0;
-        for (int i = crs_IA_Cell2Cell[c]; i < crs_IA_Cell2Cell[c + 1]; i++) {
-            crs_JA_Cell2Cell[i] = cell2Cell[c]->list[counter];
-            counter++;
-        }
-    }
     
     // Free Memory Used
     for (int i = 0; i < NUMBER_OF_ELEM_TYPES; i++)
@@ -942,9 +888,68 @@ static void Verify_Surface_Connectivity() {
 }
 
 //------------------------------------------------------------------------------
+//! Compress Connectivity in Compressed Row Storage
+//------------------------------------------------------------------------------
+static void Create_Connectivity_CRS() {
+    // Compress the Information in CRS Format
+    int counter;
+
+    // Node2Cell
+    crs_IA_Node2Cell = (int*) malloc((nNode + 1) * sizeof (int));
+    crs_IA_Node2Cell[0] = 0;
+    for (int n = 1; n < nNode + 1; n++) {
+        crs_IA_Node2Cell[n] = node2Cell[n - 1]->max;
+        crs_IA_Node2Cell[n] += crs_IA_Node2Cell[n - 1];
+    }
+
+    crs_JA_Node2Cell = (int*) malloc(crs_IA_Node2Cell[nNode] * sizeof (int));
+    for (int n = 0; n < nNode; n++) {
+        counter = 0;
+        for (int i = crs_IA_Node2Cell[n]; i < crs_IA_Node2Cell[n + 1]; i++) {
+            crs_JA_Node2Cell[i] = node2Cell[n]->list[counter];
+            counter++;
+        }
+    }
+
+    // Node2Node
+    crs_IA_Node2Node = (int*) malloc((nNode + 1) * sizeof (int));
+    crs_IA_Node2Node[0] = 0;
+    for (int n = 1; n < nNode + 1; n++) {
+        crs_IA_Node2Node[n] = node2Node[n - 1]->max;
+        crs_IA_Node2Node[n] += crs_IA_Node2Node[n - 1];
+    }
+
+    crs_JA_Node2Node = (int*) malloc(crs_IA_Node2Node[nNode] * sizeof (int));
+    for (int n = 0; n < nNode; n++) {
+        counter = 0;
+        for (int i = crs_IA_Node2Node[n]; i < crs_IA_Node2Node[n + 1]; i++) {
+            crs_JA_Node2Node[i] = node2Node[n]->list[counter];
+            counter++;
+        }
+    }
+
+    // Cell2Cell;
+    crs_IA_Cell2Cell = (int*) malloc((nCell + 1) * sizeof (int));
+    crs_IA_Cell2Cell[0] = 0;
+    for (int c = 1; c < nCell + 1; c++) {
+        crs_IA_Cell2Cell[c] = cell2Cell[c - 1]->max;
+        crs_IA_Cell2Cell[c] += crs_IA_Cell2Cell[c - 1];
+    }
+
+    crs_JA_Cell2Cell = (int*) malloc(crs_IA_Cell2Cell[nCell] * sizeof (int));
+    for (int c = 0; c < nCell; c++) {
+        counter = 0;
+        for (int i = crs_IA_Cell2Cell[c]; i < crs_IA_Cell2Cell[c + 1]; i++) {
+            crs_JA_Cell2Cell[i] = cell2Cell[c]->list[counter];
+            counter++;
+        }
+    }
+}
+
+//------------------------------------------------------------------------------
 //! Create All Connectivity Maps
 //------------------------------------------------------------------------------
-void Create_Connectivity_Maps() {
+void Create_Connectivity_Maps(int reOrder) {
     // Calculate total number of Cells
     nCell     = 0;
     nSurfCell = 0;
@@ -963,10 +968,30 @@ void Create_Connectivity_Maps() {
         cellGlobalOffset[i] = cellGlobalOffset[i-1] + nElem[i];
     
     printf("=============================================================================\n");
+    
+    // Check if Reorder is Needed
+    if (reOrder) {
+        // Create Node2Cell Connectivity
+        Create_Connectivity_Node2Cell();
+        // Create Node2Node Connectivity
+        Create_Connectivity_Node2Node();
+        // Reorder using Cuthill Mckee Algorithm
+        Cuthill_Mckee_Reorder();
+        // Free Memory as they are currupt need to recreate
+        for (int n = 0; n < nNode; n++) {
+            delete node2Cell[n];
+            delete node2Node[n];
+        }
+        delete[] node2Cell;
+        delete[] node2Node;
+        node2Cell = NULL;
+        node2Node = NULL;
+    }
+
     // Create Node2Cell Connectivity
     info("Creating Node to Cell Connectivity");
     Create_Connectivity_Node2Cell();
-    
+
     // Create Node2Node Connectivity
     info("Creating Node to Node Connectivity");
     Create_Connectivity_Node2Node();
@@ -979,10 +1004,14 @@ void Create_Connectivity_Maps() {
     info("Creating Edge to Node Connectivity");
     Create_Connectivity_Edge2Node();
 
+    // Verify the Surface Cell Orientation
     info("Verifing Surface Connectivity");
     Verify_Surface_Connectivity();
 
-    
+    // Create Connectivity in CRS format
+    Create_Connectivity_CRS();
+
+    // Free Memory
     for (int n = 0; n < nNode; n++) {
         delete node2Cell[n];
         delete node2Node[n];
@@ -993,5 +1022,9 @@ void Create_Connectivity_Maps() {
     for (int c = 0; c < nCell; c++)
         delete cell2Cell[c];
     delete [] cell2Cell;
+
+    node2Cell = NULL;
+    node2Node = NULL;
+    cell2Cell = NULL;
 }
 
