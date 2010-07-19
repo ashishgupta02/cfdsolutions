@@ -21,6 +21,8 @@
                    displayName="Source Files"
                    projectFiles="true"
                    kind="SOURCE_LOGICAL_FOLDER">
+      <itemPath>src/Area_Volume.cpp</itemPath>
+      <itemPath>src/BC.cpp</itemPath>
       <itemPath>src/Commons.cpp</itemPath>
       <itemPath>src/Connectivity_Maps.cpp</itemPath>
       <itemPath>src/Cuthill_Mckee_Reorder.cpp</itemPath>
