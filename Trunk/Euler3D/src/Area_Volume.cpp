@@ -510,7 +510,7 @@ static void Calculate_Boundary_Edge_Area() {
         n0 = cell2Node[TRI][3 * i + 0];
         n1 = cell2Node[TRI][3 * i + 1];
         n2 = cell2Node[TRI][3 * i + 2];
-
+        
         // Calculate centroid
         surcen.pos[0] = (coordXYZ[3 * n0 + 0] + coordXYZ[3 * n1 + 0] + coordXYZ[3 * n2 + 0]) / 3.0;
         surcen.pos[1] = (coordXYZ[3 * n0 + 1] + coordXYZ[3 * n1 + 1] + coordXYZ[3 * n2 + 1]) / 3.0;
@@ -815,67 +815,11 @@ static void Calculate_Internal_Edge_Area_Volume() {
             }
         }
     }
-
+    
     // Free the Memory
     for (int i = 0; i < nNode; i++)
         delete node2Edge[i];
     delete[] node2Edge;
-}
-
-void check_areas_closed() {
-    int i;
-
-    double *test_areas_closed;
-    test_areas_closed = (double*) malloc(3 * nNode * sizeof (double));
-
-    int bnode;
-    int inode1, inode2;
-    for (i = 0; i < 3 * nNode; i++)
-        test_areas_closed[i] = 0.0;
-
-    double add_over_nodes = 0.0;
-
-    for (i = 0; i < nBEdge; i++) {
-        bnode = bndry_edge_info[i].node[0];
-        test_areas_closed[3 * bnode + 0] -= bndry_edge_info[i].areav.vec[0];
-        test_areas_closed[3 * bnode + 1] -= bndry_edge_info[i].areav.vec[1];
-        test_areas_closed[3 * bnode + 2] -= bndry_edge_info[i].areav.vec[2];
-    }
-    
-    for (i = 0; i < nEdge; i++) {
-        inode1 = int_edge_info[i].node[0];
-        inode2 = int_edge_info[i].node[1];
-
-        test_areas_closed[3 * inode1 + 0] -= int_edge_info[i].areav.vec[0];
-        test_areas_closed[3 * inode1 + 1] -= int_edge_info[i].areav.vec[1];
-        test_areas_closed[3 * inode1 + 2] -= int_edge_info[inode1].areav.vec[2];
-
-        test_areas_closed[3 * inode2 + 0] += int_edge_info[i].areav.vec[0];
-        test_areas_closed[3 * inode2 + 1] += int_edge_info[i].areav.vec[1];
-        test_areas_closed[3 * inode2 + 2] += int_edge_info[i].areav.vec[2];
-    }
-    
-    for (i = 0; i < nNode; i++)
-        add_over_nodes = test_areas_closed[3 * i + 0]
-                + test_areas_closed[3 * i + 1]
-                + test_areas_closed[3 * i + 2];
-    
-    printf("Control Volume Leak Check -> %.15e\n", add_over_nodes);
-
-    free(test_areas_closed);
-
-    double temp_x = 0.0;
-    double temp_y = 0.0;
-    double temp_z = 0.0;
-
-    for (i = 0; i < nBEdge; i++) {
-        temp_x += bndry_edge_info[i].areav.vec[0];
-        temp_y += bndry_edge_info[i].areav.vec[1];
-        temp_z += bndry_edge_info[i].areav.vec[2];
-    }
-
-    temp_x = sqrt(temp_x * temp_x + temp_y * temp_y + temp_z * temp_z);
-    printf("Surface leakage -> %.15e\n", temp_x);
 }
 
 //------------------------------------------------------------------------------
@@ -894,6 +838,5 @@ void Calculate_Area_Volume() {
         int_edge_info[i].areav *= -1.0;
     for (int i = 0; i < nBEdge; i++)
         bndry_edge_info[i].areav *= -1.0;
-    check_areas_closed();
 }
 

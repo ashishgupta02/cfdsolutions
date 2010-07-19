@@ -629,7 +629,7 @@ static void Create_Connectivity_Cell2Cell() {
                     cell_lid -= nElem[etype];
                 }
             }
-
+            
             // Loop over other cells connected to this nodes except seed cell
             for (int oc = 0; oc < node2Cell[n]->max; oc++) {
                 if (c != oc) {
@@ -645,7 +645,8 @@ static void Create_Connectivity_Cell2Cell() {
                             other_cell_lid -= nElem[etype];
                         }
                     }
-                    
+
+                    index = -1;
                     // Loop over faces of the seed cell
                     for (int cf = 0; cf < elemFace[cell_type]; cf++) {
                         
@@ -827,8 +828,8 @@ static void Verify_Surface_Connectivity() {
         scen = 0.0;
         for (int i = 0; i < elemNode[scell_type]; i++) {
             scen.pos[0] += coordXYZ[PHY_DIM * snode[i] + 0];
-            scen.pos[0] += coordXYZ[PHY_DIM * snode[i] + 1];
-            scen.pos[0] += coordXYZ[PHY_DIM * snode[i] + 2];
+            scen.pos[1] += coordXYZ[PHY_DIM * snode[i] + 1];
+            scen.pos[2] += coordXYZ[PHY_DIM * snode[i] + 2];
         }
         scen /= (double) elemNode[scell_type];
         
@@ -858,7 +859,7 @@ static void Verify_Surface_Connectivity() {
             vcen.pos[2] += coordXYZ[PHY_DIM * vnode[i] + 2];
         }
         vcen /= (double) elemNode[vcell_type];
-
+        
         // Get Vector Connecting Surface Centriod to Volume Centriod
         scvc.vec[0] = vcen.pos[0] - scen.pos[0];
         scvc.vec[1] = vcen.pos[1] - scen.pos[1];
