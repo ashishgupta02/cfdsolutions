@@ -37,8 +37,10 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Commons.o \
 	${OBJECTDIR}/src/Cuthill_Mckee_Reorder.o \
 	${OBJECTDIR}/main.o \
+	${OBJECTDIR}/src/BC.o \
 	${OBJECTDIR}/src/Vector3D.o \
 	${OBJECTDIR}/src/Trim_Utils.o \
+	${OBJECTDIR}/src/Area_Volume.o \
 	${OBJECTDIR}/src/List.o \
 	${OBJECTDIR}/src/MeshIO.o \
 	${OBJECTDIR}/src/Connectivity_Maps.o
@@ -88,6 +90,11 @@ ${OBJECTDIR}/main.o: main.cpp
 	${RM} $@.d
 	$(COMPILE.cc) -g -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
 
+${OBJECTDIR}/src/BC.o: src/BC.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/BC.o src/BC.cpp
+
 ${OBJECTDIR}/src/Vector3D.o: src/Vector3D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
@@ -97,6 +104,11 @@ ${OBJECTDIR}/src/Trim_Utils.o: src/Trim_Utils.c
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.c) -g -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Trim_Utils.o src/Trim_Utils.c
+
+${OBJECTDIR}/src/Area_Volume.o: src/Area_Volume.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Area_Volume.o src/Area_Volume.cpp
 
 ${OBJECTDIR}/src/List.o: src/List.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

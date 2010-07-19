@@ -13,12 +13,16 @@ int     nCell;
 int     nSurfCell;
 int     nVolCell;
 int     nEdge;
+int     nBEdge;
+int     nBNode;
 int     nBC;
 int     elemNode[NUMBER_OF_ELEM_TYPES];
 int     elemFace[NUMBER_OF_ELEM_TYPES];
+int     elemEdge[NUMBER_OF_ELEM_TYPES];
 int     nElem[NUMBER_OF_ELEM_TYPES];
 int     cellGlobalOffset[NUMBER_OF_ELEM_TYPES];
 double *coordXYZ;
+double *cVolume;
 int    *cell2Node[NUMBER_OF_ELEM_TYPES];
 int    *faceTag[2];
 List  **node2Cell;
@@ -31,6 +35,8 @@ int    *crs_JA_Node2Cell;
 int    *crs_IA_Node2Cell;
 int    *crs_JA_Cell2Cell;
 int    *crs_IA_Cell2Cell;
+bndry_edge_data *bndry_edge_info;
+edge_data       *int_edge_info;
 
 //------------------------------------------------------------------------------
 //!
@@ -41,6 +47,8 @@ void Commons_Init(void) {
     nSurfCell       = 0;
     nVolCell        = 0;
     nEdge           = 0;
+    nBEdge          = 0;
+    nBNode          = 0;
     nBC             = 0;
     
     elemNode[TRI]   = NNODE_TRI;
@@ -57,6 +65,13 @@ void Commons_Init(void) {
     elemFace[PRISM] = NFACE_PRISM;
     elemFace[HEXA]  = NFACE_HEXA;
     
+    elemEdge[TRI]   = NEDGE_TRI;
+    elemEdge[QUAD]  = NEDGE_QUAD;
+    elemEdge[TETRA] = NEDGE_TETRA;
+    elemEdge[PYRA]  = NEDGE_PYRA;
+    elemEdge[PRISM] = NEDGE_PRISM;
+    elemEdge[HEXA]  = NEDGE_HEXA;
+    
     nElem[TRI]      = 0;
     nElem[QUAD]     = 0;
     nElem[TETRA]    = 0;
@@ -68,6 +83,7 @@ void Commons_Init(void) {
         cellGlobalOffset[i] = 0;
 
     coordXYZ        = NULL;
+    cVolume         = NULL;
 
     cell2Node[TRI]  = NULL;
     cell2Node[QUAD] = NULL;
@@ -90,6 +106,9 @@ void Commons_Init(void) {
     crs_IA_Node2Cell= NULL;
     crs_JA_Cell2Cell= NULL;
     crs_IA_Cell2Cell= NULL;
+
+    bndry_edge_info = NULL;
+    int_edge_info   = NULL;
 }
 
 //------------------------------------------------------------------------------

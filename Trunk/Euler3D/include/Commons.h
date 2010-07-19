@@ -8,6 +8,7 @@
 #define	COMMONS_H
 
 #include "List.h"
+#include "Vector3D.h"
 
 #define PHY_DIM                         3
 #define CELL_DIM                        3
@@ -63,12 +64,16 @@ extern int     nCell;
 extern int     nSurfCell;
 extern int     nVolCell;
 extern int     nEdge;
+extern int     nBEdge;
+extern int     nBNode;
 extern int     nBC;
 extern int     elemNode[NUMBER_OF_ELEM_TYPES];
 extern int     elemFace[NUMBER_OF_ELEM_TYPES];
+extern int     elemEdge[NUMBER_OF_ELEM_TYPES];
 extern int     nElem[NUMBER_OF_ELEM_TYPES];
 extern int     cellGlobalOffset[NUMBER_OF_ELEM_TYPES];
 extern double *coordXYZ;
+extern double *cVolume;
 extern int    *cell2Node[NUMBER_OF_ELEM_TYPES];
 extern int    *faceTag[2];
 extern List  **node2Cell;
@@ -82,6 +87,23 @@ extern int    *crs_IA_Node2Cell;
 extern int    *crs_JA_Cell2Cell;
 extern int    *crs_IA_Cell2Cell;
 
+// Edge Data Structure
+typedef struct edge_data {
+    int      id;
+    int      node[2];
+    Vector3D areav;
+} edge_data;
+
+typedef struct bndry_edge_data {
+    int      type;
+    int      tag;
+    int      node[2];
+    Vector3D areav;
+} bndry_edge_data;
+
+extern bndry_edge_data *bndry_edge_info;
+extern edge_data *int_edge_info;
+
 // Basic Functions
 void Commons_Init(void);
 void Commons_Finalize(void);
@@ -90,6 +112,11 @@ void Commons_Finalize(void);
 void Create_Connectivity_Maps(int reOrder);
 // Reordering of Graph to reduce Matrix-Computation Bandwidth
 void Cuthill_Mckee_Reorder(void);
+// Calculate Areas and Control Volume
+void Calculate_Area_Volume();
+
+void Initialize_Boundary_Condition();
+void Create_Boundary_Condition();
 
 #endif	/* COMMONS_H */
 

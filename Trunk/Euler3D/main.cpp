@@ -117,6 +117,12 @@ int main(int argc, char *argv[]) {
     // Create All Connectivity Maps
     int reorder = 0;
     Create_Connectivity_Maps(reorder);
+
+    // Initialize Boundary Condition
+    Initialize_Boundary_Condition();
+
+    // Calculate Areas and Control Volumes
+    Calculate_Area_Volume();
     
     /* Selecting the module */
     switch (opt) {
