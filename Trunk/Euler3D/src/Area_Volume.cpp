@@ -672,19 +672,6 @@ static void Calculate_Internal_Edge_Area_Volume() {
     cVolume = (double*) malloc(nNode * sizeof (double));
     for (int i = 0; i < nNode; i++)
         cVolume[i] = 0.0;
-    
-    // Create Nodes to Edge Temporary Connectivity
-    List **node2Edge;
-    node2Edge = new List *[nNode];
-    for (int i = 0; i < nNode; i++)
-        node2Edge[i] = new List();
-
-    for (int i = 0; i < nNode; i++) {
-        for (int j = 0; j < nEdge; j++) {
-            if (edge2Node[2 * j + 0] == i || edge2Node[2 * j + 1] == i)
-                node2Edge[i]->Add_To_List(j);
-        }
-    }
 
     // Loop Over all Cells
     for (int i = 0; i < nCell; i++) {
@@ -815,11 +802,6 @@ static void Calculate_Internal_Edge_Area_Volume() {
             }
         }
     }
-    
-    // Free the Memory
-    for (int i = 0; i < nNode; i++)
-        delete node2Edge[i];
-    delete[] node2Edge;
 }
 
 //------------------------------------------------------------------------------

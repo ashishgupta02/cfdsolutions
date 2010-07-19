@@ -123,6 +123,9 @@ int main(int argc, char *argv[]) {
 
     // Calculate Areas and Control Volumes
     Calculate_Area_Volume();
+
+    // Free Excess Memory Used for Connectivity Creation
+    Trim_Connectivity_Memory();
     
     /* Selecting the module */
     switch (opt) {

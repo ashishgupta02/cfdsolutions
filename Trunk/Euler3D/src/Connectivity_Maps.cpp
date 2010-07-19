@@ -759,6 +759,22 @@ static void Create_Connectivity_Edge2Node() {
 }
 
 //------------------------------------------------------------------------------
+//! Create Connectivity: node2Edge
+//------------------------------------------------------------------------------
+static void Create_Connectivity_Node2Edge() {
+    node2Edge = new List *[nNode];
+    for (int i = 0; i < nNode; i++)
+        node2Edge[i] = new List();
+
+    for (int i = 0; i < nNode; i++) {
+        for (int j = 0; j < nEdge; j++) {
+            if (edge2Node[2 * j + 0] == i || edge2Node[2 * j + 1] == i)
+                node2Edge[i]->Add_To_List(j);
+        }
+    }
+}
+
+//------------------------------------------------------------------------------
 //! Verify Surface Element Connectivity
 //------------------------------------------------------------------------------
 static void Verify_Surface_Connectivity() {
@@ -945,6 +961,23 @@ static void Create_Connectivity_CRS() {
             counter++;
         }
     }
+
+    // Node2Edge
+    crs_IA_Node2Edge = (int*) malloc((nNode + 1) * sizeof (int));
+    crs_IA_Node2Edge[0] = 0;
+    for (int n = 1; n < nNode + 1; n++) {
+        crs_IA_Node2Edge[n] = node2Edge[n - 1]->max;
+        crs_IA_Node2Edge[n] += crs_IA_Node2Edge[n - 1];
+    }
+
+    crs_JA_Node2Edge = (int*) malloc(crs_IA_Node2Edge[nNode] * sizeof (int));
+    for (int n = 0; n < nNode; n++) {
+        counter = 0;
+        for (int i = crs_IA_Node2Edge[n]; i < crs_IA_Node2Edge[n + 1]; i++) {
+            crs_JA_Node2Edge[i] = node2Edge[n]->list[counter];
+            counter++;
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -1005,20 +1038,32 @@ void Create_Connectivity_Maps(int reOrder) {
     info("Creating Edge to Node Connectivity");
     Create_Connectivity_Edge2Node();
 
+    // Create Node2Edge Connectivity
+    info("Creating Node to Edge Connectivity");
+    Create_Connectivity_Node2Edge();
+    
     // Verify the Surface Cell Orientation
     info("Verifing Surface Connectivity");
     Verify_Surface_Connectivity();
 
     // Create Connectivity in CRS format
+    info("Storing Connectivities in CRS Format");
     Create_Connectivity_CRS();
+}
 
+//------------------------------------------------------------------------------
+//! Free Excess Memory Used in Connectivity Creation
+//------------------------------------------------------------------------------
+void Trim_Connectivity_Memory() {
     // Free Memory
     for (int n = 0; n < nNode; n++) {
         delete node2Cell[n];
         delete node2Node[n];
+        delete node2Edge[n];
     }
     delete[] node2Cell;
     delete[] node2Node;
+    delete[] node2Edge;
 
     for (int c = 0; c < nCell; c++)
         delete cell2Cell[c];
@@ -1026,6 +1071,7 @@ void Create_Connectivity_Maps(int reOrder) {
 
     node2Cell = NULL;
     node2Node = NULL;
+    node2Edge = NULL;
     cell2Cell = NULL;
 }
 
