@@ -28,6 +28,7 @@ int    *faceTag[2];
 List  **node2Cell;
 List  **node2Node;
 List  **cell2Cell;
+List  **node2Edge;
 int    *edge2Node;
 int    *crs_JA_Node2Node;
 int    *crs_IA_Node2Node;
@@ -35,6 +36,8 @@ int    *crs_JA_Node2Cell;
 int    *crs_IA_Node2Cell;
 int    *crs_JA_Cell2Cell;
 int    *crs_IA_Cell2Cell;
+int    *crs_JA_Node2Edge;
+int    *crs_IA_Node2Edge;
 bndry_edge_data *bndry_edge_info;
 edge_data       *int_edge_info;
 
@@ -98,6 +101,7 @@ void Commons_Init(void) {
     node2Cell       = NULL;
     node2Node       = NULL;
     cell2Cell       = NULL;
+    node2Edge       = NULL;
     edge2Node       = NULL;
     
     crs_JA_Node2Node= NULL;
@@ -106,7 +110,9 @@ void Commons_Init(void) {
     crs_IA_Node2Cell= NULL;
     crs_JA_Cell2Cell= NULL;
     crs_IA_Cell2Cell= NULL;
-
+    crs_JA_Node2Edge= NULL;
+    crs_IA_Node2Edge= NULL;
+    
     bndry_edge_info = NULL;
     int_edge_info   = NULL;
 }

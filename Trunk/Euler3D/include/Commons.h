@@ -79,6 +79,7 @@ extern int    *faceTag[2];
 extern List  **node2Cell;
 extern List  **node2Node;
 extern List  **cell2Cell;
+extern List  **node2Edge;
 extern int    *edge2Node;
 extern int    *crs_JA_Node2Node;
 extern int    *crs_IA_Node2Node;
@@ -86,6 +87,8 @@ extern int    *crs_JA_Node2Cell;
 extern int    *crs_IA_Node2Cell;
 extern int    *crs_JA_Cell2Cell;
 extern int    *crs_IA_Cell2Cell;
+extern int    *crs_JA_Node2Edge;
+extern int    *crs_IA_Node2Edge;
 
 // Edge Data Structure
 typedef struct edge_data {
@@ -110,6 +113,8 @@ void Commons_Finalize(void);
 
 // Create Connectivity Maps
 void Create_Connectivity_Maps(int reOrder);
+// Free Excess Memory Used in Connectivity Creation
+void Trim_Connectivity_Memory();
 // Reordering of Graph to reduce Matrix-Computation Bandwidth
 void Cuthill_Mckee_Reorder(void);
 // Calculate Areas and Control Volume
