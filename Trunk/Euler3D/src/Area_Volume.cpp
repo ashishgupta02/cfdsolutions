@@ -464,41 +464,41 @@ static void Calculate_Boundary_Edge_Area() {
     
     // Triangle
     for (int i = 0; i < nElem[TRI]; i++) {
-        bndry_edge_info[3 * i + 0].node[0] = cell2Node[TRI][3 * i + 0];
-        bndry_edge_info[3 * i + 0].node[1] = nNode + bndry_node_count;
-        bndry_edge_info[3 * i + 0].tag     = faceTag[TRI][i];
+        bndry_edge_info[NEDGE_TRI * i + 0].node[0] = cell2Node[TRI][NNODE_TRI * i + 0];
+        bndry_edge_info[NEDGE_TRI * i + 0].node[1] = nNode + bndry_node_count;
+        bndry_edge_info[NEDGE_TRI * i + 0].tag     = faceTag[TRI][i];
 
-        bndry_edge_info[3 * i + 1].node[0] = cell2Node[TRI][3 * i + 1];
-        bndry_edge_info[3 * i + 1].node[1] = nNode + bndry_node_count + 1;
-        bndry_edge_info[3 * i + 1].tag     = faceTag[TRI][i];
+        bndry_edge_info[NEDGE_TRI * i + 1].node[0] = cell2Node[TRI][NNODE_TRI * i + 1];
+        bndry_edge_info[NEDGE_TRI * i + 1].node[1] = nNode + bndry_node_count + 1;
+        bndry_edge_info[NEDGE_TRI * i + 1].tag     = faceTag[TRI][i];
 
-        bndry_edge_info[3 * i + 2].node[0] = cell2Node[TRI][3 * i + 2];
-        bndry_edge_info[3 * i + 2].node[1] = nNode + bndry_node_count + 2;
-        bndry_edge_info[3 * i + 2].tag     = faceTag[TRI][i];
+        bndry_edge_info[NEDGE_TRI * i + 2].node[0] = cell2Node[TRI][NNODE_TRI * i + 2];
+        bndry_edge_info[NEDGE_TRI * i + 2].node[1] = nNode + bndry_node_count + 2;
+        bndry_edge_info[NEDGE_TRI * i + 2].tag     = faceTag[TRI][i];
 
-        bndry_node_count += 3;
-        bndry_edge_count += 3;
+        bndry_node_count += NNODE_TRI;
+        bndry_edge_count += NEDGE_TRI;
     }
 
     // Quadrilateral
     for (int i = 0; i < nElem[QUAD]; i++) {
-        bndry_edge_info[bndry_edge_count + 4 * i + 0].node[0] = cell2Node[QUAD][4 * i + 0];
-        bndry_edge_info[bndry_edge_count + 4 * i + 0].node[1] = nNode + bndry_node_count;
-        bndry_edge_info[bndry_edge_count + 4 * i + 0].tag     = faceTag[QUAD][i];
+        bndry_edge_info[bndry_edge_count + NEDGE_QUAD * i + 0].node[0] = cell2Node[QUAD][NNODE_QUAD * i + 0];
+        bndry_edge_info[bndry_edge_count + NEDGE_QUAD * i + 0].node[1] = nNode + bndry_node_count;
+        bndry_edge_info[bndry_edge_count + NEDGE_QUAD * i + 0].tag     = faceTag[QUAD][i];
 
-        bndry_edge_info[bndry_edge_count + 4 * i + 1].node[0] = cell2Node[QUAD][4 * i + 1];
-        bndry_edge_info[bndry_edge_count + 4 * i + 1].node[1] = nNode + bndry_node_count + 1;
-        bndry_edge_info[bndry_edge_count + 4 * i + 1].tag     = faceTag[QUAD][i];
+        bndry_edge_info[bndry_edge_count + NEDGE_QUAD * i + 1].node[0] = cell2Node[QUAD][NNODE_QUAD * i + 1];
+        bndry_edge_info[bndry_edge_count + NEDGE_QUAD * i + 1].node[1] = nNode + bndry_node_count + 1;
+        bndry_edge_info[bndry_edge_count + NEDGE_QUAD * i + 1].tag     = faceTag[QUAD][i];
 
-        bndry_edge_info[bndry_edge_count + 4 * i + 2].node[0] = cell2Node[QUAD][4 * i + 2];
-        bndry_edge_info[bndry_edge_count + 4 * i + 2].node[1] = nNode + bndry_node_count + 2;
-        bndry_edge_info[bndry_edge_count + 4 * i + 2].tag     = faceTag[QUAD][i];
+        bndry_edge_info[bndry_edge_count + NEDGE_QUAD * i + 2].node[0] = cell2Node[QUAD][NNODE_QUAD * i + 2];
+        bndry_edge_info[bndry_edge_count + NEDGE_QUAD * i + 2].node[1] = nNode + bndry_node_count + 2;
+        bndry_edge_info[bndry_edge_count + NEDGE_QUAD * i + 2].tag     = faceTag[QUAD][i];
 
-        bndry_edge_info[bndry_edge_count + 4 * i + 3].node[0] = cell2Node[QUAD][4 * i + 3];
-        bndry_edge_info[bndry_edge_count + 4 * i + 3].node[1] = nNode + bndry_node_count + 3;
-        bndry_edge_info[bndry_edge_count + 4 * i + 3].tag     = faceTag[QUAD][i];
+        bndry_edge_info[bndry_edge_count + NEDGE_QUAD * i + 3].node[0] = cell2Node[QUAD][NNODE_QUAD * i + 3];
+        bndry_edge_info[bndry_edge_count + NEDGE_QUAD * i + 3].node[1] = nNode + bndry_node_count + 3;
+        bndry_edge_info[bndry_edge_count + NEDGE_QUAD * i + 3].tag     = faceTag[QUAD][i];
 
-        bndry_node_count += 4;
+        bndry_node_count += NNODE_QUAD;
     }
 
     bndry_edge_count = 0;
@@ -507,9 +507,9 @@ static void Calculate_Boundary_Edge_Area() {
     // Triangle
     for (int i = 0; i < nElem[TRI]; i++) {
         // Get the Nodes
-        n0 = cell2Node[TRI][3 * i + 0];
-        n1 = cell2Node[TRI][3 * i + 1];
-        n2 = cell2Node[TRI][3 * i + 2];
+        n0 = cell2Node[TRI][NNODE_TRI * i + 0];
+        n1 = cell2Node[TRI][NNODE_TRI * i + 1];
+        n2 = cell2Node[TRI][NNODE_TRI * i + 2];
         
         // Calculate centroid
         surcen.pos[0] = (coordXYZ[3 * n0 + 0] + coordXYZ[3 * n1 + 0] + coordXYZ[3 * n2 + 0]) / 3.0;
@@ -530,7 +530,7 @@ static void Calculate_Boundary_Edge_Area() {
             V3.vec[j] = edgcen2.pos[j] - coordXYZ[3 * n0 + j];
         }
         // Add the two part area vector to the node
-        bndry_edge_info[3 * i + 0].areav += 0.5 * (V1.cross(V2) + V2.cross(V3));
+        bndry_edge_info[NEDGE_TRI * i + 0].areav += 0.5 * (V1.cross(V2) + V2.cross(V3));
 
         // -- Node 1
         // Calculate centroid of edges for node 1
@@ -546,7 +546,7 @@ static void Calculate_Boundary_Edge_Area() {
             V3.vec[j] = edgcen2.pos[j] - coordXYZ[3 * n1 + j];
         }
         // Add the two part area vector to the node
-        bndry_edge_info[3 * i + 1].areav += 0.5 * (V1.cross(V2) + V2.cross(V3));
+        bndry_edge_info[NEDGE_TRI * i + 1].areav += 0.5 * (V1.cross(V2) + V2.cross(V3));
 
         // -- Node 2
         //Calculate centroid of edges for node 1
@@ -562,19 +562,19 @@ static void Calculate_Boundary_Edge_Area() {
             V3.vec[j] = edgcen2.pos[j] - coordXYZ[3 * n2 + j];
         }
         // Add the two part area vector to the node
-        bndry_edge_info[3 * i + 2].areav += 0.5 * (V1.cross(V2) + V2.cross(V3));
+        bndry_edge_info[NEDGE_TRI * i + 2].areav += 0.5 * (V1.cross(V2) + V2.cross(V3));
 
         // Increment the Processed Boundary Edges
-        bndry_edge_count += 3;
+        bndry_edge_count += NEDGE_TRI;
     }
 
     // Quadrilateral
     for (int i = 0; i < nElem[QUAD]; i++) {
         // Get Nodes
-        n0 = cell2Node[QUAD][4 * i + 0];
-        n1 = cell2Node[QUAD][4 * i + 1];
-        n2 = cell2Node[QUAD][4 * i + 2];
-        n3 = cell2Node[QUAD][4 * i + 3];
+        n0 = cell2Node[QUAD][NNODE_QUAD * i + 0];
+        n1 = cell2Node[QUAD][NNODE_QUAD * i + 1];
+        n2 = cell2Node[QUAD][NNODE_QUAD * i + 2];
+        n3 = cell2Node[QUAD][NNODE_QUAD * i + 3];
 
         // Calculate centroid
         surcen.pos[0] = (coordXYZ[3 * n0 + 0] + coordXYZ[3 * n1 + 0]
@@ -598,7 +598,7 @@ static void Calculate_Boundary_Edge_Area() {
             V3.vec[j] = edgcen2.pos[j] - coordXYZ[3 * n0 + j];
         }
         // Add the two part area vector to the node
-        bndry_edge_info[4 * i + bndry_edge_count + 0].areav += 0.5 * (V1.cross(V2) + V2.cross(V3));
+        bndry_edge_info[NEDGE_QUAD * i + bndry_edge_count + 0].areav += 0.5 * (V1.cross(V2) + V2.cross(V3));
 
         // -- Node 1
         // Calculate centroid of edges for node 1
@@ -614,7 +614,7 @@ static void Calculate_Boundary_Edge_Area() {
             V3.vec[j] = edgcen2.pos[j] - coordXYZ[3 * n1 + j];
         }
         // Add the two part area vector to the node
-        bndry_edge_info[4 * i + bndry_edge_count + 1].areav += 0.5 * (V1.cross(V2) + V2.cross(V3));
+        bndry_edge_info[NEDGE_QUAD * i + bndry_edge_count + 1].areav += 0.5 * (V1.cross(V2) + V2.cross(V3));
 
         // -- Node 2
         // Calculate centroid of edges for node 2
@@ -630,7 +630,7 @@ static void Calculate_Boundary_Edge_Area() {
             V3.vec[j] = edgcen2.pos[j] - coordXYZ[3 * n2 + j];
         }
         // Add the two part area vector to the node
-        bndry_edge_info[4 * i + bndry_edge_count + 2].areav += 0.5 * (V1.cross(V2) + V2.cross(V3));
+        bndry_edge_info[NEDGE_QUAD * i + bndry_edge_count + 2].areav += 0.5 * (V1.cross(V2) + V2.cross(V3));
 
         // -- Node 3
         // Calculate centroid of edges for node 3
@@ -646,7 +646,7 @@ static void Calculate_Boundary_Edge_Area() {
             V3.vec[j] = edgcen2.pos[j] - coordXYZ[3 * n3 + j];
         }
         // Add the two part area vector to the node
-        bndry_edge_info[4 * i + bndry_edge_count + 3].areav += 0.5 * (V1.cross(V2) + V2.cross(V3));
+        bndry_edge_info[NEDGE_QUAD * i + bndry_edge_count + 3].areav += 0.5 * (V1.cross(V2) + V2.cross(V3));
     }
 } 
 
@@ -735,7 +735,7 @@ static void Calculate_Internal_Edge_Area_Volume() {
                 }
                 flcen /= (double) nnodes_faceL;
 
-                // Compute Left Face Centriod
+                // Compute Right Face Centriod
                 frcen = 0.0;
                 for (int i = 0; i < nnodes_faceR; i++) {
                     frcen.pos[0] += coordXYZ[3 * faceR[i] + 0];
@@ -794,7 +794,6 @@ static void Calculate_Internal_Edge_Area_Volume() {
                             || (edge2Node[2 * test_edge + 0] == edge_node[1]
                             && edge2Node[2 * test_edge + 1] == edge_node[0])) {
                         int_edge_info[test_edge].areav  += areav;
-                        int_edge_info[test_edge].id      = test_edge;
                         int_edge_info[test_edge].node[0] = edge2Node[2 * test_edge + 0];
                         int_edge_info[test_edge].node[1] = edge2Node[2 * test_edge + 1];
                     }
@@ -807,14 +806,49 @@ static void Calculate_Internal_Edge_Area_Volume() {
 //------------------------------------------------------------------------------
 //!
 //------------------------------------------------------------------------------
+static void Initialize_Edge_Data() {
+    nBEdge = 0;
+    nBNode = 0;
+
+    // Calculate number of boundary edges
+    for (int e = TRI; e <= QUAD; e++)
+        for (int i = 0; i < nElem[e]; i++)
+            nBEdge  += elemNode[e];
+    nBNode = nBEdge;
+
+    //Allocate  memory for boundary nodes and boundary edges
+    bndry_edge_info = (bndry_edge_data*) malloc(nBEdge * sizeof (bndry_edge_data));
+    // Allocate memory for edge
+    int_edge_info = (edge_data*) malloc(nEdge * sizeof (edge_data));
+
+    for (int i = 0; i < nBEdge; i++) {
+        bndry_edge_info[i].type    = -1;
+        bndry_edge_info[i].tag     = -1;
+        bndry_edge_info[i].node[0] = -1;
+        bndry_edge_info[i].node[1] = -1;
+        bndry_edge_info[i].areav   = 0.0;
+    }
+
+    for (int i = 0; i < nEdge; i++) {
+        int_edge_info[i].node[0] = -1;
+        int_edge_info[i].node[1] = -1;
+        int_edge_info[i].areav   = 0.0;
+    }
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
 void Calculate_Area_Volume() {
     printf("=============================================================================\n");
     info("Computing Edge Areas and Control Volumes");
+    // Intialize Edge Data
+    Initialize_Edge_Data();
     // Calculate Boundary Edge Area
     Calculate_Boundary_Edge_Area();
     // Calculate Internal Edge Area and Associate Control Volume
     Calculate_Internal_Edge_Area_Volume();
-    
+
     // Reverse the sign of area vector
     for (int i = 0; i < nEdge; i++)
         int_edge_info[i].areav *= -1.0;

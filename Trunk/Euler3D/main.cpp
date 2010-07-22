@@ -26,10 +26,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
 
 /* Custom header files */
 #include "Commons.h"
 #include "MeshIO.h"
+#include "Solver.h"
 
 /* Command line options */
 static char options[] = "abcdefhv";
@@ -117,15 +119,27 @@ int main(int argc, char *argv[]) {
     // Create All Connectivity Maps
     int reorder = 0;
     Create_Connectivity_Maps(reorder);
-
-    // Initialize Boundary Condition
-    Initialize_Boundary_Condition();
-
+    
     // Calculate Areas and Control Volumes
     Calculate_Area_Volume();
 
     // Free Excess Memory Used for Connectivity Creation
     Trim_Connectivity_Memory();
+    
+    // Initialize the Solver Data
+    Solver_Init();
+    Solver_Read_Params(argv[3]);
+    Solver_Set_Initial_Conditions();
+    Solve();
+
+    size_t pos;
+    std::string solfile;
+    solfile.append(argv[2]);
+    pos = solfile.find(".");
+    if (pos == -1)
+        pos = solfile.length();
+    solfile.replace(pos, solfile.length(),".vtk");
+    VTK_Writer(solfile.c_str());
     
     /* Selecting the module */
     switch (opt) {
@@ -148,6 +162,9 @@ int main(int argc, char *argv[]) {
             // -f = Roe Flux Splitting
             break;
     }
+    
+    // Finalize the Solver Data
+    Solver_Finalize();
 
     // Finalize the Common Data
     Commons_Finalize();

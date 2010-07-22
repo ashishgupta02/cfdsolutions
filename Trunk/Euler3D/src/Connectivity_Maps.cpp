@@ -1055,7 +1055,7 @@ void Create_Connectivity_Maps(int reOrder) {
 //! Free Excess Memory Used in Connectivity Creation
 //------------------------------------------------------------------------------
 void Trim_Connectivity_Memory() {
-    // Free Memory
+    //  Free Memory
     for (int n = 0; n < nNode; n++) {
         delete node2Cell[n];
         delete node2Node[n];

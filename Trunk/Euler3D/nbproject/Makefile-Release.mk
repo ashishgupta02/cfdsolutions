@@ -37,12 +37,16 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Commons.o \
 	${OBJECTDIR}/src/Cuthill_Mckee_Reorder.o \
 	${OBJECTDIR}/main.o \
-	${OBJECTDIR}/src/BC.o \
+	${OBJECTDIR}/src/MC_Iterative_Jacobi.o \
 	${OBJECTDIR}/src/Vector3D.o \
+	${OBJECTDIR}/src/BC.o \
+	${OBJECTDIR}/src/Time_Step.o \
 	${OBJECTDIR}/src/Trim_Utils.o \
 	${OBJECTDIR}/src/Area_Volume.o \
 	${OBJECTDIR}/src/List.o \
 	${OBJECTDIR}/src/MeshIO.o \
+	${OBJECTDIR}/src/Roe_Fluxes.o \
+	${OBJECTDIR}/src/Solver.o \
 	${OBJECTDIR}/src/Connectivity_Maps.o
 
 
@@ -90,15 +94,25 @@ ${OBJECTDIR}/main.o: main.cpp
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
 
-${OBJECTDIR}/src/BC.o: src/BC.cpp 
+${OBJECTDIR}/src/MC_Iterative_Jacobi.o: src/MC_Iterative_Jacobi.c 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/BC.o src/BC.cpp
+	$(COMPILE.c) -O2 -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MC_Iterative_Jacobi.o src/MC_Iterative_Jacobi.c
 
 ${OBJECTDIR}/src/Vector3D.o: src/Vector3D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Vector3D.o src/Vector3D.cpp
+
+${OBJECTDIR}/src/BC.o: src/BC.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/BC.o src/BC.cpp
+
+${OBJECTDIR}/src/Time_Step.o: src/Time_Step.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Time_Step.o src/Time_Step.cpp
 
 ${OBJECTDIR}/src/Trim_Utils.o: src/Trim_Utils.c 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -119,6 +133,16 @@ ${OBJECTDIR}/src/MeshIO.o: src/MeshIO.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MeshIO.o src/MeshIO.cpp
+
+${OBJECTDIR}/src/Roe_Fluxes.o: src/Roe_Fluxes.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Roe_Fluxes.o src/Roe_Fluxes.cpp
+
+${OBJECTDIR}/src/Solver.o: src/Solver.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Solver.o src/Solver.cpp
 
 ${OBJECTDIR}/src/Connectivity_Maps.o: src/Connectivity_Maps.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
