@@ -7,8 +7,10 @@
                    kind="SOURCE_LOGICAL_FOLDER">
       <itemPath>include/Commons.h</itemPath>
       <itemPath>include/List.h</itemPath>
+      <itemPath>include/MC.h</itemPath>
       <itemPath>include/MeshIO.h</itemPath>
       <itemPath>include/Point3D.h</itemPath>
+      <itemPath>include/Solver.h</itemPath>
       <itemPath>include/Trim_Utils.h</itemPath>
       <itemPath>include/Vector3D.h</itemPath>
     </logicalFolder>
@@ -27,8 +29,12 @@
       <itemPath>src/Connectivity_Maps.cpp</itemPath>
       <itemPath>src/Cuthill_Mckee_Reorder.cpp</itemPath>
       <itemPath>src/List.cpp</itemPath>
+      <itemPath>src/MC_Iterative_Jacobi.c</itemPath>
       <itemPath>src/MeshIO.cpp</itemPath>
       <itemPath>src/Point3D.cpp</itemPath>
+      <itemPath>src/Roe_Fluxes.cpp</itemPath>
+      <itemPath>src/Solver.cpp</itemPath>
+      <itemPath>src/Time_Step.cpp</itemPath>
       <itemPath>src/Trim_Utils.c</itemPath>
       <itemPath>src/Vector3D.cpp</itemPath>
       <itemPath>main.cpp</itemPath>

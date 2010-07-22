@@ -16,6 +16,7 @@ int     nEdge;
 int     nBEdge;
 int     nBNode;
 int     nBC;
+int    *bndType;
 int     elemNode[NUMBER_OF_ELEM_TYPES];
 int     elemFace[NUMBER_OF_ELEM_TYPES];
 int     elemEdge[NUMBER_OF_ELEM_TYPES];
@@ -53,6 +54,8 @@ void Commons_Init(void) {
     nBEdge          = 0;
     nBNode          = 0;
     nBC             = 0;
+
+    bndType         = NULL;
     
     elemNode[TRI]   = NNODE_TRI;
     elemNode[QUAD]  = NNODE_QUAD;

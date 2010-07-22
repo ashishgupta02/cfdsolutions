@@ -67,6 +67,7 @@ extern int     nEdge;
 extern int     nBEdge;
 extern int     nBNode;
 extern int     nBC;
+extern int    *bndType;
 extern int     elemNode[NUMBER_OF_ELEM_TYPES];
 extern int     elemFace[NUMBER_OF_ELEM_TYPES];
 extern int     elemEdge[NUMBER_OF_ELEM_TYPES];
@@ -92,7 +93,6 @@ extern int    *crs_IA_Node2Edge;
 
 // Edge Data Structure
 typedef struct edge_data {
-    int      id;
     int      node[2];
     Vector3D areav;
 } edge_data;
@@ -119,9 +119,6 @@ void Trim_Connectivity_Memory();
 void Cuthill_Mckee_Reorder(void);
 // Calculate Areas and Control Volume
 void Calculate_Area_Volume();
-
-void Initialize_Boundary_Condition();
-void Create_Boundary_Condition();
 
 #endif	/* COMMONS_H */
 

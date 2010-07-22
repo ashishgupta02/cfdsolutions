@@ -8,6 +8,7 @@
 #define	MESHIO_H
 
 void UGrid_Reader(const char* filename);
+void VTK_Writer(const char* filename);
 
 #endif	/* MESHIO_H */
 

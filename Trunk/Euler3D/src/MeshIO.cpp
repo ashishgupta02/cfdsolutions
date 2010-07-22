@@ -4,10 +4,13 @@
  * Revision:    1
  ******************************************************************************/
 
+#include <string.h>
+
 // Custom header files
 #include "Trim_Utils.h"
 #include "Commons.h"
 #include "MeshIO.h"
+#include "Solver.h"
 
 //------------------------------------------------------------------------------
 //! UGRID Grid Connectivity Ordering
@@ -44,6 +47,7 @@ void UGrid_Reader(const char* filename) {
     FILE *fp;
     int bdim = 256;
     char buff[bdim];
+    char *dummy;
     
     if ((fp = fopen(filename, "r")) == NULL)
         error("Ugrid_Reader: Unable to Read Grid File - %s", filename);
@@ -52,7 +56,7 @@ void UGrid_Reader(const char* filename) {
     info("Reading Grid File: %s", filename);
     
     // Read in the first line, the number of each element type
-    fgets(buff, bdim, fp);
+    dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d %d %d %d %d %d %d", &nNode, &nElem[TRI],
             &nElem[QUAD], &nElem[TETRA], &nElem[PYRA], &nElem[PRISM], &nElem[HEXA]);
 
@@ -77,14 +81,14 @@ void UGrid_Reader(const char* filename) {
     
     // Read in x, y, z coordinates
     for (int n = 0; n < nNode; n++) {
-        fgets(buff, bdim, fp);
+        dummy = fgets(buff, bdim, fp);
         sscanf(buff, "%lg %lg %lg",
                 &coordXYZ[PHY_DIM * n + 0], &coordXYZ[PHY_DIM * n + 1], &coordXYZ[PHY_DIM * n + 2]);
     }
 
     // Read in Triangle connectivity
     for (int c = 0; c < nElem[TRI]; c++) {
-        fgets(buff, bdim, fp);
+        dummy = fgets(buff, bdim, fp);
         sscanf(buff, "%d %d %d", &cell2Node[TRI][NNODE_TRI * c + 0],
                 &cell2Node[TRI][NNODE_TRI * c + 1], &cell2Node[TRI][NNODE_TRI * c + 2]);
         cell2Node[TRI][NNODE_TRI * c + 0]--;
@@ -94,7 +98,7 @@ void UGrid_Reader(const char* filename) {
     
     // Read in Quadrilatral connectivity
     for (int c = 0; c < nElem[QUAD]; c++) {
-        fgets(buff, bdim, fp);
+        dummy = fgets(buff, bdim, fp);
         sscanf(buff, "%d %d %d %d",
                 &cell2Node[QUAD][NNODE_QUAD * c + 0], &cell2Node[QUAD][NNODE_QUAD * c + 1],
                 &cell2Node[QUAD][NNODE_QUAD * c + 2], &cell2Node[QUAD][NNODE_QUAD * c + 3]);
@@ -107,21 +111,21 @@ void UGrid_Reader(const char* filename) {
     nBC = 0;
     // Read in Triangle Boundary tags
     for (int c = 0; c < nElem[TRI]; c++) {
-        fgets(buff, bdim, fp);
+        dummy = fgets(buff, bdim, fp);
         sscanf(buff, "%d", &faceTag[TRI][c]);
         nBC = MAX(nBC, faceTag[TRI][c]);
     }
     
     // Read in Quadrilateral Boundary tags
     for (int c = 0; c < nElem[QUAD]; c++) {
-        fgets(buff, bdim, fp);
+        dummy = fgets(buff, bdim, fp);
         sscanf(buff, "%d", &faceTag[QUAD][c]);
         nBC = MAX(nBC, faceTag[QUAD][c]);
     }
     
     // Read in Tetrahedral connectivity
     for (int c = 0; c < nElem[TETRA]; c++) {
-        fgets(buff, bdim, fp);
+        dummy = fgets(buff, bdim, fp);
         sscanf(buff, "%d %d %d %d",
                 &cell2Node[TETRA][NNODE_TETRA * c + 0], &cell2Node[TETRA][NNODE_TETRA * c + 1],
                 &cell2Node[TETRA][NNODE_TETRA * c + 2], &cell2Node[TETRA][NNODE_TETRA * c + 3]);
@@ -133,7 +137,7 @@ void UGrid_Reader(const char* filename) {
     
     // Read in Pyramid connectivity
     for (int c = 0; c < nElem[PYRA]; c++) {
-        fgets(buff, bdim, fp);
+        dummy = fgets(buff, bdim, fp);
         sscanf(buff, "%d %d %d %d %d", &cell2Node[PYRA][NNODE_PYRA * c + 0],
                 &cell2Node[PYRA][NNODE_PYRA * c + 1], &cell2Node[PYRA][NNODE_PYRA * c + 2],
                 &cell2Node[PYRA][NNODE_PYRA * c + 3], &cell2Node[PYRA][NNODE_PYRA * c + 4]);
@@ -146,7 +150,7 @@ void UGrid_Reader(const char* filename) {
 
     // Read in Prism connectivity
     for (int c = 0; c < nElem[PRISM]; c++) {
-        fgets(buff, bdim, fp);
+        dummy = fgets(buff, bdim, fp);
         sscanf(buff, "%d %d %d %d %d %d",
                 &cell2Node[PRISM][6 * c + 0], &cell2Node[PRISM][NNODE_PRISM * c + 1],
                 &cell2Node[PRISM][6 * c + 2], &cell2Node[PRISM][NNODE_PRISM * c + 3],
@@ -161,7 +165,7 @@ void UGrid_Reader(const char* filename) {
 
     // Read in Hexahedral connectivity
     for (int c = 0; c < nElem[HEXA]; c++) {
-        fgets(buff, bdim, fp);
+        dummy = fgets(buff, bdim, fp);
         sscanf(buff, "%d %d %d %d %d %d %d %d",
                 &cell2Node[HEXA][8 * c + 0], &cell2Node[HEXA][NNODE_HEXA * c + 1],
                 &cell2Node[HEXA][8 * c + 2], &cell2Node[HEXA][NNODE_HEXA * c + 3],
@@ -195,5 +199,135 @@ void UGrid_Reader(const char* filename) {
     info("No of Surface Cells   : %d", nElem[TRI] + nElem[QUAD]);
     info("No of Volume Cells    : %d", nElem[TETRA] + nElem[PYRA] + nElem[PRISM] + nElem[HEXA]);
     info("No of Boundaries      : %d", nBC);
+}
+
+//------------------------------------------------------------------------------
+//! VTK Solution Writer
+//------------------------------------------------------------------------------
+void VTK_Writer(const char* filename) {
+    int i, j;
+    FILE *fp;
+    
+    if ((fp = fopen(filename, "w")) == NULL)
+        error("VTK_Writer: Unable to Write Solution File - %s", filename);
+    
+    fprintf(fp, "# vtk DataFile Version 2.0\n");
+    fprintf(fp, "Solver solution data\n");
+    fprintf(fp, "ASCII \n");
+    fprintf(fp, "DATASET UNSTRUCTURED_GRID\n");
+    fprintf(fp, "POINTS %d double\n", nNode);
+    for (i = 0; i < nNode; i++)
+        fprintf(fp, "%f %f %f\n", coordXYZ[3 * i + 0], coordXYZ[3 * i + 1], coordXYZ[3 * i + 2]);
+
+
+    /************PRINT CELLS************/
+    int nelem_sum = 0;
+    int nelem_nodes = 0;
+
+    for (i = TRI; i <= HEXA; i++) nelem_sum += nElem[i];
+
+    for (i = TRI; i <= HEXA; i++) nelem_nodes += nElem[i]*(elemNode[i] + 1);
+
+    fprintf(fp, "CELLS %d %d\n", nelem_sum, nelem_nodes);
+
+    for (i = TRI; i <= HEXA; i++) {
+        for (j = 0; j < nElem[i]; j++) {
+            if (i == TRI)fprintf(fp, "3 %d %d %d\n", cell2Node[TRI][3 * j + 0],
+                    cell2Node[TRI][3 * j + 1], cell2Node[TRI][3 * j + 2]);
+            if (i == QUAD)fprintf(fp, "4 %d %d %d %d\n",
+                    cell2Node[QUAD][4 * j + 0], cell2Node[QUAD][4 * j + 1],
+                    cell2Node[QUAD][4 * j + 2],cell2Node[QUAD][4 * j + 3]);
+            if (i == TETRA)fprintf(fp, "4 %d %d %d %d\n",
+                    cell2Node[TETRA][4 * j + 0], cell2Node[TETRA][4 * j + 1],
+                    cell2Node[TETRA][4 * j + 2], cell2Node[TETRA][4 * j + 3]);
+            if (i == PYRA)fprintf(fp, "5 %d %d %d %d %d\n",
+                    cell2Node[PYRA][5 * j + 0], cell2Node[PYRA][5 * j + 1],
+                    cell2Node[PYRA][5 * j + 2], cell2Node[PYRA][5 * j + 3],
+                    cell2Node[PYRA][5 * j + 4]);
+            if (i == PRISM)fprintf(fp, "6 %d %d %d %d %d %d\n",
+                    cell2Node[PRISM][6 * j + 0], cell2Node[PRISM][6 * j + 1],
+                    cell2Node[PRISM][6 * j + 2], cell2Node[PRISM][6 * j + 3],
+                    cell2Node[PRISM][6 * j + 4], cell2Node[PRISM][6 * j + 5]);
+            if (i == HEXA)fprintf(fp, "8 %d %d %d %d %d %d %d %d\n",
+                    cell2Node[HEXA][8 * j + 0], cell2Node[HEXA][8 * j + 1],
+                    cell2Node[HEXA][8 * j + 2], cell2Node[HEXA][8 * j + 3],
+                    cell2Node[HEXA][8 * j + 4], cell2Node[HEXA][8 * j + 5],
+                    cell2Node[HEXA][8 * j + 6], cell2Node[HEXA][8 * j + 7]);
+        }
+    }
+
+    /************PRINT CELLS TYPES************/
+    fprintf(fp, "CELL_TYPES %d\n", nelem_sum);
+    for (i = TRI; i <= HEXA; i++) {
+        for (j = 0; j < nElem[i]; j++) {
+            if (i == TRI)fprintf(fp, "5\n");
+            if (i == QUAD)fprintf(fp, "9\n");
+            if (i == TETRA)fprintf(fp, "10\n");
+            if (i == PYRA)fprintf(fp, "14\n");
+            if (i == PRISM)fprintf(fp, "13\n");
+            if (i == HEXA)fprintf(fp, "12\n");
+        }
+    }
+
+    /***************DEFINE BOUNDARIES***************/
+    fprintf(fp, "CELL_DATA %d\n", nelem_sum);
+    fprintf(fp, "SCALARS BoundaryIds Int 1\n");
+    fprintf(fp, "LOOKUP_TABLE default\n");
+    int count = 0;
+
+    for (i = TRI; i <= HEXA; i++) {
+        if (i == TRI || i == QUAD) {
+            for (j = 0; j < nElem[i]; j++) {
+                fprintf(fp, "%d\n", faceTag[i][j]);
+                count++;
+            };
+        }
+
+        if (i != TRI && i != QUAD)
+            for (j = 0; j < nElem[i]; j++)
+                fprintf(fp, "0\n");
+
+    }
+    
+    /*****PRINT OUT VARIABLES**************/
+    fprintf(fp, "POINT_DATA %d\n", nNode);
+    fprintf(fp, "SCALARS Density double 1\n");
+    fprintf(fp, "LOOKUP_TABLE default\n");
+    for (i = 0; i < nNode; i++)
+        fprintf(fp, "%f\n", Q1[i]);
+
+
+    fprintf(fp, "SCALARS X_Velocity double 1\n");
+    fprintf(fp, "LOOKUP_TABLE default\n");
+    for (i = 0; i < nNode; i++)
+        fprintf(fp, "%f\n", Q2[i] / Q1[i]);
+
+
+    fprintf(fp, "SCALARS Y_Velocity double 1\n");
+    fprintf(fp, "LOOKUP_TABLE default\n");
+    for (i = 0; i < nNode; i++)
+        fprintf(fp, "%f\n", Q3[i] / Q1[i]);
+
+    fprintf(fp, "SCALARS Z_Velocity double 1\n");
+    fprintf(fp, "LOOKUP_TABLE default\n");
+    for (i = 0; i < nNode; i++)
+        fprintf(fp, "%f\n", Q4[i] / Q1[i]);
+
+    double p, rho, et, u, v, w;
+
+    fprintf(fp, "SCALARS Pressure double 1\n");
+    fprintf(fp, "LOOKUP_TABLE default\n");
+    for (i = 0; i < nNode; i++) {
+        rho = Q1[i];
+        u = Q2[i] / rho;
+        v = Q3[i] / rho;
+        w = Q4[i] / rho;
+        et = Q5[i] / rho;
+        p = (1.4 - 1.0) * rho * (et - 0.5 * (u * u + v * v + w * w));
+
+        fprintf(fp, "%f\n", p);
+    }
+
+    fclose(fp);
 }
 
