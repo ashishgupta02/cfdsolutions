@@ -452,7 +452,7 @@ void Compute_Residual(void) {
         p_R   = (Gamma - 1.0) * rho_R * e_R;
         c_R   = sqrt((Gamma * p_R) / rho_R);
         h_R   = (c_R * c_R) / (Gamma - 1.0);
-        ht_R  = h_R + 0.5 * (u_R * u_R + v_R * v_R + w_R*w_R);
+        ht_R  = h_R + 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
 
         // F Vector
         f_vec[0] = rho_R * u_R;
