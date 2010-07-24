@@ -69,7 +69,7 @@
           <incDir>
             <pElem>include</pElem>
           </incDir>
-          <commandLine>-Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer</commandLine>
+          <commandLine>-Wno-write-strings</commandLine>
         </ccTool>
       </compileType>
     </conf>
@@ -91,7 +91,7 @@
           <incDir>
             <pElem>include</pElem>
           </incDir>
-          <commandLine>-Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer</commandLine>
+          <commandLine>-Wno-write-strings</commandLine>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>

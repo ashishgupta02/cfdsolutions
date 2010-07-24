@@ -10,6 +10,7 @@
 #include "Point3D.h"
 #include "Vector3D.h"
 #include "Commons.h"
+#include <assert.h>
 
 //------------------------------------------------------------------------------
 //!
@@ -780,10 +781,13 @@ static void Calculate_Internal_Edge_Area_Volume() {
                 surav = 0.5 * V1.cross(V2);
                 // Store Add Area Vector
                 areav += surav;
-
-                // Reverse the area vector for this condition
-                if (edge_node[0] > edge_node[1])
+                
+                // Reverse the area vector for this condition (lower->higher) or (left->right)
+                int flag = 0;
+                if (edge_node[1] > edge_node[0]) {
                     areav = -1.0 *areav;
+                    flag = 1;
+                }
                 
                 // Loop over edges having this node
                 for (int k = 0; k < node2Edge[edge_node[0]]->max; k++) {
@@ -796,6 +800,13 @@ static void Calculate_Internal_Edge_Area_Volume() {
                         int_edge_info[test_edge].areav  += areav;
                         int_edge_info[test_edge].node[0] = edge2Node[2 * test_edge + 0];
                         int_edge_info[test_edge].node[1] = edge2Node[2 * test_edge + 1];
+                        if (flag == 0) {
+                            assert(edge_node[0] == int_edge_info[test_edge].node[1]);
+                            assert(edge_node[1] == int_edge_info[test_edge].node[0]);
+                        } else {
+                            assert(edge_node[1] == int_edge_info[test_edge].node[1]);
+                            assert(edge_node[0] == int_edge_info[test_edge].node[0]);
+                        }
                     }
                 }
             }
@@ -839,6 +850,47 @@ static void Initialize_Edge_Data() {
 //------------------------------------------------------------------------------
 //!
 //------------------------------------------------------------------------------
+void Check_Area_Volume() {
+    double TotalSurface = 0.0;
+    double TotalArea = 0.0;
+    double TotalVolume = 0.0;
+    Vector3D *areav;
+    areav = new Vector3D[nNode];
+
+    for (int n = 0; n < nNode; n++)
+        areav[n] = 0.0;
+
+    // Internal Edges
+    int node_L, node_R;
+
+    for (int i = 0; i < nEdge; i++) {
+        node_L = int_edge_info[i].node[0];
+        node_R = int_edge_info[i].node[1];
+        areav[node_L] -= int_edge_info[i].areav;
+        areav[node_R] += int_edge_info[i].areav;
+    }
+
+    // Boundary Edges
+    for (int i = 0; i < nBEdge; i++) {
+        node_L = bndry_edge_info[i].node[0];
+        areav[node_L] += bndry_edge_info[i].areav;
+        TotalSurface += bndry_edge_info[i].areav.magnitude();
+    }
+
+    for (int n = 0; n < nNode; n++) {
+        TotalArea += areav[n].magnitude();
+        TotalVolume += cVolume[n];
+    }
+
+    info("Check_Area_Volume: Total Area:         %10.5e", TotalArea);
+    info("Check_Area_Volume: Total Volume:       %10.5e", TotalVolume);
+    info("Check_Area_Volume: Total Surface Area: %10.5e", TotalSurface);
+    delete [] areav;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
 void Calculate_Area_Volume() {
     printf("=============================================================================\n");
     info("Computing Edge Areas and Control Volumes");
@@ -848,11 +900,7 @@ void Calculate_Area_Volume() {
     Calculate_Boundary_Edge_Area();
     // Calculate Internal Edge Area and Associate Control Volume
     Calculate_Internal_Edge_Area_Volume();
-
-    // Reverse the sign of area vector
-    for (int i = 0; i < nEdge; i++)
-        int_edge_info[i].areav *= -1.0;
-    for (int i = 0; i < nBEdge; i++)
-        bndry_edge_info[i].areav *= -1.0;
+    // Verify Area and Volume Computation
+    Check_Area_Volume();
 }
 
