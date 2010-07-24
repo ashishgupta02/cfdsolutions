@@ -4,6 +4,8 @@
  * Revision:    1
  ******************************************************************************/
 
+#include <assert.h>
+
 // Custom header files
 #include "Trim_Utils.h"
 #include "Vector3D.h"
@@ -38,6 +40,8 @@ void Apply_Boundary_Condition() {
         pnode     = bndry_edge_info[i].node[0];
         ghostnode = bndry_edge_info[i].node[1];
 
+        assert(ghostnode > pnode);
+        
         // Get area vector
         normal = bndry_edge_info[i].areav;
         normal.normalize();
@@ -89,6 +93,7 @@ void Apply_Boundary_Condition() {
                 break;
             // Free Stream
             case BC_FREE_STREAM:
+                instance = BC_FREE_STREAM;
                 // Subsonic outflow
                 if ((lamda1 <= 0.0) && (lamda5 <= 0.0) && (lamda4 >= 0.0))
                     instance = BC_SUBSONIC_OUTFLOW;
@@ -153,11 +158,18 @@ void Apply_Boundary_Condition() {
                 v_b   = v_i;
                 w_b   = w_i;
                 break;
+            case BC_FREE_STREAM:
+                p_b   = Inf_Pressure;
+                rho_b = Inf_Rho;
+                u_b   = Inf_U;
+                v_b   = Inf_V;
+                w_b   = Inf_W;
+                break;
         }
         
         et_b = p_b / ((Gamma - 1.0) * rho_b) + 0.5 * (u_b * u_b + v_b * v_b + w_b * w_b);
 
-        // Read in these values to Q for the Ghostnode under consideration
+        // Update the Q's for Ghostnode
         Q1[ghostnode] = rho_b;
         Q2[ghostnode] = rho_b * u_b;
         Q3[ghostnode] = rho_b * v_b;

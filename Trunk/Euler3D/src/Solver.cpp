@@ -226,7 +226,7 @@ void Solver_Set_Initial_Conditions() {
     // Intialize the variable with reference conditions
     for (int i = 0; i < (nNode + nBNode); i++) {
         Q1[i] = 1.0;
-        Q2[i] = Ref_Mach;
+        Q2[i] = Q1[i]*Ref_Mach;
         Q3[i] = 0.0;
         Q4[i] = 0.0;
         Q5[i] = 1.0 / (Gamma * (Gamma - 1.0)) + 0.5 *(Q2[i]*Q2[i] + Q3[i]*Q3[i] + Q4[i]*Q4[i])/Q1[i];
@@ -326,8 +326,8 @@ void Solve() {
             iter = NIteration + 1;
         }
 
-//        if ((RMS_Res < (DBL_EPSILON*10.0))|| ((iter+1) == NIteration))
-//            iter = NIteration + 1;
+        if ((RMS_Res < (DBL_EPSILON*10.0))|| ((iter+1) == NIteration))
+            iter = NIteration + 1;
     }
 }
 
