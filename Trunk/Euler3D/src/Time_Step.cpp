@@ -9,6 +9,7 @@
 #include "Vector3D.h"
 #include "Commons.h"
 #include "Solver.h"
+#include <assert.h>
 
 //------------------------------------------------------------------------------
 //!
@@ -33,6 +34,8 @@ void Compute_DeltaT(int Iteration) {
         nodeL = int_edge_info[i].node[0];
         nodeR = int_edge_info[i].node[1];
 
+        assert(nodeR > nodeL);
+        
         // Get area vector
         areavec = int_edge_info[i].areav;
         area  = areavec.magnitude();
@@ -44,8 +47,8 @@ void Compute_DeltaT(int Iteration) {
         v_L   = Q3[nodeL] / rho_L;
         w_L   = Q4[nodeL] / rho_L;
         et_L  = Q5[nodeL] / rho_L;
-        e_L   = et_L - 0.5 * (u_L * u_L + v_L * v_L + w_L*w_L);
-        p_L   = (Gamma - 1.0) * rho_L*e_L;
+        e_L   = et_L - 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
+        p_L   = (Gamma - 1.0) * rho_L * e_L;
         c_L   = sqrt((Gamma * p_L) / rho_L);
 
         // Right Node
@@ -54,8 +57,8 @@ void Compute_DeltaT(int Iteration) {
         v_R   = Q3[nodeR] / rho_R;
         w_R   = Q4[nodeR] / rho_R;
         et_R  = Q5[nodeR] / rho_R;
-        e_R   = et_R - 0.5 * (u_R * u_R + v_R * v_R + w_R*w_R);
-        p_R   = (Gamma - 1.0) * rho_R*e_R;
+        e_R   = et_R - 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
+        p_R   = (Gamma - 1.0) * rho_R * e_R;
         c_R   = sqrt((Gamma * p_R) / rho_R);
 
         // Get averaged variables
@@ -85,6 +88,8 @@ void Compute_DeltaT(int Iteration) {
         nodeL = bndry_edge_info[i].node[0];
         nodeR = bndry_edge_info[i].node[1];
 
+        assert(nodeR > nodeL);
+        
         // Get area vector
         areavec = bndry_edge_info[i].areav;
         area    = areavec.magnitude();
@@ -97,7 +102,7 @@ void Compute_DeltaT(int Iteration) {
         v_L   = Q3[nodeL] / rho_L;
         w_L   = Q4[nodeL] / rho_L;
         et_L  = Q5[nodeL] / rho_L;
-        e_L   = et_L - 0.5 * (u_L * u_L + v_L * v_L + w_L*w_L);
+        e_L   = et_L - 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
         p_L   = (Gamma - 1.0) * rho_L * e_L;
         c_L   = sqrt((Gamma * p_L) / rho_L);
 
@@ -107,8 +112,8 @@ void Compute_DeltaT(int Iteration) {
         v_R   = Q3[nodeR] / rho_R;
         w_R   = Q4[nodeR] / rho_R;
         et_R  = Q5[nodeR] / rho_R;
-        e_R   = et_R - 0.5 * (u_R * u_R + v_R * v_R + w_R*w_R);
-        p_R   = (Gamma - 1.0) * rho_R*e_R;
+        e_R   = et_R - 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
+        p_R   = (Gamma - 1.0) * rho_R * e_R;
         c_R   = sqrt((Gamma * p_R) / rho_R);
 
         // Get averaged variables

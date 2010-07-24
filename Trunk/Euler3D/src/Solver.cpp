@@ -231,7 +231,7 @@ void Solver_Set_Initial_Conditions() {
         Q4[i] = 0.0;
         Q5[i] = 1.0 / (Gamma * (Gamma - 1.0)) + 0.5 *(Q2[i]*Q2[i] + Q3[i]*Q3[i] + Q4[i]*Q4[i])/Q1[i];
     }
-
+    
     // Allocate  Memory to Store Residuals
     Res1 = new double[nNode];
     Res2 = new double[nNode];
@@ -268,6 +268,7 @@ void Solver_Set_Initial_Conditions() {
 //! 
 //------------------------------------------------------------------------------
 void Solve() {
+    printf("=============================================================================\n");
     printf("-----------------------------------------------------------------------------\n");
     printf(" Iter        RMS_RHO    RMS_RHOU    RMS_RHOV    RMS_RHOW    RMS_E     RMS_RES\n");
     printf("-----------------------------------------------------------------------------\n");
@@ -284,20 +285,20 @@ void Solve() {
         
         // Apply boundary conditions
         Apply_Boundary_Condition();
-        
+
         // Compute Residuals
         Compute_Residual();
 
         // Compute Local Time Stepping
         Compute_DeltaT(iter);
-        
+
         // Update Conservative Variables
         for (int i = 0; i < nNode; i++) {
-            Q1[i] += (DeltaT[i] / cVolume[i]) * Res1[i];
-            Q2[i] += (DeltaT[i] / cVolume[i]) * Res2[i];
-            Q3[i] += (DeltaT[i] / cVolume[i]) * Res3[i];
-            Q4[i] += (DeltaT[i] / cVolume[i]) * Res4[i];
-            Q5[i] += (DeltaT[i] / cVolume[i]) * Res5[i];
+            Q1[i] -= (DeltaT[i] / cVolume[i]) * Res1[i];
+            Q2[i] -= (DeltaT[i] / cVolume[i]) * Res2[i];
+            Q3[i] -= (DeltaT[i] / cVolume[i]) * Res3[i];
+            Q4[i] -= (DeltaT[i] / cVolume[i]) * Res4[i];
+            Q5[i] -= (DeltaT[i] / cVolume[i]) * Res5[i];
         }
         
         // Compute RMS
@@ -325,8 +326,8 @@ void Solve() {
             iter = NIteration + 1;
         }
 
-        if ((RMS_Res < (DBL_EPSILON*10.0))|| ((iter+1) == NIteration))
-            iter = NIteration + 1;
+//        if ((RMS_Res < (DBL_EPSILON*10.0))|| ((iter+1) == NIteration))
+//            iter = NIteration + 1;
     }
 }
 
