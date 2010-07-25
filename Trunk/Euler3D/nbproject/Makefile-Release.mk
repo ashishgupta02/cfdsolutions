@@ -72,7 +72,7 @@ LDLIBSOPTIONS=
 
 dist/Release/GNU-Linux-x86/euler3d: ${OBJECTFILES}
 	${MKDIR} -p dist/Release/GNU-Linux-x86
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d ${OBJECTFILES} ${LDLIBSOPTIONS} 
+	g++ -lstdc++ -lm -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
 ${OBJECTDIR}/src/Point3D.o: src/Point3D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

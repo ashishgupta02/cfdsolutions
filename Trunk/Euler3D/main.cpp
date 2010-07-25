@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
     Solver_Set_Initial_Conditions();
     Solve();
 
-    size_t pos;
+    int pos;
     std::string solfile;
     solfile.append(argv[2]);
     pos = solfile.find(".");
