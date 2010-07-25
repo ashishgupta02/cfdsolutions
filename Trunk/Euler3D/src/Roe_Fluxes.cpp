@@ -64,7 +64,7 @@ void Compute_Residual(void) {
 
     // Initialialize
     for (i = 0; i < 5; i++) {
-        fluxA[i]  = 1.0;
+        fluxA[i]  = 0.0;
         flux_L[i] = 0.0;
         flux_R[i] = 0.0;
         f_vec[i]  = 0.0;
@@ -368,7 +368,7 @@ void Compute_Residual(void) {
     
     // Initialialize
     for (i = 0; i < 5; i++) {
-        fluxA[i]  = 1.0;
+        fluxA[i]  = 0.0;
         flux_L[i] = 0.0;
         flux_R[i] = 0.0;
         f_vec[i]  = 0.0;

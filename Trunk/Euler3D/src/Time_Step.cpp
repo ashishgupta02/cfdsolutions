@@ -145,13 +145,13 @@ void Compute_DeltaT(int Iteration) {
     } else
         CFL = CFL_MAX;
 
-    double dt_max = DBL_MIN;
-    double dt_min = DBL_MAX;
+//    double dt_max = DBL_MIN;
+//    double dt_min = DBL_MAX;
     for (int i = 0; i < nNode; i++) {
         DeltaT[i] = cVolume[i] * CFL / DeltaT[i];
-        dt_min = MIN(dt_min, DeltaT[i]);
-        dt_max = MAX(dt_max, DeltaT[i]);
+//        dt_min = MIN(dt_min, DeltaT[i]);
+//        dt_max = MAX(dt_max, DeltaT[i]);
     }
-    printf("CFL %10.5e DeltaT Min: %10.5e Max: %10.5e \n", CFL, dt_min, dt_max);
+//    printf("CFL %10.5e DeltaT Min: %10.5e Max: %10.5e \n", CFL, dt_min, dt_max);
 }
 

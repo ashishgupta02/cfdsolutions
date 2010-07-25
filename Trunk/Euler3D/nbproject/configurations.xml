@@ -61,16 +61,22 @@
       </toolsSet>
       <compileType>
         <cTool>
+          <commandlineTool>gcc</commandlineTool>
           <incDir>
             <pElem>include</pElem>
           </incDir>
         </cTool>
         <ccTool>
+          <commandlineTool>g++</commandlineTool>
           <incDir>
             <pElem>include</pElem>
           </incDir>
           <commandLine>-Wno-write-strings</commandLine>
         </ccTool>
+        <linkerTool>
+          <commandlineTool>g++</commandlineTool>
+          <commandLine>-lstdc++ -lm</commandLine>
+        </linkerTool>
       </compileType>
     </conf>
     <conf name="Release" type="1">
@@ -82,12 +88,14 @@
       <compileType>
         <cTool>
           <developmentMode>5</developmentMode>
+          <commandlineTool>gcc</commandlineTool>
           <incDir>
             <pElem>include</pElem>
           </incDir>
         </cTool>
         <ccTool>
           <developmentMode>5</developmentMode>
+          <commandlineTool>g++</commandlineTool>
           <incDir>
             <pElem>include</pElem>
           </incDir>
@@ -99,6 +107,10 @@
         <asmTool>
           <developmentMode>5</developmentMode>
         </asmTool>
+        <linkerTool>
+          <commandlineTool>g++</commandlineTool>
+          <commandLine>-lstdc++ -lm</commandLine>
+        </linkerTool>
       </compileType>
     </conf>
   </confs>
