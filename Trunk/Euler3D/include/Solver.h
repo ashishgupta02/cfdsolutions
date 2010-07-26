@@ -8,6 +8,7 @@
 #define	SOLVER_H
 
 // Boundary Conditions Type
+#define BC_NONE                -1
 #define BC_SOLID_WALL           0
 #define BC_FREE_STREAM          1
 #define BC_SUBSONIC_INFLOW      2

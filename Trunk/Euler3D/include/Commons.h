@@ -92,20 +92,15 @@ extern int    *crs_JA_Node2Edge;
 extern int    *crs_IA_Node2Edge;
 
 // Edge Data Structure
-typedef struct edge_data {
-    int      node[2];
-    Vector3D areav;
-} edge_data;
-
-typedef struct bndry_edge_data {
+typedef struct Edge3D {
     int      type;
     int      tag;
     int      node[2];
     Vector3D areav;
-} bndry_edge_data;
+} Edge3D;
 
-extern bndry_edge_data *bndry_edge_info;
-extern edge_data *int_edge_info;
+extern Edge3D *bndEdge;
+extern Edge3D *intEdge;
 
 // Basic Functions
 void Commons_Init(void);

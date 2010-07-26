@@ -256,11 +256,11 @@ void Solver_Set_Initial_Conditions() {
     Initialize_Boundary_Condition();
 
     // Set the Free Stream Conditions
-    Inf_Rho      = Q1[0];
-    Inf_U        = Q2[0]/Q1[0];
-    Inf_V        = Q3[0]/Q1[0];
-    Inf_W        = Q4[0]/Q1[0];
-    Inf_Et       = Q5[0]/Q1[0];
+    Inf_Rho      = 1.0;
+    Inf_U        = Inf_Rho*Ref_Mach;
+    Inf_V        = 0.0;
+    Inf_W        = 0.0;
+    Inf_Et       = 1.0 / (Gamma * (Gamma - 1.0)) + 0.5 *(Inf_U*Inf_U + Inf_V*Inf_V + Inf_W*Inf_W)/Inf_Rho;
     Inf_Pressure = (Gamma - 1.0) * Inf_Rho * (Inf_Et - 0.5 * (Inf_U * Inf_U + Inf_V * Inf_V + Inf_W * Inf_W));
 }
 

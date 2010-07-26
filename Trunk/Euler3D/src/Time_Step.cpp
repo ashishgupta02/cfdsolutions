@@ -31,13 +31,13 @@ void Compute_DeltaT(int Iteration) {
     // Internal Edges
     for (int i = 0; i < nEdge; i++) {
         // Get two nodes of edge
-        nodeL = int_edge_info[i].node[0];
-        nodeR = int_edge_info[i].node[1];
+        nodeL = intEdge[i].node[0];
+        nodeR = intEdge[i].node[1];
 
         assert(nodeR > nodeL);
         
         // Get area vector
-        areavec = int_edge_info[i].areav;
+        areavec = intEdge[i].areav;
         area  = areavec.magnitude();
         areavec.normalize();
         
@@ -85,13 +85,13 @@ void Compute_DeltaT(int Iteration) {
     // Boundary Edges
     for (int i = 0; i < nBEdge; i++) {
         // Get two nodes of edge
-        nodeL = bndry_edge_info[i].node[0];
-        nodeR = bndry_edge_info[i].node[1];
+        nodeL = bndEdge[i].node[0];
+        nodeR = bndEdge[i].node[1];
 
         assert(nodeR > nodeL);
         
         // Get area vector
-        areavec = bndry_edge_info[i].areav;
+        areavec = bndEdge[i].areav;
         area    = areavec.magnitude();
         areavec.normalize();
 
@@ -145,13 +145,7 @@ void Compute_DeltaT(int Iteration) {
     } else
         CFL = CFL_MAX;
 
-//    double dt_max = DBL_MIN;
-//    double dt_min = DBL_MAX;
-    for (int i = 0; i < nNode; i++) {
+    for (int i = 0; i < nNode; i++)
         DeltaT[i] = cVolume[i] * CFL / DeltaT[i];
-//        dt_min = MIN(dt_min, DeltaT[i]);
-//        dt_max = MAX(dt_max, DeltaT[i]);
-    }
-//    printf("CFL %10.5e DeltaT Min: %10.5e Max: %10.5e \n", CFL, dt_min, dt_max);
 }
 

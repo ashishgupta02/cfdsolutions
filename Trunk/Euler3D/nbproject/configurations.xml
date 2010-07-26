@@ -71,7 +71,7 @@
           <incDir>
             <pElem>include</pElem>
           </incDir>
-          <commandLine>-Wno-write-strings</commandLine>
+          <commandLine>-Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer</commandLine>
         </ccTool>
         <linkerTool>
           <commandlineTool>g++</commandlineTool>
@@ -99,7 +99,7 @@
           <incDir>
             <pElem>include</pElem>
           </incDir>
-          <commandLine>-Wno-write-strings</commandLine>
+          <commandLine>-Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer</commandLine>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>

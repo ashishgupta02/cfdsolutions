@@ -31,9 +31,9 @@ void Compute_Residual(void) {
     double g_vec[5];
     double h_vec[5];
     double fluxA[5];
-    double dQ[5];
     double flux_L[5];
     double flux_R[5];
+    double *dQ;
     double **A;
     double **Eigen;
     double **M;
@@ -51,6 +51,7 @@ void Compute_Residual(void) {
     Tinv  = (double **) malloc(5*sizeof(double*));
     A     = (double **) malloc(5*sizeof(double*));
     Eigen = (double **) malloc(5*sizeof(double*));
+    dQ    = (double *) malloc(5*sizeof(double));
     for (i = 0; i < 5; i++) {
         M[i]     = (double *) malloc(5*sizeof(double));
         Minv[i]  = (double *) malloc(5*sizeof(double));
@@ -70,6 +71,7 @@ void Compute_Residual(void) {
         f_vec[i]  = 0.0;
         g_vec[i]  = 0.0;
         h_vec[i]  = 0.0;
+        dQ[i]     = 0.0;
         for (j = 0; j < 5; j++) {
             A[i][j]     = 0.0;
             M[i][j]     = 0.0;
@@ -85,13 +87,13 @@ void Compute_Residual(void) {
     // Internal Edges
     for (i = 0; i < nEdge; i++) {
         // Get two nodes of edge
-        node_L = int_edge_info[i].node[0];
-        node_R = int_edge_info[i].node[1];
+        node_L = intEdge[i].node[0];
+        node_R = intEdge[i].node[1];
 
         assert(node_R > node_L);
 
         // Get area vector
-        areavec = int_edge_info[i].areav;
+        areavec = intEdge[i].areav;
         area = areavec.magnitude();
         areavec.normalize();
         nx = areavec.vec[0];
@@ -326,12 +328,12 @@ void Compute_Residual(void) {
         Eigen[0][0] = fabs(u * nx + v * ny + w * nz);
         Eigen[1][1] = fabs(u * nx + v * ny + w * nz);
         Eigen[2][2] = fabs(u * nx + v * ny + w * nz);
-        Eigen[3][3] = fabs(u * nx + v * ny + w * nz + c);
-        Eigen[4][4] = fabs(u * nx + v * ny + w * nz - c);
+        Eigen[3][3] = fabs((u * nx + v * ny + w * nz) + c);
+        Eigen[4][4] = fabs((u * nx + v * ny + w * nz) - c);
 
         // EigenMatrix*Tinv
         MC_Matrix_Mul_Matrix(5, 5, Eigen, Tinv, A);
-        
+
         // Tinv = EigenMatrix*Tinv
         for (j = 0; j < 5; j++) {
             for (k = 0; k < 5; k++) {
@@ -344,12 +346,14 @@ void Compute_Residual(void) {
         MC_Matrix_Mul_Matrix(5, 5, T, Tinv, A);
 
         // Set up matrix vector multiplication
+        dQ[0] = dQ[1] = dQ[2] = dQ[3] = dQ[4] = 0.0;
         dQ[0] = Q1[node_R] - Q1[node_L];
         dQ[1] = Q2[node_R] - Q2[node_L];
         dQ[2] = Q3[node_R] - Q3[node_L];
         dQ[3] = Q4[node_R] - Q4[node_L];
         dQ[4] = Q5[node_R] - Q5[node_L];
 
+        fluxA[0] = fluxA[1] = fluxA[2] = fluxA[3] = fluxA[4] = 0.0;
         MC_Matrix_Mul_Vector(5, 5, A, dQ, fluxA);
         
         // Compute for LHS
@@ -374,6 +378,7 @@ void Compute_Residual(void) {
         f_vec[i]  = 0.0;
         g_vec[i]  = 0.0;
         h_vec[i]  = 0.0;
+        dQ[i]     = 0.0;
         for (j = 0; j < 5; j++) {
             A[i][j]     = 0.0;
             M[i][j]     = 0.0;
@@ -389,13 +394,13 @@ void Compute_Residual(void) {
     // Boundary Edges
     for (i = 0; i < nBEdge; i++) {
         // Get two nodes of edge
-        node_L = bndry_edge_info[i].node[0];
-        node_R = bndry_edge_info[i].node[1];
+        node_L = bndEdge[i].node[0];
+        node_R = bndEdge[i].node[1];
 
         assert(node_R > node_L);
 
         // Get area vector
-        areavec = bndry_edge_info[i].areav;
+        areavec = bndEdge[i].areav;
         area = areavec.magnitude();
         areavec.normalize();
         nx = areavec.vec[0];
@@ -630,9 +635,9 @@ void Compute_Residual(void) {
         Eigen[0][0] = fabs(u * nx + v * ny + w * nz);
         Eigen[1][1] = fabs(u * nx + v * ny + w * nz);
         Eigen[2][2] = fabs(u * nx + v * ny + w * nz);
-        Eigen[3][3] = fabs(u * nx + v * ny + w * nz + c);
-        Eigen[4][4] = fabs(u * nx + v * ny + w * nz - c);
-
+        Eigen[3][3] = fabs((u * nx + v * ny + w * nz) + c);
+        Eigen[4][4] = fabs((u * nx + v * ny + w * nz) - c);
+        
         // EigenMatrix*Tinv
         MC_Matrix_Mul_Matrix(5, 5, Eigen, Tinv, A);
 
@@ -646,22 +651,24 @@ void Compute_Residual(void) {
 
         // Get Matrix A
         MC_Matrix_Mul_Matrix(5, 5, T, Tinv, A);
-
+        
         // Set up matrix vector multiplication
+        dQ[0] = dQ[1] = dQ[2] = dQ[3] = dQ[4] = 0.0;
         dQ[0] = Q1[node_R] - Q1[node_L];
         dQ[1] = Q2[node_R] - Q2[node_L];
         dQ[2] = Q3[node_R] - Q3[node_L];
         dQ[3] = Q4[node_R] - Q4[node_L];
         dQ[4] = Q5[node_R] - Q5[node_L];
-        
-        MC_Matrix_Mul_Vector(5, 5, A, dQ, fluxA);
 
+        fluxA[0] = fluxA[1] = fluxA[2] = fluxA[3] = fluxA[4] = 0.0;
+        MC_Matrix_Mul_Vector(5, 5, A, dQ, fluxA);
+        
         // Compute LHS for Boundary Nodes
-        Res1[node_L] -= 0.5 * (flux_L[0] + flux_R[0] - fluxA[0]) * area;
-        Res2[node_L] -= 0.5 * (flux_L[1] + flux_R[1] - fluxA[1]) * area;
-        Res3[node_L] -= 0.5 * (flux_L[2] + flux_R[2] - fluxA[2]) * area;
-        Res4[node_L] -= 0.5 * (flux_L[3] + flux_R[3] - fluxA[3]) * area;
-        Res5[node_L] -= 0.5 * (flux_L[4] + flux_R[4] - fluxA[4]) * area;
+        Res1[node_L] += 0.5 * (flux_L[0] + flux_R[0] - fluxA[0]) * area;
+        Res2[node_L] += 0.5 * (flux_L[1] + flux_R[1] - fluxA[1]) * area;
+        Res3[node_L] += 0.5 * (flux_L[2] + flux_R[2] - fluxA[2]) * area;
+        Res4[node_L] += 0.5 * (flux_L[3] + flux_R[3] - fluxA[3]) * area;
+        Res5[node_L] += 0.5 * (flux_L[4] + flux_R[4] - fluxA[4]) * area;
     }
 
     // Free the Memory
@@ -675,6 +682,7 @@ void Compute_Residual(void) {
         free(A[i]);
         free(Eigen[i]);
     }
+    free(dQ);
     free(M);
     free(Minv);
     free(P);
