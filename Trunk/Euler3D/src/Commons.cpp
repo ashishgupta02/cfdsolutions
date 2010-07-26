@@ -39,8 +39,8 @@ int    *crs_JA_Cell2Cell;
 int    *crs_IA_Cell2Cell;
 int    *crs_JA_Node2Edge;
 int    *crs_IA_Node2Edge;
-bndry_edge_data *bndry_edge_info;
-edge_data       *int_edge_info;
+Edge3D *bndEdge;
+Edge3D *intEdge;
 
 //------------------------------------------------------------------------------
 //!
@@ -116,8 +116,8 @@ void Commons_Init(void) {
     crs_JA_Node2Edge= NULL;
     crs_IA_Node2Edge= NULL;
     
-    bndry_edge_info = NULL;
-    int_edge_info   = NULL;
+    bndEdge = NULL;
+    intEdge = NULL;
 }
 
 //------------------------------------------------------------------------------

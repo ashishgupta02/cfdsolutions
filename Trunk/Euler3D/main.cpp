@@ -29,6 +29,7 @@
 #include <string>
 
 /* Custom header files */
+#include "Trim_Utils.h"
 #include "Commons.h"
 #include "MeshIO.h"
 #include "Solver.h"
@@ -125,41 +126,46 @@ int main(int argc, char *argv[]) {
 
     // Free Excess Memory Used for Connectivity Creation
     Trim_Connectivity_Memory();
-    
+
     // Initialize the Solver Data
     Solver_Init();
-    Solver_Read_Params(argv[3]);
-    Solver_Set_Initial_Conditions();
-    Solve();
 
-    int pos;
-    std::string solfile;
-    solfile.append(argv[2]);
-    pos = solfile.find(".");
-    if (pos == -1)
-        pos = solfile.length();
-    solfile.replace(pos, solfile.length(),".vtk");
-    VTK_Writer(solfile.c_str());
-    
     /* Selecting the module */
     switch (opt) {
         case 0:
             // -a = Van Leer Flux Vector Splitting
+            info("Van Leer Flux Vector Splitting: Not Yet Implemented");
             break;
         case 1:
             // -b = Steger Warming Flux Vector Splitting
+            info("Steger Warming Flux Vector Splitting: Not Yet Implemented");
             break;
         case 2:
             // -c = Advection Upstream Splitting Method
+            info("Advection Upstream Splitting Method: Not Yet Implemented");
             break;
         case 3:
             // -d = Low Diffusion Flux Splitting Scheme
+            info("Low Diffusion Flux Splitting Scheme: Not Yet Implemented");
             break;
         case 4:
             // -e = Oshers Splitting
+            info("Oshers Splitting: Not Yet Implemented");
             break;
         case 5:
             // -f = Roe Flux Splitting
+            Solver_Read_Params(argv[3]);
+            Solver_Set_Initial_Conditions();
+            Solve();
+
+            int pos;
+            std::string solfile;
+            solfile.append(argv[2]);
+            pos = solfile.find(".");
+            if (pos == -1)
+                pos = solfile.length();
+            solfile.replace(pos, solfile.length(), ".vtk");
+            VTK_Writer(solfile.c_str());
             break;
     }
     

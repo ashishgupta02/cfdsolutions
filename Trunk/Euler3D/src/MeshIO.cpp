@@ -319,11 +319,11 @@ void VTK_Writer(const char* filename) {
     fprintf(fp, "LOOKUP_TABLE default\n");
     for (i = 0; i < nNode; i++) {
         rho = Q1[i];
-        u = Q2[i] / rho;
-        v = Q3[i] / rho;
-        w = Q4[i] / rho;
-        et = Q5[i] / rho;
-        p = (1.4 - 1.0) * rho * (et - 0.5 * (u * u + v * v + w * w));
+        u   = Q2[i] / rho;
+        v   = Q3[i] / rho;
+        w   = Q4[i] / rho;
+        et  = Q5[i] / rho;
+        p   = (Gamma - 1.0) * rho * (et - 0.5 * (u * u + v * v + w * w));
 
         fprintf(fp, "%f\n", p);
     }
