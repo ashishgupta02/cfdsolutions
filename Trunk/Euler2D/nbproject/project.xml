@@ -12,6 +12,15 @@
             <make-dep-projects>
                 <make-dep-project>../UTILS</make-dep-project>
             </make-dep-projects>
+            <sourceRootList>
+                <sourceRootElem>MATCOMP</sourceRootElem>
+                <sourceRootElem>MESH</sourceRootElem>
+                <sourceRootElem>SOLVER</sourceRootElem>
+            </sourceRootList>
+            <confList>
+                <confElem>Debug</confElem>
+                <confElem>Release</confElem>
+            </confList>
         </data>
     </configuration>
 </project>

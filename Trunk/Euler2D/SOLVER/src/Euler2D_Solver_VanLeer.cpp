@@ -56,6 +56,15 @@ void Euler2D_Solver_VanLeer::Init() {
     DeltaT                 = NULL;
     Qx                     = NULL;
     Qy                     = NULL;
+    FDIteration            = 0;
+    FDNodeID               = -1;
+    FDPertQ                = -1;
+    FDEpsilon              = 1.0E-5;
+    FDDR_DQ[0]             = 0.0;
+    FDDR_DQ[1]             = 0.0;
+    FDDR_DQ[2]             = 0.0;
+    FDDR_DQ[3]             = 0.0;
+    FDNode                 = NULL;
 }
 
 // *****************************************************************************
@@ -169,6 +178,23 @@ void Euler2D_Solver_VanLeer::Get_Reference_Conditions() {
     restart = 0;
     std::cout << "Restart Capability (0=No, 1=Yes, 2=Create): ";
     std::cin  >> restart;
+
+    // Finite Difference Jacobian
+    FDNodeID = 0;
+    std::cout << "Finite Difference Jacobian (0=No, 1=Yes): ";
+    std::cin  >> FDNodeID;
+    if (FDNodeID == 1) {
+        std::cout << "Finite Difference Node ID : ";
+        std::cin  >> FDNodeID;
+        std::cout << "Finite Difference Perturbation Q : ";
+        std::cin  >> FDPertQ;
+        std::cout << "Finite Difference Epsilon : ";
+        std::cin  >> FDEpsilon;
+        std::cout << "Finite Difference Iteration : ";
+        std::cin  >> FDIteration;
+    } else {
+        FDNodeID = -1;
+    }
 }
 
 // *****************************************************************************
@@ -207,10 +233,14 @@ void Euler2D_Solver_VanLeer::Solve() {
         Compute_Gauss_Gradient();
         Compute_Residual();
         Compute_Boundary_Residual();
-
+        
         // Compute and Fill CRS Matrix
         Compute_CRS_BlockMatrix();
         Compute_Boundary_CRS_BlockMatrix();
+
+        // Compute Finite Difference Jacobian
+        Compute_FD_Jacobian(iter);
+
 #ifdef DEBUG
         int inode, irow, ibrow, ibcol;
         for (inode = 0; inode < mesh.nnodes; inode++) {
@@ -312,6 +342,20 @@ void Euler2D_Solver_VanLeer::Initialize_Solution() {
         for (i = 0; i < 4; i++) {
             node[iNode].Q[i] = Q[i];
             node[iNode].Resi[i] = 0.0;
+        }
+    }
+
+    // Allocate the Finite Difference Jacobian
+    FDNode = (FD_NODE *) malloc(sizeof(FD_NODE)*mesh.nnodes);
+#ifdef DEBUG
+    if (FDNode == NULL)
+        error("Initialize_Solution: %s\n", "Error Allocating Memory 4");
+#endif
+    // Initialize the Finite Difference Jacobian Variables
+    for (iNode = 0; iNode < mesh.nnodes; iNode++) {
+        for (i = 0; i < 4; i++) {
+            FDNode[iNode].Resi_Old[i] = 0.0;
+            FDNode[iNode].Resi_New[i] = 0.0;
         }
     }
 }
@@ -645,6 +689,63 @@ void Euler2D_Solver_VanLeer::Compute_Boundary_Residual() {
             node[n2].Resi[j] = 0.0;
         }
     }
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Solver_VanLeer::Compute_FD_Jacobian(int Iteration) {
+    int i, iNode;
+    double DR_DQ[4];
+
+    if (Order != 1)
+        return;
+    if (Iteration != FDIteration)
+        return;
+    if (FDNodeID < 0 && FDNodeID >= mesh.nnodes)
+        return;
+    
+    // Store the Old Residual
+    for (iNode = 0; iNode < mesh.nnodes; iNode++) {
+        for (i = 0; i < 4; i++)
+            FDNode[iNode].Resi_Old[i] = node[iNode].Resi[i];
+    }
+
+    // Now Purturb the Desired Node Particular Q
+    node[FDNodeID].Q[FDPertQ] += FDEpsilon;
+
+    // Now Compute the New Residual
+    Compute_Residual();
+    Compute_Boundary_Residual();
+
+    // Now Store the New Residual
+    for (iNode = 0; iNode < mesh.nnodes; iNode++) {
+        for (i = 0; i < 4; i++)
+            FDNode[iNode].Resi_New[i] = node[iNode].Resi[i];
+    }
+
+    // Compute the Finite Difference DR_DQ
+    for (i = 0; i < 4; i++)
+        FDDR_DQ[i] = (FDNode[FDNodeID].Resi_New[i] - FDNode[FDNodeID].Resi_Old[i])/FDEpsilon;
+
+    // Get the Analytical DR_DQ
+    // Get the diagonal location
+    int idgn = BlockMatrix.IAU[FDNodeID];
+    for (i = 0; i < 4; i++)
+        DR_DQ[i] = BlockMatrix.A[idgn][i][FDPertQ];
+    // Subtract I/DT
+    DR_DQ[FDPertQ] -= node[FDNodeID].area/DeltaT[FDNodeID];
+    
+    printf("Finite Difference:\n %15.9e %15.9e %15.9e %15.9e \n",
+            FDDR_DQ[0], FDDR_DQ[1], FDDR_DQ[2], FDDR_DQ[3]);
+    printf("Analytic Difference:\n %15.9e %15.9e %15.9e %15.9e \n",
+            DR_DQ[0], DR_DQ[1], DR_DQ[2], DR_DQ[3]);
+    
+    // Restore back the Old Residual and Desired Node Particular Q
+    for (iNode = 0; iNode < mesh.nnodes; iNode++) {
+        for (i = 0; i < 4; i++)
+            node[iNode].Resi[i] = FDNode[iNode].Resi_Old[i];
+    }
+    node[FDNodeID].Q[FDPertQ] -= FDEpsilon;
 }
 
 // *****************************************************************************

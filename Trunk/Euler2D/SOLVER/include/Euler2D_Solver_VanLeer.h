@@ -10,6 +10,7 @@
 
 #include "MC.h"
 #include "Euler2D_Mesh.h"
+#include "Euler2D_Solver_Finite_Difference.h"
 
 class Euler2D_Solver_VanLeer: virtual public Euler2D_Mesh {
 protected:
@@ -37,6 +38,13 @@ protected:
     double **Qy;
     // Matrix Computation Compressed Row Storage
     MC_CRS BlockMatrix;
+    // Finite Difference Jacobian
+    int     FDIteration;
+    int     FDNodeID;
+    int     FDPertQ;
+    double  FDEpsilon;
+    double  FDDR_DQ[4];
+    FD_NODE *FDNode;
 public:
     Euler2D_Solver_VanLeer();
     virtual ~Euler2D_Solver_VanLeer();
@@ -55,6 +63,9 @@ protected:
     // Compute Boundary Component of Residual
     void Compute_Boundary_Residual();
 
+    // Compute Finite Difference Jacobian
+    void Compute_FD_Jacobian(int Iteration);
+    
     // Compute Local Time Stepping deltaT
     void Compute_DeltaTime(int Iteration);
 
