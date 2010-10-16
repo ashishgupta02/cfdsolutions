@@ -39,6 +39,7 @@ void Euler2D_Solver_VanLeer::Init() {
     Ref_Mach               = 0.0;
     Ref_Alpha              = 0.0;
     Ref_Pressure           = 0.0;
+    Ref_Length             = 0.0;
     CFL_Ramp               = 0;
     CFL_Min                = 0.0;
     CFL_Max                = 0.0;
@@ -127,80 +128,197 @@ Euler2D_Solver_VanLeer::~Euler2D_Solver_VanLeer() {
 
 // *****************************************************************************
 // *****************************************************************************
-void Euler2D_Solver_VanLeer::Get_Reference_Conditions() {
-    // Get the reference Conditions
-    Ref_Pressure    = 1.0/Gamma;
+void Euler2D_Solver_VanLeer::Solver_Prepare() {
+    // Read Mesh File
+    WKA_MeshReader(WKAMeshFileName.c_str());
+}
 
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Solver_VanLeer::Solver_Finalize() {
+    // Write SLK Mesh file
+    SLK_MeshWriter(SLKMeshFileName.c_str());
+    // Write VTK Solution File
+    Write_VTK_Unstructured_File(VTKSolutionFileName.c_str());
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Solver_VanLeer::Get_Solver_Inputs(const char* FileName) {
+    FILE *fp;
+    int iret;
+    char dumstring[257];
+    char dump[257];
+    char *cdum;
+
+    // Open Input File
+    if ((fp = fopen(FileName, "r")) == (FILE *) NULL)
+        error("Unable to Open Input File %s", FileName);
+
+    // Input Mesh File
+    iret = fscanf(fp, "\n");
+    cdum = fgets(dumstring, 100, fp);
+    iret = fscanf(fp, "%s\n", dump);
+    WKAMeshFileName.append(dump);
+
+    // Input Restart File
+    iret = fscanf(fp, "\n");
+    cdum = fgets(dumstring, 100, fp);
+    iret = fscanf(fp, "%s\n", dump);
+    InputRestartFileName.append(dump);
+
+    // Output Restart File Name
+    iret = fscanf(fp, "\n");
+    cdum = fgets(dumstring, 100, fp);
+    iret = fscanf(fp, "%s\n", dump);
+    OutputRestartFileName.append(dump);
+
+    // SLK Mesh File
+    iret = fscanf(fp, "\n");
+    cdum = fgets(dumstring, 100, fp);
+    iret = fscanf(fp, "%s\n", dump);
+    SLKMeshFileName.append(dump);
+
+    // VTK Based Solution File
+    iret = fscanf(fp, "\n");
+    cdum = fgets(dumstring, 100, fp);
+    iret = fscanf(fp, "%s\n", dump);
+    VTKSolutionFileName.append(dump);
+    
+    // Get the reference Conditions
+    // Gamma
+    Gamma  = 1.4;
+    iret = fscanf(fp, "\n");
+    cdum = fgets(dumstring, 100, fp);
+    iret = fscanf(fp, "%lf\n", &Gamma);
+    Ref_Pressure    = 1.0/Gamma;
+    Ref_Length      = 1.0;
+    
     // Mach Number
+    // Input Ref Mach Number
     Ref_Mach        = 0.5;
-    std::cout << "Input Ref Mach Number : ";
-    std::cin  >> Ref_Mach;
+    iret = fscanf(fp, "\n");
+    cdum = fgets(dumstring, 100, fp);
+    iret = fscanf(fp, "%lf\n", &Ref_Mach);
 
     // Get Angle of Attack
+    // Input Angle of Attack (deg)
     Ref_Alpha       = 0.0;
-    std::cout << "Input Angle of Attack (deg) : ";
-    std::cin  >> Ref_Alpha;
+    iret = fscanf(fp, "\n");
+    cdum = fgets(dumstring, 100, fp);
+    iret = fscanf(fp, "%lf\n", &Ref_Alpha);
     Ref_Alpha       = Ref_Alpha * M_PI / 180.0;
 
     // Get the order of solver
+    // Solver Order (1/2)
     Order = 2;
-    std::cout << "Solver Order (1/2): ";
-    std::cin  >> Order;
-
+    iret = fscanf(fp, "\n");
+    cdum = fgets(dumstring, 100, fp);
+    iret = fscanf(fp, "%d\n", &Order);
+    
     if ((Order < 1) || (Order > 2))
         error("Get_Reference_Conditions: %s\n", "Invalid Solver Order");
     
     // Get CFL Numbers
+    // Input CFL Min
     CFL_Min         = 1.0;
+    iret = fscanf(fp, "\n");
+    cdum = fgets(dumstring, 100, fp);
+    iret = fscanf(fp, "%lf\n", &CFL_Min);
+    // Input CFL Max
     CFL_Max         = 20.0;
+    iret = fscanf(fp, "\n");
+    cdum = fgets(dumstring, 100, fp);
+    iret = fscanf(fp, "%lf\n", &CFL_Max);
+    // Input CFL Ramp
     CFL_Ramp        = 100;
-    std::cout << "Input CFL Min : ";
-    std::cin  >> CFL_Min;
-    std::cout << "Input CFL Max : ";
-    std::cin  >> CFL_Max;
-    std::cout << "Input CFL Ramp : ";
-    std::cin  >> CFL_Ramp;
+    iret = fscanf(fp, "\n");
+    iret = fscanf(fp, "\n");
+    cdum = fgets(dumstring, 100, fp);
+    iret = fscanf(fp, "%d\n", &CFL_Ramp);
 
     // Get the Inner and Outer loop Conditions
+    // Input Outer Iterations (0 = Convergence)
     NIteration      = 1000;
-    InnerNIteration = 20;
-    Relaxation      = 1.0;
-    std::cout << "Input Outer Iterations (0 = Convergence) : ";
-    std::cin  >> NIteration;
+    iret = fscanf(fp, "\n");
+    cdum = fgets(dumstring, 100, fp);
+    iret = fscanf(fp, "%d\n", &NIteration);
     if (NIteration == 0)
         NIteration = INT_MAX/10;
-    std::cout << "Input Linear Solver Iterations (0 = Convergence) : ";
-    std::cin  >> InnerNIteration;
-    std::cout << "Input Linear Solver Relaxation Inner (0.5 < r < 1.0): ";
-    std::cin  >> Relaxation;
+    // Input Linear Solver Iterations (0 = Convergence)
+    InnerNIteration = 20;
+    iret = fscanf(fp, "\n");
+    cdum = fgets(dumstring, 100, fp);
+    iret = fscanf(fp, "%d\n", &InnerNIteration);
+    // Input Linear Solver Relaxation Inner (0.5 < r < 1.0)
+    Relaxation      = 1.0;
+    iret = fscanf(fp, "\n");
+    cdum = fgets(dumstring, 100, fp);
+    iret = fscanf(fp, "%lf\n", &Relaxation);
 
     // Restart File
+    // Restart Capability (0=No, 1=Yes, 2=Create)
     restart = 0;
-    std::cout << "Restart Capability (0=No, 1=Yes, 2=Create): ";
-    std::cin  >> restart;
+    iret = fscanf(fp, "\n");
+    cdum = fgets(dumstring, 100, fp);
+    iret = fscanf(fp, "%d\n", &restart);
 
     // Finite Difference Jacobian
     FDNodeID = 0;
-    std::cout << "Finite Difference Jacobian (0=No, 1=Yes): ";
-    std::cin  >> FDNodeID;
+    // Finite Difference Jacobian (0=No, 1=Yes)
+    iret = fscanf(fp, "\n");
+    cdum = fgets(dumstring, 100, fp);
+    iret = fscanf(fp, "%d\n", &FDNodeID);
     if (FDNodeID == 1) {
-        std::cout << "Finite Difference Node ID : ";
-        std::cin  >> FDNodeID;
-        std::cout << "Finite Difference Perturbation Q : ";
-        std::cin  >> FDPertQ;
-        std::cout << "Finite Difference Epsilon : ";
-        std::cin  >> FDEpsilon;
-        std::cout << "Finite Difference Iteration : ";
-        std::cin  >> FDIteration;
+        // Finite Difference Node ID (-1 = All Nodes)
+        iret = fscanf(fp, "\n");
+        cdum = fgets(dumstring, 100, fp);
+        iret = fscanf(fp, "%d\n", &FDNodeID);
+        // Finite Difference Perturbation Q
+        iret = fscanf(fp, "\n");
+        cdum = fgets(dumstring, 100, fp);
+        iret = fscanf(fp, "%d\n", &FDPertQ);
+        // Finite Difference Epsilon
+        iret = fscanf(fp, "\n");
+        cdum = fgets(dumstring, 100, fp);
+        iret = fscanf(fp, "%lf\n", &FDEpsilon);
+        // Finite Difference Check Iteration
+        iret = fscanf(fp, "\n");
+        cdum = fgets(dumstring, 100, fp);
+        iret = fscanf(fp, "%d\n", &FDIteration);
     } else {
-        FDNodeID = -1;
+        FDNodeID = -2;
     }
+
+    printf("Input Mesh File     = %s\n",  WKAMeshFileName.c_str());
+    printf("Input Restart File  = %s\n",  InputRestartFileName.c_str());
+    printf("Output Restart File = %s\n",  OutputRestartFileName.c_str());
+    printf("Output Mesh File    = %s\n",  SLKMeshFileName.c_str());
+    printf("Solution File       = %s\n",  VTKSolutionFileName.c_str());
+    printf("Gamma               = %lf\n", Gamma);
+    printf("Reference Mach      = %lf\n", Ref_Mach);
+    printf("Reference Alpha     = %lf\n", (180.0/M_PI)*Ref_Alpha);
+    printf("Solver Order        = %d\n",  Order);
+    printf("CFL Minimum         = %lf\n", CFL_Min);
+    printf("CFL Maximum         = %lf\n", CFL_Max);
+    printf("CFL Ramp            = %d\n",  CFL_Ramp);
+    printf("Solver Iteration    = %d\n",  NIteration);
+    printf("LS Solver Iteration = %d\n",  InnerNIteration);
+    printf("LS Relaxation       = %lf\n", Relaxation);
+    printf("Restart             = %d\n",  restart);
+    printf("FD Node ID          = %d\n",  FDNodeID);
+    printf("FD Pertuabation Q   = %d\n",  FDPertQ);
+    printf("FD Epsilon          = %lf\n", FDEpsilon);
+    printf("FD Check Iteration  = %d\n",  FDIteration);
+    printf("-----------------------------------------------------------------------------\n");
+    // Close Input File
+    fclose(fp);
 }
 
 // *****************************************************************************
 // *****************************************************************************
 void Euler2D_Solver_VanLeer::Solve() {
-    int iter;
+    int iter, AddTime;
     double max_rms, lrms;
     
     // Extract Connectivity
@@ -214,8 +332,14 @@ void Euler2D_Solver_VanLeer::Solve() {
     Initialize_Solution();
 
     // Read Restart File
-    if (restart == 1)
-        Read_RestartFile("Solution.q");
+    if (restart == 1) {
+        Read_RestartFile(InputRestartFileName.c_str());
+//        // Purturb Solution Q
+//        for (int iNode = 0; iNode < mesh.nnodes; iNode++) {
+//            for (int j = 0; j < 4; j++)
+//                node[iNode].Q[j] = node[iNode].Q[j] + 0.000001;
+//        }
+    }
 
     // Create CRS Matrix
     Create_CRS_BlockMatrix();
@@ -235,7 +359,8 @@ void Euler2D_Solver_VanLeer::Solve() {
         Compute_Boundary_Residual();
         
         // Compute and Fill CRS Matrix
-        Compute_CRS_BlockMatrix();
+        AddTime = 1;
+        Compute_CRS_BlockMatrix(AddTime);
         Compute_Boundary_CRS_BlockMatrix();
 
         // Compute Finite Difference Jacobian
@@ -289,7 +414,7 @@ void Euler2D_Solver_VanLeer::Solve() {
     }
     printf("-----------------------------------------------------------------------------\n");
     if (restart)
-        Write_RestartFile("Solution.q");
+        Write_RestartFile(OutputRestartFileName.c_str());
 }
 
 // *****************************************************************************
@@ -390,8 +515,8 @@ void Euler2D_Solver_VanLeer::Compute_Gauss_Gradient() {
         Q3 = 0.5*(node[n2].Q[2] + node[n3].Q[2]);
         Q4 = 0.5*(node[n2].Q[3] + node[n3].Q[3]);
 
-        tx = cell[iCell].nx23*cell[iCell].mag23;
-        ty = cell[iCell].ny23*cell[iCell].mag23;
+        tx = cell[iCell].unx23*cell[iCell].mag23;
+        ty = cell[iCell].uny23*cell[iCell].mag23;
 
         Partx[0] = Q1*tx;
         Partx[1] = Q2*tx;
@@ -409,8 +534,8 @@ void Euler2D_Solver_VanLeer::Compute_Gauss_Gradient() {
         Q3 = 0.5*(node[n3].Q[2] + node[n1].Q[2]);
         Q4 = 0.5*(node[n3].Q[3] + node[n1].Q[3]);
 
-        tx = cell[iCell].nx31*cell[iCell].mag31;
-        ty = cell[iCell].ny31*cell[iCell].mag31;
+        tx = cell[iCell].unx31*cell[iCell].mag31;
+        ty = cell[iCell].uny31*cell[iCell].mag31;
 
         Partx[0] += Q1*tx;
         Partx[1] += Q2*tx;
@@ -428,8 +553,8 @@ void Euler2D_Solver_VanLeer::Compute_Gauss_Gradient() {
         Q3 = 0.5*(node[n1].Q[2] + node[n2].Q[2]);
         Q4 = 0.5*(node[n1].Q[3] + node[n2].Q[3]);
 
-        tx = cell[iCell].nx12*cell[iCell].mag12;
-        ty = cell[iCell].ny12*cell[iCell].mag12;
+        tx = cell[iCell].unx12*cell[iCell].mag12;
+        ty = cell[iCell].uny12*cell[iCell].mag12;
 
         Partx[0] += Q1*tx;
         Partx[1] += Q2*tx;
@@ -508,8 +633,8 @@ void Euler2D_Solver_VanLeer::Compute_Residual() {
 
             // Get the Flux Across the Median Dual Line
             // Edge 1-2
-            Compute_Fplus(node[n1].Q, cell[iCell].nxc12, cell[iCell].nyc12, cell[iCell].magc12, Fplus);
-            Compute_Fminus(node[n2].Q, cell[iCell].nxc12, cell[iCell].nyc12, cell[iCell].magc12, Fminus);
+            Compute_Fplus(node[n1].Q, cell[iCell].unxc12, cell[iCell].unyc12, cell[iCell].magc12, Fplus);
+            Compute_Fminus(node[n2].Q, cell[iCell].unxc12, cell[iCell].unyc12, cell[iCell].magc12, Fminus);
             for (i = 0; i < 4; i++) {
                 Flux[i] = Fplus[i] + Fminus[i];
                 node[n1].Resi[i] += Flux[i];
@@ -517,8 +642,8 @@ void Euler2D_Solver_VanLeer::Compute_Residual() {
             }
 
             // Edge 2-3
-            Compute_Fplus(node[n2].Q, cell[iCell].nxc23, cell[iCell].nyc23, cell[iCell].magc23, Fplus);
-            Compute_Fminus(node[n3].Q, cell[iCell].nxc23, cell[iCell].nyc23, cell[iCell].magc23, Fminus);
+            Compute_Fplus(node[n2].Q, cell[iCell].unxc23, cell[iCell].unyc23, cell[iCell].magc23, Fplus);
+            Compute_Fminus(node[n3].Q, cell[iCell].unxc23, cell[iCell].unyc23, cell[iCell].magc23, Fminus);
             for (i = 0; i < 4; i++) {
                 Flux[i] = Fplus[i] + Fminus[i];
                 node[n2].Resi[i] += Flux[i];
@@ -526,8 +651,8 @@ void Euler2D_Solver_VanLeer::Compute_Residual() {
             }
 
             // Edge 3-1
-            Compute_Fplus(node[n3].Q, cell[iCell].nxc31, cell[iCell].nyc31, cell[iCell].magc31, Fplus);
-            Compute_Fminus(node[n1].Q, cell[iCell].nxc31, cell[iCell].nyc31, cell[iCell].magc31, Fminus);
+            Compute_Fplus(node[n3].Q, cell[iCell].unxc31, cell[iCell].unyc31, cell[iCell].magc31, Fplus);
+            Compute_Fminus(node[n1].Q, cell[iCell].unxc31, cell[iCell].unyc31, cell[iCell].magc31, Fminus);
             for (i = 0; i < 4; i++) {
                 Flux[i] = Fplus[i] + Fminus[i];
                 node[n3].Resi[i] += Flux[i];
@@ -556,8 +681,8 @@ void Euler2D_Solver_VanLeer::Compute_Residual() {
                 QR[i] = node[n2].Q[i] + Qx[n2][i]*(xf - node[n2].x) + Qy[n2][i]*(yf - node[n2].y);
             }
             
-            Compute_Fplus(QL, cell[iCell].nxc12, cell[iCell].nyc12, cell[iCell].magc12, Fplus);
-            Compute_Fminus(QR, cell[iCell].nxc12, cell[iCell].nyc12, cell[iCell].magc12, Fminus);
+            Compute_Fplus(QL, cell[iCell].unxc12, cell[iCell].unyc12, cell[iCell].magc12, Fplus);
+            Compute_Fminus(QR, cell[iCell].unxc12, cell[iCell].unyc12, cell[iCell].magc12, Fminus);
             for (i = 0; i < 4; i++) {
                 Flux[i] = Fplus[i] + Fminus[i];
                 node[n1].Resi[i] += Flux[i];
@@ -573,8 +698,8 @@ void Euler2D_Solver_VanLeer::Compute_Residual() {
                 QR[i] = node[n3].Q[i] + Qx[n3][i]*(xf - node[n3].x) + Qy[n3][i]*(yf - node[n3].y);
             }
 
-            Compute_Fplus(QL, cell[iCell].nxc23, cell[iCell].nyc23, cell[iCell].magc23, Fplus);
-            Compute_Fminus(QR, cell[iCell].nxc23, cell[iCell].nyc23, cell[iCell].magc23, Fminus);
+            Compute_Fplus(QL, cell[iCell].unxc23, cell[iCell].unyc23, cell[iCell].magc23, Fplus);
+            Compute_Fminus(QR, cell[iCell].unxc23, cell[iCell].unyc23, cell[iCell].magc23, Fminus);
             for (i = 0; i < 4; i++) {
                 Flux[i] = Fplus[i] + Fminus[i];
                 node[n2].Resi[i] += Flux[i];
@@ -590,8 +715,8 @@ void Euler2D_Solver_VanLeer::Compute_Residual() {
                 QR[i] = node[n1].Q[i] + Qx[n1][i]*(xf - node[n1].x) + Qy[n1][i]*(yf - node[n1].y);
             }
 
-            Compute_Fplus(QL, cell[iCell].nxc31, cell[iCell].nyc31, cell[iCell].magc31, Fplus);
-            Compute_Fminus(QR, cell[iCell].nxc31, cell[iCell].nyc31, cell[iCell].magc31, Fminus);
+            Compute_Fplus(QL, cell[iCell].unxc31, cell[iCell].unyc31, cell[iCell].magc31, Fplus);
+            Compute_Fminus(QR, cell[iCell].unxc31, cell[iCell].unyc31, cell[iCell].magc31, Fminus);
             for (i = 0; i < 4; i++) {
                 Flux[i] = Fplus[i] + Fminus[i];
                 node[n3].Resi[i] += Flux[i];
@@ -608,6 +733,27 @@ void Euler2D_Solver_VanLeer::Compute_Boundary_Residual() {
     double Pressure, Nx, Ny;
 
     // Calculate the Resi by Closing the Control Volume for Boundary Nodes
+    // Freestream Boundary: BCTag = 3
+    // Boundary Edge is such that Node1->Node2 direction mesh inside is on left
+    // Hence leads to CCW oriented boundary triangles
+    for (i = 0; i < mesh.nbedges; i++) {
+        // BCType 3: 3000-3999 : Free Stream
+        if ((boundaryEdge[i].bcType < 3000) || (boundaryEdge[i].bcType > 3999))
+            continue;
+
+        // Get The Nodes of Edge
+        iedge = boundaryEdge[i].edgeNumber;
+        n1 = edge[iedge].node1;
+        n2 = edge[iedge].node2;
+
+        // Residual
+        for (j = 0; j < 4; j++) {
+            node[n1].Resi[j] = 0.0;
+            node[n2].Resi[j] = 0.0;
+        }
+    }
+    
+    // Calculate the Resi by Closing the Control Volume for Boundary Nodes
     // Solid Boundary: BCTag = 1
     // Boundary Edge is such that Node1->Node2 direction mesh inside is on left
     // Hence leads to CCW oriented boundary triangles
@@ -622,8 +768,8 @@ void Euler2D_Solver_VanLeer::Compute_Boundary_Residual() {
         n2 = edge[iedge].node2;
 
         // Get the Normal - Components
-        Nx = 0.5*edge[iedge].nx*edge[iedge].mag;
-        Ny = 0.5*edge[iedge].ny*edge[iedge].mag;
+        Nx = 0.5*edge[iedge].unx*edge[iedge].mag;
+        Ny = 0.5*edge[iedge].uny*edge[iedge].mag;
 
         // Residual at Node1
         Pressure = (Gamma - 1.0)*(node[n1].Q[3] - 0.5*node[n1].Q[0]*((node[n1].Q[1]/node[n1].Q[0])*(node[n1].Q[1]/node[n1].Q[0])
@@ -653,8 +799,8 @@ void Euler2D_Solver_VanLeer::Compute_Boundary_Residual() {
         n2 = edge[iedge].node2;
 
         // Get the Normal - Components
-        Nx = 0.5*edge[iedge].nx*edge[iedge].mag;
-        Ny = 0.5*edge[iedge].ny*edge[iedge].mag;
+        Nx = 0.5*edge[iedge].unx*edge[iedge].mag;
+        Ny = 0.5*edge[iedge].uny*edge[iedge].mag;
 
         // Residual at Node1
         Pressure = (Gamma - 1.0)*(node[n1].Q[3] - 0.5*node[n1].Q[0]*((node[n1].Q[1]/node[n1].Q[0])*(node[n1].Q[1]/node[n1].Q[0])
@@ -669,39 +815,43 @@ void Euler2D_Solver_VanLeer::Compute_Boundary_Residual() {
         node[n2].Resi[2] += Pressure*Ny;
     }
 
-    // Calculate the Resi by Closing the Control Volume for Boundary Nodes
-    // Freestream Boundary: BCTag = 3
-    // Boundary Edge is such that Node1->Node2 direction mesh inside is on left
-    // Hence leads to CCW oriented boundary triangles
-    for (i = 0; i < mesh.nbedges; i++) {
-        // BCType 3: 3000-3999 : Free Stream
-        if ((boundaryEdge[i].bcType < 3000) || (boundaryEdge[i].bcType > 3999))
-            continue;
-
-        // Get The Nodes of Edge
-        iedge = boundaryEdge[i].edgeNumber;
-        n1 = edge[iedge].node1;
-        n2 = edge[iedge].node2;
-
-        // Residual
-        for (j = 0; j < 4; j++) {
-            node[n1].Resi[j] = 0.0;
-            node[n2].Resi[j] = 0.0;
-        }
-    }
+//    // Calculate the Resi by Closing the Control Volume for Boundary Nodes
+//    // Freestream Boundary: BCTag = 3
+//    // Boundary Edge is such that Node1->Node2 direction mesh inside is on left
+//    // Hence leads to CCW oriented boundary triangles
+//    for (i = 0; i < mesh.nbedges; i++) {
+//        // BCType 3: 3000-3999 : Free Stream
+//        if ((boundaryEdge[i].bcType < 3000) || (boundaryEdge[i].bcType > 3999))
+//            continue;
+//
+//        // Get The Nodes of Edge
+//        iedge = boundaryEdge[i].edgeNumber;
+//        n1 = edge[iedge].node1;
+//        n2 = edge[iedge].node2;
+//
+//        // Residual
+//        for (j = 0; j < 4; j++) {
+//            node[n1].Resi[j] = 0.0;
+//            node[n2].Resi[j] = 0.0;
+//        }
+//    }
 }
 
 // *****************************************************************************
 // *****************************************************************************
 void Euler2D_Solver_VanLeer::Compute_FD_Jacobian(int Iteration) {
-    int i, iNode;
+    int i, j, iNode, iNode_start, iNode_end;
     double DR_DQ[4];
+    double **Data = NULL;
 
     if (Order != 1)
         return;
+    
     if (Iteration != FDIteration)
         return;
-    if (FDNodeID < 0 && FDNodeID >= mesh.nnodes)
+
+    // No FD Validation computation
+    if (FDNodeID <= -2 || FDNodeID >= mesh.nnodes)
         return;
     
     // Store the Old Residual
@@ -710,42 +860,73 @@ void Euler2D_Solver_VanLeer::Compute_FD_Jacobian(int Iteration) {
             FDNode[iNode].Resi_Old[i] = node[iNode].Resi[i];
     }
 
-    // Now Purturb the Desired Node Particular Q
-    node[FDNodeID].Q[FDPertQ] += FDEpsilon;
+    if (FDNodeID < 0) {
+        iNode_start = 0;
+        iNode_end   = mesh.nnodes;
+        Data = (double **) malloc(4*sizeof(double*));
+        for (i = 0; i < 4; i++) {
+            Data[i] = (double *) malloc(mesh.nnodes*sizeof(double));
+            for (j = 0; j < mesh.nnodes; j++)
+                Data[i][j] = 0.0;
+        }
+    } else {
+        iNode_start = FDNodeID;
+        iNode_end   = FDNodeID + 1;
+    }
+    
+    for (iNode = iNode_start; iNode < iNode_end; iNode++) {
+        // Now Purturb the Desired Node Particular Q
+        node[iNode].Q[FDPertQ] += FDEpsilon;
 
-    // Now Compute the New Residual
-    Compute_Residual();
-    Compute_Boundary_Residual();
+        // Now Compute the New Residual
+        Compute_Residual();
+        Compute_Boundary_Residual();
 
-    // Now Store the New Residual
-    for (iNode = 0; iNode < mesh.nnodes; iNode++) {
+        // Now Store the New Residual
+        for (i = 0; i < mesh.nnodes; i++) {
+            for (j = 0; j < 4; j++)
+                FDNode[i].Resi_New[j] = node[i].Resi[j];
+        }
+
+        // Compute the Finite Difference DR_DQ
         for (i = 0; i < 4; i++)
-            FDNode[iNode].Resi_New[i] = node[iNode].Resi[i];
+            FDDR_DQ[i] = (FDNode[iNode].Resi_New[i] - FDNode[iNode].Resi_Old[i])/FDEpsilon;
+
+        // Get the Analytical DR_DQ
+        // Get the diagonal location
+        int idgn = BlockMatrix.IAU[iNode];
+        for (i = 0; i < 4; i++)
+            DR_DQ[i] = BlockMatrix.A[idgn][i][FDPertQ];
+        // Subtract I/DT
+        DR_DQ[FDPertQ] -= node[iNode].area/DeltaT[iNode];
+
+        if (FDNodeID < 0) {
+            for (i = 0; i < 4; i++)
+                Data[i][iNode] = fabs(FDDR_DQ[i] - DR_DQ[i]);
+        } else {
+            printf("Finite Difference:\n %15.9e %15.9e %15.9e %15.9e \n",
+                    FDDR_DQ[0], FDDR_DQ[1], FDDR_DQ[2], FDDR_DQ[3]);
+            printf("Analytic Difference:\n %15.9e %15.9e %15.9e %15.9e \n",
+                    DR_DQ[0], DR_DQ[1], DR_DQ[2], DR_DQ[3]);
+        }
+        
+        // Restore back the Old Residual and Desired Node Particular Q
+        for (i = 0; i < mesh.nnodes; i++) {
+            for (j = 0; j < 4; j++)
+                node[i].Resi[j] = FDNode[i].Resi_Old[j];
+        }
+        node[iNode].Q[FDPertQ] -= FDEpsilon;
     }
 
-    // Compute the Finite Difference DR_DQ
-    for (i = 0; i < 4; i++)
-        FDDR_DQ[i] = (FDNode[FDNodeID].Resi_New[i] - FDNode[FDNodeID].Resi_Old[i])/FDEpsilon;
-
-    // Get the Analytical DR_DQ
-    // Get the diagonal location
-    int idgn = BlockMatrix.IAU[FDNodeID];
-    for (i = 0; i < 4; i++)
-        DR_DQ[i] = BlockMatrix.A[idgn][i][FDPertQ];
-    // Subtract I/DT
-    DR_DQ[FDPertQ] -= node[FDNodeID].area/DeltaT[FDNodeID];
-    
-    printf("Finite Difference:\n %15.9e %15.9e %15.9e %15.9e \n",
-            FDDR_DQ[0], FDDR_DQ[1], FDDR_DQ[2], FDDR_DQ[3]);
-    printf("Analytic Difference:\n %15.9e %15.9e %15.9e %15.9e \n",
-            DR_DQ[0], DR_DQ[1], DR_DQ[2], DR_DQ[3]);
-    
-    // Restore back the Old Residual and Desired Node Particular Q
-    for (iNode = 0; iNode < mesh.nnodes; iNode++) {
+    if (FDNodeID < 0) {
+        Write_VTK_Unstructured_DebugFile("DRdQ_Valid1.vtu", Data[0]);
+        Write_VTK_Unstructured_DebugFile("DRdQ_Valid2.vtu", Data[1]);
+        Write_VTK_Unstructured_DebugFile("DRdQ_Valid3.vtu", Data[2]);
+        Write_VTK_Unstructured_DebugFile("DRdQ_Valid4.vtu", Data[3]);
         for (i = 0; i < 4; i++)
-            node[iNode].Resi[i] = FDNode[iNode].Resi_Old[i];
+            free(Data[i]);
+        free(Data);
     }
-    node[FDNodeID].Q[FDPertQ] -= FDEpsilon;
 }
 
 // *****************************************************************************
@@ -793,7 +974,7 @@ void Euler2D_Solver_VanLeer::Compute_DeltaTime(int Iteration) {
         U = 0.5*(U1+U2);
         V = 0.5*(V1+V2);
         C = 0.5*(C1+C2);
-        Vn = (fabs(U*cell[iCell].nxc12 + V*cell[iCell].nyc12) + C)*cell[iCell].magc12;
+        Vn = (fabs(U*cell[iCell].unxc12 + V*cell[iCell].unyc12) + C)*cell[iCell].magc12;
 
         DeltaT[n1] += Vn;
         DeltaT[n2] += Vn;
@@ -802,7 +983,7 @@ void Euler2D_Solver_VanLeer::Compute_DeltaTime(int Iteration) {
         U = 0.5*(U2+U3);
         V = 0.5*(V2+V3);
         C = 0.5*(C2+C3);
-        Vn = (fabs(U*cell[iCell].nxc23 + V*cell[iCell].nyc23) + C)*cell[iCell].magc23;
+        Vn = (fabs(U*cell[iCell].unxc23 + V*cell[iCell].unyc23) + C)*cell[iCell].magc23;
 
         DeltaT[n2] += Vn;
         DeltaT[n3] += Vn;
@@ -811,7 +992,7 @@ void Euler2D_Solver_VanLeer::Compute_DeltaTime(int Iteration) {
         U = 0.5*(U3+U1);
         V = 0.5*(V3+V1);
         C = 0.5*(C3+C1);
-        Vn = (fabs(U*cell[iCell].nxc31 + V*cell[iCell].nyc31) + C)*cell[iCell].magc31;
+        Vn = (fabs(U*cell[iCell].unxc31 + V*cell[iCell].unyc31) + C)*cell[iCell].magc31;
         
         DeltaT[n3] += Vn;
         DeltaT[n1] += Vn;
@@ -849,7 +1030,7 @@ void Euler2D_Solver_VanLeer::Compute_DeltaTime(int Iteration) {
         U = (5.0/6.0)*U1+ (1.0/6.0)*U2;
         V = (5.0/6.0)*V1+ (1.0/6.0)*V2;
         C = (5.0/6.0)*C1+ (1.0/6.0)*C2;
-        Vn = 0.5*(fabs(U*edge[iEdge].nx + V*edge[iEdge].ny) + C)*edge[iEdge].mag;
+        Vn = 0.5*(fabs(U*edge[iEdge].unx + V*edge[iEdge].uny) + C)*edge[iEdge].mag;
         
         DeltaT[n1] += Vn;
         
@@ -857,7 +1038,7 @@ void Euler2D_Solver_VanLeer::Compute_DeltaTime(int Iteration) {
         U = (5.0/6.0)*U2+ (1.0/6.0)*U1;
         V = (5.0/6.0)*V2+ (1.0/6.0)*V1;
         C = (5.0/6.0)*C2+ (1.0/6.0)*C1;
-        Vn = 0.5*(fabs(U*edge[iEdge].nx + V*edge[iEdge].ny) + C)*edge[iEdge].mag;
+        Vn = 0.5*(fabs(U*edge[iEdge].unx + V*edge[iEdge].uny) + C)*edge[iEdge].mag;
         
         DeltaT[n2] += Vn;
     }
@@ -894,7 +1075,7 @@ void Euler2D_Solver_VanLeer::Compute_DeltaTime(int Iteration) {
         U = (5.0/6.0)*U1+ (1.0/6.0)*U2;
         V = (5.0/6.0)*V1+ (1.0/6.0)*V2;
         C = (5.0/6.0)*C1+ (1.0/6.0)*C2;
-        Vn = 0.5*(fabs(U*edge[iEdge].nx + V*edge[iEdge].ny) + C)*edge[iEdge].mag;
+        Vn = 0.5*(fabs(U*edge[iEdge].unx + V*edge[iEdge].uny) + C)*edge[iEdge].mag;
 
         DeltaT[n1] += Vn;
 
@@ -902,7 +1083,7 @@ void Euler2D_Solver_VanLeer::Compute_DeltaTime(int Iteration) {
         U = (5.0/6.0)*U2+ (1.0/6.0)*U1;
         V = (5.0/6.0)*V2+ (1.0/6.0)*V1;
         C = (5.0/6.0)*C2+ (1.0/6.0)*C1;
-        Vn = 0.5*(fabs(U*edge[iEdge].nx + V*edge[iEdge].ny) + C)*edge[iEdge].mag;
+        Vn = 0.5*(fabs(U*edge[iEdge].unx + V*edge[iEdge].uny) + C)*edge[iEdge].mag;
 
         DeltaT[n2] += Vn;
     }
@@ -939,7 +1120,7 @@ void Euler2D_Solver_VanLeer::Compute_DeltaTime(int Iteration) {
         U = (5.0/6.0)*U1+ (1.0/6.0)*U2;
         V = (5.0/6.0)*V1+ (1.0/6.0)*V2;
         C = (5.0/6.0)*C1+ (1.0/6.0)*C2;
-        Vn = 0.5*(fabs(U*edge[iEdge].nx + V*edge[iEdge].ny) + C)*edge[iEdge].mag;
+        Vn = 0.5*(fabs(U*edge[iEdge].unx + V*edge[iEdge].uny) + C)*edge[iEdge].mag;
 
         DeltaT[n1] += Vn;
         
@@ -947,7 +1128,7 @@ void Euler2D_Solver_VanLeer::Compute_DeltaTime(int Iteration) {
         U = (5.0/6.0)*U2+ (1.0/6.0)*U1;
         V = (5.0/6.0)*V2+ (1.0/6.0)*V1;
         C = (5.0/6.0)*C2+ (1.0/6.0)*C1;
-        Vn = 0.5*(fabs(U*edge[iEdge].nx + V*edge[iEdge].ny) + C)*edge[iEdge].mag;
+        Vn = 0.5*(fabs(U*edge[iEdge].unx + V*edge[iEdge].uny) + C)*edge[iEdge].mag;
 
         DeltaT[n2] += Vn;
     }
@@ -1137,7 +1318,7 @@ void Euler2D_Solver_VanLeer::Create_CRS_BlockMatrix() {
 
 // *****************************************************************************
 // *****************************************************************************
-void Euler2D_Solver_VanLeer::Compute_CRS_BlockMatrix() {
+void Euler2D_Solver_VanLeer::Compute_CRS_BlockMatrix(int AddTime) {
     int iNode, i, j, k, idgn, idgn1, idgn2, idgn3;
     int ofdgn1[2], ofdgn2[2], ofdgn3[2];
     int n1, n2, n3, iCell;
@@ -1194,11 +1375,13 @@ void Euler2D_Solver_VanLeer::Compute_CRS_BlockMatrix() {
     for (iNode = 0; iNode < mesh.nnodes; iNode++) {
         for (j = 0; j < BlockMatrix.Block_nRow; j++) {
             BlockMatrix.B[iNode][j] = -node[iNode].Resi[j];
-            // Get the diagonal location
-            idgn = BlockMatrix.IAU[iNode];
-            for (k = 0; k < BlockMatrix.Block_nCol; k++)
-                if (k == j)
-                    BlockMatrix.A[idgn][j][k] = node[iNode].area/DeltaT[iNode];
+            if (AddTime == 1) {
+                // Get the diagonal location
+                idgn = BlockMatrix.IAU[iNode];
+                for (k = 0; k < BlockMatrix.Block_nCol; k++)
+                    if (k == j)
+                        BlockMatrix.A[idgn][j][k] = node[iNode].area/DeltaT[iNode];
+            }
         }
     }
 
@@ -1251,8 +1434,8 @@ void Euler2D_Solver_VanLeer::Compute_CRS_BlockMatrix() {
             }
         }
         // Compute Split Flux Jacobians
-        Compute_FluxJplus(node[n1].Q, cell[iCell].nxc12, cell[iCell].nyc12, cell[iCell].magc12, Fplus, Ap);
-        Compute_FluxJminus(node[n2].Q, cell[iCell].nxc12, cell[iCell].nyc12, cell[iCell].magc12, Fminus, Am);
+        Compute_FluxJplus(node[n1].Q, cell[iCell].unxc12, cell[iCell].unyc12, cell[iCell].magc12, Fplus, Ap);
+        Compute_FluxJminus(node[n2].Q, cell[iCell].unxc12, cell[iCell].unyc12, cell[iCell].magc12, Fminus, Am);
         
         // Update the Diagonal and Off-Diagonal Terms
         for (i = 0; i < 4; i++) {
@@ -1277,8 +1460,8 @@ void Euler2D_Solver_VanLeer::Compute_CRS_BlockMatrix() {
             }
         }
         // Compute Split Flux Jacobians
-        Compute_FluxJplus(node[n2].Q, cell[iCell].nxc23, cell[iCell].nyc23, cell[iCell].magc23, Fplus, Ap);
-        Compute_FluxJminus(node[n3].Q, cell[iCell].nxc23, cell[iCell].nyc23, cell[iCell].magc23, Fminus, Am);
+        Compute_FluxJplus(node[n2].Q, cell[iCell].unxc23, cell[iCell].unyc23, cell[iCell].magc23, Fplus, Ap);
+        Compute_FluxJminus(node[n3].Q, cell[iCell].unxc23, cell[iCell].unyc23, cell[iCell].magc23, Fminus, Am);
         
         // Update the Diagonal and Off-Diagonal Terms
         for (i = 0; i < 4; i++) {
@@ -1303,8 +1486,8 @@ void Euler2D_Solver_VanLeer::Compute_CRS_BlockMatrix() {
             }
         }
         // Compute Split Flux Jacobians
-        Compute_FluxJplus(node[n3].Q, cell[iCell].nxc31, cell[iCell].nyc31, cell[iCell].magc31, Fplus, Ap);
-        Compute_FluxJminus(node[n1].Q, cell[iCell].nxc31, cell[iCell].nyc31, cell[iCell].magc31, Fminus, Am);
+        Compute_FluxJplus(node[n3].Q, cell[iCell].unxc31, cell[iCell].unyc31, cell[iCell].magc31, Fplus, Ap);
+        Compute_FluxJminus(node[n1].Q, cell[iCell].unxc31, cell[iCell].unyc31, cell[iCell].magc31, Fminus, Am);
         
         // Update the Diagonal and Off-Diagonal Terms
         for (i = 0; i < 4; i++) {
@@ -1351,6 +1534,54 @@ void Euler2D_Solver_VanLeer::Compute_Boundary_CRS_BlockMatrix() {
     double Rho_Q[4], U_Q[4], V_Q[4], E_Q[4], P_Q[4];
     double Rho, U, V, E, P;
     double Var1, Var2;
+
+    // Calculate the Jacobian by Closing the Control Volume for Boundary Nodes
+    // Freestream Boundary: BCTag = 3
+    // Boundary Edge is such that Node1->Node2 direction mesh inside is on left
+    // Hence leads to CCW oriented boundary triangles
+    for (i = 0; i < mesh.nbedges; i++) {
+        // BCType 3: 3000-3999 : Free Stream
+        if ((boundaryEdge[i].bcType < 3000) || (boundaryEdge[i].bcType > 3999))
+            continue;
+
+        // Get The Nodes of Edge
+        iedge = boundaryEdge[i].edgeNumber;
+        n1 = edge[iedge].node1;
+        n2 = edge[iedge].node2;
+
+        // ************************ Node1 **********************************
+        int k, l, jstart, jend;
+        jstart = BlockMatrix.IA[n1];
+        jend   = BlockMatrix.IA[n1+1];
+        for (j = jstart; j < jend; j++) {
+            for (k = 0; k < 4; k++) {
+                for (l = 0; l < 4; l++)
+                    BlockMatrix.A[j][k][l] = 0.0;
+            }
+        }
+        idgn = BlockMatrix.IAU[n1];
+        for (k = 0; k < 4; k++) {
+            for (l = 0; l < 4; l++)
+                if (l == k)
+                    BlockMatrix.A[idgn][k][l] = 1.0;
+        }
+
+        // ************************ Node2 **********************************
+        jstart = BlockMatrix.IA[n2];
+        jend   = BlockMatrix.IA[n2+1];
+        for (j = jstart; j < jend; j++) {
+            for (k = 0; k < 4; k++) {
+                for (l = 0; l < 4; l++)
+                    BlockMatrix.A[j][k][l] = 0.0;
+            }
+        }
+        idgn = BlockMatrix.IAU[n2];
+        for (k = 0; k < 4; k++) {
+            for (l = 0; l < 4; l++)
+                if (l == k)
+                    BlockMatrix.A[idgn][k][l] = 1.0;
+        }
+    }
     
     // Calculate the Jacobian by Closing the Control Volume for Boundary Nodes
     // Solid Boundary: BCTag = 1
@@ -1367,8 +1598,8 @@ void Euler2D_Solver_VanLeer::Compute_Boundary_CRS_BlockMatrix() {
         n2 = edge[iedge].node2;
 
         // Get the Normal - Components
-        Nx = 0.5*edge[iedge].nx*edge[iedge].mag;
-        Ny = 0.5*edge[iedge].ny*edge[iedge].mag;
+        Nx = 0.5*edge[iedge].unx*edge[iedge].mag;
+        Ny = 0.5*edge[iedge].uny*edge[iedge].mag;
 
         // ************************ Node1 **********************************
         // Calculate Rho and Partial derivatives
@@ -1474,8 +1705,8 @@ void Euler2D_Solver_VanLeer::Compute_Boundary_CRS_BlockMatrix() {
         n2 = edge[iedge].node2;
 
         // Get the Normal - Components
-        Nx = 0.5*edge[iedge].nx*edge[iedge].mag;
-        Ny = 0.5*edge[iedge].ny*edge[iedge].mag;
+        Nx = 0.5*edge[iedge].unx*edge[iedge].mag;
+        Ny = 0.5*edge[iedge].uny*edge[iedge].mag;
 
         // ************************ Node1 **********************************
         // Calculate Rho and Partial derivatives
@@ -1566,53 +1797,53 @@ void Euler2D_Solver_VanLeer::Compute_Boundary_CRS_BlockMatrix() {
         }
     }
 
-    // Calculate the Jacobian by Closing the Control Volume for Boundary Nodes
-    // Freestream Boundary: BCTag = 3
-    // Boundary Edge is such that Node1->Node2 direction mesh inside is on left
-    // Hence leads to CCW oriented boundary triangles
-    for (i = 0; i < mesh.nbedges; i++) {
-        // BCType 3: 3000-3999 : Free Stream
-        if ((boundaryEdge[i].bcType < 3000) || (boundaryEdge[i].bcType > 3999))
-            continue;
-
-        // Get The Nodes of Edge
-        iedge = boundaryEdge[i].edgeNumber;
-        n1 = edge[iedge].node1;
-        n2 = edge[iedge].node2;
-
-        // ************************ Node1 **********************************
-        int k, l, jstart, jend;
-        jstart = BlockMatrix.IA[n1];
-        jend   = BlockMatrix.IA[n1+1];
-        for (j = jstart; j < jend; j++) {
-            for (k = 0; k < 4; k++) {
-                for (l = 0; l < 4; l++)
-                    BlockMatrix.A[j][k][l] = 0.0;
-            }
-        }
-        idgn = BlockMatrix.IAU[n1];
-        for (k = 0; k < 4; k++) {
-            for (l = 0; l < 4; l++)
-                if (l == k)
-                    BlockMatrix.A[idgn][k][l] = 1.0;
-        }
-        
-        // ************************ Node2 **********************************
-        jstart = BlockMatrix.IA[n2];
-        jend   = BlockMatrix.IA[n2+1];
-        for (j = jstart; j < jend; j++) {
-            for (k = 0; k < 4; k++) {
-                for (l = 0; l < 4; l++)
-                    BlockMatrix.A[j][k][l] = 0.0;
-            }
-        }
-        idgn = BlockMatrix.IAU[n2];
-        for (k = 0; k < 4; k++) {
-            for (l = 0; l < 4; l++)
-                if (l == k)
-                    BlockMatrix.A[idgn][k][l] = 1.0;
-        }
-    }
+//    // Calculate the Jacobian by Closing the Control Volume for Boundary Nodes
+//    // Freestream Boundary: BCTag = 3
+//    // Boundary Edge is such that Node1->Node2 direction mesh inside is on left
+//    // Hence leads to CCW oriented boundary triangles
+//    for (i = 0; i < mesh.nbedges; i++) {
+//        // BCType 3: 3000-3999 : Free Stream
+//        if ((boundaryEdge[i].bcType < 3000) || (boundaryEdge[i].bcType > 3999))
+//            continue;
+//
+//        // Get The Nodes of Edge
+//        iedge = boundaryEdge[i].edgeNumber;
+//        n1 = edge[iedge].node1;
+//        n2 = edge[iedge].node2;
+//
+//        // ************************ Node1 **********************************
+//        int k, l, jstart, jend;
+//        jstart = BlockMatrix.IA[n1];
+//        jend   = BlockMatrix.IA[n1+1];
+//        for (j = jstart; j < jend; j++) {
+//            for (k = 0; k < 4; k++) {
+//                for (l = 0; l < 4; l++)
+//                    BlockMatrix.A[j][k][l] = 0.0;
+//            }
+//        }
+//        idgn = BlockMatrix.IAU[n1];
+//        for (k = 0; k < 4; k++) {
+//            for (l = 0; l < 4; l++)
+//                if (l == k)
+//                    BlockMatrix.A[idgn][k][l] = 1.0;
+//        }
+//
+//        // ************************ Node2 **********************************
+//        jstart = BlockMatrix.IA[n2];
+//        jend   = BlockMatrix.IA[n2+1];
+//        for (j = jstart; j < jend; j++) {
+//            for (k = 0; k < 4; k++) {
+//                for (l = 0; l < 4; l++)
+//                    BlockMatrix.A[j][k][l] = 0.0;
+//            }
+//        }
+//        idgn = BlockMatrix.IAU[n2];
+//        for (k = 0; k < 4; k++) {
+//            for (l = 0; l < 4; l++)
+//                if (l == k)
+//                    BlockMatrix.A[idgn][k][l] = 1.0;
+//        }
+//    }
 }
 
 // *****************************************************************************
@@ -1681,7 +1912,7 @@ void Euler2D_Solver_VanLeer::Compute_Fplus(double *Q, double uNx, double uNy, do
         Fplus[2] = Fplus[0]*((uNy/Gamma)*(-Ubar + 2.0*C) + Q[2]/Q[0]);
         Fplus[3] = Fplus[0]*((((-(Gamma - 1.0)*Ubar*Ubar) + (2.0*(Gamma - 1.0)*Ubar*C) + 2.0*C*C)/(Gamma*Gamma - 1.0))
                 + (0.5*(Q[1]*Q[1] + Q[2]*Q[2])/(Q[0]*Q[0])));
-    } else if (Mbar > 1.0) {
+    } else if (Mbar >= 1.0) {
         Fplus[0] = Mag*Q[0]*Ubar;
         Fplus[1] = Mag*(Q[1]*Ubar + uNx*Pressure);
         Fplus[2] = Mag*(Q[2]*Ubar + uNy*Pressure);
@@ -1710,7 +1941,7 @@ void Euler2D_Solver_VanLeer::Compute_Fminus(double *Q, double uNx, double uNy, d
         Fminus[2] = Fminus[0]*((uNy/Gamma)*(-Ubar - 2.0*C) + Q[2]/Q[0]);
         Fminus[3] = Fminus[0]*((((-(Gamma - 1.0)*Ubar*Ubar) - (2.0*(Gamma - 1.0)*Ubar*C) + 2.0*C*C)/(Gamma*Gamma - 1.0))
                 + (0.5*(Q[1]*Q[1] + Q[2]*Q[2])/(Q[0]*Q[0])));
-    } else if (Mbar < -1.0) {
+    } else if (Mbar <= -1.0) {
         Fminus[0] = Mag*Q[0]*Ubar;
         Fminus[1] = Mag*(Q[1]*Ubar + uNx*Pressure);
         Fminus[2] = Mag*(Q[2]*Ubar + uNy*Pressure);
@@ -1910,7 +2141,7 @@ void Euler2D_Solver_VanLeer::Compute_FluxJplus(double *Q, double uNx, double uNy
             for (j = 0; j < 4; j++)
                 Ap[i][j] = Ap[i][j] * Mag;
         }
-    } else if (Mbar > 1.0) {
+    } else if (Mbar >= 1.0) {
         // Compute Van-Leer Fplus
         Fplus[0] = (Rho * Ubar);
         Fplus[1] = (Rho * U * Ubar + uNx * P);
@@ -2046,7 +2277,7 @@ void Euler2D_Solver_VanLeer::Compute_FluxJminus(double *Q, double uNx, double uN
             for (j = 0; j < 4; j++)
                 Am[i][j] = Am[i][j] * Mag;
         }
-    } else if (Mbar < -1.0) {
+    } else if (Mbar <= -1.0) {
         // Compute Van-Leer Fminus
         Fminus[0] = (Rho * Ubar);
         Fminus[1] = (Rho * U * Ubar + uNx * P);

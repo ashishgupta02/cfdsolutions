@@ -16,6 +16,7 @@
                 <sourceRootElem>MATCOMP</sourceRootElem>
                 <sourceRootElem>MESH</sourceRootElem>
                 <sourceRootElem>SOLVER</sourceRootElem>
+                <sourceRootElem>DESIGN</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>Debug</confElem>

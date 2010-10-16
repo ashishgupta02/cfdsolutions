@@ -38,6 +38,8 @@ public:
     void Write_TecplotFile(const char* FileName);
     // Export VTK Unstructured .vtu file
     void Write_VTK_Unstructured_File(const char* FileName);
+    // Export VTK Unstructured .vtu file for Debug Variables
+    void Write_VTK_Unstructured_DebugFile(const char* FileName, double *Data);
 protected:
     void WKA_ExtractCells(void);
     void Tag_Boundary_Nodes(void);
