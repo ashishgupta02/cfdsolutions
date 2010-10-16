@@ -187,6 +187,8 @@ void Euler2D_Mesh::WKA_MeshReader(const char* FileName) {
     if (tag != NULL)
         free(tag);
 
+    // Close file
+    fclose(inputMesh);
     printf("=============================================================================\n");
 }
 
@@ -627,6 +629,64 @@ void Euler2D_Mesh::Write_VTK_Unstructured_File(const char* FileName) {
 
 // *****************************************************************************
 // *****************************************************************************
+void Euler2D_Mesh::Write_VTK_Unstructured_DebugFile(const char* FileName, double *Data) {
+    int i;
+    FILE *fp;
+    
+    // Open file for write
+    if ((fp = fopen(FileName, "w")) == 0)
+        error("Write_VTK_Unstructured_File: %s %s\n", "Couldn't Open File:", FileName);
+
+    info("Writing VTK File: %s", FileName);
+
+    fprintf(fp, "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n");
+    fprintf(fp, "<UnstructuredGrid>\n");
+    fprintf(fp, "<Piece Name=\"Variables\" NumberOfPoints=\"%d\" NumberOfCells=\"%d\">\n", mesh.nnodes, mesh.inside);
+    fprintf(fp, "<PointData>\n");
+    // Debug Data
+    fprintf(fp, "<DataArray Name=\"Data\" type=\"Float64\" NumberOfComponents=\"1\" format=\"ascii\">\n");
+    for (i = 0; i < mesh.nnodes; i++)
+        fprintf(fp, "%22.15e\n", Data[i]);
+    fprintf(fp, "</DataArray>\n");
+    fprintf(fp, "</PointData>\n");
+    fprintf(fp, "<CellData />\n");
+
+    // Coordinates x, y, z
+    fprintf(fp, "<Points>\n");
+    fprintf(fp, "<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n");
+    for (i = 0; i < mesh.nnodes; i++)
+        fprintf(fp, "%22.15e %22.15e 0.0\n", node[i].x, node[i].y);
+    fprintf(fp, "</DataArray>\n");
+    fprintf(fp, "</Points>\n");
+
+    fprintf(fp, "<Cells>\n");
+    fprintf(fp, "<DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">\n");
+    for (i = 0; i < mesh.inside; i++)
+        fprintf(fp, "%d %d %d ", cell[i].node1, cell[i].node2, cell[i].node3);
+    fprintf(fp, "\n");
+    fprintf(fp, "</DataArray>\n");
+    fprintf(fp, "<DataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\">\n");
+    for (i = 0; i < mesh.inside; i++)
+        fprintf(fp, "%d ", 3*(i+1));
+    fprintf(fp, "\n");
+    fprintf(fp, "</DataArray>\n");
+    fprintf(fp, "<DataArray type=\"Int32\" Name=\"types\" format=\"ascii\">\n");
+    for (i = 0; i < mesh.inside; i++)
+        fprintf(fp, "5 ");
+    fprintf(fp, "\n");
+    fprintf(fp, "</DataArray>\n");
+    fprintf(fp, "</Cells>\n");
+
+    fprintf(fp, "</Piece>\n");
+    fprintf(fp, "</UnstructuredGrid>\n");
+    fprintf(fp, "</VTKFile>\n");
+
+    // Close File
+    fclose(fp);
+}
+
+// *****************************************************************************
+// *****************************************************************************
 void Euler2D_Mesh::Compute_Geometric_Properties() {
     int icell, inode, iedge;
     int n1, n2, n3;
@@ -640,29 +700,29 @@ void Euler2D_Mesh::Compute_Geometric_Properties() {
         cell[icell].mag12  = 0.0;
         cell[icell].mag23  = 0.0;
         cell[icell].mag31  = 0.0;
-        cell[icell].nx12   = 0.0;
-        cell[icell].nx23   = 0.0;
-        cell[icell].nx31   = 0.0;
-        cell[icell].ny12   = 0.0;
-        cell[icell].ny23   = 0.0;
-        cell[icell].ny31   = 0.0;
+        cell[icell].unx12  = 0.0;
+        cell[icell].unx23  = 0.0;
+        cell[icell].unx31  = 0.0;
+        cell[icell].uny12  = 0.0;
+        cell[icell].uny23  = 0.0;
+        cell[icell].uny31  = 0.0;
         cell[icell].magc12 = 0.0;
         cell[icell].magc23 = 0.0;
         cell[icell].magc31 = 0.0;
-        cell[icell].nxc12  = 0.0;
-        cell[icell].nxc23  = 0.0;
-        cell[icell].nxc31  = 0.0;
-        cell[icell].nyc12  = 0.0;
-        cell[icell].nyc23  = 0.0;
-        cell[icell].nyc31  = 0.0;
+        cell[icell].unxc12 = 0.0;
+        cell[icell].unxc23 = 0.0;
+        cell[icell].unxc31 = 0.0;
+        cell[icell].unyc12 = 0.0;
+        cell[icell].unyc23 = 0.0;
+        cell[icell].unyc31 = 0.0;
     }
     
     for (inode = 0; inode < mesh.nnodes; inode++)
         node[inode].area = 0.0;
 
     for (iedge = 0; iedge < mesh.nedges; iedge++) {
-        edge[iedge].nx  = 0.0;
-        edge[iedge].ny  = 0.0;
+        edge[iedge].unx = 0.0;
+        edge[iedge].uny = 0.0;
         edge[iedge].mag = 0.0;
     }
 
@@ -683,25 +743,25 @@ void Euler2D_Mesh::Compute_Geometric_Properties() {
         cell[icell].yc = (node[n1].y + node[n2].y + node[n3].y)/3.0;
 
         // Edge 1-2
-        cell[icell].nxc12 = +(cell[icell].yc - 0.5*(node[n1].y + node[n2].y));
-        cell[icell].nyc12 = -(cell[icell].xc - 0.5*(node[n1].x + node[n2].x));
-        cell[icell].magc12 = sqrt(cell[icell].nxc12*cell[icell].nxc12 + cell[icell].nyc12*cell[icell].nyc12);
-        cell[icell].nxc12 /= cell[icell].magc12;
-        cell[icell].nyc12 /= cell[icell].magc12;
+        cell[icell].unxc12 = +(cell[icell].yc - 0.5*(node[n1].y + node[n2].y));
+        cell[icell].unyc12 = -(cell[icell].xc - 0.5*(node[n1].x + node[n2].x));
+        cell[icell].magc12 = sqrt(cell[icell].unxc12*cell[icell].unxc12 + cell[icell].unyc12*cell[icell].unyc12);
+        cell[icell].unxc12 /= cell[icell].magc12;
+        cell[icell].unyc12 /= cell[icell].magc12;
 
         // Edge 2-3
-        cell[icell].nxc23 = +(cell[icell].yc - 0.5*(node[n2].y + node[n3].y));
-        cell[icell].nyc23 = -(cell[icell].xc - 0.5*(node[n2].x + node[n3].x));
-        cell[icell].magc23 = sqrt(cell[icell].nxc23*cell[icell].nxc23 + cell[icell].nyc23*cell[icell].nyc23);
-        cell[icell].nxc23 /= cell[icell].magc23;
-        cell[icell].nyc23 /= cell[icell].magc23;
+        cell[icell].unxc23 = +(cell[icell].yc - 0.5*(node[n2].y + node[n3].y));
+        cell[icell].unyc23 = -(cell[icell].xc - 0.5*(node[n2].x + node[n3].x));
+        cell[icell].magc23 = sqrt(cell[icell].unxc23*cell[icell].unxc23 + cell[icell].unyc23*cell[icell].unyc23);
+        cell[icell].unxc23 /= cell[icell].magc23;
+        cell[icell].unyc23 /= cell[icell].magc23;
 
         // Edge 3-1
-        cell[icell].nxc31 = +(cell[icell].yc - 0.5*(node[n3].y + node[n1].y));
-        cell[icell].nyc31 = -(cell[icell].xc - 0.5*(node[n3].x + node[n1].x));
-        cell[icell].magc31 = sqrt(cell[icell].nxc31*cell[icell].nxc31 + cell[icell].nyc31*cell[icell].nyc31);
-        cell[icell].nxc31 /= cell[icell].magc31;
-        cell[icell].nyc31 /= cell[icell].magc31;
+        cell[icell].unxc31 = +(cell[icell].yc - 0.5*(node[n3].y + node[n1].y));
+        cell[icell].unyc31 = -(cell[icell].xc - 0.5*(node[n3].x + node[n1].x));
+        cell[icell].magc31 = sqrt(cell[icell].unxc31*cell[icell].unxc31 + cell[icell].unyc31*cell[icell].unyc31);
+        cell[icell].unxc31 /= cell[icell].magc31;
+        cell[icell].unyc31 /= cell[icell].magc31;
 
         // Compute Median Dual Area - Cell and Node Property
         ux = node[n2].x - node[n1].x;
@@ -715,25 +775,25 @@ void Euler2D_Mesh::Compute_Geometric_Properties() {
 
         // Cell Property - Compute Edge Normals
         // Edge 1-2
-        cell[icell].nx12 = +(node[n2].y - node[n1].y);
-        cell[icell].ny12 = -(node[n2].x - node[n1].x);
-        cell[icell].mag12 = sqrt(cell[icell].nx12*cell[icell].nx12 + cell[icell].ny12*cell[icell].ny12);
-        cell[icell].nx12 /= cell[icell].mag12;
-        cell[icell].ny12 /= cell[icell].mag12;
+        cell[icell].unx12 = +(node[n2].y - node[n1].y);
+        cell[icell].uny12 = -(node[n2].x - node[n1].x);
+        cell[icell].mag12 = sqrt(cell[icell].unx12*cell[icell].unx12 + cell[icell].uny12*cell[icell].uny12);
+        cell[icell].unx12 /= cell[icell].mag12;
+        cell[icell].uny12 /= cell[icell].mag12;
 
         // Edge 2-3
-        cell[icell].nx23 = +(node[n3].y - node[n2].y);
-        cell[icell].ny23 = -(node[n3].x - node[n2].x);
-        cell[icell].mag23 = sqrt(cell[icell].nx23*cell[icell].nx23 + cell[icell].ny23*cell[icell].ny23);
-        cell[icell].nx23 /= cell[icell].mag23;
-        cell[icell].ny23 /= cell[icell].mag23;
+        cell[icell].unx23 = +(node[n3].y - node[n2].y);
+        cell[icell].uny23 = -(node[n3].x - node[n2].x);
+        cell[icell].mag23 = sqrt(cell[icell].unx23*cell[icell].unx23 + cell[icell].uny23*cell[icell].uny23);
+        cell[icell].unx23 /= cell[icell].mag23;
+        cell[icell].uny23 /= cell[icell].mag23;
 
         // Edge 3-1
-        cell[icell].nx31 = +(node[n1].y - node[n3].y);
-        cell[icell].ny31 = -(node[n1].x - node[n3].x);
-        cell[icell].mag31 = sqrt(cell[icell].nx31*cell[icell].nx31 + cell[icell].ny31*cell[icell].ny31);
-        cell[icell].nx31 /= cell[icell].mag31;
-        cell[icell].ny31 /= cell[icell].mag31;
+        cell[icell].unx31 = +(node[n1].y - node[n3].y);
+        cell[icell].uny31 = -(node[n1].x - node[n3].x);
+        cell[icell].mag31 = sqrt(cell[icell].unx31*cell[icell].unx31 + cell[icell].uny31*cell[icell].uny31);
+        cell[icell].unx31 /= cell[icell].mag31;
+        cell[icell].uny31 /= cell[icell].mag31;
     }
 
     for (iedge = 0; iedge < mesh.nedges; iedge++) {
@@ -741,11 +801,11 @@ void Euler2D_Mesh::Compute_Geometric_Properties() {
         n1 = edge[iedge].node1;
         n2 = edge[iedge].node2;
         
-        edge[iedge].nx  = +(node[n2].y - node[n1].y);
-        edge[iedge].ny  = -(node[n2].x - node[n1].x);
-        edge[iedge].mag = sqrt(edge[iedge].nx*edge[iedge].nx + edge[iedge].ny*edge[iedge].ny);
-        edge[iedge].nx /= edge[iedge].mag;
-        edge[iedge].ny /= edge[iedge].mag;
+        edge[iedge].unx  = +(node[n2].y - node[n1].y);
+        edge[iedge].uny  = -(node[n2].x - node[n1].x);
+        edge[iedge].mag = sqrt(edge[iedge].unx*edge[iedge].unx + edge[iedge].uny*edge[iedge].uny);
+        edge[iedge].unx /= edge[iedge].mag;
+        edge[iedge].uny /= edge[iedge].mag;
     }
 }
 

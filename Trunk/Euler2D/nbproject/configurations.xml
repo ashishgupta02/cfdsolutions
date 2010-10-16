@@ -1,6 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configurationDescriptor version="69">
   <logicalFolder name="root" displayName="root" projectFiles="true">
+    <logicalFolder name="DESIGN" displayName="DESIGN" projectFiles="true">
+      <logicalFolder name="include"
+                     displayName="include"
+                     projectFiles="true"
+                     kind="SOURCE_LOGICAL_FOLDER">
+        <itemPath>DESIGN/include/Euler2D_Design.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="src"
+                     displayName="src"
+                     projectFiles="true"
+                     kind="SOURCE_LOGICAL_FOLDER">
+        <itemPath>DESIGN/src/Euler2D_Design.cpp</itemPath>
+      </logicalFolder>
+    </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
@@ -60,6 +74,7 @@
     <Elem>MATCOMP</Elem>
     <Elem>MESH</Elem>
     <Elem>SOLVER</Elem>
+    <Elem>DESIGN</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -76,6 +91,7 @@
             <pElem>MATCOMP/include</pElem>
             <pElem>MESH/include</pElem>
             <pElem>SOLVER/include</pElem>
+            <pElem>DESIGN/include</pElem>
           </incDir>
           <warningLevel>2</warningLevel>
         </cTool>
@@ -85,6 +101,7 @@
             <pElem>MATCOMP/include</pElem>
             <pElem>MESH/include</pElem>
             <pElem>SOLVER/include</pElem>
+            <pElem>DESIGN/include</pElem>
           </incDir>
           <commandLine>-Wno-write-strings</commandLine>
           <warningLevel>2</warningLevel>
@@ -137,6 +154,7 @@
             <pElem>MATCOMP/include</pElem>
             <pElem>MESH/include</pElem>
             <pElem>SOLVER/include</pElem>
+            <pElem>DESIGN/include</pElem>
           </incDir>
           <warningLevel>2</warningLevel>
         </cTool>
@@ -147,6 +165,7 @@
             <pElem>MATCOMP/include</pElem>
             <pElem>MESH/include</pElem>
             <pElem>SOLVER/include</pElem>
+            <pElem>DESIGN/include</pElem>
           </incDir>
           <commandLine>-Wno-write-strings</commandLine>
           <warningLevel>2</warningLevel>

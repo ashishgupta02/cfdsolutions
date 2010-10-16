@@ -36,9 +36,10 @@
 #include "Euler2D_Solver_Osher.h"
 #include "Euler2D_Solver_LDFSS.h"
 #include "Euler2D_Solver_AUSM.h"
+#include "Euler2D_Design.h"
 
 /* Command line options */
-static char options[] = "abcdefhv";
+static char options[] = "abcdefghv";
 
 static char *usgmsg[] = {
     "usage: euler2d [OPTIONS]... [FILE]",
@@ -49,6 +50,7 @@ static char *usgmsg[] = {
     " -d = Low Diffusion Flux Splitting Scheme",
     " -e = Oshers Splitting",
     " -f = Roe Flux Splitting",
+    " -g = Design using Van Leer Flux Vector Splitting",
     " -h = Print this message",
     " -v = Print Version",
     NULL
@@ -80,10 +82,10 @@ static int arguments(int argc, char **argv) {
 
     if (argc >= 2) {
         /* Check if help or version is enquired */
-        if (argv[1][1] == options[6]) {
+        if (argv[1][1] == options[7]) {
             usage(usgmsg);
             exit(0);
-        } else if(argv[1][1] == options[7]) {
+        } else if(argv[1][1] == options[8]) {
             printf("%s Utility, Version %s \n", PACKAGE, VERSION);
             printf("Copyright (C) 2010 Ashish Gupta. All rights reserved.\n");
             printf("Contact for Help or Bugs %s \n", PACKAGE_BUGREPORT);
@@ -124,11 +126,10 @@ int main(int argc, char *argv[]) {
             // -a = Van Leer Flux Vector Splitting
         {
             Euler2D_Solver_VanLeer VanLeer;
-            VanLeer.WKA_MeshReader(argv[2]);
-            VanLeer.Get_Reference_Conditions();
+            VanLeer.Get_Solver_Inputs(argv[2]);
+            VanLeer.Solver_Prepare();
             VanLeer.Solve();
-            VanLeer.SLK_MeshWriter("Solution.slkmesh");
-            VanLeer.Write_VTK_Unstructured_File("Solution.vtu");
+            VanLeer.Solver_Finalize();
         }
             break;
         case 1:
@@ -169,6 +170,15 @@ int main(int argc, char *argv[]) {
             Euler2D_Solver_Roe Roe;
             Roe.WKA_MeshReader(argv[2]);
             Roe.Solve();
+        }
+            break;
+        case 6:
+            // -g = Design using Van Leer Flux Vector Splitting
+        {
+            Euler2D_Solver_Design Design;
+            Design.Get_Solver_Inputs(argv[2]);
+            Design.Solver_Prepare();
+            Design.Design();
         }
             break;
     }

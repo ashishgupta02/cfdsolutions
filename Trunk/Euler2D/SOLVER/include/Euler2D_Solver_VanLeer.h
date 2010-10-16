@@ -8,6 +8,8 @@
 #ifndef _EULER2D_SOLVER_VANLEER_H
 #define	_EULER2D_SOLVER_VANLEER_H
 
+#include <string>
+
 #include "MC.h"
 #include "Euler2D_Mesh.h"
 #include "Euler2D_Solver_Finite_Difference.h"
@@ -27,6 +29,7 @@ protected:
     double Ref_Mach;
     double Ref_Alpha;
     double Ref_Pressure;
+    double Ref_Length;
     // CFL Number
     int CFL_Ramp;
     double CFL_Min;
@@ -45,11 +48,20 @@ protected:
     double  FDEpsilon;
     double  FDDR_DQ[4];
     FD_NODE *FDNode;
+
+    // Input and Outputs
+    std::string WKAMeshFileName;
+    std::string InputRestartFileName;
+    std::string OutputRestartFileName;
+    std::string SLKMeshFileName;
+    std::string VTKSolutionFileName;
 public:
     Euler2D_Solver_VanLeer();
     virtual ~Euler2D_Solver_VanLeer();
+    void Get_Solver_Inputs(const char* FileName);
+    void Solver_Prepare();
     void Solve();
-    void Get_Reference_Conditions();
+    void Solver_Finalize();
 protected:
     // Initialize the Solution
     void Initialize_Solution();
@@ -73,7 +85,7 @@ protected:
     void Create_CRS_BlockMatrix();
 
     // Compute and Fill CRS Matrix
-    void Compute_CRS_BlockMatrix();
+    void Compute_CRS_BlockMatrix(int AddTime);
 
     // Compute Boundary Component for CRS Matrix
     void Compute_Boundary_CRS_BlockMatrix();

@@ -22,19 +22,19 @@ typedef struct {
     double area;
     /* Median Dual Properties */
     double xc, yc;
-    double nxc12, nyc12, magc12;
-    double nxc23, nyc23, magc23;
-    double nxc31, nyc31, magc31;
+    double unxc12, unyc12, magc12;
+    double unxc23, unyc23, magc23;
+    double unxc31, unyc31, magc31;
     /* Cell Edge Normals */
-    double nx12, ny12, mag12;
-    double nx23, ny23, mag23;
-    double nx31, ny31, mag31;
+    double unx12, uny12, mag12;
+    double unx23, uny23, mag23;
+    double unx31, uny31, mag31;
 } CELL;
 
 typedef struct {
     int node1, node2;
     int cell1, cell2;
-    double nx, ny, mag;
+    double unx, uny, mag;
 } EDGE;
 
 typedef struct {
