@@ -86,6 +86,7 @@
       </toolsSet>
       <compileType>
         <cTool>
+          <commandlineTool>gcc</commandlineTool>
           <incDir>
             <pElem>../UTILS/include</pElem>
             <pElem>MATCOMP/include</pElem>
@@ -96,6 +97,7 @@
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
+          <commandlineTool>g++</commandlineTool>
           <incDir>
             <pElem>../UTILS/include</pElem>
             <pElem>MATCOMP/include</pElem>
@@ -110,6 +112,7 @@
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
         <linkerTool>
+          <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
             <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
             <linkerLibProjectItem>

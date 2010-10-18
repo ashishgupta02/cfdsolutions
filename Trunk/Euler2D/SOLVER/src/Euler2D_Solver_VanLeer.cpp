@@ -390,6 +390,7 @@ void Euler2D_Solver_VanLeer::Solve() {
 #endif
         // Solve for Solution
         lrms = MC_Iterative_Block_Jacobi_CRS(InnerNIteration, Relaxation, BlockMatrix);
+//        lrms = MC_Iterative_Block_LU_Jacobi_CRS(InnerNIteration, 0, BlockMatrix);
 
         // Update the Solution
         Update_Solution();
@@ -731,27 +732,6 @@ void Euler2D_Solver_VanLeer::Compute_Residual() {
 void Euler2D_Solver_VanLeer::Compute_Boundary_Residual() {
     int i, j, n1, n2, iedge;
     double Pressure, Nx, Ny;
-
-    // Calculate the Resi by Closing the Control Volume for Boundary Nodes
-    // Freestream Boundary: BCTag = 3
-    // Boundary Edge is such that Node1->Node2 direction mesh inside is on left
-    // Hence leads to CCW oriented boundary triangles
-    for (i = 0; i < mesh.nbedges; i++) {
-        // BCType 3: 3000-3999 : Free Stream
-        if ((boundaryEdge[i].bcType < 3000) || (boundaryEdge[i].bcType > 3999))
-            continue;
-
-        // Get The Nodes of Edge
-        iedge = boundaryEdge[i].edgeNumber;
-        n1 = edge[iedge].node1;
-        n2 = edge[iedge].node2;
-
-        // Residual
-        for (j = 0; j < 4; j++) {
-            node[n1].Resi[j] = 0.0;
-            node[n2].Resi[j] = 0.0;
-        }
-    }
     
     // Calculate the Resi by Closing the Control Volume for Boundary Nodes
     // Solid Boundary: BCTag = 1
@@ -815,26 +795,26 @@ void Euler2D_Solver_VanLeer::Compute_Boundary_Residual() {
         node[n2].Resi[2] += Pressure*Ny;
     }
 
-//    // Calculate the Resi by Closing the Control Volume for Boundary Nodes
-//    // Freestream Boundary: BCTag = 3
-//    // Boundary Edge is such that Node1->Node2 direction mesh inside is on left
-//    // Hence leads to CCW oriented boundary triangles
-//    for (i = 0; i < mesh.nbedges; i++) {
-//        // BCType 3: 3000-3999 : Free Stream
-//        if ((boundaryEdge[i].bcType < 3000) || (boundaryEdge[i].bcType > 3999))
-//            continue;
-//
-//        // Get The Nodes of Edge
-//        iedge = boundaryEdge[i].edgeNumber;
-//        n1 = edge[iedge].node1;
-//        n2 = edge[iedge].node2;
-//
-//        // Residual
-//        for (j = 0; j < 4; j++) {
-//            node[n1].Resi[j] = 0.0;
-//            node[n2].Resi[j] = 0.0;
-//        }
-//    }
+    // Calculate the Resi by Closing the Control Volume for Boundary Nodes
+    // Freestream Boundary: BCTag = 3
+    // Boundary Edge is such that Node1->Node2 direction mesh inside is on left
+    // Hence leads to CCW oriented boundary triangles
+    for (i = 0; i < mesh.nbedges; i++) {
+        // BCType 3: 3000-3999 : Free Stream
+        if ((boundaryEdge[i].bcType < 3000) || (boundaryEdge[i].bcType > 3999))
+            continue;
+
+        // Get The Nodes of Edge
+        iedge = boundaryEdge[i].edgeNumber;
+        n1 = edge[iedge].node1;
+        n2 = edge[iedge].node2;
+
+        // Residual
+        for (j = 0; j < 4; j++) {
+            node[n1].Resi[j] = 0.0;
+            node[n2].Resi[j] = 0.0;
+        }
+    }
 }
 
 // *****************************************************************************
@@ -1534,54 +1514,6 @@ void Euler2D_Solver_VanLeer::Compute_Boundary_CRS_BlockMatrix() {
     double Rho_Q[4], U_Q[4], V_Q[4], E_Q[4], P_Q[4];
     double Rho, U, V, E, P;
     double Var1, Var2;
-
-    // Calculate the Jacobian by Closing the Control Volume for Boundary Nodes
-    // Freestream Boundary: BCTag = 3
-    // Boundary Edge is such that Node1->Node2 direction mesh inside is on left
-    // Hence leads to CCW oriented boundary triangles
-    for (i = 0; i < mesh.nbedges; i++) {
-        // BCType 3: 3000-3999 : Free Stream
-        if ((boundaryEdge[i].bcType < 3000) || (boundaryEdge[i].bcType > 3999))
-            continue;
-
-        // Get The Nodes of Edge
-        iedge = boundaryEdge[i].edgeNumber;
-        n1 = edge[iedge].node1;
-        n2 = edge[iedge].node2;
-
-        // ************************ Node1 **********************************
-        int k, l, jstart, jend;
-        jstart = BlockMatrix.IA[n1];
-        jend   = BlockMatrix.IA[n1+1];
-        for (j = jstart; j < jend; j++) {
-            for (k = 0; k < 4; k++) {
-                for (l = 0; l < 4; l++)
-                    BlockMatrix.A[j][k][l] = 0.0;
-            }
-        }
-        idgn = BlockMatrix.IAU[n1];
-        for (k = 0; k < 4; k++) {
-            for (l = 0; l < 4; l++)
-                if (l == k)
-                    BlockMatrix.A[idgn][k][l] = 1.0;
-        }
-
-        // ************************ Node2 **********************************
-        jstart = BlockMatrix.IA[n2];
-        jend   = BlockMatrix.IA[n2+1];
-        for (j = jstart; j < jend; j++) {
-            for (k = 0; k < 4; k++) {
-                for (l = 0; l < 4; l++)
-                    BlockMatrix.A[j][k][l] = 0.0;
-            }
-        }
-        idgn = BlockMatrix.IAU[n2];
-        for (k = 0; k < 4; k++) {
-            for (l = 0; l < 4; l++)
-                if (l == k)
-                    BlockMatrix.A[idgn][k][l] = 1.0;
-        }
-    }
     
     // Calculate the Jacobian by Closing the Control Volume for Boundary Nodes
     // Solid Boundary: BCTag = 1
@@ -1797,53 +1729,53 @@ void Euler2D_Solver_VanLeer::Compute_Boundary_CRS_BlockMatrix() {
         }
     }
 
-//    // Calculate the Jacobian by Closing the Control Volume for Boundary Nodes
-//    // Freestream Boundary: BCTag = 3
-//    // Boundary Edge is such that Node1->Node2 direction mesh inside is on left
-//    // Hence leads to CCW oriented boundary triangles
-//    for (i = 0; i < mesh.nbedges; i++) {
-//        // BCType 3: 3000-3999 : Free Stream
-//        if ((boundaryEdge[i].bcType < 3000) || (boundaryEdge[i].bcType > 3999))
-//            continue;
-//
-//        // Get The Nodes of Edge
-//        iedge = boundaryEdge[i].edgeNumber;
-//        n1 = edge[iedge].node1;
-//        n2 = edge[iedge].node2;
-//
-//        // ************************ Node1 **********************************
-//        int k, l, jstart, jend;
-//        jstart = BlockMatrix.IA[n1];
-//        jend   = BlockMatrix.IA[n1+1];
-//        for (j = jstart; j < jend; j++) {
-//            for (k = 0; k < 4; k++) {
-//                for (l = 0; l < 4; l++)
-//                    BlockMatrix.A[j][k][l] = 0.0;
-//            }
-//        }
-//        idgn = BlockMatrix.IAU[n1];
-//        for (k = 0; k < 4; k++) {
-//            for (l = 0; l < 4; l++)
-//                if (l == k)
-//                    BlockMatrix.A[idgn][k][l] = 1.0;
-//        }
-//
-//        // ************************ Node2 **********************************
-//        jstart = BlockMatrix.IA[n2];
-//        jend   = BlockMatrix.IA[n2+1];
-//        for (j = jstart; j < jend; j++) {
-//            for (k = 0; k < 4; k++) {
-//                for (l = 0; l < 4; l++)
-//                    BlockMatrix.A[j][k][l] = 0.0;
-//            }
-//        }
-//        idgn = BlockMatrix.IAU[n2];
-//        for (k = 0; k < 4; k++) {
-//            for (l = 0; l < 4; l++)
-//                if (l == k)
-//                    BlockMatrix.A[idgn][k][l] = 1.0;
-//        }
-//    }
+    // Calculate the Jacobian by Closing the Control Volume for Boundary Nodes
+    // Freestream Boundary: BCTag = 3
+    // Boundary Edge is such that Node1->Node2 direction mesh inside is on left
+    // Hence leads to CCW oriented boundary triangles
+    for (i = 0; i < mesh.nbedges; i++) {
+        // BCType 3: 3000-3999 : Free Stream
+        if ((boundaryEdge[i].bcType < 3000) || (boundaryEdge[i].bcType > 3999))
+            continue;
+
+        // Get The Nodes of Edge
+        iedge = boundaryEdge[i].edgeNumber;
+        n1 = edge[iedge].node1;
+        n2 = edge[iedge].node2;
+
+        // ************************ Node1 **********************************
+        int k, l, jstart, jend;
+        jstart = BlockMatrix.IA[n1];
+        jend   = BlockMatrix.IA[n1+1];
+        for (j = jstart; j < jend; j++) {
+            for (k = 0; k < 4; k++) {
+                for (l = 0; l < 4; l++)
+                    BlockMatrix.A[j][k][l] = 0.0;
+            }
+        }
+        idgn = BlockMatrix.IAU[n1];
+        for (k = 0; k < 4; k++) {
+            for (l = 0; l < 4; l++)
+                if (l == k)
+                    BlockMatrix.A[idgn][k][l] = 1.0;
+        }
+
+        // ************************ Node2 **********************************
+        jstart = BlockMatrix.IA[n2];
+        jend   = BlockMatrix.IA[n2+1];
+        for (j = jstart; j < jend; j++) {
+            for (k = 0; k < 4; k++) {
+                for (l = 0; l < 4; l++)
+                    BlockMatrix.A[j][k][l] = 0.0;
+            }
+        }
+        idgn = BlockMatrix.IAU[n2];
+        for (k = 0; k < 4; k++) {
+            for (l = 0; l < 4; l++)
+                if (l == k)
+                    BlockMatrix.A[idgn][k][l] = 1.0;
+        }
+    }
 }
 
 // *****************************************************************************

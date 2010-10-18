@@ -18,7 +18,7 @@ CC=gcc
 CCC=g++
 CXX=g++
 FC=gfortran
-AS=
+AS=as
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
@@ -69,7 +69,7 @@ dist/Debug/GNU-Linux-x86/euler2d: ../UTILS/dist/Debug/GNU-Linux-x86/libUTILS.so
 
 dist/Debug/GNU-Linux-x86/euler2d: ${OBJECTFILES}
 	${MKDIR} -p dist/Debug/GNU-Linux-x86
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler2d ${OBJECTFILES} ${LDLIBSOPTIONS} 
+	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler2d ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
 ${OBJECTDIR}/SOLVER/src/Euler2D_Solver_VanLeer.o: SOLVER/src/Euler2D_Solver_VanLeer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/SOLVER/src

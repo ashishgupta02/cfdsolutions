@@ -269,13 +269,10 @@ void Euler2D_Solver_Design::Write_dXdBeta(const char* FileName) {
 void Euler2D_Solver_Design::Write_dQdBeta(const char* FileName) {
     FILE *fp;
     int i;
-    double tempvar1, tempvar2;
-
+    
     if ((fp = fopen(FileName, "w")) == (FILE *) NULL)
         error("Write_dQdBeta: Unable to Open Mesh File %s", FileName);
 
-    tempvar1 = 0.0;
-    tempvar2 = 0.0;
     for (i = 0; i < mesh.nnodes; i++)
         fprintf(fp, "%22.15e %22.15e %22.15e %22.15e\n",
                 dQdBeta[i][0], dQdBeta[i][1], dQdBeta[i][2], dQdBeta[i][3]);
@@ -287,13 +284,10 @@ void Euler2D_Solver_Design::Write_dQdBeta(const char* FileName) {
 void Euler2D_Solver_Design::Write_dRdX_dXdBeta(const char* FileName) {
     FILE *fp;
     int i;
-    double tempvar1, tempvar2;
 
     if ((fp = fopen(FileName, "w")) == (FILE *) NULL)
         error("Write_dRdX_dXdBeta: Unable to Open Mesh File %s", FileName);
 
-    tempvar1 = 0.0;
-    tempvar2 = 0.0;
     for (i = 0; i < mesh.nnodes; i++)
         fprintf(fp, "%22.15e %22.15e %22.15e %22.15e\n",
                 dRdX_dXdBeta[i][0], dRdX_dXdBeta[i][1], dRdX_dXdBeta[i][2], dRdX_dXdBeta[i][3]);
@@ -716,6 +710,7 @@ void Euler2D_Solver_Design::Compute_dQdBeta() {
     InnerNIteration = 0;
     Relaxation = 0.9;
     lrms = MC_Iterative_Block_Jacobi_CRS(InnerNIteration, Relaxation, DesignBlockMatrix);
+//    lrms = MC_Iterative_Block_LU_Jacobi_CRS(InnerNIteration, 2, DesignBlockMatrix);
 
     printf("LRMS = %10.5e\n", lrms);
 
