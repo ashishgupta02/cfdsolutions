@@ -109,6 +109,7 @@ void Euler2D_Solver_Design::Design() {
 
     // Compute (dR/dX)*(dX/dBeta)
     Compute_dRdX_dXdBeta();
+    Compute_Boundary_dRdX_dXdBeta();
     Verify_dRdX_dXdBeta();
     Write_dRdX_dXdBeta("dRdX_dXdBeta.q");
     

@@ -661,7 +661,7 @@ void Euler2D_Solver_VanLeer::Compute_Residual() {
             }
         }
     }
-
+    
     // Second Order
     if (Order == 2) {
         double QL[4], QR[4];
@@ -709,8 +709,8 @@ void Euler2D_Solver_VanLeer::Compute_Residual() {
 
             // Edge 3-1
             // Get QLeft and QRight
-            xf = 0.5*cell[iCell].xc + 0.25*(node[n3].x + node[n3].x);
-            yf = 0.5*cell[iCell].yc + 0.25*(node[n1].y + node[n1].y);
+            xf = 0.5*cell[iCell].xc + 0.25*(node[n3].x + node[n1].x);
+            yf = 0.5*cell[iCell].yc + 0.25*(node[n3].y + node[n1].y);
             for (i = 0; i < 4; i++) {
                 QL[i] = node[n3].Q[i] + Qx[n3][i]*(xf - node[n3].x) + Qy[n3][i]*(yf - node[n3].y);
                 QR[i] = node[n1].Q[i] + Qx[n1][i]*(xf - node[n1].x) + Qy[n1][i]*(yf - node[n1].y);
@@ -884,12 +884,64 @@ void Euler2D_Solver_VanLeer::Compute_FD_Jacobian(int Iteration) {
             for (i = 0; i < 4; i++)
                 Data[i][iNode] = fabs(FDDR_DQ[i] - DR_DQ[i]);
         } else {
-            printf("Finite Difference:\n %15.9e %15.9e %15.9e %15.9e \n",
+            printf("-----------------------------------------------------------------------------\n");
+            printf("Node ID: %d \n", FDNodeID);
+            printf("FD: %15.9e %15.9e %15.9e %15.9e \n",
                     FDDR_DQ[0], FDDR_DQ[1], FDDR_DQ[2], FDDR_DQ[3]);
-            printf("Analytic Difference:\n %15.9e %15.9e %15.9e %15.9e \n",
+            printf("AD: %15.9e %15.9e %15.9e %15.9e \n",
                     DR_DQ[0], DR_DQ[1], DR_DQ[2], DR_DQ[3]);
         }
-        
+
+        // Check the Off-Diagobal Terms
+        if (FDNodeID >= 0) {
+            int jstart, jend, conn_nodeid, count;
+            int istart, iend, check_matid, count1;
+            jstart = BlockMatrix.IA[FDNodeID];
+            jend   = BlockMatrix.IA[FDNodeID + 1];
+
+            count = 0;
+            for (j = jstart; j < jend; j++) {
+                // Get the Connected Node ID
+                conn_nodeid = BlockMatrix.JA[jstart+count];
+                count++;
+                if (FDNodeID == conn_nodeid)
+                    continue;
+                
+                istart = BlockMatrix.IA[conn_nodeid];
+                iend   = BlockMatrix.IA[conn_nodeid + 1];
+                count1 = 0;
+                check_matid = -1;
+                for (i = istart; i < iend; i++) {
+                    if (BlockMatrix.JA[istart+count1] == FDNodeID) {
+                        check_matid = i;
+                        break;
+                    }
+                    count1++;
+                }
+                // Get the Analytical dR/dQ
+                for (i = 0; i < 4; i++)
+                    DR_DQ[i] = BlockMatrix.A[check_matid][i][FDPertQ];
+                // Compute the Finite Difference DR_DQ
+                for (i = 0; i < 4; i++)
+                    FDDR_DQ[i] = (FDNode[conn_nodeid].Resi_New[i] - FDNode[conn_nodeid].Resi_Old[i])/FDEpsilon;
+                
+                printf("Off-Diagonal Node ID: %d \n", conn_nodeid);
+                printf("FD: %15.9e %15.9e %15.9e %15.9e \n",
+                        FDDR_DQ[0], FDDR_DQ[1], FDDR_DQ[2], FDDR_DQ[3]);
+                printf("AD: %15.9e %15.9e %15.9e %15.9e \n",
+                        DR_DQ[0], DR_DQ[1], DR_DQ[2], DR_DQ[3]);
+                if (conn_nodeid == 501) {
+                    printf("Res_Old: %15.9e %15.9e %15.9e %15.9e \n",
+                            FDNode[conn_nodeid].Resi_Old[0], FDNode[conn_nodeid].Resi_Old[1],
+                            FDNode[conn_nodeid].Resi_Old[2], FDNode[conn_nodeid].Resi_Old[3]);
+                    printf("Res_New: %15.9e %15.9e %15.9e %15.9e \n",
+                            FDNode[conn_nodeid].Resi_New[0], FDNode[conn_nodeid].Resi_New[1],
+                            FDNode[conn_nodeid].Resi_New[2], FDNode[conn_nodeid].Resi_New[3]);
+                }
+            }
+            printf("-----------------------------------------------------------------------------\n");
+        }
+
         // Restore back the Old Residual and Desired Node Particular Q
         for (i = 0; i < mesh.nnodes; i++) {
             for (j = 0; j < 4; j++)
@@ -1832,7 +1884,7 @@ void Euler2D_Solver_VanLeer::Compute_Flux(double *Q, double uNx, double uNy, dou
 // *****************************************************************************
 void Euler2D_Solver_VanLeer::Compute_Fplus(double *Q, double uNx, double uNy, double Mag, double *Fplus) {
     double C, Ubar, Mbar, Pressure;
-    
+
     Pressure = (Gamma - 1.0)*(Q[3] - 0.5*Q[0]*((Q[1]/Q[0])*(Q[1]/Q[0]) + (Q[2]/Q[0])*(Q[2]/Q[0])));
     C = sqrt(Gamma*Pressure/Q[0]);
     Ubar = ((Q[1]/Q[0])*uNx) + ((Q[2]/Q[0])*uNy);
@@ -1861,7 +1913,7 @@ void Euler2D_Solver_VanLeer::Compute_Fplus(double *Q, double uNx, double uNy, do
 // *****************************************************************************
 void Euler2D_Solver_VanLeer::Compute_Fminus(double *Q, double uNx, double uNy, double Mag, double *Fminus) {
     double C, Ubar, Mbar, Pressure;
-    
+
     Pressure = (Gamma - 1.0)*(Q[3] - 0.5*Q[0]*((Q[1]/Q[0])*(Q[1]/Q[0]) + (Q[2]/Q[0])*(Q[2]/Q[0])));
     C = sqrt(Gamma*Pressure/Q[0]);
     Ubar = ((Q[1]/Q[0])*uNx) + ((Q[2]/Q[0])*uNy);
@@ -1986,7 +2038,7 @@ void Euler2D_Solver_VanLeer::Compute_FluxJplus(double *Q, double uNx, double uNy
     // P_Q    => Pressure Derivatives
     // C_Q    => Speed of Sound Derivatives
     double Rho_Q[4], U_Q[4], V_Q[4], Ubar_Q[4], E_Q[4], P_Q[4], C_Q[4];
-    
+
     // Calculate Rho and Partial derivatives
     Rho = Q[0];
     Rho_Q[0] = 1.0;
@@ -2425,6 +2477,318 @@ void Euler2D_Solver_VanLeer::Compute_Flux_Jacobians(double *Q, double uNx, doubl
             for (j = 0; j < 4; j++)
                 Am[i][j] = Am[i][j] * Mag;
         }
+    }
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Solver_VanLeer::Compute_Fplus_Manual(double *Q, double uNx, double uNy, double Mag, double *Fplus) {
+    double GM1, GP1, GM1G, GP1G, GGM1;
+    double Rho, U, V, Et, q2, P, H, C, Ub, Mb, UbP2A;
+    GM1   = Gamma - 1.0;
+    GP1   = Gamma + 1.0;
+    GM1G  = GM1/Gamma;
+    GP1G  = GP1/Gamma;
+    GGM1  = Gamma*GM1;
+
+    Rho = Q[0];
+    U   = Q[1]/Q[0];
+    V   = Q[2]/Q[0];
+    Et  = Q[3];
+
+    q2 = U*U + V*V;
+    P  = GM1 * (Et - 0.5 * Rho * q2);
+    H  = (Et + P) / Rho;
+    C  = sqrt(Gamma * P /Rho);
+    Ub = uNx*U + uNy*V;
+    Mb = Ub/C;
+    UbP2A = -Ub + 2.0*C;
+
+    if (fabs(Mb) < 1.0) {
+        Fplus[0] = Mag*0.25*Rho*C*(Mb + 1.0)*(Mb + 1.0);
+        Fplus[1] = Fplus[0]*(uNx*UbP2A/Gamma + U);
+        Fplus[2] = Fplus[0]*(uNy*UbP2A/Gamma + V);
+        Fplus[3] = Fplus[0]*((-GM1*Ub*Ub + 2.0*GM1*Ub*C + 2.0*C*C)/(Gamma*Gamma - 1.0) + 0.5*q2);
+    } else if (Mb >= 1.0) {
+        Fplus[0] = Mag*Rho*Ub;
+        Fplus[1] = Mag*(Rho*U*Ub + uNx*P);
+        Fplus[2] = Mag*(Rho*V*Ub + uNy*P);
+        Fplus[3] = Mag*(Et + P)*Ub;
+    } else {
+        Fplus[0] = 0.0;
+        Fplus[1] = 0.0;
+        Fplus[2] = 0.0;
+        Fplus[3] = 0.0;
+    }
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Solver_VanLeer::Compute_Fminus_Manual(double *Q, double uNx, double uNy, double Mag, double *Fminus) {
+    double GM1, GP1, GM1G, GP1G, GGM1;
+    double Rho, U, V, Et, q2, P, H, C, Ub, Mb, UbM2A;
+    GM1   = Gamma - 1.0;
+    GP1   = Gamma + 1.0;
+    GM1G  = GM1/Gamma;
+    GP1G  = GP1/Gamma;
+    GGM1  = Gamma*GM1;
+
+    Rho = Q[0];
+    U   = Q[1]/Q[0];
+    V   = Q[2]/Q[0];
+    Et  = Q[3];
+
+    q2 = U*U + V*V;
+    P  = GM1 * (Et - 0.5 * Rho * q2);
+    H  = (Et + P) / Rho;
+    C  = sqrt(Gamma * P /Rho);
+    Ub = uNx*U + uNy*V;
+    Mb = Ub/C;
+    UbM2A = -Ub - 2.0*C;
+
+    if (fabs(Mb) < 1.0) {
+        Fminus[0] = -Mag*0.25*Rho*C*(Mb - 1.0)*(Mb - 1.0);
+        Fminus[1] = Fminus[0]*(uNx*UbM2A/Gamma + U);
+        Fminus[2] = Fminus[0]*(uNy*UbM2A/Gamma + V);
+        Fminus[3] = Fminus[0]*((-GM1*Ub*Ub - 2.0*GM1*Ub*C + 2.0*C*C)/(Gamma*Gamma - 1.0) + 0.5*q2);
+    } else if (Mb <= -1.0) {
+        Fminus[0] = Mag*Rho*Ub;
+        Fminus[1] = Mag*(Rho*U*Ub + uNx*P);
+        Fminus[2] = Mag*(Rho*V*Ub + uNy*P);
+        Fminus[3] = Mag*(Et + P)*Ub;
+    } else {
+        Fminus[0] = 0.0;
+        Fminus[1] = 0.0;
+        Fminus[2] = 0.0;
+        Fminus[3] = 0.0;
+    }
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Solver_VanLeer::Compute_FluxJplus_Manual(double *Q, double uNx, double uNy, double Mag, double *Fplus, double **Ap) {
+    double GM1, GP1, GM1G, GP1G, GGM1, GM1G2, TOG;
+    double Rho, U, V, Et, q2, P, H, C, Ub, Mb, UbP2A;
+    double dCdR, dCdRU, dCdRV, dCdEt;
+    double FoF, dFdQ1, dFdQ2, dFdQ3, dFdQ4;
+    double Var1, Var2;
+
+    GM1   = Gamma - 1.0;
+    GP1   = Gamma + 1.0;
+    GM1G  = GM1/Gamma;
+    GP1G  = GP1/Gamma;
+    GGM1  = Gamma*GM1;
+    GM1G2 = GM1/(Gamma*Gamma - 1.0);
+    TOG   = 2.0/Gamma;
+
+    Rho = Q[0];
+    U   = Q[1]/Q[0];
+    V   = Q[2]/Q[0];
+    Et  = Q[3];
+    q2 = U*U + V*V;
+    P  = GM1 * (Et - 0.5 * Rho * q2);
+    H  = (Et + P) / Rho;
+    C  = sqrt(Gamma*GM1*(Et - 0.5*Rho*q2)/Rho);
+    Ub = uNx*U + uNy*V;
+    Mb = Ub/C;
+    UbP2A = -Ub + 2.0*C;
+
+    if (fabs(Mb) < 1.0) {
+        Fplus[0] = Mag * 0.25 * Rho * C * (Mb + 1.0)*(Mb + 1.0);
+        Fplus[1] = Fplus[0]*(uNx * UbP2A / Gamma + U);
+        Fplus[2] = Fplus[0]*(uNy * UbP2A / Gamma + V);
+        Fplus[3] = Fplus[0]*((-GM1 * Ub * Ub + 2.0 * GM1 * Ub * C + 2.0 * C * C) / (Gamma * Gamma - 1.0) + 0.5 * q2);
+
+        dCdR  = 0.5 * GGM1 * (q2 - Et / Rho) / (Rho * C);
+        dCdRU = -0.5 * GGM1 * U / (Rho * C);
+        dCdRV = -0.5 * GGM1 * V / (Rho * C);
+        dCdEt = 0.5 * GGM1 / (Rho * C);
+
+        dFdQ1 = 0.25 * Mag * ((1.0 - Mb * Mb)*(C + Rho * dCdR));
+        dFdQ2 = 0.25 * Mag * (2.0 * uNx * (Mb + 1.0) + Rho * (1.0 - Mb * Mb) * dCdRU);
+        dFdQ3 = 0.25 * Mag * (2.0 * uNy * (Mb + 1.0) + Rho * (1.0 - Mb * Mb) * dCdRV);
+        dFdQ4 = 0.25 * Mag * Rho * dCdEt * (1.0 - Mb * Mb);
+
+        Ap[0][0] = dFdQ1;
+        Ap[0][1] = dFdQ2;
+        Ap[0][2] = dFdQ3;
+        Ap[0][3] = dFdQ4;
+
+        FoF = Fplus[1]/Fplus[0];
+        Ap[1][0] = Fplus[0]*(2.*uNx/Gamma*dCdR + uNx*Ub/Gamma/Rho - U/Rho) + FoF*dFdQ1;
+        Ap[1][1] = Fplus[0]*(-uNx*uNx/Gamma/Rho + 2.*uNx*dCdRU/Gamma + 1./Rho) + FoF*dFdQ2;
+        Ap[1][2] = Fplus[0]*(-uNx*uNy/Gamma/Rho + 2.*uNx*dCdRV/Gamma) + FoF*dFdQ3;
+        Ap[1][3] = Fplus[0]*(2*uNx*dCdEt/Gamma) + FoF*dFdQ4;
+
+        FoF = Fplus[2]/Fplus[0];
+        Ap[2][0] = Fplus[0]*(2.*uNy/Gamma*dCdR + uNy*Ub/Gamma/Rho - V/Rho) + FoF*dFdQ1;
+        Ap[2][1] = Fplus[0]*(-uNy*uNx/Gamma/Rho + 2.*uNy*dCdRU/Gamma) + FoF*dFdQ2;
+        Ap[2][2] = Fplus[0]*(-uNy*uNy/Gamma/Rho + 2.*uNy*dCdRV/Gamma + 1./Rho) + FoF*dFdQ3;
+        Ap[2][3] = Fplus[0]*(2.*uNy*dCdEt/Gamma) + FoF*dFdQ4;
+
+        Var1 = (2.*GM1*Ub + 4.*C)/(Gamma*Gamma - 1.);
+        Var2 = 2.*GM1/(Gamma*Gamma - 1.)*(-Ub + C)/Rho;
+        FoF = Fplus[3]/Fplus[0];
+        Ap[3][0] = Fplus[0]*(dCdR*Var1 - Var2*Ub - q2/Rho) + FoF*dFdQ1;
+        Ap[3][1] = Fplus[0]*(dCdRU*Var1 + Var2*uNx + U/Rho) + FoF*dFdQ2;
+        Ap[3][2] = Fplus[0]*(dCdRV*Var1 + Var2*uNy + V/Rho) + FoF*dFdQ3;
+        Ap[3][3] = Fplus[0]*dCdEt*Var1 + FoF*dFdQ4;
+    } else if (Mb >= 1.0) {
+        Var1 = 0.5*GM1*q2;
+
+        Ap[0][0] = 0.0;
+        Ap[0][1] = Mag*uNx;
+        Ap[0][2] = Mag*uNy;
+        Ap[0][3] = 0.0;
+
+        Ap[1][0] = Mag*(uNx*Var1 - U*Ub);
+        Ap[1][1] = Mag*(uNx*(2. - Gamma)*U + Ub);
+        Ap[1][2] = Mag*(uNy*U - uNx*GM1*V);
+        Ap[1][3] = Mag*uNx*GM1;
+
+        Ap[2][0] = Mag*(uNy*Var1 - V*Ub);
+        Ap[2][1] = Mag*(uNx*V - uNy*GM1*U);
+        Ap[2][2] = Mag*(uNy*(2. - Gamma)*V + Ub);
+        Ap[2][3] = Mag*uNy*GM1;
+
+        Ap[3][0] = Mag*(2.*Var1 - Gamma*Et/Rho)*Ub;
+        Ap[3][1] = Mag*(uNx*(Gamma*Et/Rho - Var1) - GM1*U*Ub);
+        Ap[3][2] = Mag*(uNy*(Gamma*Et/Rho - Var1) - GM1*V*Ub);
+        Ap[3][3] = Mag*Gamma*Ub;
+    } else {
+        Ap[0][0] = 0.0;
+        Ap[0][1] = 0.0;
+        Ap[0][2] = 0.0;
+        Ap[0][3] = 0.0;
+
+        Ap[1][0] = 0.0;
+        Ap[1][1] = 0.0;
+        Ap[1][2] = 0.0;
+        Ap[1][3] = 0.0;
+
+        Ap[2][0] = 0.0;
+        Ap[2][1] = 0.0;
+        Ap[2][2] = 0.0;
+        Ap[2][3] = 0.0;
+
+        Ap[3][0] = 0.0;
+        Ap[3][1] = 0.0;
+        Ap[3][2] = 0.0;
+        Ap[3][3] = 0.0;
+    }
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Solver_VanLeer::Compute_FluxJminus_Manual(double *Q, double uNx, double uNy, double Mag, double *Fminus, double **Am) {
+    double GM1, GP1, GM1G, GP1G, GGM1, GM1G2, TOG;
+    double Rho, U, V, Et, q2, P, H, C, Ub, Mb, UbM2A;
+    double dCdR, dCdRU, dCdRV, dCdEt;
+    double FoF, dFdQ1, dFdQ2, dFdQ3, dFdQ4;
+    double Var1, Var2;
+
+    GM1   = Gamma - 1.0;
+    GP1   = Gamma + 1.0;
+    GM1G  = GM1/Gamma;
+    GP1G  = GP1/Gamma;
+    GGM1  = Gamma*GM1;
+    GM1G2 = GM1/(Gamma*Gamma - 1.0);
+    TOG   = 2.0/Gamma;
+
+    Rho = Q[0];
+    U   = Q[1]/Q[0];
+    V   = Q[2]/Q[0];
+    Et  = Q[3];
+    q2 = U*U + V*V;
+    P  = GM1 * (Et - 0.5 * Rho * q2);
+    H  = (Et + P) / Rho;
+    C  = sqrt(Gamma*GM1*(Et - 0.5*Rho*q2)/Rho);
+    Ub = uNx*U + uNy*V;
+    Mb = Ub/C;
+    UbM2A = -Ub - 2.0*C;
+
+    if (fabs(Mb) < 1.0) {
+        Fminus[0] = -Mag*0.25*Rho*C*(Mb - 1.0)*(Mb - 1.0);
+        Fminus[1] = Fminus[0]*(uNx*UbM2A/Gamma + U);
+        Fminus[2] = Fminus[0]*(uNy*UbM2A/Gamma + V);
+        Fminus[3] = Fminus[0]*((-GM1*Ub*Ub - 2.0*GM1*Ub*C + 2.0*C*C)/(Gamma*Gamma - 1.0) + 0.5*q2);
+
+        dCdR  = 0.5*GGM1*(q2 - Et/Rho)/(Rho*C);
+        dCdRU = -0.5*GGM1*U/(Rho*C);
+        dCdRV = -0.5*GGM1*V/(Rho*C);
+        dCdEt = 0.5*GGM1/(Rho*C);
+
+        dFdQ1  = -0.25*Mag*((1. - Mb*Mb)*(C + Rho*dCdR));
+        dFdQ2  = -0.25*Mag*(2.*uNx*(Mb - 1.) + Rho*(1. - Mb*Mb)*dCdRU);
+        dFdQ3  = -0.25*Mag*(2.*uNy*(Mb - 1.) + Rho*(1. - Mb*Mb)*dCdRV);
+        dFdQ4  = -0.25*Mag*Rho*dCdEt*(1. - Mb*Mb);
+
+        Am[0][0] = dFdQ1;
+        Am[0][1] = dFdQ2;
+        Am[0][2] = dFdQ3;
+        Am[0][3] = dFdQ4;
+
+        FoF = Fminus[1]/Fminus[0];
+        Am[1][0] = (Fminus[0]*(-2.*uNx/Gamma*dCdR + uNx*Ub/Gamma/Rho - U/Rho) + FoF*dFdQ1);
+        Am[1][1] = (Fminus[0]*(-uNx*uNx/Gamma/Rho - 2.*uNx*dCdRU/Gamma + 1./Rho) + FoF*dFdQ2);
+        Am[1][2] = (Fminus[0]*(-uNx*uNy/Gamma/Rho - 2.*uNx*dCdRV/Gamma) + FoF*dFdQ3);
+        Am[1][3] = (- 2.*Fminus[0]*uNx*dCdEt/Gamma + FoF*dFdQ4);
+
+        FoF = Fminus[2]/Fminus[0];
+        Am[2][0] = (Fminus[0]*(-2.*uNy/Gamma*dCdR + uNy*Ub/Gamma/Rho - V/Rho) + FoF*dFdQ1);
+        Am[2][1] = (Fminus[0]*(-uNy*uNx/Gamma/Rho - 2.*uNy*dCdRU/Gamma) + FoF*dFdQ2);
+        Am[2][2] = (Fminus[0]*(-uNy*uNy/Gamma/Rho - 2.*uNy*dCdRV/Gamma + 1./Rho) + FoF*dFdQ3);
+        Am[2][3] = (- 2.*Fminus[0]*uNy*dCdEt/Gamma + FoF*dFdQ4);
+
+        FoF = Fminus[3]/Fminus[0];
+        Var1 = (-2.*GM1*Ub + 4.*C)/(Gamma*Gamma - 1.);
+        Var2 = 2.*GM1/(Gamma*Gamma - 1.)*(-Ub - C)/Rho;
+        Am[3][0] = (Fminus[0]*(dCdR*Var1 - Var2*Ub - q2/Rho) + FoF*dFdQ1);
+        Am[3][1] = (Fminus[0]*(dCdRU*Var1 + Var2*uNx + U/Rho) + FoF*dFdQ2);
+        Am[3][2] = (Fminus[0]*(dCdRV*Var1 + Var2*uNy + V/Rho) + FoF*dFdQ3);
+        Am[3][3] = (Fminus[0]*dCdEt*Var1 + FoF*dFdQ4);
+    } else if (Mb <= -1.0) {
+        Var1 = 0.5*GM1*q2;
+
+        Am[0][0] = 0.0;
+        Am[0][1] = Mag*uNx;
+        Am[0][2] = Mag*uNy;
+        Am[0][3] = 0.0;
+
+        Am[1][0] = Mag*(uNx*Var1 - U*Ub);
+        Am[1][1] = Mag*(uNx*(2. - Gamma)*U + Ub);
+        Am[1][2] = Mag*(uNy*U - uNx*GM1*V);
+        Am[1][3] = Mag*uNx*GM1;
+
+        Am[2][0] = Mag*(uNy*Var1 - V*Ub);
+        Am[2][1] = Mag*(uNx*V - uNy*GM1*U);
+        Am[2][2] = Mag*(uNy*(2. - Gamma)*V + Ub);
+        Am[2][3] = Mag*uNy*GM1;
+
+        Am[3][0] = Mag*(2.*Var1 - Gamma*Et/Rho)*Ub;
+        Am[3][1] = Mag*(uNx*(Gamma*Et/Rho - Var1) - GM1*U*Ub);
+        Am[3][2] = Mag*(uNy*(Gamma*Et/Rho - Var1) - GM1*V*Ub);
+        Am[3][3] = Mag*Gamma*Ub;
+    } else {
+        Am[0][0] = 0.0;
+        Am[0][1] = 0.0;
+        Am[0][2] = 0.0;
+        Am[0][3] = 0.0;
+
+        Am[1][0] = 0.0;
+        Am[1][1] = 0.0;
+        Am[1][2] = 0.0;
+        Am[1][3] = 0.0;
+
+        Am[2][0] = 0.0;
+        Am[2][1] = 0.0;
+        Am[2][2] = 0.0;
+        Am[2][3] = 0.0;
+
+        Am[3][0] = 0.0;
+        Am[3][1] = 0.0;
+        Am[3][2] = 0.0;
+        Am[3][3] = 0.0;
     }
 }
 
