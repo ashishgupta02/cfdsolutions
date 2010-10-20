@@ -100,11 +100,15 @@ protected:
     void Compute_Flux(double *Q, double uNx, double uNy, double Mag, double *Flux);
     void Compute_Fplus(double *Q, double uNx, double uNy, double Mag, double *Fplus);
     void Compute_Fminus(double *Q, double uNx, double uNy, double Mag, double *Fminus);
+    void Compute_Fplus_Manual(double *Q, double uNx, double uNy, double Mag, double *Fplus);
+    void Compute_Fminus_Manual(double *Q, double uNx, double uNy, double Mag, double *Fminus);
 
     // Get the Flux Jacobians: A, A+, A-
     void Compute_FluxJacobian(double *Q, double uNx, double uNy, double Mag, double *Flux, double **A);
     void Compute_FluxJplus(double *Q, double uNx, double uNy, double Mag, double *Fplus, double **Ap);
     void Compute_FluxJminus(double *Q, double uNx, double uNy, double Mag, double *Fminus, double **Am);
+    void Compute_FluxJplus_Manual(double *Q, double uNx, double uNy, double Mag, double *Fplus, double **Ap);
+    void Compute_FluxJminus_Manual(double *Q, double uNx, double uNy, double Mag, double *Fminus, double **Am);
     
     // Get Van Leer Flux and Jacobians
     void Compute_Flux_Jacobians(double *Q, double uNx, double uNy, double Mag, double *Flux, double *Fplus, double *Fminus, double **A, double **Ap, double **Am);
