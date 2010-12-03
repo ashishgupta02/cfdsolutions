@@ -18,7 +18,7 @@ CC=gcc
 CCC=g++
 CXX=g++
 FC=gfortran
-AS=
+AS=as
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
@@ -35,7 +35,10 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/SOLVER/src/Euler2D_Solver_VanLeer.o \
 	${OBJECTDIR}/main.o \
+	${OBJECTDIR}/MESH/src/Euler2D_Mesh_LinearElasticSmoother.o \
 	${OBJECTDIR}/DESIGN/src/Euler2D_Design.o \
+	${OBJECTDIR}/DESIGN/src/Euler2D_Design_VanLeer.o \
+	${OBJECTDIR}/SOLVER/src/Euler2D_Solver.o \
 	${OBJECTDIR}/SOLVER/src/Euler2D_Solver_StegerWarming.o \
 	${OBJECTDIR}/SOLVER/src/Euler2D_Solver_Roe.o \
 	${OBJECTDIR}/MESH/src/Euler2D_Mesh.o \
@@ -81,10 +84,25 @@ ${OBJECTDIR}/main.o: main.cpp
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -IMATCOMP/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
 
+${OBJECTDIR}/MESH/src/Euler2D_Mesh_LinearElasticSmoother.o: MESH/src/Euler2D_Mesh_LinearElasticSmoother.cpp 
+	${MKDIR} -p ${OBJECTDIR}/MESH/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -IMATCOMP/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESH/src/Euler2D_Mesh_LinearElasticSmoother.o MESH/src/Euler2D_Mesh_LinearElasticSmoother.cpp
+
 ${OBJECTDIR}/DESIGN/src/Euler2D_Design.o: DESIGN/src/Euler2D_Design.cpp 
 	${MKDIR} -p ${OBJECTDIR}/DESIGN/src
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -IMATCOMP/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/DESIGN/src/Euler2D_Design.o DESIGN/src/Euler2D_Design.cpp
+
+${OBJECTDIR}/DESIGN/src/Euler2D_Design_VanLeer.o: DESIGN/src/Euler2D_Design_VanLeer.cpp 
+	${MKDIR} -p ${OBJECTDIR}/DESIGN/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -IMATCOMP/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/DESIGN/src/Euler2D_Design_VanLeer.o DESIGN/src/Euler2D_Design_VanLeer.cpp
+
+${OBJECTDIR}/SOLVER/src/Euler2D_Solver.o: SOLVER/src/Euler2D_Solver.cpp 
+	${MKDIR} -p ${OBJECTDIR}/SOLVER/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -IMATCOMP/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/SOLVER/src/Euler2D_Solver.o SOLVER/src/Euler2D_Solver.cpp
 
 ${OBJECTDIR}/SOLVER/src/Euler2D_Solver_StegerWarming.o: SOLVER/src/Euler2D_Solver_StegerWarming.cpp 
 	${MKDIR} -p ${OBJECTDIR}/SOLVER/src

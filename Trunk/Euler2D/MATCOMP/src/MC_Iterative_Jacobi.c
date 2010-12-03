@@ -1,9 +1,8 @@
-/*
- * File:   MC_Iterative_Jacobi.c
- * Author: Ashish Gupta
- *
- * Created on February 10, 2010, 7:09 PM
- */
+/*******************************************************************************
+ * File:        MC_Iterative_Jacobi.c
+ * Author:      Ashish Gupta
+ * Revision:    1
+ ******************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -198,45 +197,44 @@ double MC_Iterative_Block_Jacobi_CRS (int Iteration, double Relax, MC_CRS Object
     /* Basic Checking before proceeding */
     if ((Object.IA == NULL) || (Object.JA == NULL) || (Object.IAU == NULL) ||
             (Object.A == NULL) || (Object.B == NULL) || (Object.X == NULL) ||
-            (Object.Block_nRow <= 0) || (Object.Block_nCol <= 0) ||
-            (Object.DIM <= 0) || (Object.nROW <= 0) || (Object.nCOL <= 0) ||
-            (Object.nCOL != Object.nROW) || (Object.Block_nCol != Object.Block_nRow))
+            (Object.BlockSize <= 0) || (Object.VectorSize <= 0) ||
+            (Object.CRSSize <= 0))
         return RMS;
 
     // Set the Initial Value for Solution Vector
-    for (iRow = 0; iRow < Object.nROW; iRow++) {
+    for (iRow = 0; iRow < Object.VectorSize; iRow++) {
         RMS = 0.0;
-        for (iCol = 0; iCol < Object.Block_nCol; iCol++)
+        for (iCol = 0; iCol < Object.BlockSize; iCol++)
             RMS += Object.B[iRow][iCol];
-        RMS /= Object.Block_nCol;
-        for (iCol = 0; iCol < Object.Block_nCol; iCol++)
+        RMS /= Object.BlockSize;
+        for (iCol = 0; iCol < Object.BlockSize; iCol++)
             Object.X[iRow][iCol] = RMS;
     }
 
     // Allocate Memory to Store Inverse of Each Diagonal Block Matrix
-    InvBlock = (double ***) malloc(Object.nCOL*sizeof(double**));
-    for (iCol = 0; iCol < Object.nCOL; iCol++) {
-        InvBlock[iCol] = (double **) malloc(Object.Block_nRow*sizeof(double*));
-        for (iRow = 0; iRow < Object.Block_nRow; iRow++) {
-            InvBlock[iCol][iRow] = (double *) malloc(Object.Block_nCol*sizeof(double));
+    InvBlock = (double ***) malloc(Object.VectorSize*sizeof(double**));
+    for (iCol = 0; iCol < Object.VectorSize; iCol++) {
+        InvBlock[iCol] = (double **) malloc(Object.BlockSize*sizeof(double*));
+        for (iRow = 0; iRow < Object.BlockSize; iRow++) {
+            InvBlock[iCol][iRow] = (double *) malloc(Object.BlockSize*sizeof(double));
             // Initialize
-            for (i = 0; i <Object.Block_nCol; i++)
+            for (i = 0; i <Object.BlockSize; i++)
                 InvBlock[iCol][iRow][i] = 0.0;
         }
     }
 
     // Compute the Inverse of Each Diagonal Block Matrix
-    for (iCol = 0; iCol < Object.nCOL; iCol++)
-        MC_Inverse(Object.Block_nRow, Object.Block_nCol, Object.A[Object.IAU[iCol]], InvBlock[iCol]);
+    for (iCol = 0; iCol < Object.VectorSize; iCol++)
+        MC_Inverse(Object.BlockSize, Object.BlockSize, Object.A[Object.IAU[iCol]], InvBlock[iCol]);
     
     // Allocate Memory to store a Copy of RHS
-    RHS = (double **) malloc(Object.nCOL * sizeof (double*));
-    for (iCol = 0; iCol < Object.nCOL; iCol++) {
-        RHS[iCol] = (double *) malloc(Object.Block_nCol * sizeof (double));
+    RHS = (double **) malloc(Object.VectorSize * sizeof (double*));
+    for (iCol = 0; iCol < Object.VectorSize; iCol++) {
+        RHS[iCol] = (double *) malloc(Object.BlockSize * sizeof (double));
     }
 
     // Allocate Memory to store Block Vector
-    Block_X = (double *) malloc (Object.Block_nCol*sizeof(double));
+    Block_X = (double *) malloc (Object.BlockSize*sizeof(double));
     
     // Iterate Until Convergence or Max Iteration
     if (Iteration <= 0)
@@ -247,12 +245,12 @@ double MC_Iterative_Block_Jacobi_CRS (int Iteration, double Relax, MC_CRS Object
         RMS  = 0.0;
         iRMS = 0;
         // Create a Copy of RHS
-        for (iCol = 0; iCol < Object.nCOL; iCol++) {
-            for (iRow = 0; iRow < Object.Block_nCol; iRow++)
+        for (iCol = 0; iCol < Object.VectorSize; iCol++) {
+            for (iRow = 0; iRow < Object.BlockSize; iRow++)
                 RHS[iCol][iRow] = Object.B[iCol][iRow];
         }
         
-        for (iRow = 0; iRow < Object.nROW; iRow++) {
+        for (iRow = 0; iRow < Object.VectorSize; iRow++) {
             iStart = Object.IA[iRow];
             iEnd   = Object.IA[iRow+1];
             // Transfer Off-diagonal elements to RHS
@@ -261,20 +259,20 @@ double MC_Iterative_Block_Jacobi_CRS (int Iteration, double Relax, MC_CRS Object
                 if (col == iRow)
                     continue;
                 // Matrix-Vector Multiply of Off Diagonal Elements
-                MC_Matrix_Mul_Vector(Object.Block_nRow, Object.Block_nCol, Object.A[iCol], Object.X[col], Block_X);
+                MC_Matrix_Mul_Vector(Object.BlockSize, Object.BlockSize, Object.A[iCol], Object.X[col], Block_X);
                 // Subtract Value form RHS current Row
-                for (i = 0; i < Object.Block_nCol; i++)
+                for (i = 0; i < Object.BlockSize; i++)
                     RHS[iRow][i] -= Block_X[i];
             }
 
             // Mutiply RHS with Inverse of Diagonal Matrix
-            MC_Matrix_Mul_Vector(Object.Block_nRow, Object.Block_nCol, InvBlock[iRow], RHS[iRow], Block_X);
+            MC_Matrix_Mul_Vector(Object.BlockSize, Object.BlockSize, InvBlock[iRow], RHS[iRow], Block_X);
             // Update the RHS which is Solution for Loop +1
-            for (i = 0; i < Object.Block_nCol; i++)
+            for (i = 0; i < Object.BlockSize; i++)
                 RHS[iRow][i] = Block_X[i];
 
             // Compute the RMS
-            for (i = 0; i < Object.Block_nCol; i++)
+            for (i = 0; i < Object.BlockSize; i++)
                 RMS += (RHS[iRow][i] - Object.X[iRow][i])*(RHS[iRow][i] - Object.X[iRow][i]);
             iRMS++;
         }
@@ -285,8 +283,8 @@ double MC_Iterative_Block_Jacobi_CRS (int Iteration, double Relax, MC_CRS Object
             iLoop = MaxIter;
   
         // Update the Value of Solution
-        for (iRow = 0; iRow < Object.nROW; iRow++) {
-            for (iCol = 0; iCol < Object.Block_nCol; iCol++)
+        for (iRow = 0; iRow < Object.VectorSize; iRow++) {
+            for (iCol = 0; iCol < Object.BlockSize; iCol++)
                 Object.X[iRow][iCol] += Relax*(RHS[iRow][iCol] - Object.X[iRow][iCol]);
         }
     }
@@ -296,16 +294,16 @@ double MC_Iterative_Block_Jacobi_CRS (int Iteration, double Relax, MC_CRS Object
         free(Block_X);
 
     if (RHS != NULL) {
-        for (iRow = 0; iRow < Object.nROW; iRow++)
+        for (iRow = 0; iRow < Object.VectorSize; iRow++)
             if (RHS[iRow] != NULL)
                 free(RHS[iRow]);
         free(RHS);
     }
     
     if (InvBlock != NULL) {
-        for (iRow = 0; iRow < Object.nROW; iRow++) {
+        for (iRow = 0; iRow < Object.VectorSize; iRow++) {
             if (InvBlock[iRow] != NULL) {
-                for (iCol = 0; iCol < Object.Block_nCol; iCol++) {
+                for (iCol = 0; iCol < Object.BlockSize; iCol++) {
                     if (InvBlock[iRow][iCol] != NULL)
                         free(InvBlock[iRow][iCol]);
                 }
@@ -332,42 +330,41 @@ double MC_Iterative_Block_LU_Jacobi_CRS(int Iteration, int Direction, MC_CRS Obj
     /* Basic Checking before proceeding */
     if ((Object.IA == NULL) || (Object.JA == NULL) || (Object.IAU == NULL) ||
             (Object.A == NULL) || (Object.B == NULL) || (Object.X == NULL) ||
-            (Object.Block_nRow <= 0) || (Object.Block_nCol <= 0) ||
-            (Object.DIM <= 0) || (Object.nROW <= 0) || (Object.nCOL <= 0) ||
-            (Object.nCOL != Object.nROW) || (Object.Block_nCol != Object.Block_nRow))
+            (Object.BlockSize <= 0) || (Object.VectorSize <= 0) ||
+            (Object.CRSSize <= 0))
         return RMS;
 
     // Allocate Memory
-    tempvect = (double *)   malloc(Object.Block_nCol*sizeof(double));
-    RHS      = (double **)  malloc(Object.nROW*sizeof(double*));
-    LU       = (double ***) malloc(Object.nROW*sizeof(double**));
-    for (iRow = 0; iRow < Object.nROW; iRow++) {
-        RHS[iRow] = (double *)  malloc(Object.Block_nCol*sizeof(double));
-        LU[iRow]  = (double **) malloc(Object.Block_nCol*sizeof(double*));
-        for (j = 0; j < Object.Block_nCol; j++)
-            LU[iRow][j]  = (double *) malloc(Object.Block_nCol*sizeof(double));
+    tempvect = (double *)   malloc(Object.BlockSize*sizeof(double));
+    RHS      = (double **)  malloc(Object.VectorSize*sizeof(double*));
+    LU       = (double ***) malloc(Object.VectorSize*sizeof(double**));
+    for (iRow = 0; iRow < Object.VectorSize; iRow++) {
+        RHS[iRow] = (double *)  malloc(Object.BlockSize*sizeof(double));
+        LU[iRow]  = (double **) malloc(Object.BlockSize*sizeof(double*));
+        for (j = 0; j < Object.BlockSize; j++)
+            LU[iRow][j]  = (double *) malloc(Object.BlockSize*sizeof(double));
     }
     
     // Initialize the Solution Vector
-    for (iRow = 0; iRow < Object.nROW; iRow++) {
-        for (j = 0; j < Object.Block_nCol; j++)
+    for (iRow = 0; iRow < Object.VectorSize; iRow++) {
+        for (j = 0; j < Object.BlockSize; j++)
             Object.X[iRow][j] = 0.0;
     }
     
     // LU factorizations of diagonal elements
-    for (iRow = 0; iRow < Object.nROW; iRow++) {
+    for (iRow = 0; iRow < Object.VectorSize; iRow++) {
         // Copy A in LU
-        for (i = 0; i < Object.Block_nCol; i++) {
-            for (j = 0; j < Object.Block_nCol; j++)
+        for (i = 0; i < Object.BlockSize; i++) {
+            for (j = 0; j < Object.BlockSize; j++)
                 LU[iRow][i][j] = Object.A[Object.IAU[iRow]][i][j];
         }
 
-        for (k = 0; k < Object.Block_nCol - 1; k++) {
-            for (j = k + 1; j < Object.Block_nCol; j++)
+        for (k = 0; k < Object.BlockSize - 1; k++) {
+            for (j = k + 1; j < Object.BlockSize; j++)
                 LU[iRow][j][k] = LU[iRow][j][k] / LU[iRow][k][k];
             
-            for (j = k + 1; j < Object.Block_nCol; j++) {
-                for (i = k + 1; i < Object.Block_nCol; i++)
+            for (j = k + 1; j < Object.BlockSize; j++) {
+                for (i = k + 1; i < Object.BlockSize; i++)
                     LU[iRow][i][j] -= LU[iRow][i][k] * LU[iRow][k][j];
             }
         }
@@ -382,97 +379,97 @@ double MC_Iterative_Block_LU_Jacobi_CRS(int Iteration, int Direction, MC_CRS Obj
         RMS = 0.0;
 
         // initializing right hand side
-        for (iRow = 0; iRow < Object.nROW; iRow++) {
-            for (j = 0; j < Object.Block_nCol; j++)
+        for (iRow = 0; iRow < Object.VectorSize; iRow++) {
+            for (j = 0; j < Object.BlockSize; j++)
                 RHS[iRow][j] = Object.B[iRow][j];
         }
 
         if ((Direction == 0) || (Direction == 2 && iLoop % 2 == 0)) {
-            for (iRow = 0; iRow < Object.nROW; iRow++) {
+            for (iRow = 0; iRow < Object.VectorSize; iRow++) {
                 iStart = Object.IA[iRow];
                 iEnd   = Object.IA[iRow + 1];
                 for (j = iStart; j < iEnd; j++) {  
                     // Matrix Vector Multiply
-                    for (ii = 0; ii < Object.Block_nCol; ii++)
+                    for (ii = 0; ii < Object.BlockSize; ii++)
                         tempvect[ii] = 0.0;
                     
-                    for (ii = 0; ii < Object.Block_nCol; ii++) {
-                        for (jj = 0; jj < Object.Block_nCol; jj++)
+                    for (ii = 0; ii < Object.BlockSize; ii++) {
+                        for (jj = 0; jj < Object.BlockSize; jj++)
                             tempvect[ii] += Object.A[j][ii][jj] * Object.X[Object.JA[j]][jj];
                     }
 
-                    for (m = 0; m < Object.Block_nCol; m++)
+                    for (m = 0; m < Object.BlockSize; m++)
                         RHS[iRow][m] -= tempvect[m];
                 }
 
-                for (m = 0; m < Object.Block_nCol; m++)
+                for (m = 0; m < Object.BlockSize; m++)
                     RMS += RHS[iRow][m] * RHS[iRow][m];
                 
                 // Matrix Vector Multiply
-                for (ii = 0; ii < Object.Block_nCol; ii++)
+                for (ii = 0; ii < Object.BlockSize; ii++)
                     tempvect[ii] = 0.0;
-                for (ii = 0; ii < Object.Block_nCol; ii++) {
-                    for (jj = 0; jj < Object.Block_nCol; jj++)
+                for (ii = 0; ii < Object.BlockSize; ii++) {
+                    for (jj = 0; jj < Object.BlockSize; jj++)
                         tempvect[ii] += Object.A[Object.IAU[iRow]][ii][jj] * Object.X[iRow][jj];
                 }
 
-                for (m = 0; m < Object.Block_nCol; m++)
+                for (m = 0; m < Object.BlockSize; m++)
                     RHS[iRow][m] += tempvect[m];
                 
                 // Solve LU
-                for (ii = 0; ii < Object.Block_nCol; ii++) {
+                for (ii = 0; ii < Object.BlockSize; ii++) {
                     tempvect[ii] = RHS[iRow][ii];
                     for (jj = 0; jj < ii; jj++)
                         tempvect[ii] -= LU[iRow][ii][jj] * tempvect[jj];
                 }
-                for (ii = Object.Block_nCol - 1; ii >= 0; ii--) {
+                for (ii = Object.BlockSize - 1; ii >= 0; ii--) {
                     Object.X[iRow][ii] = tempvect[ii];
-                    for (jj = Object.Block_nCol - 1; jj > ii; jj--)
+                    for (jj = Object.BlockSize - 1; jj > ii; jj--)
                         Object.X[iRow][ii] -= LU[iRow][ii][jj] * Object.X[iRow][jj];
 
                     Object.X[iRow][ii] = Object.X[iRow][ii] / LU[iRow][ii][ii];
                 }
             }
         } else {
-            for (iRow = Object.nROW - 1; iRow >= 0; iRow--) {
+            for (iRow = Object.VectorSize - 1; iRow >= 0; iRow--) {
                 iStart = Object.IA[iRow];
                 iEnd   = Object.IA[iRow + 1];
                 for (j = iStart; j < iEnd; j++) {
                     // Matrix Vector Multiply
-                    for (ii = 0; ii < Object.Block_nCol; ii++)
+                    for (ii = 0; ii < Object.BlockSize; ii++)
                         tempvect[ii] = 0.0;
-                    for (ii = 0; ii < Object.Block_nCol; ii++) {
-                        for (jj = 0; jj < Object.Block_nCol; jj++)
+                    for (ii = 0; ii < Object.BlockSize; ii++) {
+                        for (jj = 0; jj < Object.BlockSize; jj++)
                             tempvect[ii] += Object.A[j][ii][jj] * Object.X[Object.JA[j]][jj];
                     }
                     
-                    for (m = 0; m < Object.Block_nCol; m++)
+                    for (m = 0; m < Object.BlockSize; m++)
                         RHS[iRow][m] -= tempvect[m];
                 }
 
-                for (m = 0; m < Object.Block_nCol; m++)
+                for (m = 0; m < Object.BlockSize; m++)
                     RMS += RHS[iRow][m] * RHS[iRow][m];
                 
                 // Matrix Vector Multiply
-                for (ii = 0; ii < Object.Block_nCol; ii++)
+                for (ii = 0; ii < Object.BlockSize; ii++)
                     tempvect[ii] = 0.0;
-                for (ii = 0; ii < Object.Block_nCol; ii++) {
-                    for (jj = 0; jj < Object.Block_nCol; jj++)
+                for (ii = 0; ii < Object.BlockSize; ii++) {
+                    for (jj = 0; jj < Object.BlockSize; jj++)
                         tempvect[ii] += Object.A[Object.IAU[iRow]][ii][jj] * Object.X[iRow][jj];
                 }
                 
-                for (m = 0; m < Object.Block_nCol; m++)
+                for (m = 0; m < Object.BlockSize; m++)
                     RHS[iRow][m] += tempvect[m];
                 
                 // Solve LU
-                for (ii = 0; ii < Object.Block_nCol; ii++) {
+                for (ii = 0; ii < Object.BlockSize; ii++) {
                     tempvect[ii] = RHS[iRow][ii];
                     for (jj = 0; jj < ii; jj++)
                         tempvect[ii] -= LU[iRow][ii][jj] * tempvect[jj];
                 }
-                for (ii = Object.Block_nCol - 1; ii >= 0; ii--) {
+                for (ii = Object.BlockSize - 1; ii >= 0; ii--) {
                     Object.X[iRow][ii] = tempvect[ii];
-                    for (jj = Object.Block_nCol - 1; jj > ii; jj--)
+                    for (jj = Object.BlockSize - 1; jj > ii; jj--)
                         Object.X[iRow][ii] -= LU[iRow][ii][jj] * Object.X[iRow][jj];
                     
                     Object.X[iRow][ii] = Object.X[iRow][ii] / LU[iRow][ii][ii];
@@ -480,7 +477,7 @@ double MC_Iterative_Block_LU_Jacobi_CRS(int Iteration, int Direction, MC_CRS Obj
             }
         }
 
-        RMS = sqrt(RMS / ((double) Object.nROW));
+        RMS = sqrt(RMS / ((double) Object.VectorSize));
         
         if (RMS < 100.0*DBL_EPSILON)
             iLoop = MaxIter;
@@ -491,16 +488,16 @@ double MC_Iterative_Block_LU_Jacobi_CRS(int Iteration, int Direction, MC_CRS Obj
         free(tempvect);
     
     if (RHS != NULL) {
-        for (iRow = 0; iRow < Object.nROW; iRow++)
+        for (iRow = 0; iRow < Object.VectorSize; iRow++)
             if (RHS[iRow] != NULL)
                 free(RHS[iRow]);
         free(RHS);
     }
 
     if (LU != NULL) {
-        for (iRow = 0; iRow < Object.nROW; iRow++) {
+        for (iRow = 0; iRow < Object.VectorSize; iRow++) {
             if (LU[iRow] != NULL) {
-                for (jj = 0; jj < Object.Block_nCol; jj++) {
+                for (jj = 0; jj < Object.BlockSize; jj++) {
                     if (LU[iRow][jj] != NULL)
                         free(LU[iRow][jj]);
                 }

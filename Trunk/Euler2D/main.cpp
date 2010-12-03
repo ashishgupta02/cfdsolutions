@@ -1,9 +1,8 @@
-/* 
- * File:   main.cpp
- * Author: Ashish Gupta
- *
- * Created on February 19, 2010, 4:30 PM
- */
+/*******************************************************************************
+ * File:        main.cpp
+ * Author:      Ashish Gupta
+ * Revision:    1
+ ******************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -21,7 +20,7 @@
 /* Define to the version of this package. */
 #define PACKAGE_VERSION ""
 /* Version number of package */
-#define VERSION "1.0"
+#define VERSION "1.1"
 #endif
 
 #include <stdio.h>
@@ -36,7 +35,7 @@
 #include "Euler2D_Solver_Osher.h"
 #include "Euler2D_Solver_LDFSS.h"
 #include "Euler2D_Solver_AUSM.h"
-#include "Euler2D_Design.h"
+#include "Euler2D_Design_VanLeer.h"
 
 /* Command line options */
 static char options[] = "abcdefghv";
@@ -126,7 +125,7 @@ int main(int argc, char *argv[]) {
             // -a = Van Leer Flux Vector Splitting
         {
             Euler2D_Solver_VanLeer VanLeer;
-            VanLeer.Get_Solver_Inputs(argv[2]);
+            VanLeer.Get_Solver_Inputs_VanLeer(argv[2]);
             VanLeer.Solver_Prepare();
             VanLeer.Solve();
             VanLeer.Solver_Finalize();
@@ -136,49 +135,60 @@ int main(int argc, char *argv[]) {
             // -b = Steger Warming Flux Vector Splitting
         {
             Euler2D_Solver_StegerWarming StegerWarming;
-            StegerWarming.WKA_MeshReader(argv[2]);
+            StegerWarming.Get_Solver_Inputs_StegerWarming(argv[2]);
+            StegerWarming.Solver_Prepare();
             StegerWarming.Solve();
+            StegerWarming.Solver_Finalize();
         }
             break;
         case 2:
             // -c = Advection Upstream Splitting Method
          {
             Euler2D_Solver_AUSM AUSM;
-            AUSM.WKA_MeshReader(argv[2]);
+            AUSM.Get_Solver_Inputs_AUSM(argv[2]);
+            AUSM.Solver_Prepare();
             AUSM.Solve();
+            AUSM.Solver_Finalize();
         }
             break;
         case 3:
             // -d = Low Diffusion Flux Splitting Scheme
         {
             Euler2D_Solver_LDFSS LDFSS;
-            LDFSS.WKA_MeshReader(argv[2]);
+            LDFSS.Get_Solver_Inputs_LDFSS(argv[2]);
+            LDFSS.Solver_Prepare();
             LDFSS.Solve();
+            LDFSS.Solver_Finalize();
         }
             break;
         case 4:
             // -e = Oshers Splitting
         {
             Euler2D_Solver_Osher Osher;
-            Osher.WKA_MeshReader(argv[2]);
+            Osher.Get_Solver_Inputs_Osher(argv[2]);
+            Osher.Solver_Prepare();
             Osher.Solve();
+            Osher.Solver_Finalize();
         }
             break;
         case 5:
             // -f = Roe Flux Splitting
         {
             Euler2D_Solver_Roe Roe;
-            Roe.WKA_MeshReader(argv[2]);
+            Roe.Get_Solver_Inputs_Roe(argv[2]);
+            Roe.Solver_Prepare();
             Roe.Solve();
+            Roe.Solver_Finalize();
         }
             break;
         case 6:
             // -g = Design using Van Leer Flux Vector Splitting
         {
-            Euler2D_Solver_Design Design;
-            Design.Get_Solver_Inputs(argv[2]);
-            Design.Solver_Prepare();
+            Euler2D_Design_VanLeer Design;
+            Design.Get_Design_Inputs_VanLeer(argv[2]);
+            Design.Design_Prepare();
             Design.Design();
+            Design.Design_Finalize();
         }
             break;
     }

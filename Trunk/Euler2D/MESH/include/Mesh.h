@@ -1,9 +1,8 @@
-/* 
- * File:   Mesh.h
- * Author: Ashish Gupta
- *
- * Created on February 28, 2010, 9:13 PM
- */
+/*******************************************************************************
+ * File:        Mesh.h
+ * Author:      Ashish Gupta
+ * Revision:    1
+ ******************************************************************************/
 
 #ifndef _MESH_H
 #define	_MESH_H
