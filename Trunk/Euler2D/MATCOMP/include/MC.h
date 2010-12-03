@@ -1,9 +1,8 @@
-/* 
- * File:   MC.h
- * Author: Ashish Gupta
- *
- * Created on February 11, 2010, 2:20 PM
- */
+/*******************************************************************************
+ * File:        MC.h
+ * Author:      Ashish Gupta
+ * Revision:    1
+ ******************************************************************************/
 
 #ifndef _MC_H
 #define	_MC_H
@@ -13,11 +12,9 @@ extern "C" {
 #endif
 
     typedef struct {
-        int Block_nRow;
-        int Block_nCol;
-        int DIM;
-        int nROW;
-        int nCOL;
+        int BlockSize;
+        int VectorSize;
+        int CRSSize;
         int *IA;
         int *JA;
         int *IAU;

@@ -1,9 +1,8 @@
-/* 
- * File:   Euler2D_Mesh.cpp
- * Author: Ashish Gupta
- * 
- * Created on March 21, 2010, 7:50 PM
- */
+/*******************************************************************************
+ * File:        Euler2D_Mesh.cpp
+ * Author:      Ashish Gupta
+ * Revision:    1
+ ******************************************************************************/
 
 #include <stdlib.h>
 
@@ -21,7 +20,6 @@ Euler2D_Mesh::Euler2D_Mesh() {
 // *****************************************************************************
 // *****************************************************************************
 void Euler2D_Mesh::Init() {
-    restart      = 0;
     changeIndex  = 0;
     cell         = NULL;
     edge         = NULL;
@@ -189,6 +187,69 @@ void Euler2D_Mesh::WKA_MeshReader(const char* FileName) {
 
     // Close file
     fclose(inputMesh);
+    printf("=============================================================================\n");
+}
+
+// *****************************************************************************
+/*                                                                         */
+/* Writes mesh using edge pointers                                         */
+/*                                                                         */
+// *****************************************************************************
+/* File Discription                                                        */
+/* NNode NEdges NCells NBEdges Dummy Dummy                                 */
+/* Node1 Node2 Cell1 Cell2                                                 */
+/* .......................                                                 */
+/* sedges                                                                  */
+/* BEdge BType Const1 Const2                                               */
+/* .......................                                                 */
+/* coordinates                                                             */
+/* X Y                                                                     */
+/* .......................                                                 */
+// *****************************************************************************
+void Euler2D_Mesh::WKA_MeshWriter(const char* FileName) {
+    int i;
+    int idum;
+    FILE *outputMesh;
+
+    printf("=============================================================================\n");
+    info("Writing Mesh File %s", FileName);
+
+    // Open Mesh File
+    if ((outputMesh = fopen(FileName, "w")) == (FILE *) NULL)
+        error("Unable to Write Mesh File %s", FileName);
+
+    // Read mesh sizes
+    idum = 1;
+    fprintf(outputMesh, " %6d %6d %6d %6d %6d %6d\n", mesh.nnodes, mesh.nedges, mesh.ncells, mesh.nbedges, idum, idum);
+
+    for (i = 0; i < mesh.nedges; i++) {
+        /* Add 1; mesh is written assuming number starts at 1 */
+        /* but number really starts at 0 because this is C    */
+        if (changeIndex == 1)
+            fprintf(outputMesh, " %6d %6d %6d %6d\n", edge[i].node1+1 , edge[i].node2+1, edge[i].cell1+1, edge[i].cell2+1);
+        else
+            fprintf(outputMesh, " %6d %6d %6d %6d\n", edge[i].node1, edge[i].node2, edge[i].cell1, edge[i].cell2);
+    }
+
+    /* Write boundary edges */
+    /* Types: 1000 del(q).n = 0 */
+    /*        2000 q = x        */
+    /*        2001 q = c1       */
+    fprintf(outputMesh, "sedges\n");
+    for (i = 0; i < mesh.nbedges; i++) {
+        if (changeIndex == 1)
+            idum = boundaryEdge[i].edgeNumber + 1;
+        else
+            idum = boundaryEdge[i].edgeNumber;
+        fprintf(outputMesh, " %6d %6d %11lf %11lf\n", idum, boundaryEdge[i].bcType, boundaryEdge[i].c1, boundaryEdge[i].c2);
+    }
+
+    /* Now write the mesh coordinates */
+    fprintf(outputMesh, "coordinates\n");
+    for (i = 0; i < mesh.nnodes; i++)
+        fprintf(outputMesh, " %19.10E  %19.10E\n", node[i].x, node[i].y);
+
+    fclose(outputMesh);
     printf("=============================================================================\n");
 }
 
@@ -401,6 +462,22 @@ void Euler2D_Mesh::Write_RestartFile(const char* FileName) {
     
     fclose(fp);
     printf("=============================================================================\n");
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Mesh::SLK_MeshReader(const char* FileName) {
+    FILE *inputMesh;
+
+    printf("=============================================================================\n");
+    info("Reading Mesh File %s", FileName);
+
+    // Open Mesh File
+    if ((inputMesh = fopen(FileName, "r")) == (FILE *) NULL)
+        error("Unable to Open Mesh File %s", FileName);
+
+    // Close File
+    fclose(inputMesh);
 }
 
 // *****************************************************************************

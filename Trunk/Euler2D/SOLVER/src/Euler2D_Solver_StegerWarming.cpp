@@ -1,11 +1,12 @@
-/* 
- * File:   Euler2D_Solver_StegerWarming.cpp
- * Author: Ashish Gupta
- * 
- * Created on March 21, 2010, 11:10 PM
- */
+/*******************************************************************************
+ * File:        Euler2D_Solver_StegerWarming.cpp
+ * Author:      Ashish Gupta
+ * Revision:    1
+ ******************************************************************************/
 
 #include <stdlib.h>
+#include <iostream>
+#include <limits.h>
 
 #include "Utils.h"
 #include "Euler2D_Solver_StegerWarming.h"
@@ -24,25 +25,50 @@ Euler2D_Solver_StegerWarming::Euler2D_Solver_StegerWarming() {
 // *****************************************************************************
 // *****************************************************************************
 void Euler2D_Solver_StegerWarming::Init() {
-    Gamma        = 1.4;
-    Ref_Mach     = 0.0;
-    Ref_Alpha    = 0.0;
-    Ref_Pressure = 0.0;
+    // Data Initialization
 }
 
 // *****************************************************************************
 // *****************************************************************************
 Euler2D_Solver_StegerWarming::~Euler2D_Solver_StegerWarming() {
+    // Free the Resource Used
+}
 
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Solver_StegerWarming::Solver_Prepare() {
+    // Read Mesh File
+    WKA_MeshReader(WKAMeshFileName.c_str());
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Solver_StegerWarming::Solver_Finalize() {
+    // Write SLK Mesh file
+    SLK_MeshWriter(SLKMeshFileName.c_str());
+    // Write VTK Solution File
+    Write_VTK_Unstructured_File(VTKSolutionFileName.c_str());
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Solver_StegerWarming::Get_Solver_Inputs_StegerWarming(const char* FileName) {
+    // Get the Generic Solver Inputs
+    Get_Solver_Inputs(FileName);
+    // Now Get the Steger Warming Solver Inputs
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Solver_StegerWarming::Initialize_Solver_StegerWarming() {
+    // Initialize the Solver Data Field
+    Initialize_Solver(4, mesh.nnodes);
 }
 
 // *****************************************************************************
 // *****************************************************************************
 void Euler2D_Solver_StegerWarming::Solve() {
-    // Get the reference Conditions
-    Ref_Mach     = 0.5;
-    Ref_Alpha    = 0.0 * M_PI / 180.0;
-    Ref_Pressure = 1.0/Gamma;
+    // Algorithm
 }
 
 // *****************************************************************************
@@ -65,5 +91,66 @@ void Euler2D_Solver_StegerWarming::Initialize_Solution() {
             node[iNode].Resi[i] = 0.0;
         }
     }
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Solver_StegerWarming::Compute_Gauss_Gradient() {
+    // TODO
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Solver_StegerWarming::Compute_Residual() {
+    // TODO
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Solver_StegerWarming::Compute_Boundary_Residual() {
+    // TODO
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Solver_StegerWarming::Compute_FD_Jacobian(int Iteration) {
+    // TODO
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Solver_StegerWarming::Compute_DeltaTime(int Iteration) {
+    // TODO
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Solver_StegerWarming::Create_CRS_SolverBlockMatrix() {
+    // TODO
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Solver_StegerWarming::Compute_CRS_SolverBlockMatrix(int AddTime) {
+    // TODO
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Solver_StegerWarming::Compute_Boundary_CRS_SolverBlockMatrix() {
+    // TODO
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Solver_StegerWarming::Update_Solution() {
+    // TODO
+}
+
+// *****************************************************************************
+// *****************************************************************************
+double Euler2D_Solver_StegerWarming::Compute_RMS() {
+    // TODO
+    return 0.0;
 }
 

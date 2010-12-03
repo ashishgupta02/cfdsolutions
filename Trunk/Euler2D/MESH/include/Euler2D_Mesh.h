@@ -1,18 +1,17 @@
-/* 
- * File:   Euler2D_Mesh.h
- * Author: Ashish Gupta
- *
- * Created on March 21, 2010, 7:50 PM
- */
+/*******************************************************************************
+ * File:        Euler2D_Mesh.h
+ * Author:      Ashish Gupta
+ * Revision:    1
+ ******************************************************************************/
 
 #ifndef _EULER2D_MESH_H
 #define	_EULER2D_MESH_H
 
 #include "Mesh.h"
+#include "Euler2D_Mesh_LinearElasticSmoother.h"
 
 class Euler2D_Mesh {
 protected:
-    int restart;
     int changeIndex;
     MESH mesh;
     CELL *cell;
@@ -21,15 +20,21 @@ protected:
     BOUNDARYEDGE *boundaryEdge;
     BOUNDARYNODE *boundaryNode;
     int *BNTag;
+    // Linear Elastic Smoother
+    Euler2D_Mesh_LinearElasticSmoother LESmooth;
 public:
     Euler2D_Mesh();
     virtual ~Euler2D_Mesh();
     // Read Edge Based Mesh File
     void WKA_MeshReader(const char* FileName);
+    // Write Edge Based Mesh File
+    void WKA_MeshWriter(const char* FileName);
     // Read Restart File
     void Read_RestartFile(const char* FileName);
     // Write Restart File
     void Write_RestartFile(const char* FileName);
+    // Read Cell Based Mesh File
+    void SLK_MeshReader(const char* FileName);
     // Export to SLK File
     void SLK_MeshWriter(const char* FileName);
     // Export Gnuplot Solution Data

@@ -1,9 +1,8 @@
-/* 
- * File:   Euler2D_Solver_VanLeer.cpp
- * Author: Ashish Gupta
- * 
- * Created on March 21, 2010, 4:31 PM
- */
+/*******************************************************************************
+ * File:        Euler2D_Solver_VanLeer.cpp
+ * Author:      Ashish Gupta
+ * Revision:    1
+ ******************************************************************************/
 
 #include <stdlib.h>
 #include <iostream>
@@ -26,104 +25,13 @@ Euler2D_Solver_VanLeer::Euler2D_Solver_VanLeer() {
 // *****************************************************************************
 // *****************************************************************************
 void Euler2D_Solver_VanLeer::Init() {
-    Order                  = 2;
-    NIteration             = 0;
-    InnerNIteration        = 0;
-    Relaxation             = 1.0;
-    RMS[0]                 = DBL_MIN;
-    RMS[1]                 = DBL_MIN;
-    RMS[2]                 = DBL_MIN;
-    RMS[3]                 = DBL_MIN;
-    RMS_Res                = DBL_MIN;
-    Gamma                  = 1.4;
-    Ref_Mach               = 0.0;
-    Ref_Alpha              = 0.0;
-    Ref_Pressure           = 0.0;
-    Ref_Length             = 0.0;
-    CFL_Ramp               = 0;
-    CFL_Min                = 0.0;
-    CFL_Max                = 0.0;
-    BlockMatrix.nCOL       = 0;
-    BlockMatrix.nROW       = 0;
-    BlockMatrix.Block_nCol = 0;
-    BlockMatrix.Block_nRow = 0;
-    BlockMatrix.DIM        = 0;
-    BlockMatrix.A          = NULL;
-    BlockMatrix.B          = NULL;
-    BlockMatrix.IA         = NULL;
-    BlockMatrix.IAU        = NULL;
-    BlockMatrix.JA         = NULL;
-    BlockMatrix.X          = NULL;
-    DeltaT                 = NULL;
-    Qx                     = NULL;
-    Qy                     = NULL;
-    FDIteration            = 0;
-    FDNodeID               = -1;
-    FDPertQ                = -1;
-    FDEpsilon              = 1.0E-5;
-    FDDR_DQ[0]             = 0.0;
-    FDDR_DQ[1]             = 0.0;
-    FDDR_DQ[2]             = 0.0;
-    FDDR_DQ[3]             = 0.0;
-    FDNode                 = NULL;
+    // Data Initialization
 }
 
 // *****************************************************************************
 // *****************************************************************************
 Euler2D_Solver_VanLeer::~Euler2D_Solver_VanLeer() {
-    int i, j;
-    
-    if (BlockMatrix.A != NULL) {
-        for (i = 0; i < BlockMatrix.DIM; i++) {
-            if (BlockMatrix.A[i] != NULL) {
-                for (j = 0; j < BlockMatrix.Block_nRow; j++) {
-                    if (BlockMatrix.A[i][j] != NULL)
-                        free(BlockMatrix.A[i][j]);
-                }
-                free(BlockMatrix.A[i]);
-            }
-        }
-        free(BlockMatrix.A);
-    }
-    if (BlockMatrix.B != NULL) {
-        for (i = 0; i < BlockMatrix.nCOL ; i++) {
-            if (BlockMatrix.B[i] != NULL)
-                free(BlockMatrix.B[i]);
-        }
-        free(BlockMatrix.B);
-    }
-    if (BlockMatrix.X != NULL) {
-        for (i = 0; i < BlockMatrix.nCOL ; i++) {
-            if (BlockMatrix.X[i] != NULL)
-                free(BlockMatrix.X[i]);
-        }
-        free(BlockMatrix.X);
-    }
-    if (BlockMatrix.IA != NULL)
-        delete[] BlockMatrix.IA;
-    if (BlockMatrix.IAU != NULL)
-        delete[] BlockMatrix.IAU;
-    if (BlockMatrix.JA != NULL)
-        delete[] BlockMatrix.JA;
-
-    if (DeltaT != NULL)
-        delete[] DeltaT;
-
-    if (Qx != NULL) {
-        for (i = 0; i < mesh.nnodes; i++) {
-            if (Qx[i] != NULL)
-                delete[] Qx[i];
-        }
-        delete[] Qx;
-    }
-
-    if (Qy != NULL) {
-        for (i = 0; i < mesh.nnodes; i++) {
-            if (Qy[i] != NULL)
-                delete[] Qy[i];
-        }
-        delete[] Qy;
-    }
+    // Free the Resource Used
 }
 
 // *****************************************************************************
@@ -144,195 +52,30 @@ void Euler2D_Solver_VanLeer::Solver_Finalize() {
 
 // *****************************************************************************
 // *****************************************************************************
-void Euler2D_Solver_VanLeer::Get_Solver_Inputs(const char* FileName) {
-    FILE *fp;
-    int iret;
-    char dumstring[257];
-    char dump[257];
-    char *cdum;
-
-    // Open Input File
-    if ((fp = fopen(FileName, "r")) == (FILE *) NULL)
-        error("Unable to Open Input File %s", FileName);
-
-    // Input Mesh File
-    iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
-    iret = fscanf(fp, "%s\n", dump);
-    WKAMeshFileName.append(dump);
-
-    // Input Restart File
-    iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
-    iret = fscanf(fp, "%s\n", dump);
-    InputRestartFileName.append(dump);
-
-    // Output Restart File Name
-    iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
-    iret = fscanf(fp, "%s\n", dump);
-    OutputRestartFileName.append(dump);
-
-    // SLK Mesh File
-    iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
-    iret = fscanf(fp, "%s\n", dump);
-    SLKMeshFileName.append(dump);
-
-    // VTK Based Solution File
-    iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
-    iret = fscanf(fp, "%s\n", dump);
-    VTKSolutionFileName.append(dump);
-    
-    // Get the reference Conditions
-    // Gamma
-    Gamma  = 1.4;
-    iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
-    iret = fscanf(fp, "%lf\n", &Gamma);
-    Ref_Pressure    = 1.0/Gamma;
-    Ref_Length      = 1.0;
-    
-    // Mach Number
-    // Input Ref Mach Number
-    Ref_Mach        = 0.5;
-    iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
-    iret = fscanf(fp, "%lf\n", &Ref_Mach);
-
-    // Get Angle of Attack
-    // Input Angle of Attack (deg)
-    Ref_Alpha       = 0.0;
-    iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
-    iret = fscanf(fp, "%lf\n", &Ref_Alpha);
-    Ref_Alpha       = Ref_Alpha * M_PI / 180.0;
-
-    // Get the order of solver
-    // Solver Order (1/2)
-    Order = 2;
-    iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
-    iret = fscanf(fp, "%d\n", &Order);
-    
-    if ((Order < 1) || (Order > 2))
-        error("Get_Reference_Conditions: %s\n", "Invalid Solver Order");
-    
-    // Get CFL Numbers
-    // Input CFL Min
-    CFL_Min         = 1.0;
-    iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
-    iret = fscanf(fp, "%lf\n", &CFL_Min);
-    // Input CFL Max
-    CFL_Max         = 20.0;
-    iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
-    iret = fscanf(fp, "%lf\n", &CFL_Max);
-    // Input CFL Ramp
-    CFL_Ramp        = 100;
-    iret = fscanf(fp, "\n");
-    iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
-    iret = fscanf(fp, "%d\n", &CFL_Ramp);
-
-    // Get the Inner and Outer loop Conditions
-    // Input Outer Iterations (0 = Convergence)
-    NIteration      = 1000;
-    iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
-    iret = fscanf(fp, "%d\n", &NIteration);
-    if (NIteration == 0)
-        NIteration = INT_MAX/10;
-    // Input Linear Solver Iterations (0 = Convergence)
-    InnerNIteration = 20;
-    iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
-    iret = fscanf(fp, "%d\n", &InnerNIteration);
-    // Input Linear Solver Relaxation Inner (0.5 < r < 1.0)
-    Relaxation      = 1.0;
-    iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
-    iret = fscanf(fp, "%lf\n", &Relaxation);
-
-    // Restart File
-    // Restart Capability (0=No, 1=Yes, 2=Create)
-    restart = 0;
-    iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
-    iret = fscanf(fp, "%d\n", &restart);
-
-    // Finite Difference Jacobian
-    FDNodeID = 0;
-    // Finite Difference Jacobian (0=No, 1=Yes)
-    iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
-    iret = fscanf(fp, "%d\n", &FDNodeID);
-    if (FDNodeID == 1) {
-        // Finite Difference Node ID (-1 = All Nodes)
-        iret = fscanf(fp, "\n");
-        cdum = fgets(dumstring, 100, fp);
-        iret = fscanf(fp, "%d\n", &FDNodeID);
-        // Finite Difference Perturbation Q
-        iret = fscanf(fp, "\n");
-        cdum = fgets(dumstring, 100, fp);
-        iret = fscanf(fp, "%d\n", &FDPertQ);
-        // Finite Difference Epsilon
-        iret = fscanf(fp, "\n");
-        cdum = fgets(dumstring, 100, fp);
-        iret = fscanf(fp, "%lf\n", &FDEpsilon);
-        // Finite Difference Check Iteration
-        iret = fscanf(fp, "\n");
-        cdum = fgets(dumstring, 100, fp);
-        iret = fscanf(fp, "%d\n", &FDIteration);
-    } else {
-        FDNodeID = -2;
-    }
-
-    printf("Input Mesh File     = %s\n",  WKAMeshFileName.c_str());
-    printf("Input Restart File  = %s\n",  InputRestartFileName.c_str());
-    printf("Output Restart File = %s\n",  OutputRestartFileName.c_str());
-    printf("Output Mesh File    = %s\n",  SLKMeshFileName.c_str());
-    printf("Solution File       = %s\n",  VTKSolutionFileName.c_str());
-    printf("Gamma               = %lf\n", Gamma);
-    printf("Reference Mach      = %lf\n", Ref_Mach);
-    printf("Reference Alpha     = %lf\n", (180.0/M_PI)*Ref_Alpha);
-    printf("Solver Order        = %d\n",  Order);
-    printf("CFL Minimum         = %lf\n", CFL_Min);
-    printf("CFL Maximum         = %lf\n", CFL_Max);
-    printf("CFL Ramp            = %d\n",  CFL_Ramp);
-    printf("Solver Iteration    = %d\n",  NIteration);
-    printf("LS Solver Iteration = %d\n",  InnerNIteration);
-    printf("LS Relaxation       = %lf\n", Relaxation);
-    printf("Restart             = %d\n",  restart);
-    printf("FD Node ID          = %d\n",  FDNodeID);
-    printf("FD Pertuabation Q   = %d\n",  FDPertQ);
-    printf("FD Epsilon          = %lf\n", FDEpsilon);
-    printf("FD Check Iteration  = %d\n",  FDIteration);
-    printf("-----------------------------------------------------------------------------\n");
-    // Close Input File
-    fclose(fp);
+void Euler2D_Solver_VanLeer::Get_Solver_Inputs_VanLeer(const char* FileName) {
+    // Get the Generic Solver Inputs
+    Get_Solver_Inputs(FileName);
+    // Now Get the VanLeer Solver Inputs
 }
 
 // *****************************************************************************
 // *****************************************************************************
-void Euler2D_Solver_VanLeer::Solve() {
-    int iter, AddTime;
-    double max_rms, lrms;
-    
+void Euler2D_Solver_VanLeer::Initialize_Solver_VanLeer() {
+    // Initialize the Solver Data Field
+    Initialize_Solver(4, mesh.nnodes);
+
     // Extract Connectivity
     WKA_ExtractCells();
     Tag_Boundary_Nodes();
-    
+
     // Compute the Expensive Geometric Properties
     Compute_Geometric_Properties();
-    
+
     // Initialize the solution
     Initialize_Solution();
 
     // Read Restart File
-    if (restart == 1) {
+    if (DoRestart == 1) {
         Read_RestartFile(InputRestartFileName.c_str());
 //        // Purturb Solution Q
 //        for (int iNode = 0; iNode < mesh.nnodes; iNode++) {
@@ -340,10 +83,20 @@ void Euler2D_Solver_VanLeer::Solve() {
 //                node[iNode].Q[j] = node[iNode].Q[j] + 0.000001;
 //        }
     }
-
+    
     // Create CRS Matrix
-    Create_CRS_BlockMatrix();
+    Create_CRS_SolverBlockMatrix();
+}
 
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Solver_VanLeer::Solve() {
+    int iter, AddTime;
+    double max_rms, lrms;
+
+    // Create and Initialize Solver Data
+    Initialize_Solver_VanLeer();
+    
     info("Euler2D Computation Starts");
     printf("-----------------------------------------------------------------------------\n");
     printf(" Iter        LRMS     RMS_RHO    RMS_RHOU    RMS_RHOV       RMS_E     RMS_RES\n");
@@ -360,27 +113,28 @@ void Euler2D_Solver_VanLeer::Solve() {
         
         // Compute and Fill CRS Matrix
         AddTime = 1;
-        Compute_CRS_BlockMatrix(AddTime);
-        Compute_Boundary_CRS_BlockMatrix();
+        Compute_CRS_SolverBlockMatrix(AddTime);
+        Compute_Boundary_CRS_SolverBlockMatrix();
 
         // Compute Finite Difference Jacobian
-        Compute_FD_Jacobian(iter);
+        if (DoSolverValidation == 1)
+            Compute_FD_Jacobian(iter);
 
 #ifdef DEBUG
         int inode, irow, ibrow, ibcol;
         for (inode = 0; inode < mesh.nnodes; inode++) {
             printf("------------------------------------------------------------\n");
-            printf("Diagonal = %d \t", BlockMatrix.JA[BlockMatrix.IAU[inode]]);
+            printf("Diagonal = %d \t", SolverBlockMatrix.JA[SolverBlockMatrix.IAU[inode]]);
             printf("Row Nodes = { ");
-            for (irow = BlockMatrix.IA[inode]; irow < BlockMatrix.IA[inode+1]; irow++)
-                printf("%5d ",BlockMatrix.JA[irow]);
+            for (irow = SolverBlockMatrix.IA[inode]; irow < SolverBlockMatrix.IA[inode+1]; irow++)
+                printf("%5d ",SolverBlockMatrix.JA[irow]);
             printf("}\n");
 
-            for (irow = BlockMatrix.IA[inode]; irow < BlockMatrix.IA[inode+1]; irow++) {
-                printf("Node = %d\n", BlockMatrix.JA[irow]);
+            for (irow = SolverBlockMatrix.IA[inode]; irow < SolverBlockMatrix.IA[inode+1]; irow++) {
+                printf("Node = %d\n", SolverBlockMatrix.JA[irow]);
                 for (ibrow = 0; ibrow < 4; ibrow++) {
                     for (ibcol = 0; ibcol < 4; ibcol++)
-                        printf("%22.15e ", BlockMatrix.A[irow][ibrow][ibcol]);
+                        printf("%22.15e ", SolverBlockMatrix.A[irow][ibrow][ibcol]);
                     printf("\n");
                 }
                 printf("\n");
@@ -389,8 +143,8 @@ void Euler2D_Solver_VanLeer::Solve() {
         printf("------------------------------------------------------------\n");
 #endif
         // Solve for Solution
-        lrms = MC_Iterative_Block_Jacobi_CRS(InnerNIteration, Relaxation, BlockMatrix);
-//        lrms = MC_Iterative_Block_LU_Jacobi_CRS(InnerNIteration, 0, BlockMatrix);
+        lrms = MC_Iterative_Block_Jacobi_CRS(InnerNIteration, Relaxation, SolverBlockMatrix);
+//        lrms = MC_Iterative_Block_LU_Jacobi_CRS(InnerNIteration, 0, SolverBlockMatrix);
 
         // Update the Solution
         Update_Solution();
@@ -414,7 +168,7 @@ void Euler2D_Solver_VanLeer::Solve() {
         }
     }
     printf("-----------------------------------------------------------------------------\n");
-    if (restart)
+    if (DoRestart)
         Write_RestartFile(OutputRestartFileName.c_str());
 }
 
@@ -423,38 +177,6 @@ void Euler2D_Solver_VanLeer::Solve() {
 void Euler2D_Solver_VanLeer::Initialize_Solution() {
     int i, iNode;
     double Q[4];
-
-    // Allocate the Memory to store Local Time Stepping
-    DeltaT = new double[mesh.nnodes];
-#ifdef DEBUG
-    if (DeltaT == NULL)
-        error("Initialize_Solution: %s\n", "Error Allocating Memory 1");
-#endif
-
-    if (Order == 2) {
-        // Allocate Memory to store gradient of conserved variables
-        Qx = new double*[mesh.nnodes];
-        Qy = new double*[mesh.nnodes];
-#ifdef DEBUG
-        if ((Qx == NULL) || (Qy == NULL))
-            error("Initialize_Solution: %s\n", "Error Allocating Memory 2");
-#endif
-        for (iNode = 0; iNode < mesh.nnodes; iNode++) {
-            Qx[iNode] = NULL;
-            Qy[iNode] = NULL;
-            Qx[iNode] = new double[4];
-            Qy[iNode] = new double[4];
-#ifdef DEBUG
-            if ((Qx[iNode] == NULL) || (Qy[iNode] == NULL))
-                error("Initialize_Solution: %s\n", "Error Allocating Memory 3");
-#endif
-            // Initialize
-            for (i = 0; i < 4; i++) {
-                Qx[iNode][i] = 0.0;
-                Qy[iNode][i] = 0.0;
-            }
-        }
-    }
     
     // Calculte Q
     Q[0] = 1.0;
@@ -468,20 +190,6 @@ void Euler2D_Solver_VanLeer::Initialize_Solution() {
         for (i = 0; i < 4; i++) {
             node[iNode].Q[i] = Q[i];
             node[iNode].Resi[i] = 0.0;
-        }
-    }
-
-    // Allocate the Finite Difference Jacobian
-    FDNode = (FD_NODE *) malloc(sizeof(FD_NODE)*mesh.nnodes);
-#ifdef DEBUG
-    if (FDNode == NULL)
-        error("Initialize_Solution: %s\n", "Error Allocating Memory 4");
-#endif
-    // Initialize the Finite Difference Jacobian Variables
-    for (iNode = 0; iNode < mesh.nnodes; iNode++) {
-        for (i = 0; i < 4; i++) {
-            FDNode[iNode].Resi_Old[i] = 0.0;
-            FDNode[iNode].Resi_New[i] = 0.0;
         }
     }
 }
@@ -874,9 +582,9 @@ void Euler2D_Solver_VanLeer::Compute_FD_Jacobian(int Iteration) {
 
         // Get the Analytical DR_DQ
         // Get the diagonal location
-        int idgn = BlockMatrix.IAU[iNode];
+        int idgn = SolverBlockMatrix.IAU[iNode];
         for (i = 0; i < 4; i++)
-            DR_DQ[i] = BlockMatrix.A[idgn][i][FDPertQ];
+            DR_DQ[i] = SolverBlockMatrix.A[idgn][i][FDPertQ];
         // Subtract I/DT
         DR_DQ[FDPertQ] -= node[iNode].area/DeltaT[iNode];
 
@@ -896,23 +604,23 @@ void Euler2D_Solver_VanLeer::Compute_FD_Jacobian(int Iteration) {
         if (FDNodeID >= 0) {
             int jstart, jend, conn_nodeid, count;
             int istart, iend, check_matid, count1;
-            jstart = BlockMatrix.IA[FDNodeID];
-            jend   = BlockMatrix.IA[FDNodeID + 1];
+            jstart = SolverBlockMatrix.IA[FDNodeID];
+            jend   = SolverBlockMatrix.IA[FDNodeID + 1];
 
             count = 0;
             for (j = jstart; j < jend; j++) {
                 // Get the Connected Node ID
-                conn_nodeid = BlockMatrix.JA[jstart+count];
+                conn_nodeid = SolverBlockMatrix.JA[jstart+count];
                 count++;
                 if (FDNodeID == conn_nodeid)
                     continue;
                 
-                istart = BlockMatrix.IA[conn_nodeid];
-                iend   = BlockMatrix.IA[conn_nodeid + 1];
+                istart = SolverBlockMatrix.IA[conn_nodeid];
+                iend   = SolverBlockMatrix.IA[conn_nodeid + 1];
                 count1 = 0;
                 check_matid = -1;
                 for (i = istart; i < iend; i++) {
-                    if (BlockMatrix.JA[istart+count1] == FDNodeID) {
+                    if (SolverBlockMatrix.JA[istart+count1] == FDNodeID) {
                         check_matid = i;
                         break;
                     }
@@ -920,7 +628,7 @@ void Euler2D_Solver_VanLeer::Compute_FD_Jacobian(int Iteration) {
                 }
                 // Get the Analytical dR/dQ
                 for (i = 0; i < 4; i++)
-                    DR_DQ[i] = BlockMatrix.A[check_matid][i][FDPertQ];
+                    DR_DQ[i] = SolverBlockMatrix.A[check_matid][i][FDPertQ];
                 // Compute the Finite Difference DR_DQ
                 for (i = 0; i < 4; i++)
                     FDDR_DQ[i] = (FDNode[conn_nodeid].Resi_New[i] - FDNode[conn_nodeid].Resi_Old[i])/FDEpsilon;
@@ -1180,22 +888,20 @@ void Euler2D_Solver_VanLeer::Compute_DeltaTime(int Iteration) {
 
 // *****************************************************************************
 // *****************************************************************************
-void Euler2D_Solver_VanLeer::Create_CRS_BlockMatrix() {
+void Euler2D_Solver_VanLeer::Create_CRS_SolverBlockMatrix() {
     int i, j, jstart, jend, k, ksave;
     int node1, node2, index, index1, index2;
     int min, minsave;
     int *degree = NULL;
 
-    BlockMatrix.nROW = mesh.nnodes;
-    BlockMatrix.nCOL = mesh.nnodes;
-    BlockMatrix.Block_nRow = 4;
-    BlockMatrix.Block_nCol = 4;
+    SolverBlockMatrix.VectorSize = mesh.nnodes;
+    SolverBlockMatrix.BlockSize  = 4;
     
     // Allocate Memory to Find Node2Node Connectivity Degree
     degree = new int[mesh.nnodes];
 #ifdef DEBUG
     if (degree == NULL)
-        error("Create_CRS_BlockMatrix: %s\n", "Error Allocating Memory 1");
+        error("Create_CRS_SolverBlockMatrix: %s\n", "Error Allocating Memory 1");
 #endif
     for (i = 0; i < mesh.nnodes; i++)
         degree[i] = 0;
@@ -1206,41 +912,41 @@ void Euler2D_Solver_VanLeer::Create_CRS_BlockMatrix() {
     }
     
     // Allocate Memory of IA Array to Store Start and End Location of Row
-    BlockMatrix.IA = NULL;
-    BlockMatrix.IA = new int[mesh.nnodes+1];
+    SolverBlockMatrix.IA = NULL;
+    SolverBlockMatrix.IA = new int[mesh.nnodes+1];
 #ifdef DEBUG
-    if (BlockMatrix.IA == NULL)
-        error("Create_CRS_BlockMatrix: %s\n", "Error Allocating Memory 2");
+    if (SolverBlockMatrix.IA == NULL)
+        error("Create_CRS_SolverBlockMatrix: %s\n", "Error Allocating Memory 2");
 #endif
 
     // Start Filling the Row Location and
-    // Get the No of Non Zero Entries for BlockMatrix
-    BlockMatrix.DIM = 0;
-    BlockMatrix.IA[0] = 0;
+    // Get the No of Non Zero Entries for SolverBlockMatrix
+    SolverBlockMatrix.CRSSize = 0;
+    SolverBlockMatrix.IA[0] = 0;
     for (i = 0; i < mesh.nnodes; i++) {
-        BlockMatrix.DIM += degree[i] + 1;
-        BlockMatrix.IA[i+1] = BlockMatrix.IA[i] + degree[i] + 1;
+        SolverBlockMatrix.CRSSize += degree[i] + 1;
+        SolverBlockMatrix.IA[i+1] = SolverBlockMatrix.IA[i] + degree[i] + 1;
     }
     
     // Allocate Memory to IAU Array to store Diagonal Location
-    BlockMatrix.IAU = NULL;
-    BlockMatrix.IAU = new int[mesh.nnodes];
+    SolverBlockMatrix.IAU = NULL;
+    SolverBlockMatrix.IAU = new int[mesh.nnodes];
 #ifdef DEBUG
-    if (BlockMatrix.IAU == NULL)
-        error("Create_CRS_BlockMatrix: %s\n", "Error Allocating Memory 3");
+    if (SolverBlockMatrix.IAU == NULL)
+        error("Create_CRS_SolverBlockMatrix: %s\n", "Error Allocating Memory 3");
 #endif
 
     // Allocate Memory to JA Array to store location of Non Zero Entries
-    BlockMatrix.JA = NULL;
-    BlockMatrix.JA = new int[BlockMatrix.DIM];
+    SolverBlockMatrix.JA = NULL;
+    SolverBlockMatrix.JA = new int[SolverBlockMatrix.CRSSize];
 #ifdef DEBUG
-    if (BlockMatrix.JA == NULL)
-        error("Create_CRS_BlockMatrix: %s\n", "Error Allocating Memory 4");
+    if (SolverBlockMatrix.JA == NULL)
+        error("Create_CRS_SolverBlockMatrix: %s\n", "Error Allocating Memory 4");
 #endif
 
     for (i = 0; i < mesh.nnodes; i++) {
-        index = BlockMatrix.IA[i];
-        BlockMatrix.JA[index] = i;
+        index = SolverBlockMatrix.IA[i];
+        SolverBlockMatrix.JA[index] = i;
         degree[i] = 1;
     }
     
@@ -1248,97 +954,98 @@ void Euler2D_Solver_VanLeer::Create_CRS_BlockMatrix() {
         node1 = edge[i].node1;
         node2 = edge[i].node2;
 
-        index1 = BlockMatrix.IA[node1] + degree[node1];
-        index2 = BlockMatrix.IA[node2] + degree[node2];
+        index1 = SolverBlockMatrix.IA[node1] + degree[node1];
+        index2 = SolverBlockMatrix.IA[node2] + degree[node2];
         
         degree[node1] += 1;
         degree[node2] += 1;
 
-        BlockMatrix.JA[index1] = node2;
-        BlockMatrix.JA[index2] = node1;
+        SolverBlockMatrix.JA[index1] = node2;
+        SolverBlockMatrix.JA[index2] = node1;
     }
 
     /* Now Sort JA and Find IAU */
+    // This step is necessary for computation of Transpose in Design Code - Adjoint
     for (i = 0; i < mesh.nnodes; i++) {
-        jstart = BlockMatrix.IA[i];
-        jend   = BlockMatrix.IA[i + 1];
+        jstart = SolverBlockMatrix.IA[i];
+        jend   = SolverBlockMatrix.IA[i + 1];
         for (j = jstart; j < jend; j++) {
-            min = BlockMatrix.JA[j];
-            minsave = BlockMatrix.JA[j];
+            min = SolverBlockMatrix.JA[j];
+            minsave = SolverBlockMatrix.JA[j];
             ksave = j;
             for (k = j + 1; k < jend; k++) {
-                if (BlockMatrix.JA[k] < min) {
-                    min = BlockMatrix.JA[k];
+                if (SolverBlockMatrix.JA[k] < min) {
+                    min = SolverBlockMatrix.JA[k];
                     ksave = k;
                 }
             }
-            BlockMatrix.JA[j] = min;
-            BlockMatrix.JA[ksave] = minsave;
-            if (BlockMatrix.JA[j] == i)
-                BlockMatrix.IAU[i] = j;
+            SolverBlockMatrix.JA[j] = min;
+            SolverBlockMatrix.JA[ksave] = minsave;
+            if (SolverBlockMatrix.JA[j] == i)
+                SolverBlockMatrix.IAU[i] = j;
         }
     }
 
     // Allocate Memory for CRS Matrix
-    BlockMatrix.A = NULL;
-    BlockMatrix.A = (double ***) malloc (BlockMatrix.DIM*sizeof(double**));
+    SolverBlockMatrix.A = NULL;
+    SolverBlockMatrix.A = (double ***) malloc (SolverBlockMatrix.CRSSize*sizeof(double**));
 #ifdef DEBUG
-    if (BlockMatrix.A == NULL)
-        error("Create_CRS_BlockMatrix: %s\n", "Error Allocating Memory 5");
+    if (SolverBlockMatrix.A == NULL)
+        error("Create_CRS_SolverBlockMatrix: %s\n", "Error Allocating Memory 5");
 #endif
-    for (i = 0; i < BlockMatrix.DIM; i++) {
-        BlockMatrix.A[i] = NULL;
-        BlockMatrix.A[i] = (double **) malloc (BlockMatrix.Block_nRow*sizeof(double*));
+    for (i = 0; i < SolverBlockMatrix.CRSSize; i++) {
+        SolverBlockMatrix.A[i] = NULL;
+        SolverBlockMatrix.A[i] = (double **) malloc (SolverBlockMatrix.BlockSize*sizeof(double*));
 #ifdef DEBUG
-        if (BlockMatrix.A[i] == NULL)
-            error("Create_CRS_BlockMatrix: %s\n", "Error Allocating Memory 6");
+        if (SolverBlockMatrix.A[i] == NULL)
+            error("Create_CRS_SolverBlockMatrix: %s\n", "Error Allocating Memory 6");
 #endif
-        for (j = 0; j < BlockMatrix.Block_nRow; j++) {
-            BlockMatrix.A[i][j] = NULL;
-            BlockMatrix.A[i][j] = (double *) malloc (BlockMatrix.Block_nCol*sizeof(double));
+        for (j = 0; j < SolverBlockMatrix.BlockSize; j++) {
+            SolverBlockMatrix.A[i][j] = NULL;
+            SolverBlockMatrix.A[i][j] = (double *) malloc (SolverBlockMatrix.BlockSize*sizeof(double));
 #ifdef DEBUG
-            if (BlockMatrix.A[i] == NULL)
-                error("Create_CRS_BlockMatrix: %s\n", "Error Allocating Memory 7");
+            if (SolverBlockMatrix.A[i] == NULL)
+                error("Create_CRS_SolverBlockMatrix: %s\n", "Error Allocating Memory 7");
 #endif
-            for (k = 0; k < BlockMatrix.Block_nCol; k++)
-                BlockMatrix.A[i][j][k] = 0.0;
+            for (k = 0; k < SolverBlockMatrix.BlockSize; k++)
+                SolverBlockMatrix.A[i][j][k] = 0.0;
         }
     }
 
     // Allocate Memory of RHS
-    BlockMatrix.B = NULL;
-    BlockMatrix.B = (double **) malloc (BlockMatrix.nCOL*sizeof(double*));
+    SolverBlockMatrix.B = NULL;
+    SolverBlockMatrix.B = (double **) malloc (SolverBlockMatrix.VectorSize*sizeof(double*));
 #ifdef DEBUG
-    if (BlockMatrix.B == NULL)
-        error("Create_CRS_BlockMatrix: %s\n", "Error Allocating Memory 8");
+    if (SolverBlockMatrix.B == NULL)
+        error("Create_CRS_SolverBlockMatrix: %s\n", "Error Allocating Memory 8");
 #endif
-    for (i = 0; i < BlockMatrix.nCOL; i++) {
-        BlockMatrix.B[i] = NULL;
-        BlockMatrix.B[i] = (double *) malloc (BlockMatrix.Block_nRow*sizeof(double));
+    for (i = 0; i < SolverBlockMatrix.VectorSize; i++) {
+        SolverBlockMatrix.B[i] = NULL;
+        SolverBlockMatrix.B[i] = (double *) malloc (SolverBlockMatrix.BlockSize*sizeof(double));
 #ifdef DEBUG
-        if (BlockMatrix.B[i] == NULL)
-            error("Create_CRS_BlockMatrix: %s\n", "Error Allocating Memory 9");
+        if (SolverBlockMatrix.B[i] == NULL)
+            error("Create_CRS_SolverBlockMatrix: %s\n", "Error Allocating Memory 9");
 #endif
-        for (j = 0; j < BlockMatrix.Block_nRow; j++)
-            BlockMatrix.B[i][j] = 0.0;
+        for (j = 0; j < SolverBlockMatrix.BlockSize; j++)
+            SolverBlockMatrix.B[i][j] = 0.0;
     }
 
     // Allocate Memory for X
-    BlockMatrix.X = NULL;
-    BlockMatrix.X = (double **) malloc (BlockMatrix.nCOL*sizeof(double*));
+    SolverBlockMatrix.X = NULL;
+    SolverBlockMatrix.X = (double **) malloc (SolverBlockMatrix.VectorSize*sizeof(double*));
 #ifdef DEBUG
-    if (BlockMatrix.X == NULL)
-        error("Create_CRS_BlockMatrix: %s\n", "Error Allocating Memory 10");
+    if (SolverBlockMatrix.X == NULL)
+        error("Create_CRS_SolverBlockMatrix: %s\n", "Error Allocating Memory 10");
 #endif
-    for (i = 0; i < BlockMatrix.nCOL; i++) {
-        BlockMatrix.X[i] = NULL;
-        BlockMatrix.X[i] = (double *) malloc (BlockMatrix.Block_nRow*sizeof(double));
+    for (i = 0; i < SolverBlockMatrix.VectorSize; i++) {
+        SolverBlockMatrix.X[i] = NULL;
+        SolverBlockMatrix.X[i] = (double *) malloc (SolverBlockMatrix.BlockSize*sizeof(double));
 #ifdef DEBUG
-        if (BlockMatrix.X[i] == NULL)
-            error("Create_CRS_BlockMatrix: %s\n", "Error Allocating Memory 11");
+        if (SolverBlockMatrix.X[i] == NULL)
+            error("Create_CRS_SolverBlockMatrix: %s\n", "Error Allocating Memory 11");
 #endif
-        for (j = 0; j < BlockMatrix.Block_nRow; j++)
-            BlockMatrix.X[i][j] = 0.0;
+        for (j = 0; j < SolverBlockMatrix.BlockSize; j++)
+            SolverBlockMatrix.X[i][j] = 0.0;
     }
     
     // Free Memory
@@ -1350,7 +1057,7 @@ void Euler2D_Solver_VanLeer::Create_CRS_BlockMatrix() {
 
 // *****************************************************************************
 // *****************************************************************************
-void Euler2D_Solver_VanLeer::Compute_CRS_BlockMatrix(int AddTime) {
+void Euler2D_Solver_VanLeer::Compute_CRS_SolverBlockMatrix(int AddTime) {
     int iNode, i, j, k, idgn, idgn1, idgn2, idgn3;
     int ofdgn1[2], ofdgn2[2], ofdgn3[2];
     int n1, n2, n3, iCell;
@@ -1358,10 +1065,10 @@ void Euler2D_Solver_VanLeer::Compute_CRS_BlockMatrix(int AddTime) {
     double **Ap,**Am;
 
     // Initialize the CRS Matrix
-    for (i = 0; i < BlockMatrix.DIM; i++) {
+    for (i = 0; i < SolverBlockMatrix.CRSSize; i++) {
         for (j = 0; j < 4; j++) {
             for (k = 0; k < 4; k++)
-                BlockMatrix.A[i][j][k] = 0.0;
+                SolverBlockMatrix.A[i][j][k] = 0.0;
         }
     }
     
@@ -1371,14 +1078,14 @@ void Euler2D_Solver_VanLeer::Compute_CRS_BlockMatrix(int AddTime) {
     Ap = (double **) malloc(4*sizeof(double*));
 #ifdef DEBUG
     if (Ap == NULL)
-        error("Compute_CRS_BlockMatrix: %s\n", "Error Allocating Memory 1");
+        error("Compute_CRS_SolverBlockMatrix: %s\n", "Error Allocating Memory 1");
 #endif
     for (i = 0; i < 4; i++) {
         Ap[i] = NULL;
         Ap[i] = (double *) malloc(4*sizeof(double));
 #ifdef DEBUG
         if (Ap[i] == NULL)
-            error("Compute_CRS_BlockMatrix: %s\n", "Error Allocating Memory 2");
+            error("Compute_CRS_SolverBlockMatrix: %s\n", "Error Allocating Memory 2");
 #endif
         for (j = 0; j < 4; j++)
             Ap[i][j] = 0.0;
@@ -1389,14 +1096,14 @@ void Euler2D_Solver_VanLeer::Compute_CRS_BlockMatrix(int AddTime) {
     Am = (double **) malloc(4*sizeof(double*));
 #ifdef DEBUG
     if (Am == NULL)
-        error("Compute_CRS_BlockMatrix: %s\n", "Error Allocating Memory 3");
+        error("Compute_CRS_SolverBlockMatrix: %s\n", "Error Allocating Memory 3");
 #endif
     for (i = 0; i < 4; i++) {
         Am[i] = NULL;
         Am[i] = (double *) malloc(4*sizeof(double));
 #ifdef DEBUG
         if (Am[i] == NULL)
-            error("Compute_CRS_BlockMatrix: %s\n", "Error Allocating Memory 4");
+            error("Compute_CRS_SolverBlockMatrix: %s\n", "Error Allocating Memory 4");
 #endif
         for (j = 0; j < 4; j++)
             Am[i][j] = 0.0;
@@ -1405,14 +1112,14 @@ void Euler2D_Solver_VanLeer::Compute_CRS_BlockMatrix(int AddTime) {
     // Copy the Residuals to Block Matrix which is B
     // And Copy I/DeltaT
     for (iNode = 0; iNode < mesh.nnodes; iNode++) {
-        for (j = 0; j < BlockMatrix.Block_nRow; j++) {
-            BlockMatrix.B[iNode][j] = -node[iNode].Resi[j];
+        // Get the diagonal location
+        idgn = SolverBlockMatrix.IAU[iNode];
+        for (j = 0; j < SolverBlockMatrix.BlockSize; j++) {
+            SolverBlockMatrix.B[iNode][j] = -node[iNode].Resi[j];
             if (AddTime == 1) {
-                // Get the diagonal location
-                idgn = BlockMatrix.IAU[iNode];
-                for (k = 0; k < BlockMatrix.Block_nCol; k++)
+                for (k = 0; k < SolverBlockMatrix.BlockSize; k++)
                     if (k == j)
-                        BlockMatrix.A[idgn][j][k] = node[iNode].area/DeltaT[iNode];
+                        SolverBlockMatrix.A[idgn][j][k] = node[iNode].area/DeltaT[iNode];
             }
         }
     }
@@ -1424,33 +1131,33 @@ void Euler2D_Solver_VanLeer::Compute_CRS_BlockMatrix(int AddTime) {
         n3 = cell[iCell].node3;
         
         // Get the diagonal locations
-        idgn1 = BlockMatrix.IAU[n1];
-        idgn2 = BlockMatrix.IAU[n2];
-        idgn3 = BlockMatrix.IAU[n3];
+        idgn1 = SolverBlockMatrix.IAU[n1];
+        idgn2 = SolverBlockMatrix.IAU[n2];
+        idgn3 = SolverBlockMatrix.IAU[n3];
 
         // Get the Off-Diagonal Locations
         // Node1: ofdgn1[0]-> n2; ofdgn1[1]->n3
         // Node2: ofdgn2[0]-> n3; ofdgn2[1]->n1
         // Node3: ofdgn3[0]-> n1; ofdgn3[1]->n2
         ofdgn1[0] = ofdgn1[1] = -1;
-        for (i = BlockMatrix.IA[n1]; i < BlockMatrix.IA[n1+1]; i++) {
-            if (BlockMatrix.JA[i] == n2)
+        for (i = SolverBlockMatrix.IA[n1]; i < SolverBlockMatrix.IA[n1+1]; i++) {
+            if (SolverBlockMatrix.JA[i] == n2)
                 ofdgn1[0] = i;
-            if (BlockMatrix.JA[i] == n3)
+            if (SolverBlockMatrix.JA[i] == n3)
                 ofdgn1[1] = i;
         }
         ofdgn2[0] = ofdgn2[1] = -1;
-        for (i = BlockMatrix.IA[n2]; i < BlockMatrix.IA[n2+1]; i++) {
-            if (BlockMatrix.JA[i] == n3)
+        for (i = SolverBlockMatrix.IA[n2]; i < SolverBlockMatrix.IA[n2+1]; i++) {
+            if (SolverBlockMatrix.JA[i] == n3)
                 ofdgn2[0] = i;
-            if (BlockMatrix.JA[i] == n1)
+            if (SolverBlockMatrix.JA[i] == n1)
                 ofdgn2[1] = i;
         }
         ofdgn3[0] = ofdgn3[1] = -1;
-        for (i = BlockMatrix.IA[n3]; i < BlockMatrix.IA[n3+1]; i++) {
-            if (BlockMatrix.JA[i] == n1)
+        for (i = SolverBlockMatrix.IA[n3]; i < SolverBlockMatrix.IA[n3+1]; i++) {
+            if (SolverBlockMatrix.JA[i] == n1)
                 ofdgn3[0] = i;
-            if (BlockMatrix.JA[i] == n2)
+            if (SolverBlockMatrix.JA[i] == n2)
                 ofdgn3[1] = i;
         }
 
@@ -1473,11 +1180,11 @@ void Euler2D_Solver_VanLeer::Compute_CRS_BlockMatrix(int AddTime) {
         for (i = 0; i < 4; i++) {
             for (j = 0; j < 4; j++) {
                 // Diagonal
-                BlockMatrix.A[idgn1][i][j] += Ap[i][j];
-                BlockMatrix.A[idgn2][i][j] -= Am[i][j];
+                SolverBlockMatrix.A[idgn1][i][j] += Ap[i][j];
+                SolverBlockMatrix.A[idgn2][i][j] -= Am[i][j];
                 // Off-Diagonal
-                BlockMatrix.A[ofdgn1[0]][i][j] += Am[i][j];
-                BlockMatrix.A[ofdgn2[1]][i][j] -= Ap[i][j];
+                SolverBlockMatrix.A[ofdgn1[0]][i][j] += Am[i][j];
+                SolverBlockMatrix.A[ofdgn2[1]][i][j] -= Ap[i][j];
             }
         }
         
@@ -1499,11 +1206,11 @@ void Euler2D_Solver_VanLeer::Compute_CRS_BlockMatrix(int AddTime) {
         for (i = 0; i < 4; i++) {
             for (j = 0; j < 4; j++) {
                 // Diagonal
-                BlockMatrix.A[idgn2][i][j] += Ap[i][j];
-                BlockMatrix.A[idgn3][i][j] -= Am[i][j];
+                SolverBlockMatrix.A[idgn2][i][j] += Ap[i][j];
+                SolverBlockMatrix.A[idgn3][i][j] -= Am[i][j];
                 // Off-Diagonal
-                BlockMatrix.A[ofdgn2[0]][i][j] += Am[i][j];
-                BlockMatrix.A[ofdgn3[1]][i][j] -= Ap[i][j];
+                SolverBlockMatrix.A[ofdgn2[0]][i][j] += Am[i][j];
+                SolverBlockMatrix.A[ofdgn3[1]][i][j] -= Ap[i][j];
             }
         }
 
@@ -1525,11 +1232,11 @@ void Euler2D_Solver_VanLeer::Compute_CRS_BlockMatrix(int AddTime) {
         for (i = 0; i < 4; i++) {
             for (j = 0; j < 4; j++) {
                 // Diagonal
-                BlockMatrix.A[idgn3][i][j] += Ap[i][j];
-                BlockMatrix.A[idgn1][i][j] -= Am[i][j];
+                SolverBlockMatrix.A[idgn3][i][j] += Ap[i][j];
+                SolverBlockMatrix.A[idgn1][i][j] -= Am[i][j];
                 // Off-Diagonal
-                BlockMatrix.A[ofdgn3[0]][i][j] += Am[i][j];
-                BlockMatrix.A[ofdgn1[1]][i][j] -= Ap[i][j];
+                SolverBlockMatrix.A[ofdgn3[0]][i][j] += Am[i][j];
+                SolverBlockMatrix.A[ofdgn1[1]][i][j] -= Ap[i][j];
             }
         }
     }
@@ -1554,7 +1261,7 @@ void Euler2D_Solver_VanLeer::Compute_CRS_BlockMatrix(int AddTime) {
 
 // *****************************************************************************
 // *****************************************************************************
-void Euler2D_Solver_VanLeer::Compute_Boundary_CRS_BlockMatrix() {
+void Euler2D_Solver_VanLeer::Compute_Boundary_CRS_SolverBlockMatrix() {
     int i, j, n1, n2, idgn, iedge;
     double Nx, Ny;
     // Variables to Store Partial Derivatives with Conserved Variables
@@ -1623,10 +1330,10 @@ void Euler2D_Solver_VanLeer::Compute_Boundary_CRS_BlockMatrix() {
         }
         
         // Get the diagonal term
-        idgn = BlockMatrix.IAU[n1];
+        idgn = SolverBlockMatrix.IAU[n1];
         for (j = 0; j < 4; j++) {
-            BlockMatrix.A[idgn][1][j] += Nx*P_Q[j];
-            BlockMatrix.A[idgn][2][j] += Ny*P_Q[j];
+            SolverBlockMatrix.A[idgn][1][j] += Nx*P_Q[j];
+            SolverBlockMatrix.A[idgn][2][j] += Ny*P_Q[j];
         }
         
         // ************************ Node2 **********************************
@@ -1667,10 +1374,10 @@ void Euler2D_Solver_VanLeer::Compute_Boundary_CRS_BlockMatrix() {
         }
 
         // Get the diagonal term
-        idgn = BlockMatrix.IAU[n2];
+        idgn = SolverBlockMatrix.IAU[n2];
         for (j = 0; j < 4; j++) {
-            BlockMatrix.A[idgn][1][j] += Nx*P_Q[j];
-            BlockMatrix.A[idgn][2][j] += Ny*P_Q[j];
+            SolverBlockMatrix.A[idgn][1][j] += Nx*P_Q[j];
+            SolverBlockMatrix.A[idgn][2][j] += Ny*P_Q[j];
         }
     }
     
@@ -1730,10 +1437,10 @@ void Euler2D_Solver_VanLeer::Compute_Boundary_CRS_BlockMatrix() {
         }
 
         // Get the diagonal term
-        idgn = BlockMatrix.IAU[n1];
+        idgn = SolverBlockMatrix.IAU[n1];
         for (j = 0; j < 4; j++) {
-            BlockMatrix.A[idgn][1][j] += Nx*P_Q[j];
-            BlockMatrix.A[idgn][2][j] += Ny*P_Q[j];
+            SolverBlockMatrix.A[idgn][1][j] += Nx*P_Q[j];
+            SolverBlockMatrix.A[idgn][2][j] += Ny*P_Q[j];
         }
 
         // ************************ Node2 **********************************
@@ -1774,10 +1481,10 @@ void Euler2D_Solver_VanLeer::Compute_Boundary_CRS_BlockMatrix() {
         }
 
         // Get the diagonal term
-        idgn = BlockMatrix.IAU[n2];
+        idgn = SolverBlockMatrix.IAU[n2];
         for (j = 0; j < 4; j++) {
-            BlockMatrix.A[idgn][1][j] += Nx*P_Q[j];
-            BlockMatrix.A[idgn][2][j] += Ny*P_Q[j];
+            SolverBlockMatrix.A[idgn][1][j] += Nx*P_Q[j];
+            SolverBlockMatrix.A[idgn][2][j] += Ny*P_Q[j];
         }
     }
 
@@ -1797,35 +1504,35 @@ void Euler2D_Solver_VanLeer::Compute_Boundary_CRS_BlockMatrix() {
 
         // ************************ Node1 **********************************
         int k, l, jstart, jend;
-        jstart = BlockMatrix.IA[n1];
-        jend   = BlockMatrix.IA[n1+1];
+        jstart = SolverBlockMatrix.IA[n1];
+        jend   = SolverBlockMatrix.IA[n1+1];
         for (j = jstart; j < jend; j++) {
             for (k = 0; k < 4; k++) {
                 for (l = 0; l < 4; l++)
-                    BlockMatrix.A[j][k][l] = 0.0;
+                    SolverBlockMatrix.A[j][k][l] = 0.0;
             }
         }
-        idgn = BlockMatrix.IAU[n1];
+        idgn = SolverBlockMatrix.IAU[n1];
         for (k = 0; k < 4; k++) {
             for (l = 0; l < 4; l++)
                 if (l == k)
-                    BlockMatrix.A[idgn][k][l] = 1.0;
+                    SolverBlockMatrix.A[idgn][k][l] = 1.0;
         }
 
         // ************************ Node2 **********************************
-        jstart = BlockMatrix.IA[n2];
-        jend   = BlockMatrix.IA[n2+1];
+        jstart = SolverBlockMatrix.IA[n2];
+        jend   = SolverBlockMatrix.IA[n2+1];
         for (j = jstart; j < jend; j++) {
             for (k = 0; k < 4; k++) {
                 for (l = 0; l < 4; l++)
-                    BlockMatrix.A[j][k][l] = 0.0;
+                    SolverBlockMatrix.A[j][k][l] = 0.0;
             }
         }
-        idgn = BlockMatrix.IAU[n2];
+        idgn = SolverBlockMatrix.IAU[n2];
         for (k = 0; k < 4; k++) {
             for (l = 0; l < 4; l++)
                 if (l == k)
-                    BlockMatrix.A[idgn][k][l] = 1.0;
+                    SolverBlockMatrix.A[idgn][k][l] = 1.0;
         }
     }
 }
@@ -1837,8 +1544,8 @@ void Euler2D_Solver_VanLeer::Update_Solution() {
 
     // DelataQ = Q(n+1) - Q(n)
     for (i = 0; i < mesh.nnodes; i++) {
-        for (j = 0; j < BlockMatrix.Block_nRow; j++)
-            node[i].Q[j] += BlockMatrix.X[i][j];
+        for (j = 0; j < SolverBlockMatrix.BlockSize; j++)
+            node[i].Q[j] += SolverBlockMatrix.X[i][j];
     }
 }
 
@@ -1852,7 +1559,7 @@ double Euler2D_Solver_VanLeer::Compute_RMS() {
     // DelataQ = Q(n+1) - Q(n)
     for (i = 0; i < mesh.nnodes; i++) {
         for (j = 0; j < 4; j++) {
-            RMS[j] += BlockMatrix.X[i][j]*BlockMatrix.X[i][j];
+            RMS[j] += SolverBlockMatrix.X[i][j]*SolverBlockMatrix.X[i][j];
             RMS_Res += node[i].Resi[j]*node[i].Resi[j];
         }
     }

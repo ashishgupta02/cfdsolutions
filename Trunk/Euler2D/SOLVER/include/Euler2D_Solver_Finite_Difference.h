@@ -1,9 +1,8 @@
-/* 
- * File:   Euler2D_Solver_Finite_Difference.h
- * Author: Ashish Gupta
- *
- * Created on October 3, 2010, 1:19 PM
- */
+/*******************************************************************************
+ * File:        Euler2D_Solver_Finite_Difference.h
+ * Author:      Ashish Gupta
+ * Revision:    1
+ ******************************************************************************/
 
 #ifndef _EULER2D_SOLVER_FINITE_DIFFERENCE_H
 #define	_EULER2D_SOLVER_FINITE_DIFFERENCE_H

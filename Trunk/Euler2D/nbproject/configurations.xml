@@ -7,12 +7,14 @@
                      projectFiles="true"
                      kind="SOURCE_LOGICAL_FOLDER">
         <itemPath>DESIGN/include/Euler2D_Design.h</itemPath>
+        <itemPath>DESIGN/include/Euler2D_Design_VanLeer.h</itemPath>
       </logicalFolder>
       <logicalFolder name="src"
                      displayName="src"
                      projectFiles="true"
                      kind="SOURCE_LOGICAL_FOLDER">
         <itemPath>DESIGN/src/Euler2D_Design.cpp</itemPath>
+        <itemPath>DESIGN/src/Euler2D_Design_VanLeer.cpp</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
@@ -30,10 +32,12 @@
     <logicalFolder name="MESH" displayName="MESH" projectFiles="true">
       <logicalFolder name="include" displayName="include" projectFiles="true">
         <itemPath>MESH/include/Euler2D_Mesh.h</itemPath>
+        <itemPath>MESH/include/Euler2D_Mesh_LinearElasticSmoother.h</itemPath>
         <itemPath>MESH/include/Mesh.h</itemPath>
       </logicalFolder>
       <logicalFolder name="src" displayName="src" projectFiles="true">
         <itemPath>MESH/src/Euler2D_Mesh.cpp</itemPath>
+        <itemPath>MESH/src/Euler2D_Mesh_LinearElasticSmoother.cpp</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
@@ -42,6 +46,7 @@
     </logicalFolder>
     <logicalFolder name="SOLVER" displayName="SOLVER" projectFiles="true">
       <logicalFolder name="include" displayName="include" projectFiles="true">
+        <itemPath>SOLVER/include/Euler2D_Solver.h</itemPath>
         <itemPath>SOLVER/include/Euler2D_Solver_AUSM.h</itemPath>
         <itemPath>SOLVER/include/Euler2D_Solver_Finite_Difference.h</itemPath>
         <itemPath>SOLVER/include/Euler2D_Solver_LDFSS.h</itemPath>
@@ -51,6 +56,7 @@
         <itemPath>SOLVER/include/Euler2D_Solver_VanLeer.h</itemPath>
       </logicalFolder>
       <logicalFolder name="src" displayName="src" projectFiles="true">
+        <itemPath>SOLVER/src/Euler2D_Solver.cpp</itemPath>
         <itemPath>SOLVER/src/Euler2D_Solver_AUSM.cpp</itemPath>
         <itemPath>SOLVER/src/Euler2D_Solver_LDFSS.cpp</itemPath>
         <itemPath>SOLVER/src/Euler2D_Solver_Osher.cpp</itemPath>
