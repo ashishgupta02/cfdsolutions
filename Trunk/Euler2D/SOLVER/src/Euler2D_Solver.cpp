@@ -275,6 +275,7 @@ void Euler2D_Solver::Get_Solver_Inputs(const char* FileName) {
         FDNodeID = -2;
     }
 
+#ifdef VERBOSE
     printf("Input Mesh File     = %s\n",  WKAMeshFileName.c_str());
     printf("Input Restart File  = %s\n",  InputRestartFileName.c_str());
     printf("Output Restart File = %s\n",  OutputRestartFileName.c_str());
@@ -296,6 +297,8 @@ void Euler2D_Solver::Get_Solver_Inputs(const char* FileName) {
     printf("FD Epsilon          = %lf\n", FDEpsilon);
     printf("FD Check Iteration  = %d\n",  FDIteration);
     printf("-----------------------------------------------------------------------------\n");
+#endif
+    
     // Close Input File
     fclose(fp);
 }

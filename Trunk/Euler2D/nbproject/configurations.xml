@@ -100,6 +100,9 @@
             <pElem>SOLVER/include</pElem>
             <pElem>DESIGN/include</pElem>
           </incDir>
+          <preprocessorList>
+            <Elem>VERBOSE</Elem>
+          </preprocessorList>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
@@ -112,6 +115,9 @@
             <pElem>DESIGN/include</pElem>
           </incDir>
           <commandLine>-Wno-write-strings</commandLine>
+          <preprocessorList>
+            <Elem>VERBOSE</Elem>
+          </preprocessorList>
           <warningLevel>2</warningLevel>
         </ccTool>
         <fortranCompilerTool>
