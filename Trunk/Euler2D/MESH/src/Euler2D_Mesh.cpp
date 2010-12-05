@@ -69,15 +69,15 @@ Euler2D_Mesh::~Euler2D_Mesh() {
 // *****************************************************************************
 void Euler2D_Mesh::WKA_MeshReader(const char* FileName) {
     int i, icount;
-    int node1, node2;
     int idum, iret;
     FILE *inputMesh;
     char dumstring[100];
     char *cdum;
-    int *tag = NULL;
 
+#ifdef VERBOSE
     printf("=============================================================================\n");
     info("Reading Mesh File %s", FileName);
+#endif
 
     // Open Mesh File
     if ((inputMesh = fopen(FileName, "r")) == (FILE *) NULL)
@@ -85,7 +85,10 @@ void Euler2D_Mesh::WKA_MeshReader(const char* FileName) {
 
     // Read mesh sizes
     iret = fscanf(inputMesh, "%d %d %d %d %d %d", &mesh.nnodes, &mesh.nedges, &mesh.ncells, &mesh.nbedges, &idum, &idum);
+    
+#ifdef VERBOSE
     info("NNodes = %d NEdges = %d NCells = %d NBEdge = %d", mesh.nnodes, mesh.nedges, mesh.ncells, mesh.nbedges);
+#endif
 
     mesh.inside = mesh.ncells - mesh.nbedges;
 
@@ -128,66 +131,12 @@ void Euler2D_Mesh::WKA_MeshReader(const char* FileName) {
     for (i = 0; i < mesh.nnodes; i++)
         iret = fscanf(inputMesh, "%le %le", &node[i].x, &node[i].y);
 
-    /* Fill boundaryNode array (used for Dirchlet boundary condition) */
-    tag = (int *) calloc(mesh.nnodes, sizeof (int));
-    for (i = 0; i < mesh.nnodes; i++) tag[i] = 0;
-
-    /* Fill boundaryNode array */
-    /* First find out how large to make the array */
-    mesh.nbnodes = 0;
-    for (i = 0; i < mesh.nbedges; i++) {
-        node1 = edge[boundaryEdge[i].edgeNumber].node1;
-        node2 = edge[boundaryEdge[i].edgeNumber].node2;
-        if ((boundaryEdge[i].bcType >= 2000) && (boundaryEdge[i].bcType <= 2999)) {
-            if (tag[node1] != 1) {
-                mesh.nbnodes += 1;
-                tag[node1] = 1;
-            }
-            if (tag[node2] != 1) {
-                mesh.nbnodes += 1;
-                tag[node2] = 1;
-            }
-        }
-    }
-    info("NBNodes = %d", mesh.nbnodes);
-
-    boundaryNode = (BOUNDARYNODE *) calloc(mesh.nbnodes, sizeof (BOUNDARYNODE));
-    mesh.nbnodes = 0;
-    for (i = 0; i < mesh.nnodes; i++) tag[i] = 0;
-    for (i = 0; i < mesh.nbedges; i++) {
-        node1 = edge[boundaryEdge[i].edgeNumber].node1;
-        node2 = edge[boundaryEdge[i].edgeNumber].node2;
-        if ((boundaryEdge[i].bcType >= 2000) && (boundaryEdge[i].bcType <= 2999)) {
-            if (tag[node1] != 1) {
-                boundaryNode[mesh.nbnodes].nodeNumber = node1;
-                if (boundaryEdge[i].bcType == 2000) {
-                    boundaryNode[mesh.nbnodes].constant = node[node1].x;
-                } else {
-                    boundaryNode[mesh.nbnodes].constant = boundaryEdge[i].c1;
-                }
-                mesh.nbnodes += 1;
-                tag[node1] = 1;
-            }
-            if (tag[node2] != 1) {
-                boundaryNode[mesh.nbnodes].nodeNumber = node2;
-                if (boundaryEdge[i].bcType == 2000) {
-                    boundaryNode[mesh.nbnodes].constant = node[node2].x;
-                } else {
-                    boundaryNode[mesh.nbnodes].constant = boundaryEdge[i].c1;
-                }
-                mesh.nbnodes += 1;
-                tag[node2] = 1;
-            }
-        }
-    }
-
-    // Free Memory
-    if (tag != NULL)
-        free(tag);
-
     // Close file
     fclose(inputMesh);
+
+#ifdef VERBOSE
     printf("=============================================================================\n");
+#endif
 }
 
 // *****************************************************************************
@@ -211,8 +160,10 @@ void Euler2D_Mesh::WKA_MeshWriter(const char* FileName) {
     int idum;
     FILE *outputMesh;
 
+#ifdef VERBOSE
     printf("=============================================================================\n");
     info("Writing Mesh File %s", FileName);
+#endif
 
     // Open Mesh File
     if ((outputMesh = fopen(FileName, "w")) == (FILE *) NULL)
@@ -250,7 +201,10 @@ void Euler2D_Mesh::WKA_MeshWriter(const char* FileName) {
         fprintf(outputMesh, " %19.10E  %19.10E\n", node[i].x, node[i].y);
 
     fclose(outputMesh);
+    
+#ifdef VERBOSE
     printf("=============================================================================\n");
+#endif
 }
 
 // *****************************************************************************
@@ -359,16 +313,20 @@ void Euler2D_Mesh::WKA_ExtractCells(void) {
             imin = i;
         }
     }
+
+#ifdef VERBOSE
     info("Cell Area: MAX = %lf MIN = %lf", areamax, areamin);
     info("Cell ID Min Area: %d Area = %le", imin, cell[imin].area);
     printf("=============================================================================\n");
+#endif
 }
 
 // *****************************************************************************
 // *****************************************************************************
 void Euler2D_Mesh::Tag_Boundary_Nodes() {
-    int i, n1, n2, bctype;
-    
+    int i, n1, n2, bctype, ibn;
+    List bnode;
+
     // Tag the Boundary Nodes Points
     // Method of Tagging is not robust as boundary connecting points have Tag
     // which are tagged last.
@@ -386,7 +344,7 @@ void Euler2D_Mesh::Tag_Boundary_Nodes() {
         // BCType 1: 1000-1999 : Solid Wall
         if ((boundaryEdge[i].bcType >= 1000) && (boundaryEdge[i].bcType <= 1999))
             bctype = 1;
-        // BCType 2: 2000-2999
+        // BCType 2: 2000-2999 : Dirchlet Boundary Condition
         if ((boundaryEdge[i].bcType >= 2000) && (boundaryEdge[i].bcType <= 2999))
             bctype = 2;
         // BCType 2: 3000-3999 : Freestream
@@ -404,6 +362,98 @@ void Euler2D_Mesh::Tag_Boundary_Nodes() {
         if (BNTag[i] != -1)
             mesh.nbnodes++;
     }
+
+#ifdef VERBOSE
+    info("NBNodes = %d", mesh.nbnodes);
+#endif
+    
+    boundaryNode = (BOUNDARYNODE *) calloc(mesh.nbnodes, sizeof (BOUNDARYNODE));
+    ibn = 0;
+    for (i = 0; i < mesh.nbedges; i++) {
+        n1 = edge[boundaryEdge[i].edgeNumber].node1;
+        n2 = edge[boundaryEdge[i].edgeNumber].node2;
+
+        // BCType 0: 0-999
+        if ((boundaryEdge[i].bcType >= 0) && (boundaryEdge[i].bcType <= 999)) {
+            if (!bnode.Is_In_List(n1)) {
+                bnode.Add_To_List(n1);
+                boundaryNode[ibn].bcType     = BNTag[n1];
+                boundaryNode[ibn].nodeNumber = n1;
+                boundaryNode[ibn].constant   = 0.0;
+                ibn++;
+            }
+            if (!bnode.Is_In_List(n2)) {
+                bnode.Add_To_List(n2);
+                boundaryNode[ibn].bcType     = BNTag[n2];
+                boundaryNode[ibn].nodeNumber = n2;
+                boundaryNode[ibn].constant   = 0.0;
+                ibn++;
+            }
+        }
+        // BCType 1: 1000-1999 : Solid Wall
+        if ((boundaryEdge[i].bcType >= 1000) && (boundaryEdge[i].bcType <= 1999)) {
+            if (!bnode.Is_In_List(n1)) {
+                bnode.Add_To_List(n1);
+                boundaryNode[ibn].bcType     = BNTag[n1];
+                boundaryNode[ibn].nodeNumber = n1;
+                boundaryNode[ibn].constant   = 0.0;
+                ibn++;
+            }
+            if (!bnode.Is_In_List(n2)) {
+                bnode.Add_To_List(n2);
+                boundaryNode[ibn].bcType     = BNTag[n2];
+                boundaryNode[ibn].nodeNumber = n2;
+                boundaryNode[ibn].constant   = 0.0;
+                ibn++;
+            }
+        }
+        // BCType 2: 2000-2999 : Dirchlet Boundary Condition
+        if ((boundaryEdge[i].bcType >= 2000) && (boundaryEdge[i].bcType <= 2999)) {
+            if (BNTag[n1] != 2) {
+                if (!bnode.Is_In_List(n1)) {
+                    bnode.Add_To_List(n1);
+                    boundaryNode[ibn].bcType     = BNTag[n1];
+                    boundaryNode[ibn].nodeNumber = n1;
+                    if (boundaryEdge[i].bcType == 2000) {
+                        boundaryNode[ibn].constant = node[n1].x;
+                    } else {
+                        boundaryNode[ibn].constant = boundaryEdge[i].c1;
+                    }
+                    ibn++;
+                }
+            }
+            if (BNTag[n2] != 2) {
+                if (!bnode.Is_In_List(n2)) {
+                    bnode.Add_To_List(n2);
+                    boundaryNode[ibn].bcType     = BNTag[n2];
+                    boundaryNode[ibn].nodeNumber = n2;
+                    if (boundaryEdge[i].bcType == 2000) {
+                        boundaryNode[ibn].constant = node[n2].x;
+                    } else {
+                        boundaryNode[ibn].constant = boundaryEdge[i].c1;
+                    }
+                    ibn++;
+                }
+            }
+        }
+        // BCType 2: 3000-3999 : Freestream
+        if ((boundaryEdge[i].bcType >= 3000) && (boundaryEdge[i].bcType <= 3999)) {
+            if (!bnode.Is_In_List(n1)) {
+                bnode.Add_To_List(n1);
+                boundaryNode[ibn].bcType     = BNTag[n1];
+                boundaryNode[ibn].nodeNumber = n1;
+                boundaryNode[ibn].constant   = 0.0;
+                ibn++;
+            }
+            if (!bnode.Is_In_List(n2)) {
+                bnode.Add_To_List(n2);
+                boundaryNode[ibn].bcType     = BNTag[n2];
+                boundaryNode[ibn].nodeNumber = n2;
+                boundaryNode[ibn].constant   = 0.0;
+                ibn++;
+            }
+        }
+    }
 }
 
 // *****************************************************************************
@@ -413,9 +463,11 @@ void Euler2D_Mesh::Read_RestartFile(const char* FileName) {
     size_t sdum;
     FILE *fp;
 
+#ifdef VERBOSE
     printf("=============================================================================\n");
     info("Reading Restart File %s", FileName);
-    
+#endif
+
     // Open Mesh File
     if ((fp = fopen(FileName, "rb")) == (FILE *) NULL)
         error("Read_RestartFile: Unable to Open Mesh File %s", FileName);
@@ -434,7 +486,10 @@ void Euler2D_Mesh::Read_RestartFile(const char* FileName) {
     }
 
     fclose(fp);
+    
+#ifdef VERBOSE
     printf("=============================================================================\n");
+#endif
 }
 
 // *****************************************************************************
@@ -443,8 +498,10 @@ void Euler2D_Mesh::Write_RestartFile(const char* FileName) {
     int iNode, var;
     FILE *fp;
 
+#ifdef VERBOSE
     printf("=============================================================================\n");
     info("Writing Restart File %s", FileName);
+#endif
 
     // Open Mesh File
     if ((fp = fopen(FileName, "wb")) == (FILE *) NULL)
@@ -461,7 +518,10 @@ void Euler2D_Mesh::Write_RestartFile(const char* FileName) {
     }
     
     fclose(fp);
+
+#ifdef VERBOSE
     printf("=============================================================================\n");
+#endif
 }
 
 // *****************************************************************************
@@ -469,8 +529,10 @@ void Euler2D_Mesh::Write_RestartFile(const char* FileName) {
 void Euler2D_Mesh::SLK_MeshReader(const char* FileName) {
     FILE *inputMesh;
 
+#ifdef VERBOSE
     printf("=============================================================================\n");
     info("Reading Mesh File %s", FileName);
+#endif
 
     // Open Mesh File
     if ((inputMesh = fopen(FileName, "r")) == (FILE *) NULL)
@@ -478,6 +540,10 @@ void Euler2D_Mesh::SLK_MeshReader(const char* FileName) {
 
     // Close File
     fclose(inputMesh);
+
+#ifdef VERBOSE
+    printf("=============================================================================\n");
+#endif
 }
 
 // *****************************************************************************
@@ -490,7 +556,9 @@ void Euler2D_Mesh::SLK_MeshWriter(const char* FileName) {
     if ((fp = fopen(FileName, "w")) == 0)
         error("SLK_MeshWriter: %s %s\n", "Couldn't Open Optimized Mesh File:", FileName);
 
+#ifdef VERBOSE
     info("Writing Optimized Mesh File: %s", FileName);
+#endif
 
     // Write out nodes
     fprintf(fp, "# Number of grid points\n");
@@ -561,6 +629,10 @@ void Euler2D_Mesh::SLK_MeshWriter(const char* FileName) {
     
     // Close File
     fclose(fp);
+
+#ifdef VERBOSE
+    printf("=============================================================================\n");
+#endif
 }
 
 // *****************************************************************************
@@ -573,8 +645,10 @@ void Euler2D_Mesh::Write_Solution_GnuplotFile(const char* FileName) {
     if ((fp = fopen(FileName, "w")) == 0)
         error("Write_Solution_GnuplotFile: %s %s\n", "Couldn't Open Optimized Mesh File:", FileName);
 
+#ifdef VERBOSE
     info("Writing Solution Gnuplot File: %s", FileName);
-    
+#endif
+
     // Write out nodes and Qs
     for (i = 0; i < mesh.nnodes; i++)
         fprintf(fp, "%22.15e %22.15e %22.15e %22.15e %22.15e %22.15e\n",
@@ -582,6 +656,10 @@ void Euler2D_Mesh::Write_Solution_GnuplotFile(const char* FileName) {
     
     // Close File
     fclose(fp);
+
+#ifdef VERBOSE
+    printf("=============================================================================\n");
+#endif
 }
 
 // *****************************************************************************
@@ -595,8 +673,10 @@ void Euler2D_Mesh::Write_TecplotFile(const char* FileName) {
     if ((fp = fopen(FileName, "w")) == 0)
         error("Write_TecplotFile: %s %s\n", "Couldn't Open File:", FileName);
 
+#ifdef VERBOSE
     info("Writing Tecplot File: %s", FileName);
-    
+#endif
+
     // Write out nodes
     fprintf(fp, "title = \"Triangular Mesh Field Data\"\n");
     fprintf(fp, "variables = \"x\", \"y\", \"Density\", \"U Velocity\", \"V Velocity\", \"Internal Energy\", \"Pressure\"\n");
@@ -619,6 +699,10 @@ void Euler2D_Mesh::Write_TecplotFile(const char* FileName) {
 
     // Close File
     fclose(fp);
+
+#ifdef VERBOSE
+    printf("=============================================================================\n");
+#endif
 }
 
 // *****************************************************************************
@@ -632,7 +716,10 @@ void Euler2D_Mesh::Write_VTK_Unstructured_File(const char* FileName) {
     if ((fp = fopen(FileName, "w")) == 0)
         error("Write_VTK_Unstructured_File: %s %s\n", "Couldn't Open File:", FileName);
 
+#ifdef VERBOSE
     info("Writing VTK File: %s", FileName);
+#endif
+
     Gamma = 1.4;
 
     fprintf(fp, "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n");
@@ -702,6 +789,10 @@ void Euler2D_Mesh::Write_VTK_Unstructured_File(const char* FileName) {
 
     // Close File
     fclose(fp);
+
+#ifdef VERBOSE
+    printf("=============================================================================\n");
+#endif
 }
 
 // *****************************************************************************
@@ -714,7 +805,9 @@ void Euler2D_Mesh::Write_VTK_Unstructured_DebugFile(const char* FileName, double
     if ((fp = fopen(FileName, "w")) == 0)
         error("Write_VTK_Unstructured_File: %s %s\n", "Couldn't Open File:", FileName);
 
+#ifdef VERBOSE
     info("Writing VTK File: %s", FileName);
+#endif
 
     fprintf(fp, "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n");
     fprintf(fp, "<UnstructuredGrid>\n");
@@ -760,6 +853,10 @@ void Euler2D_Mesh::Write_VTK_Unstructured_DebugFile(const char* FileName, double
 
     // Close File
     fclose(fp);
+
+#ifdef VERBOSE
+    printf("=============================================================================\n");
+#endif
 }
 
 // *****************************************************************************

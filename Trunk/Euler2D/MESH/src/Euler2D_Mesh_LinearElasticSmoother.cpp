@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <iostream>
 
+#include "List.h"
 #include "Utils.h"
 #include "MUtils.h"
 #include "Euler2D_Mesh_LinearElasticSmoother.h"
@@ -15,6 +16,11 @@
 // *****************************************************************************
 // *****************************************************************************
 Euler2D_Mesh_LinearElasticSmoother::Euler2D_Mesh_LinearElasticSmoother() {
+#ifdef VERBOSE
+    printf("=============================================================================\n");
+    printf("      Euler2D : Linear Elastic Mesh Smoother                                 \n");
+    printf("=============================================================================\n");
+#endif
     // Initialize the Data
     Init();
 }
@@ -22,6 +28,16 @@ Euler2D_Mesh_LinearElasticSmoother::Euler2D_Mesh_LinearElasticSmoother() {
 // *****************************************************************************
 // *****************************************************************************
 void Euler2D_Mesh_LinearElasticSmoother::Init() {
+    BlockSize                      = 0;
+    VectorSize                     = 0;
+    changeIndex                    = 0;
+    Parent                         = 0;
+    mesh.inside                    = 0;
+    mesh.nbedges                   = 0;
+    mesh.nbnodes                   = 0;
+    mesh.ncells                    = 0;
+    mesh.nedges                    = 0;
+    mesh.nnodes                    = 0;
     cell                           = NULL;
     edge                           = NULL;
     node                           = NULL;
@@ -45,12 +61,32 @@ void Euler2D_Mesh_LinearElasticSmoother::Reset() {
     int i, j;
 
     // Un-Share the Mesh Data Structure
-    cell         = NULL;
-    edge         = NULL;
-    node         = NULL;
-    boundaryEdge = NULL;
-    boundaryNode = NULL;
-    BNTag        = NULL;
+    if (Parent == 0) {
+        cell         = NULL;
+        edge         = NULL;
+        node         = NULL;
+        boundaryEdge = NULL;
+        boundaryNode = NULL;
+        BNTag        = NULL;
+    } else {
+        if (cell != NULL)
+        free(cell);
+
+        if (edge != NULL)
+            free(edge);
+
+        if (node != NULL)
+            free(node);
+
+        if (boundaryEdge != NULL)
+            free(boundaryEdge);
+
+        if (boundaryNode != NULL)
+            free(boundaryNode);
+
+        if (BNTag != NULL)
+            free(BNTag);
+    }
 
     // Un-Share the common data in the CRS Matrix
     LESmoothBlockMatrix.IA  = NULL;
@@ -97,6 +133,31 @@ Euler2D_Mesh_LinearElasticSmoother::~Euler2D_Mesh_LinearElasticSmoother() {
 
 // *****************************************************************************
 // *****************************************************************************
+void Euler2D_Mesh_LinearElasticSmoother::Initialize_Mesh_Smoother(const char* FileName, MC_CRS* Object) {
+    Parent = 1;
+
+    // Read Mesh File
+    WKA_MeshReader(FileName);
+
+    // Get Boundary Nodes and Tag Nodes
+    Tag_Boundary_Nodes();
+
+    // Extract Connectivity
+    WKA_ExtractCells();
+
+    // Compute the Expensive Geometric Properties
+    Compute_Geometric_Properties();
+
+    // Set the Dimension of CRS Matrix
+    VectorSize   = mesh.nnodes;
+    BlockSize    = 2;
+    
+    // Create the CRS Matrix
+    Create_CRS_LESmoothBlockMatrix(Object);
+}
+
+// *****************************************************************************
+// *****************************************************************************
 void Euler2D_Mesh_LinearElasticSmoother::Initialize_Mesh_Smoother(MESH inputMesh,
         CELL* ptrCell, EDGE* ptrEdge, NODE* ptrNode, BOUNDARYEDGE* ptrBoundaryEdge,
         BOUNDARYNODE* ptrBoundaryNode, int* ptrBNTag, MC_CRS *Object) {
@@ -117,7 +178,8 @@ void Euler2D_Mesh_LinearElasticSmoother::Initialize_Mesh_Smoother(MESH inputMesh
     // Set the Dimension of CRS Matrix
     VectorSize   = mesh.nnodes;
     BlockSize    = 2;
-
+    Parent       = 0;
+    
     // Create the CRS Matrix
     Create_CRS_LESmoothBlockMatrix(Object);
 }
@@ -150,7 +212,10 @@ void Euler2D_Mesh_LinearElasticSmoother::Mesh_Smoother(int MaxIter, double Relax
     
     // Linear Solver
     lrms = Solve_CRS_LESmoothBlockMatrix(MaxIter, Relaxation, U, V);
+    
+#ifdef VERBOSE
     printf("LESmooth LRMS = %10.5e\n", lrms);
+#endif
 }
 
 // *****************************************************************************
@@ -533,5 +598,466 @@ double Euler2D_Mesh_LinearElasticSmoother::Compute_Tri_Area(int n0, int n1, int 
             -(node[n1].y-node[n0].y)*(node[n2].x-node[n0].x));
     
     return Area;
+}
+
+// *****************************************************************************
+/*                                                                         */
+/* Reads mesh using edge pointers and initializes solution to linear       */
+/*                                                                         */
+// *****************************************************************************
+/* File Discription                                                        */
+/* NNode NEdges NCells NBEdges Dummy Dummy                                 */
+/* Node1 Node2 Cell1 Cell2                                                 */
+/* .......................                                                 */
+/* sedges                                                                  */
+/* BEdge BType Const1 Const2                                               */
+/* .......................                                                 */
+/* coordinates                                                             */
+/* X Y                                                                     */
+/* .......................                                                 */
+// *****************************************************************************
+void Euler2D_Mesh_LinearElasticSmoother::WKA_MeshReader(const char* FileName) {
+    int i, icount;
+    int idum, iret;
+    FILE *inputMesh;
+    char dumstring[100];
+    char *cdum;
+
+#ifdef VERBOSE
+    printf("=============================================================================\n");
+    info("Reading Mesh File %s", FileName);
+#endif
+
+    // Open Mesh File
+    if ((inputMesh = fopen(FileName, "r")) == (FILE *) NULL)
+        error("Unable to Open Mesh File %s", FileName);
+
+    // Read mesh sizes
+    iret = fscanf(inputMesh, "%d %d %d %d %d %d", &mesh.nnodes, &mesh.nedges, &mesh.ncells, &mesh.nbedges, &idum, &idum);
+
+#ifdef VERBOSE
+    info("NNodes = %d NEdges = %d NCells = %d NBEdge = %d", mesh.nnodes, mesh.nedges, mesh.ncells, mesh.nbedges);
+#endif
+    
+    mesh.inside = mesh.ncells - mesh.nbedges;
+
+    // Allocate Memory to store Connectivity
+    edge = (EDGE *) calloc(mesh.nedges, sizeof (EDGE));
+    cell = (CELL *) calloc(mesh.ncells, sizeof (CELL));
+    boundaryEdge = (BOUNDARYEDGE *) calloc(mesh.nbedges, sizeof (BOUNDARYEDGE));
+
+    icount = 0;
+    for (i = 0; i < mesh.nedges; i++) {
+        iret = fscanf(inputMesh, "%d %d %d %d", &edge[i].node1, &edge[i].node2, &edge[i].cell1, &edge[i].cell2);
+        /* Subtract 1; mesh written assuming number starts at 1 */
+        /* but number really starts at 0 because this is C      */
+        if (changeIndex == 1) {
+            edge[i].node1 -= 1;
+            edge[i].node2 -= 1;
+            edge[i].cell1 -= 1;
+            edge[i].cell2 -= 1;
+        }
+    }
+
+    /* Read boundary edges */
+    /* Types: 1000 del(q).n = 0 */
+    /*        2000 q = x        */
+    /*        2001 q = c1       */
+    iret = fscanf(inputMesh, "\n");
+    cdum = fgets(dumstring, 100, inputMesh);
+    for (i = 0; i < mesh.nbedges; i++) {
+        iret = fscanf(inputMesh, "%d %d %lf %lf", &idum, &(boundaryEdge[i].bcType), &(boundaryEdge[i].c1), &(boundaryEdge[i].c2));
+        if (changeIndex == 1)
+            boundaryEdge[i].edgeNumber = idum - 1;
+        else
+            boundaryEdge[i].edgeNumber = idum;
+    }
+
+    /* Now read the mesh coordinates */
+    iret = fscanf(inputMesh, "\n");
+    cdum = fgets(dumstring, 100, inputMesh);
+    node = (NODE *) calloc(mesh.nnodes, sizeof (NODE));
+    for (i = 0; i < mesh.nnodes; i++)
+        iret = fscanf(inputMesh, "%le %le", &node[i].x, &node[i].y);
+
+    // Close file
+    fclose(inputMesh);
+
+#ifdef VERBOSE
+    printf("=============================================================================\n");
+#endif
+}
+
+// *****************************************************************************
+/*                                                                         */
+/* Extract cell-to-node pointers from edge pointers                        */
+/*                                                                         */
+// *****************************************************************************
+void Euler2D_Mesh_LinearElasticSmoother::WKA_ExtractCells(void) {
+    int i;
+    int imin;
+    int *work = NULL;
+    int node1, node2, node3, cell1, cell2;
+    int edgeNumber;
+    double areamin, areamax;
+
+    /* Allocate a work array */
+    /* These should also be preset to zero by calloc */
+    work = (int *) calloc(mesh.ncells, sizeof (int));
+
+    /* Loop over cells and tag the nodes */
+    for (i = 0; i < mesh.ncells; i++) {
+        cell[i].node1 = -99;
+        cell[i].node2 = -99;
+        cell[i].node3 = -99;
+        work[i] = 0;
+    }
+
+    /* Set work array to -1 for ghost cells */
+    for (i = 0; i < mesh.nbedges; i++) {
+        edgeNumber = boundaryEdge[i].edgeNumber;
+        cell2 = edge[edgeNumber].cell2;
+        work[cell2] = -1;
+    }
+
+    /* Loop over all the edges and set the first two nodes in c2n */
+    for (i = 0; i < mesh.nedges; i++) {
+        node1 = edge[i].node1;
+        node2 = edge[i].node2;
+        cell1 = edge[i].cell1;
+        cell2 = edge[i].cell2;
+
+        if (work[cell1] != -1) {
+            if (work[cell1] != 1) {
+                cell[cell1].node1 = node1;
+                cell[cell1].node2 = node2;
+                work[cell1] = 1;
+            }
+        }
+        if (work[cell2] != -1) {
+            if (work[cell2] != 1) {
+                cell[cell2].node1 = node2;
+                cell[cell2].node2 = node1;
+                work[cell2] = 1;
+            }
+        }
+    }
+
+    /* Loop over the edges again to get the third node */
+    for (i = 0; i < mesh.nedges; i++) {
+        node1 = edge[i].node1;
+        node2 = edge[i].node2;
+        cell1 = edge[i].cell1;
+        cell2 = edge[i].cell2;
+
+        if (cell[cell1].node3 == -99) {
+            if ((node1 != cell[cell1].node1) && (node1 != cell[cell1].node2)) {
+                cell[cell1].node3 = node1;
+            } else if ((node2 != cell[cell1].node1) && (node2 != cell[cell1].node2)) {
+                cell[cell1].node3 = node2;
+            }
+        }
+        if (cell2 < mesh.inside) {
+            if (cell[cell2].node3 == -99) {
+                if ((node1 != cell[cell2].node1) && (node1 != cell[cell2].node2)) {
+                    cell[cell2].node3 = node1;
+                } else if ((node2 != cell[cell2].node1) && (node2 != cell[cell2].node2)) {
+                    cell[cell2].node3 = node2;
+                }
+            }
+        }
+    }
+
+    if (work != NULL)
+        free(work);
+
+    areamin = DBL_MAX;
+    areamax = DBL_MIN;
+    imin = -1;
+    for (i = 0; i < mesh.inside; i++) {
+        double dx1, dy1;
+        double dx2, dy2;
+        double dx3, dy3;
+        node1 = cell[i].node1;
+        node2 = cell[i].node2;
+        node3 = cell[i].node3;
+        dx1 = -(node[node3].x - node[node2].x);
+        dy1 = node[node3].y - node[node2].y;
+        dx2 = -(node[node1].x - node[node3].x);
+        dy2 = node[node1].y - node[node3].y;
+        dx3 = -(node[node2].x - node[node1].x);
+        dy3 = node[node2].y - node[node1].y;
+        cell[i].area = .5 * (dx3 * dy2 - dx2 * dy3);
+        if (cell[i].area >= areamax) areamax = cell[i].area;
+        if (cell[i].area <= areamin) {
+            areamin = cell[i].area;
+            imin = i;
+        }
+    }
+
+#ifdef VERBOSE
+    info("Cell Area: MAX = %lf MIN = %lf", areamax, areamin);
+    info("Cell ID Min Area: %d Area = %le", imin, cell[imin].area);
+    printf("=============================================================================\n");
+#endif
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Mesh_LinearElasticSmoother::Tag_Boundary_Nodes() {
+    int i, n1, n2, bctype, ibn;
+    List bnode;
+
+    // Tag the Boundary Nodes Points
+    // Method of Tagging is not robust as boundary connecting points have Tag
+    // which are tagged last.
+    BNTag = (int *) calloc(mesh.nnodes, sizeof (int));
+    for (i = 0; i < mesh.nnodes; i++)
+        BNTag[i] = -1;
+
+    for (i = 0; i < mesh.nbedges; i++) {
+        n1 = edge[boundaryEdge[i].edgeNumber].node1;
+        n2 = edge[boundaryEdge[i].edgeNumber].node2;
+        bctype = -1;
+        // BCType 0: 0-999
+        if ((boundaryEdge[i].bcType >= 0) && (boundaryEdge[i].bcType <= 999))
+            bctype = 0;
+        // BCType 1: 1000-1999 : Solid Wall
+        if ((boundaryEdge[i].bcType >= 1000) && (boundaryEdge[i].bcType <= 1999))
+            bctype = 1;
+        // BCType 2: 2000-2999 : Dirchlet Boundary Condition
+        if ((boundaryEdge[i].bcType >= 2000) && (boundaryEdge[i].bcType <= 2999))
+            bctype = 2;
+        // BCType 2: 3000-3999 : Freestream
+        if ((boundaryEdge[i].bcType >= 3000) && (boundaryEdge[i].bcType <= 3999))
+            bctype = 3;
+
+        if (bctype != -1) {
+            BNTag[n1] = bctype;
+            BNTag[n2] = bctype;
+        }
+    }
+
+    mesh.nbnodes = 0;
+    for (i = 0; i < mesh.nnodes; i++) {
+        if (BNTag[i] != -1)
+            mesh.nbnodes++;
+    }
+
+#ifdef VERBOSE
+    info("NBNodes = %d", mesh.nbnodes);
+#endif
+    
+    boundaryNode = (BOUNDARYNODE *) calloc(mesh.nbnodes, sizeof (BOUNDARYNODE));
+    ibn = 0;
+    for (i = 0; i < mesh.nbedges; i++) {
+        n1 = edge[boundaryEdge[i].edgeNumber].node1;
+        n2 = edge[boundaryEdge[i].edgeNumber].node2;
+
+        // BCType 0: 0-999
+        if ((boundaryEdge[i].bcType >= 0) && (boundaryEdge[i].bcType <= 999)) {
+            if (!bnode.Is_In_List(n1)) {
+                bnode.Add_To_List(n1);
+                boundaryNode[ibn].bcType     = BNTag[n1];
+                boundaryNode[ibn].nodeNumber = n1;
+                boundaryNode[ibn].constant   = 0.0;
+                ibn++;
+            }
+            if (!bnode.Is_In_List(n2)) {
+                bnode.Add_To_List(n2);
+                boundaryNode[ibn].bcType     = BNTag[n2];
+                boundaryNode[ibn].nodeNumber = n2;
+                boundaryNode[ibn].constant   = 0.0;
+                ibn++;
+            }
+        }
+        // BCType 1: 1000-1999 : Solid Wall
+        if ((boundaryEdge[i].bcType >= 1000) && (boundaryEdge[i].bcType <= 1999)) {
+            if (!bnode.Is_In_List(n1)) {
+                bnode.Add_To_List(n1);
+                boundaryNode[ibn].bcType     = BNTag[n1];
+                boundaryNode[ibn].nodeNumber = n1;
+                boundaryNode[ibn].constant   = 0.0;
+                ibn++;
+            }
+            if (!bnode.Is_In_List(n2)) {
+                bnode.Add_To_List(n2);
+                boundaryNode[ibn].bcType     = BNTag[n2];
+                boundaryNode[ibn].nodeNumber = n2;
+                boundaryNode[ibn].constant   = 0.0;
+                ibn++;
+            }
+        }
+        // BCType 2: 2000-2999 : Dirchlet Boundary Condition
+        if ((boundaryEdge[i].bcType >= 2000) && (boundaryEdge[i].bcType <= 2999)) {
+            if (BNTag[n1] != 2) {
+                if (!bnode.Is_In_List(n1)) {
+                    bnode.Add_To_List(n1);
+                    boundaryNode[ibn].bcType     = BNTag[n1];
+                    boundaryNode[ibn].nodeNumber = n1;
+                    if (boundaryEdge[i].bcType == 2000) {
+                        boundaryNode[ibn].constant = node[n1].x;
+                    } else {
+                        boundaryNode[ibn].constant = boundaryEdge[i].c1;
+                    }
+                    ibn++;
+                }
+            }
+            if (BNTag[n2] != 2) {
+                if (!bnode.Is_In_List(n2)) {
+                    bnode.Add_To_List(n2);
+                    boundaryNode[ibn].bcType     = BNTag[n2];
+                    boundaryNode[ibn].nodeNumber = n2;
+                    if (boundaryEdge[i].bcType == 2000) {
+                        boundaryNode[ibn].constant = node[n2].x;
+                    } else {
+                        boundaryNode[ibn].constant = boundaryEdge[i].c1;
+                    }
+                    ibn++;
+                }
+            }
+        }
+        // BCType 2: 3000-3999 : Freestream
+        if ((boundaryEdge[i].bcType >= 3000) && (boundaryEdge[i].bcType <= 3999)) {
+            if (!bnode.Is_In_List(n1)) {
+                bnode.Add_To_List(n1);
+                boundaryNode[ibn].bcType     = BNTag[n1];
+                boundaryNode[ibn].nodeNumber = n1;
+                boundaryNode[ibn].constant   = 0.0;
+                ibn++;
+            }
+            if (!bnode.Is_In_List(n2)) {
+                bnode.Add_To_List(n2);
+                boundaryNode[ibn].bcType     = BNTag[n2];
+                boundaryNode[ibn].nodeNumber = n2;
+                boundaryNode[ibn].constant   = 0.0;
+                ibn++;
+            }
+        }
+    }
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Mesh_LinearElasticSmoother::Compute_Geometric_Properties() {
+    int icell, inode, iedge;
+    int n1, n2, n3;
+    double ux, uy, vx, vy;
+
+    // Initialize
+    for (icell = 0; icell < mesh.ncells; icell++) {
+        cell[icell].xc     = 0.0;
+        cell[icell].yc     = 0.0;
+        cell[icell].area   = 0.0;
+        cell[icell].mag12  = 0.0;
+        cell[icell].mag23  = 0.0;
+        cell[icell].mag31  = 0.0;
+        cell[icell].unx12  = 0.0;
+        cell[icell].unx23  = 0.0;
+        cell[icell].unx31  = 0.0;
+        cell[icell].uny12  = 0.0;
+        cell[icell].uny23  = 0.0;
+        cell[icell].uny31  = 0.0;
+        cell[icell].magc12 = 0.0;
+        cell[icell].magc23 = 0.0;
+        cell[icell].magc31 = 0.0;
+        cell[icell].unxc12 = 0.0;
+        cell[icell].unxc23 = 0.0;
+        cell[icell].unxc31 = 0.0;
+        cell[icell].unyc12 = 0.0;
+        cell[icell].unyc23 = 0.0;
+        cell[icell].unyc31 = 0.0;
+    }
+
+    for (inode = 0; inode < mesh.nnodes; inode++)
+        node[inode].area = 0.0;
+
+    for (iedge = 0; iedge < mesh.nedges; iedge++) {
+        edge[iedge].unx = 0.0;
+        edge[iedge].uny = 0.0;
+        edge[iedge].mag = 0.0;
+    }
+
+    // Now Compute
+    for (icell = 0; icell < mesh.ncells; icell++) {
+        // Check for Ghost Cells
+        if ((cell[icell].node1 < 0) || (cell[icell].node2 < 0) || (cell[icell].node2 < 0))
+            continue;
+
+        // Get the Nodes
+        n1 = cell[icell].node1;
+        n2 = cell[icell].node2;
+        n3 = cell[icell].node3;
+
+        // Get the Median Dual Properties
+        // Compute the Centriod of Cell
+        cell[icell].xc = (node[n1].x + node[n2].x + node[n3].x)/3.0;
+        cell[icell].yc = (node[n1].y + node[n2].y + node[n3].y)/3.0;
+
+        // Edge 1-2
+        cell[icell].unxc12 = +(cell[icell].yc - 0.5*(node[n1].y + node[n2].y));
+        cell[icell].unyc12 = -(cell[icell].xc - 0.5*(node[n1].x + node[n2].x));
+        cell[icell].magc12 = sqrt(cell[icell].unxc12*cell[icell].unxc12 + cell[icell].unyc12*cell[icell].unyc12);
+        cell[icell].unxc12 /= cell[icell].magc12;
+        cell[icell].unyc12 /= cell[icell].magc12;
+
+        // Edge 2-3
+        cell[icell].unxc23 = +(cell[icell].yc - 0.5*(node[n2].y + node[n3].y));
+        cell[icell].unyc23 = -(cell[icell].xc - 0.5*(node[n2].x + node[n3].x));
+        cell[icell].magc23 = sqrt(cell[icell].unxc23*cell[icell].unxc23 + cell[icell].unyc23*cell[icell].unyc23);
+        cell[icell].unxc23 /= cell[icell].magc23;
+        cell[icell].unyc23 /= cell[icell].magc23;
+
+        // Edge 3-1
+        cell[icell].unxc31 = +(cell[icell].yc - 0.5*(node[n3].y + node[n1].y));
+        cell[icell].unyc31 = -(cell[icell].xc - 0.5*(node[n3].x + node[n1].x));
+        cell[icell].magc31 = sqrt(cell[icell].unxc31*cell[icell].unxc31 + cell[icell].unyc31*cell[icell].unyc31);
+        cell[icell].unxc31 /= cell[icell].magc31;
+        cell[icell].unyc31 /= cell[icell].magc31;
+
+        // Compute Median Dual Area - Cell and Node Property
+        ux = node[n2].x - node[n1].x;
+        uy = node[n2].y - node[n1].y;
+        vx = node[n3].x - node[n1].x;
+        vy = node[n3].y - node[n1].y;
+        cell[icell].area = 0.5*(ux*vy - uy*vx);
+        node[n1].area += (1.0/3.0)*cell[icell].area;
+        node[n2].area += (1.0/3.0)*cell[icell].area;
+        node[n3].area += (1.0/3.0)*cell[icell].area;
+
+        // Cell Property - Compute Edge Normals
+        // Edge 1-2
+        cell[icell].unx12 = +(node[n2].y - node[n1].y);
+        cell[icell].uny12 = -(node[n2].x - node[n1].x);
+        cell[icell].mag12 = sqrt(cell[icell].unx12*cell[icell].unx12 + cell[icell].uny12*cell[icell].uny12);
+        cell[icell].unx12 /= cell[icell].mag12;
+        cell[icell].uny12 /= cell[icell].mag12;
+
+        // Edge 2-3
+        cell[icell].unx23 = +(node[n3].y - node[n2].y);
+        cell[icell].uny23 = -(node[n3].x - node[n2].x);
+        cell[icell].mag23 = sqrt(cell[icell].unx23*cell[icell].unx23 + cell[icell].uny23*cell[icell].uny23);
+        cell[icell].unx23 /= cell[icell].mag23;
+        cell[icell].uny23 /= cell[icell].mag23;
+
+        // Edge 3-1
+        cell[icell].unx31 = +(node[n1].y - node[n3].y);
+        cell[icell].uny31 = -(node[n1].x - node[n3].x);
+        cell[icell].mag31 = sqrt(cell[icell].unx31*cell[icell].unx31 + cell[icell].uny31*cell[icell].uny31);
+        cell[icell].unx31 /= cell[icell].mag31;
+        cell[icell].uny31 /= cell[icell].mag31;
+    }
+
+    for (iedge = 0; iedge < mesh.nedges; iedge++) {
+        // Get the Nodes
+        n1 = edge[iedge].node1;
+        n2 = edge[iedge].node2;
+
+        edge[iedge].unx  = +(node[n2].y - node[n1].y);
+        edge[iedge].uny  = -(node[n2].x - node[n1].x);
+        edge[iedge].mag = sqrt(edge[iedge].unx*edge[iedge].unx + edge[iedge].uny*edge[iedge].uny);
+        edge[iedge].unx /= edge[iedge].mag;
+        edge[iedge].uny /= edge[iedge].mag;
+    }
 }
 

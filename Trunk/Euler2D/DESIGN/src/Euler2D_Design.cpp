@@ -316,9 +316,12 @@ void Euler2D_Design::Get_Design_Inputs(const char* FileName) {
     iret = fscanf(fp, "%lf\n", &Ref_CoeffDrag);
     // END -- Design Input
 
+#ifdef VERBOSE
     printf("Design Action       = %d\n",  DesignAction);
     printf("Gradient Type       = %d\n",  IsAdjoint);
     printf("-----------------------------------------------------------------------------\n");
+#endif
+    
     // Close Input File
     fclose(fp);
 }
@@ -489,7 +492,7 @@ void Euler2D_Design::Read_DesignFile(const char* FileName) {
     
     // Read the Gradients
     for (int i = 0; i < NDesignVariable; i++)
-        iret = fscanf(fp, "%lf", &grad[i]);
+        iret = fscanf(fp, "%d %lf", &idum, &grad[i]);
     
     iret = fscanf(fp, "\n");
     cdum = fgets(dumstring, 100, fp);
@@ -534,6 +537,7 @@ void Euler2D_Design::Read_DesignFile(const char* FileName) {
     dIdBeta             = new double[NDesignVariable];
     for (int i = 0; i < NDesignVariable; i++) {
         DesignVariable[i]      = point[unode.list[i]];
+//        printf("Node id: %d\n", DesignVariable[i]);
         DesignVariableValue[i] = value[unode.list[i]];
         DesignVariableSide[i]  = side[unode.list[i]];
         DesignVariableMin[i]   = minv[unode.list[i]];

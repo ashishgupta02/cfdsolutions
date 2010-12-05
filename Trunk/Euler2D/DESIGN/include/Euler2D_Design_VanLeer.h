@@ -65,6 +65,9 @@ protected:
     void Compute_Adjoint_dIdQ();
     void Compute_Adjoint_Lambda();
     void Compute_Adjoint_dIdBeta(int iDesignVariable);
+
+    // Auxilary Methods
+    void Write_Boundary_DesignFile(const char* FileName);
 private:
     void Init();
 };

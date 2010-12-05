@@ -5,6 +5,7 @@
  ******************************************************************************/
 
 #include <stdlib.h>
+#include <string.h>
 #include <iostream>
 #include <limits.h>
 
@@ -16,9 +17,11 @@
 // *****************************************************************************
 // *****************************************************************************
 Euler2D_Design_VanLeer::Euler2D_Design_VanLeer() {
+#ifdef VERBOSE
     printf("=============================================================================\n");
     printf("      Euler2D : Van Leer Computational Design                                \n");
     printf("=============================================================================\n");
+#endif
 
     // Initialize the Data
     Init();
@@ -69,24 +72,34 @@ void Euler2D_Design_VanLeer::Design() {
         // Compute Gradient
         case 1:
             // Forward Mode
-            if (IsAdjoint == 0)
+            if (IsAdjoint == 0) {
                 Design_Direct();
+#ifdef VERBOSE
+                printf("DesignV       dIdQ_dQdBeta       dIdX_dXdBeta            dIdBeta\n");
+                for (int iDV = 0; iDV < NDesignVariable; iDV++)
+                    printf("%7d %18.10E %18.10E %18.10E\n", iDV,
+                            dIdQ_dQdBeta[iDV], dIdX_dXdBeta[iDV], dIdBeta[iDV]);
+#endif
             // Adjoint Mode
-            else
+            } else {
                 Design_Adjoint();
-
-            printf("DesignV       dIdQ_dQdBeta       dIdX_dXdBeta            dIdBeta\n");
-            for (int iDV = 0; iDV < NDesignVariable; iDV++)
-                printf("%7d %18.10E %18.10E %18.10E\n", iDV,
-                        dIdQ_dQdBeta[iDV], dIdX_dXdBeta[iDV], dIdBeta[iDV]);
+#ifdef VERBOSE
+                printf("DesignV  -(dRdX_dXdBeta)Lamda    dIdX_dXdBeta            dIdBeta\n");
+                for (int iDV = 0; iDV < NDesignVariable; iDV++)
+                    printf("%7d %18.10E %18.10E %18.10E\n", iDV,
+                            (dIdBeta[iDV] - dIdX_dXdBeta[iDV]), dIdX_dXdBeta[iDV], dIdBeta[iDV]);
+#endif
+            }
             break;
         // Dummy Do Nothing
         default:
             break;
     }
     
+#ifdef VERBOSE
     printf("Cl = %lf, Cd = %lf, L = %lf, D = %lf, I = %lf\n",
             CoeffLift, CoeffDrag, Lift, Drag, I);
+#endif
 }
 
 // *****************************************************************************
@@ -123,7 +136,10 @@ void Euler2D_Design_VanLeer::Update_Mesh_LinearElasticSmooth() {
     double *U;
     double *V;
 
+#ifdef VERBOSE
     info("Linear Elastic Mesh Smooth Starts");
+#endif
+
     // Initialize
     U = V = NULL;
     // Create the Purturbation Array
@@ -133,7 +149,7 @@ void Euler2D_Design_VanLeer::Update_Mesh_LinearElasticSmooth() {
     icount = 0;
     // Right Now Only Purturbation in Y is done
     for (iNode = 0; iNode < mesh.nnodes; iNode++) {
-        if (DesignVariable[icount] == iNode) {
+        if ((icount < NDesignVariable) && (DesignVariable[icount] == iNode)) {
             U[iNode] = 0.0;
             V[iNode] = DesignVariableValue[icount] - node[iNode].y;
             icount++;
@@ -146,8 +162,9 @@ void Euler2D_Design_VanLeer::Update_Mesh_LinearElasticSmooth() {
     relax = 0.5;
     iter  = 0;
     LESmooth.Mesh_Smoother_Prepare();
-    LESmooth.Initialize_Mesh_Smoother(mesh, cell, edge, node, boundaryEdge,
-            boundaryNode, BNTag, &DesignBlockMatrix);
+    LESmooth.Initialize_Mesh_Smoother("domain_baseline.mesh", &DesignBlockMatrix);
+//    LESmooth.Initialize_Mesh_Smoother(mesh, cell, edge, node, boundaryEdge,
+//            boundaryNode, BNTag, &DesignBlockMatrix);
     LESmooth.Mesh_Smoother(iter, relax, U, V);
     LESmooth.Mesh_Smoother_Finalize();
 
@@ -171,8 +188,8 @@ void Euler2D_Design_VanLeer::Compute_New_Solution() {
     int iter, AddTime;
     double max_rms, lrms;
 
+#ifdef VERBOSE
     info("Solver Computation Starts");
-#ifdef DEBUG
     printf("-----------------------------------------------------------------------------\n");
     printf(" Iter        LRMS     RMS_RHO    RMS_RHOU    RMS_RHOV       RMS_E     RMS_RES\n");
     printf("-----------------------------------------------------------------------------\n");
@@ -202,7 +219,7 @@ void Euler2D_Design_VanLeer::Compute_New_Solution() {
         // Compute RMS
         max_rms = Compute_RMS();
 
-#ifdef DEBUG
+#ifdef VERBOSE
         printf("%5d %10.5e %10.5e %10.5e %10.5e %10.5e %10.5e\n", iter+1, lrms, RMS[0], RMS[1], RMS[2], RMS[3], RMS_Res);
 #endif
         
@@ -233,7 +250,7 @@ void Euler2D_Design_VanLeer::Design_Cost() {
     // Now Compute Cost
     Compute_Cost();
     
-#ifdef DEBUG
+#ifndef DEBUG
     Write_VTK_Unstructured_File("Debug.vtu");
 #endif
 }
@@ -308,7 +325,7 @@ void Euler2D_Design_VanLeer::Design_Adjoint() {
     // Compute Cost
     Compute_Cost();
 
-#ifdef DEBUG
+#ifndef DEBUG
     Write_VTK_Unstructured_File("Debug.vtu");
 #endif
     
@@ -769,7 +786,9 @@ void Euler2D_Design_VanLeer::Compute_Direct_dQdBeta() {
     lrms = MC_Iterative_Block_Jacobi_CRS(InnerNIteration, Relaxation, DesignBlockMatrix);
 //    lrms = MC_Iterative_Block_LU_Jacobi_CRS(InnerNIteration, 2, DesignBlockMatrix);
 
-    printf("dIdQ LRMS = %10.5e\n", lrms);
+#ifdef VERBOSE
+    info("dIdQ LRMS = %10.5e", lrms);
+#endif
 
     // Get the Solution
     for (iNode = 0; iNode < mesh.nnodes; iNode++) {
@@ -1262,8 +1281,9 @@ void Euler2D_Design_VanLeer::Compute_Adjoint_Lambda() {
     lrms = MC_Iterative_Block_Jacobi_CRS(InnerNIteration, Relaxation, DesignBlockMatrix);
 //    lrms = MC_Iterative_Block_LU_Jacobi_CRS(InnerNIteration, 2, DesignBlockMatrix);
 
-    printf("Lambda LRMS = %10.5e\n", lrms);
-
+#ifdef VERBOSE
+    info("Lambda LRMS = %10.5e", lrms);
+#endif
     // Get the Solution
     for (iNode = 0; iNode < mesh.nnodes; iNode++) {
         for (j = 0; j < DesignBlockMatrix.BlockSize; j++)
@@ -1313,9 +1333,49 @@ void Euler2D_Design_VanLeer::Compute_LinearElasticSmooth_dXdBeta(int cNode) {
     relax = 0.5;
     iter  = 0;
     LESmooth.Mesh_Smoother_Prepare();
-    LESmooth.Initialize_Mesh_Smoother(mesh, cell, edge, node, boundaryEdge,
-            boundaryNode, BNTag, &DesignBlockMatrix);
+    LESmooth.Initialize_Mesh_Smoother("domain_baseline.mesh", &DesignBlockMatrix);
+//    LESmooth.Initialize_Mesh_Smoother(mesh, cell, edge, node, boundaryEdge,
+//            boundaryNode, BNTag, &DesignBlockMatrix);
     LESmooth.Mesh_Smoother(iter, relax, dXdBeta, dYdBeta);
     LESmooth.Mesh_Smoother_Finalize();
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Design_VanLeer::Write_Boundary_DesignFile(const char* FileName) {
+    char   dumstring[130];
+    FILE   *fp;
+
+    // Open Mesh File
+    if ((fp = fopen(FileName, "w")) == (FILE *) NULL)
+        error("Write_DesignFile: Unable to Write Design File %s", FileName);
+
+    // Write Number of Design Variables
+    fprintf(fp, " %6d\n", mesh.nbnodes);
+
+    // Set the Dummy String
+    strcpy(dumstring, "controlGridAirfoil.input");
+
+    // Write the Design Values and constraints
+    for (int i = 0; i < NDesignVariable; i++)
+        fprintf(fp, " %6d %25s %6d %6d %19.10E %19.10E %19.10E\n", i, dumstring,
+                DesignVariableSide[i], DesignVariable[i], DesignVariableValue[i],
+                DesignVariableMin[i], DesignVariableMax[i]);
+
+    // Write the Cost
+    fprintf(fp, " %19.10E\n", I);
+
+    // Write the Gradients
+    for (int i = 0; i < NDesignVariable; i++)
+        fprintf(fp, " %6d %19.10E\n", i, dIdBeta[i]);
+
+    fprintf(fp, " Functions: Omega1(lift)  Omega2(drag)  Omega3(moment)  Omega4(Cp)\n");
+    fprintf(fp, " %19.10E %19.10E %19.10E %19.10E\n", Weight_Lift, Weight_Drag, Weight_Moment, Weight_Cp);
+    fprintf(fp, " Target values:  lift    drag    moment\n");
+    fprintf(fp, " %19.10E %19.10E %19.10E\n", Ref_Lift, Ref_Drag, Ref_Moment);
+    fprintf(fp, " Current values: lift    drag    moment\n");
+    fprintf(fp, " %19.10E %19.10E %19.10E\n", Lift, Drag, Moment);
+
+    fclose(fp);
 }
 

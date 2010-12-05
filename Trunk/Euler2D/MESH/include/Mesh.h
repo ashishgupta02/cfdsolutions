@@ -52,6 +52,7 @@ typedef struct {
 
 typedef struct {
     int nodeNumber;
+    int bcType;
     double constant;
 } BOUNDARYNODE;
 

@@ -14,10 +14,12 @@
 // *****************************************************************************
 // *****************************************************************************
 Euler2D_Solver_StegerWarming::Euler2D_Solver_StegerWarming() {
+#ifdef VERBOSE
     printf("============================================================\n");
     printf("      Euler2D : Steger Warming Flux Vector Splitting        \n");
     printf("============================================================\n");
-
+#endif
+    
     // Initialize the Data
     Init();
 }
