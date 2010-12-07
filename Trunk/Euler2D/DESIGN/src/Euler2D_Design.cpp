@@ -27,6 +27,7 @@ void Euler2D_Design::Init() {
     BlockSize                    = 0;
     VectorSize                   = 0;
     DoValidation                 = 0;
+    CostType                     = 0;
     IsAdjoint                    = 0;
     NDesignVariable              = 0;
     DesignVariable               = NULL;
@@ -188,108 +189,108 @@ void Euler2D_Design::Get_Design_Inputs(const char* FileName) {
     // START -- Solver Input
     // Input Mesh File
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%s\n", dump);
 
     // Input Restart File
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%s\n", dump);
 
     // Output Restart File Name
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%s\n", dump);
 
     // SLK Mesh File
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%s\n", dump);
 
     // VTK Based Solution File
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%s\n", dump);
 
     // Get the reference Conditions
     // Gamma
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%lf\n", &dtmp);
 
     // Mach Number
     // Input Ref Mach Number
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%lf\n", &dtmp);
 
     // Get Angle of Attack
     // Input Angle of Attack (deg)
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%lf\n", &dtmp);
 
     // Get the order of solver
     // Solver Order (1/2)
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%d\n", &itmp);
 
     // Get CFL Numbers
     // Input CFL Min
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%lf\n", &dtmp);
     // Input CFL Max
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%lf\n", &dtmp);
     // Input CFL Ramp
     iret = fscanf(fp, "\n");
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%d\n", &itmp);
 
     // Get the Inner and Outer loop Conditions
     // Input Outer Iterations (0 = Convergence)
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%d\n", &itmp);
     // Input Linear Solver Iterations (0 = Convergence)
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%d\n", &itmp);
     // Input Linear Solver Relaxation Inner (0.5 < r < 1.0)
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%lf\n", &dtmp);
 
     // Restart File
     // Restart Capability (0=No, 1=Yes, 2=Create)
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%d\n", &itmp);
 
     // Finite Difference Jacobian
     // Finite Difference Jacobian (0=No, 1=Yes)
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%d\n", &DoValidation);
     // Finite Difference Node ID (-1 = All Nodes)
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%d\n", &itmp);
     // Finite Difference Perturbation Q
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%d\n", &itmp);
     // Finite Difference Epsilon
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%lf\n", &dtmp);
     // Finite Difference Check Iteration
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%d\n", &itmp);
     // END -- Solver Input
 
@@ -297,28 +298,37 @@ void Euler2D_Design::Get_Design_Inputs(const char* FileName) {
     // Design Compute Cost or Gradient (0: Cost, 1: Gradient)
     DesignAction = 0;
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%d\n", &DesignAction);
     // Design Gradient Type (0: Direct, 1: Adjoint)
     IsAdjoint = 0;
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%d\n", &IsAdjoint);
+    // Get the Cost Type
+    // 0: Coeff Lift, 1: Coeff Drag, 2: Coeff(Lift + Drag) 3: Pressure
+    CostType = 0;
+    iret = fscanf(fp, "\n");
+    cdum = fgets(dumstring, 256, fp);
+    iret = fscanf(fp, "%d\n", &CostType);
     // Get Reference Coefficient of Lift
     Ref_CoeffLift = 0.0;
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%lf\n", &Ref_CoeffLift);
     // Get Reference Coefficient of Drag
     Ref_CoeffDrag = 0.0;
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%lf\n", &Ref_CoeffDrag);
     // END -- Design Input
 
 #ifdef VERBOSE
     printf("Design Action       = %d\n",  DesignAction);
     printf("Gradient Type       = %d\n",  IsAdjoint);
+    printf("Cost Type           = %d\n",  CostType);
+    printf("Ref_CoeffLift       = %14.10e\n",  Ref_CoeffLift);
+    printf("Ref_CoeffDrag       = %14.10e\n",  Ref_CoeffDrag);
     printf("-----------------------------------------------------------------------------\n");
 #endif
     
@@ -455,7 +465,7 @@ void Euler2D_Design::Create_CRS_DesignBlockMatrix(MC_CRS *Object) {
 // *****************************************************************************
 // *****************************************************************************
 void Euler2D_Design::Read_DesignFile(const char* FileName) {
-    char   dumstring[130];
+    char   dumstring[257];
     int    *side;
     int    *point;
     double *value;
@@ -495,15 +505,15 @@ void Euler2D_Design::Read_DesignFile(const char* FileName) {
         iret = fscanf(fp, "%d %lf", &idum, &grad[i]);
     
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%lf %lf %lf %lf", &Weight_Lift, &Weight_Drag, &Weight_Moment, &Weight_Cp);
 
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%lf %lf %lf", &Ref_Lift, &Ref_Drag, &Ref_Moment);
 
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%lf %lf %lf", &Lift, &Drag, &Moment);
 
     fclose(fp);
@@ -537,7 +547,6 @@ void Euler2D_Design::Read_DesignFile(const char* FileName) {
     dIdBeta             = new double[NDesignVariable];
     for (int i = 0; i < NDesignVariable; i++) {
         DesignVariable[i]      = point[unode.list[i]];
-//        printf("Node id: %d\n", DesignVariable[i]);
         DesignVariableValue[i] = value[unode.list[i]];
         DesignVariableSide[i]  = side[unode.list[i]];
         DesignVariableMin[i]   = minv[unode.list[i]];
@@ -557,7 +566,7 @@ void Euler2D_Design::Read_DesignFile(const char* FileName) {
 // *****************************************************************************
 // *****************************************************************************
 void Euler2D_Design::Write_DesignFile(const char* FileName) {
-    char   dumstring[130];
+    char   dumstring[257];
     FILE   *fp;
     
     // Open Mesh File
@@ -654,6 +663,68 @@ void Euler2D_Design::Write_dRdX_dXdBeta(const char* FileName) {
     for (i = 0; i < VectorSize; i++)
         fprintf(fp, "%22.15e %22.15e %22.15e %22.15e\n",
                 dRdX_dXdBeta[i][0], dRdX_dXdBeta[i][1], dRdX_dXdBeta[i][2], dRdX_dXdBeta[i][3]);
+    fclose(fp);
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Design::Write_Boundary_Field(const char* FileName, int Size,
+        int* NodeMap, double* FieldData) {
+    FILE *fp;
+    int i;
+
+    // Some Error Checks
+    if ((Size <= 0)|| (NodeMap == NULL) || (FieldData == NULL))
+        error("Write_Boundary_Field: Invalid Inputs");
+    
+    if ((fp = fopen(FileName, "w")) == (FILE *) NULL)
+        error("Write_Boundary_Field: Unable to Write File %s", FileName);
+
+    // Number of Entries
+    fprintf(fp,"%6d\n", Size);
+
+    // NodeID and Field Data
+    for (i = 0; i < Size; i++) {
+        fprintf(fp, "%6d  %22.15e\n", NodeMap[i], FieldData[i]);
+    }
+
+    fclose(fp);
+}
+
+// *****************************************************************************
+// *****************************************************************************
+void Euler2D_Design::Read_Boundary_Field(const char* FileName, int* Size,
+        int** NodeMap, double** FieldData) {
+    FILE   *fp;
+    int    *Map;
+    double *FData;
+    int i, iret;
+
+    if ((fp = fopen(FileName, "r")) == (FILE *) NULL)
+        error("Read_Boundary_Field: Unable to Open File %s", FileName);
+
+    *Size = 0;
+    iret = fscanf(fp, "%d", Size);
+    
+    if (*Size <= 0) {
+        warn("Read_Boundary_Field: No Data Field Found in %s", FileName);
+        return;
+    }
+
+    // Allocate Some Memory
+    Map   = (int *) malloc((*Size)*sizeof(int));
+    FData = (double *) malloc((*Size)*sizeof(double));
+
+    // Now Get the NodeID and Field Data
+    for (i = 0; i < *Size; i++) {
+        iret = fscanf(fp, "%d %lf", &Map[i], &FData[i]);
+    }
+
+    *NodeMap   = Map;
+    *FieldData = FData;
+
+    Map   = NULL;
+    FData = NULL;
     fclose(fp);
 }
 

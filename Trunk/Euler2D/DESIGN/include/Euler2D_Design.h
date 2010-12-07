@@ -15,6 +15,8 @@ protected:
     int BlockSize;
     int VectorSize;   // No of Nodes
     int DoValidation; // 0: No Validation, 1: Validation
+    // 0: Coeff Lift, 1: Coeff Drag, 2: Coeff(Lift + Drag), 3: Pressure, 4: Quad Pressure
+    int CostType; 
     int IsAdjoint;    // 0: Forward Mode, 1: Adjoint Mode
     int NDesignVariable;
     int *DesignVariable;
@@ -71,7 +73,12 @@ protected:
     void Write_MeshSensitivity_dXdBeta(const char* FileName);
     void Write_dQdBeta(const char* FileName);
     void Write_dRdX_dXdBeta(const char* FileName);
-
+    // Read - Write Boundary Field
+    void Write_Boundary_Field(const char* FileName, int Size,
+                        int *NodeMap, double *FieldData);
+    void Read_Boundary_Field(const char* FileName, int *Size,
+                        int **NodeMap, double **FieldData);
+    
     // Design Solver Cost
     virtual void Design_Cost()=0;
     // Design Solver Gradient: Direct/Forward Mode and Adjoint
