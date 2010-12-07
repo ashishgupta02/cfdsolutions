@@ -141,31 +141,31 @@ void Euler2D_Solver::Get_Solver_Inputs(const char* FileName) {
 
     // Input Mesh File
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%s\n", dump);
     WKAMeshFileName.append(dump);
 
     // Input Restart File
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%s\n", dump);
     InputRestartFileName.append(dump);
 
     // Output Restart File Name
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%s\n", dump);
     OutputRestartFileName.append(dump);
 
     // SLK Mesh File
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%s\n", dump);
     SLKMeshFileName.append(dump);
 
     // VTK Based Solution File
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%s\n", dump);
     VTKSolutionFileName.append(dump);
 
@@ -173,7 +173,7 @@ void Euler2D_Solver::Get_Solver_Inputs(const char* FileName) {
     // Gamma
     Gamma  = 1.4;
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%lf\n", &Gamma);
     Ref_Pressure    = 1.0/Gamma;
     Ref_Length      = 1.0;
@@ -182,14 +182,14 @@ void Euler2D_Solver::Get_Solver_Inputs(const char* FileName) {
     // Input Ref Mach Number
     Ref_Mach        = 0.5;
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%lf\n", &Ref_Mach);
 
     // Get Angle of Attack
     // Input Angle of Attack (deg)
     Ref_Alpha       = 0.0;
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%lf\n", &Ref_Alpha);
     Ref_Alpha       = Ref_Alpha * M_PI / 180.0;
 
@@ -197,7 +197,7 @@ void Euler2D_Solver::Get_Solver_Inputs(const char* FileName) {
     // Solver Order (1/2)
     Order = 2;
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%d\n", &Order);
 
     if ((Order < 1) || (Order > 2))
@@ -207,44 +207,44 @@ void Euler2D_Solver::Get_Solver_Inputs(const char* FileName) {
     // Input CFL Min
     CFL_Min         = 1.0;
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%lf\n", &CFL_Min);
     // Input CFL Max
     CFL_Max         = 20.0;
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%lf\n", &CFL_Max);
     // Input CFL Ramp
     CFL_Ramp        = 100;
     iret = fscanf(fp, "\n");
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%d\n", &CFL_Ramp);
 
     // Get the Inner and Outer loop Conditions
     // Input Outer Iterations (0 = Convergence)
     NIteration      = 1000;
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%d\n", &NIteration);
     if (NIteration == 0)
         NIteration = INT_MAX/10;
     // Input Linear Solver Iterations (0 = Convergence)
     InnerNIteration = 20;
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%d\n", &InnerNIteration);
     // Input Linear Solver Relaxation Inner (0.5 < r < 1.0)
     Relaxation      = 1.0;
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%lf\n", &Relaxation);
 
     // Restart File
     // Restart Capability (0=No, 1=Yes, 2=Create)
     DoRestart = 0;
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%d\n", &DoRestart);
 
     // Finite Difference Jacobian
@@ -252,24 +252,24 @@ void Euler2D_Solver::Get_Solver_Inputs(const char* FileName) {
     DoSolverValidation = 0;
     // Finite Difference Jacobian (0=No, 1=Yes)
     iret = fscanf(fp, "\n");
-    cdum = fgets(dumstring, 100, fp);
+    cdum = fgets(dumstring, 256, fp);
     iret = fscanf(fp, "%d\n", &DoSolverValidation);
     if (DoSolverValidation == 1) {
         // Finite Difference Node ID (-1 = All Nodes)
         iret = fscanf(fp, "\n");
-        cdum = fgets(dumstring, 100, fp);
+        cdum = fgets(dumstring, 256, fp);
         iret = fscanf(fp, "%d\n", &FDNodeID);
         // Finite Difference Perturbation Q
         iret = fscanf(fp, "\n");
-        cdum = fgets(dumstring, 100, fp);
+        cdum = fgets(dumstring, 256, fp);
         iret = fscanf(fp, "%d\n", &FDPertQ);
         // Finite Difference Epsilon
         iret = fscanf(fp, "\n");
-        cdum = fgets(dumstring, 100, fp);
+        cdum = fgets(dumstring, 256, fp);
         iret = fscanf(fp, "%lf\n", &FDEpsilon);
         // Finite Difference Check Iteration
         iret = fscanf(fp, "\n");
-        cdum = fgets(dumstring, 100, fp);
+        cdum = fgets(dumstring, 256, fp);
         iret = fscanf(fp, "%d\n", &FDIteration);
     } else {
         FDNodeID = -2;

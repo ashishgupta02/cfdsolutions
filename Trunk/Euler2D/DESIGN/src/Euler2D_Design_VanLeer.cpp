@@ -9,6 +9,7 @@
 #include <iostream>
 #include <limits.h>
 
+#include "List.h"
 #include "Utils.h"
 #include "Mesh.h"
 #include "Euler2D_Design.h"
@@ -965,17 +966,29 @@ void Euler2D_Design_VanLeer::Compute_Direct_dIdQ_dQdBeta(int iDesignVariable) {
 // *****************************************************************************
 // *****************************************************************************
 void Euler2D_Design_VanLeer::Compute_dIdX_dXdBeta(int iDesignVariable) {
-    int  i, iBEdge, iedge;
+    int  i, n1, n2, iBEdge, iedge, Size;
     int bn[2];
-    double x1, x2, Nx, x_b[2], Nx_b, uNx, uNx_b;
-    double y1, y2, Ny, y_b[2], Ny_b, uNy, uNy_b;
-    double MagN, MagN_b;
+    double x1, x2, Nx, x_b[2], Nx_b, uNx, uNx_b, Lx, Lx_b;
+    double y1, y2, Ny, y_b[2], Ny_b, uNy, uNy_b, Ly, Ly_b;
+    double MagN, MagN_b, MagL, MagL_b;
     double Rho,   U,   V,   E,   P[2],   Pavg;
     double Lift_b, Drag_b, CoeffLift_b, CoeffDrag_b;
+    List bnodeRef;
+    int    *NodeMapRef = NULL;
+    double *PressureMapRef = NULL;
+    double PressureCorrection_b;
 
-    dIdX_dXdBeta[iDesignVariable] = 0.0;
+    n1 = n2 = -1;
     Lift_b = 0.0;
     Drag_b = 0.0;
+    PressureCorrection_b = 0.0;
+
+    if ((CostType == 3) || (CostType == 4)) {
+        // Read the Reference Boundary Pressure Distribution
+        Read_Boundary_Field("Pressure_Baseline.dat", &Size, &NodeMapRef, &PressureMapRef);
+        for (i = 0; i < Size; i++)
+            bnodeRef.Check_List(NodeMapRef[i]);
+    }
 
     // Calculate the Resi by Closing the Control Volume for Boundary Nodes
     // Solid Boundary: BCTag = 1
@@ -1003,6 +1016,16 @@ void Euler2D_Design_VanLeer::Compute_dIdX_dXdBeta(int iDesignVariable) {
         x_b[1] = dXdBeta[bn[1]];
         y_b[1] = dYdBeta[bn[1]];
 
+        // Compute the Length
+        Lx   = (x2 - x1);
+        Ly   = (y2 - y1);
+        MagL = sqrt(Lx*Lx + Ly*Ly);
+
+        // Compute the Length Derivative
+        Lx_b   = x_b[1] - x_b[0];
+        Ly_b   = y_b[1] - y_b[0];
+        MagL_b = (Lx*Lx_b + Ly*Ly_b)/MagL;
+        
         // Compute the Normals
         Nx   = +(y2 - y1);
         Ny   = -(x2 - x1);
@@ -1011,11 +1034,11 @@ void Euler2D_Design_VanLeer::Compute_dIdX_dXdBeta(int iDesignVariable) {
         uNy  = Ny/MagN;
         
         // Compute the Unit Normal Derivatives
-        Nx_b  = +(y_b[1] - y_b[0]);
-        Ny_b  = -(x_b[1] - x_b[0]);
+        Nx_b   = +(y_b[1] - y_b[0]);
+        Ny_b   = -(x_b[1] - x_b[0]);
         MagN_b = (Nx*Nx_b + Ny*Ny_b)/MagN;
-        uNx_b = (Nx_b*MagN - MagN_b*Nx)/(MagN*MagN);
-        uNy_b = (Ny_b*MagN - MagN_b*Ny)/(MagN*MagN);
+        uNx_b  = (Nx_b*MagN - MagN_b*Nx)/(MagN*MagN);
+        uNy_b  = (Ny_b*MagN - MagN_b*Ny)/(MagN*MagN);
 
         // Compute the Pressure for Node1 & Node2
         for (i = 0; i < 2; i++) {
@@ -1041,6 +1064,22 @@ void Euler2D_Design_VanLeer::Compute_dIdX_dXdBeta(int iDesignVariable) {
         // Compute Drag derivatives => (dDrag/dX)*(dX/dBeta)
         Drag_b += Pavg*( cos(Ref_Alpha)*uNx_b + sin(Ref_Alpha)*uNy_b)*MagN
                 + Pavg*( cos(Ref_Alpha)*uNx   + sin(Ref_Alpha)*uNy)*MagN_b;
+        
+        // Compute Pressure Correction Derivative => (dPcorr/dX)*(dX/dBeta)
+        if ((CostType == 3) || (CostType == 4)) {
+            n1 = bnodeRef.Index(bn[0]);
+            n2 = bnodeRef.Index(bn[1]);
+        }
+        // Linear Implementation
+        if (CostType == 3) {
+            PressureCorrection_b += (P[0] - PressureMapRef[n1])*MagL_b;
+            PressureCorrection_b += (P[1] - PressureMapRef[n2])*MagL_b;
+        }
+        // Quadratic Implementation
+        if (CostType == 4) {
+            PressureCorrection_b += 0.5*(P[0] - PressureMapRef[n1])*(P[0] - PressureMapRef[n1])*MagL_b;
+            PressureCorrection_b += 0.5*(P[1] - PressureMapRef[n2])*(P[1] - PressureMapRef[n2])*MagL_b;
+        }
     }
 
     // Compute Coefficient of Lift and Drag derivates
@@ -1048,8 +1087,30 @@ void Euler2D_Design_VanLeer::Compute_dIdX_dXdBeta(int iDesignVariable) {
     CoeffDrag_b = Drag_b/(0.5*Ref_Mach*Ref_Mach*Ref_Length);
 
     // Compute (dI/dX)*(dX/dBeta)
-    dIdX_dXdBeta[iDesignVariable] = (CoeffLift - Ref_CoeffLift)*CoeffLift_b
+    dIdX_dXdBeta[iDesignVariable] = 0.0;
+    // Lift Only
+    if (CostType == 0)
+        dIdX_dXdBeta[iDesignVariable] = (CoeffLift - Ref_CoeffLift)*CoeffLift_b;
+
+    // Drag Only
+    if (CostType == 1)
+        dIdX_dXdBeta[iDesignVariable] = (CoeffDrag - Ref_CoeffDrag)*CoeffDrag_b;
+
+    // Lift and Drag Only
+    if (CostType == 2)
+        dIdX_dXdBeta[iDesignVariable] = (CoeffLift - Ref_CoeffLift)*CoeffLift_b
             + (CoeffDrag - Ref_CoeffDrag)*CoeffDrag_b;
+
+    // Pressure
+    if ((CostType == 3) || (CostType == 4)) {
+        dIdX_dXdBeta[iDesignVariable] = PressureCorrection_b;
+    
+        // Free Memory
+        if (NodeMapRef != NULL)
+            free(NodeMapRef);
+        if (PressureMapRef != NULL)
+            free(PressureMapRef);
+    }
 }
 
 // *****************************************************************************
@@ -1062,15 +1123,31 @@ void Euler2D_Design_VanLeer::Compute_Direct_dIdBeta(int iDesignVariable) {
 // *****************************************************************************
 // *****************************************************************************
 void Euler2D_Design_VanLeer::Compute_Cost() {
-    int  i, iBEdge, iedge;
+    int  i, n1, n2, iBEdge, iedge, Size;
     int bn[2];
     double x[2], Nx;
     double y[2], Ny;
-    double Rho,   U,   V,   E,   P[2],   Pavg;
+    double Rho,   U,   V,   E,   P[2],   Pavg, MagN;
+    List bnode;
+    List bnodeRef;
+    int    *NodeMap = NULL;
+    int    *NodeMapRef = NULL;
+    double *PressureMap = NULL;
+    double *PressureMapRef = NULL;
+    double PressureCorrection;
 
+    n1 = n2 = -1;
     Lift = 0.0;
     Drag = 0.0;
+    PressureCorrection = 0.0;
 
+    if ((CostType == 3) || (CostType == 4)) {
+        // Read the Reference Boundary Pressure Distribution
+        Read_Boundary_Field("Pressure_Baseline.dat", &Size, &NodeMapRef, &PressureMapRef);
+        for (i = 0; i < Size; i++)
+            bnodeRef.Check_List(NodeMapRef[i]);
+    }
+    
     // Calculate the Resi by Closing the Control Volume for Boundary Nodes
     // Solid Boundary: BCTag = 1
     // Boundary Edge is such that Node1->Node2 direction mesh inside is on left
@@ -1085,6 +1162,10 @@ void Euler2D_Design_VanLeer::Compute_Cost() {
         bn[0] = edge[iedge].node1;
         bn[1] = edge[iedge].node2;
 
+        // Add to Boundary Node List
+        bnode.Check_List(bn[0]);
+        bnode.Check_List(bn[1]);
+        
         // Get the Coordinates
         x[0]  = node[bn[0]].x;
         y[0]  = node[bn[0]].y;
@@ -1094,7 +1175,8 @@ void Euler2D_Design_VanLeer::Compute_Cost() {
         // Compute the Normal
         Nx    = +(y[1] - y[0]);
         Ny    = -(x[1] - x[0]);
-        
+        MagN  = sqrt(Nx*Nx + Ny*Ny);
+
         // Compute the Pressure for Node1 & Node2
         for (i = 0; i < 2; i++) {
             // Calculate Rho
@@ -1115,23 +1197,86 @@ void Euler2D_Design_VanLeer::Compute_Cost() {
         // Compute Lift and Drag
         Lift += (-Pavg*sin(Ref_Alpha)*Nx + Pavg*cos(Ref_Alpha)*Ny);
         Drag += ( Pavg*cos(Ref_Alpha)*Nx + Pavg*sin(Ref_Alpha)*Ny);
-    }
 
+        // Pressure
+        if ((CostType == 3) || (CostType == 4)) {
+            // Compute Pressure Correction
+            n1 = bnodeRef.Index(bn[0]);
+            n2 = bnodeRef.Index(bn[1]);
+        }
+        
+        // Linear Implementation
+        if (CostType == 3) {
+            PressureCorrection += (P[0] - PressureMapRef[n1])*MagN;
+            PressureCorrection += (P[1] - PressureMapRef[n2])*MagN;
+        }
+
+        // Quadratic Implementation
+        if (CostType == 4) {
+            PressureCorrection += 0.5*(P[0] - PressureMapRef[n1])*(P[0] - PressureMapRef[n1])*MagN;
+            PressureCorrection += 0.5*(P[1] - PressureMapRef[n2])*(P[1] - PressureMapRef[n2])*MagN;
+        }
+    }
+    
     // Compute Coefficient of Lift and Drag and its derivates
     CoeffLift   = Lift/(0.5*Ref_Mach*Ref_Mach*Ref_Length);
     CoeffDrag   = Drag/(0.5*Ref_Mach*Ref_Mach*Ref_Length);
     
     // Compute Cost Function
-    I = 0.5*(CoeffLift - Ref_CoeffLift)*(CoeffLift - Ref_CoeffLift)
+    I = 0.0;
+
+    // Lift Only
+    if (CostType == 0)
+        I = 0.5*(CoeffLift - Ref_CoeffLift)*(CoeffLift - Ref_CoeffLift);
+
+    // Drag Only
+    if (CostType == 1)
+        I = 0.5*(CoeffDrag - Ref_CoeffDrag)*(CoeffDrag - Ref_CoeffDrag);
+
+    // Lift and Drag
+    if (CostType == 2)
+        I = 0.5*(CoeffLift - Ref_CoeffLift)*(CoeffLift - Ref_CoeffLift)
             + 0.5*(CoeffDrag - Ref_CoeffDrag)*(CoeffDrag - Ref_CoeffDrag);
+
+    // Pressure
+    if ((CostType == 3) || (CostType == 4)) {
+        I = PressureCorrection;
+        // Write Boundary Pressure Map
+        NodeMap     = (int *) malloc(bnode.max*sizeof(int));
+        PressureMap = (double *) malloc(bnode.max*sizeof(double));
+        for (i = 0; i < bnode.max; i++) {
+            NodeMap[i] = bnode.list[i];
+            // Calculate Rho
+            Rho = node[bnode.list[i]].Q[0];
+            // Calculate U
+            U   = node[bnode.list[i]].Q[1]/node[bnode.list[i]].Q[0];
+            // Calculate V
+            V   = node[bnode.list[i]].Q[2]/node[bnode.list[i]].Q[0];
+            // Calculate E
+            E   = node[bnode.list[i]].Q[3];
+            // Calculate P
+            PressureMap[i] = (Gamma - 1.0) * (E - 0.5 * Rho * (U * U + V * V));
+        }
+        Write_Boundary_Field("Pressure.dat", bnode.max, NodeMap, PressureMap);
+
+        // Free Memory
+        if (NodeMapRef != NULL)
+            free(NodeMapRef);
+        if (PressureMapRef != NULL)
+            free(PressureMapRef);
+        if (NodeMap != NULL)
+            free(NodeMap);
+        if (PressureMap != NULL)
+            free(PressureMap);
+    }
 }
 
 // *****************************************************************************
 // *****************************************************************************
 void Euler2D_Design_VanLeer::Compute_Adjoint_dIdQ() {
-    int  i, j, iNode, iBEdge, iedge;
-    int bn[2];
-    double Nx, Ny;
+    int  i, j, iNode, iBEdge, iedge, Size;
+    int bn[2], pbn[2];
+    double Nx, Ny, Lx, Ly, MagL;
     double x[2], y[2], Var1, Var2;
     double U, V;
     double Rho, P[2], E, Pavg;
@@ -1141,7 +1286,11 @@ void Euler2D_Design_VanLeer::Compute_Adjoint_dIdQ() {
     // V_Q    => V Velocity Derivatives
     // E_Q    => Energy Derivatives
     // P_Q    => Pressure Derivatives
-    double Rho_Q[4], U_Q[4], V_Q[4], E_Q[4], P_Q[2][4], Pavg_Q[2][4];
+    // I_Q    => Cost Derivatives
+    double Rho_Q[4], U_Q[4], V_Q[4], E_Q[4], P_Q[2][4], Pavg_Q[2][4], I_Q[4];
+    List bnodeRef;
+    int    *NodeMapRef = NULL;
+    double *PressureMapRef = NULL;
 
     // Initialize
     for (iNode = 0; iNode < mesh.nnodes; iNode++) {
@@ -1149,6 +1298,13 @@ void Euler2D_Design_VanLeer::Compute_Adjoint_dIdQ() {
             dIdQ[iNode][j] = 0.0;
     }
 
+    // Read the Reference Boundary Pressure Distribution
+    if ((CostType == 3) || (CostType == 4)) {
+        Read_Boundary_Field("Pressure_Baseline.dat", &Size, &NodeMapRef, &PressureMapRef);
+        for (i = 0; i < Size; i++)
+            bnodeRef.Check_List(NodeMapRef[i]);
+    }
+    
     // Calculate the Resi by Closing the Control Volume for Boundary Nodes
     // Solid Boundary: BCTag = 1
     // Boundary Edge is such that Node1->Node2 direction mesh inside is on left
@@ -1168,6 +1324,11 @@ void Euler2D_Design_VanLeer::Compute_Adjoint_dIdQ() {
         y[0]  = node[bn[0]].y;
         x[1]  = node[bn[1]].x;
         y[1]  = node[bn[1]].y;
+
+        // Compute Length
+        Lx    = x[1] - x[0];
+        Ly    = y[1] - y[0];
+        MagL  = sqrt(Lx*Lx + Ly*Ly);
 
         // Compute the Normal
         Nx    = +(y[1] - y[0]);
@@ -1220,21 +1381,49 @@ void Euler2D_Design_VanLeer::Compute_Adjoint_dIdQ() {
             }
         }
 
+        // Get Pressure Correction Nodes
+        if ((CostType == 3) || (CostType == 4)) {
+            pbn[0] = bnodeRef.Index(bn[0]);
+            pbn[1] = bnodeRef.Index(bn[1]);
+        }
+
         Var1 = (2.0/(Gamma*Ref_Mach*Ref_Mach));
-        // Computing dCl/dQ + dCd/dQ
+        // Computing dI/dQ = dCl/dQ + dCd/dQ + dPcor/dQ
         for (i = 0; i < 2; i++) {
             for (j = 0; j < 4; j++) {
-                dIdQ[bn[i]][j] += (Pavg_Q[i][j]*(-sin(Ref_Alpha)*Nx + cos(Ref_Alpha)*Ny))/Var1
-                        + (Pavg_Q[i][j]*(cos(Ref_Alpha)*Nx + sin(Ref_Alpha)*Ny))/Var1;
+                // Lift - Contribution
+                if (CostType == 0)
+                    I_Q[j] = (CoeffLift - Ref_CoeffLift)*(Pavg_Q[i][j]*(-sin(Ref_Alpha)*Nx + cos(Ref_Alpha)*Ny))/Var1;
+
+                // Drag - Contribution
+                if (CostType == 1)
+                    I_Q[j] = (CoeffDrag - Ref_CoeffDrag)*(Pavg_Q[i][j]*( cos(Ref_Alpha)*Nx + sin(Ref_Alpha)*Ny))/Var1;
+
+                // Lift and Drag - Contribution
+                if (CostType == 2)
+                    I_Q[j] = (CoeffLift - Ref_CoeffLift)*(Pavg_Q[i][j]*(-sin(Ref_Alpha)*Nx + cos(Ref_Alpha)*Ny))/Var1
+                            + (CoeffDrag - Ref_CoeffDrag)*(Pavg_Q[i][j]*( cos(Ref_Alpha)*Nx + sin(Ref_Alpha)*Ny))/Var1;
+
+                // Linear Pressure - Contribution
+                if (CostType == 3)
+                    I_Q[j] = P_Q[i][j]*MagL;
+
+                // Quadratic Pressure - Contribution
+                if (CostType == 4)
+                    I_Q[j] = (P[i] - PressureMapRef[pbn[i]])*P_Q[i][j]*MagL;
+                
+                // Total
+                dIdQ[bn[i]][j] += I_Q[j];
             }
         }
     }
 
-    // Compute the dI/dQ
-    for (iNode = 0; iNode < mesh.nnodes; iNode++) {
-        for (j = 0; j < 4; j++)
-            dIdQ[iNode][j] = (CoeffLift - Ref_CoeffLift)*dIdQ[iNode][j]
-                    + (CoeffDrag - Ref_CoeffDrag)*dIdQ[iNode][j];
+    if ((CostType == 3) || (CostType == 4)) {
+        // Free Memory
+        if (NodeMapRef != NULL)
+            free(NodeMapRef);
+        if (PressureMapRef != NULL)
+            free(PressureMapRef);
     }
 }
 
