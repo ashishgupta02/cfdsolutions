@@ -206,6 +206,7 @@ void Solver_Read_Params(const char *filename) {
     sscanf(buff, "%lf", &CFL_MAX);
 
     CFL             = CFL_MIN;
+    Ref_Alpha       = Ref_Alpha * M_PI / 180.0;
     
     // Close file
     fclose(fp);
@@ -226,8 +227,8 @@ void Solver_Set_Initial_Conditions() {
     // Intialize the variable with reference conditions
     for (int i = 0; i < (nNode + nBNode); i++) {
         Q1[i] = 1.0;
-        Q2[i] = Q1[i]*Ref_Mach;
-        Q3[i] = 0.0;
+        Q2[i] = Q1[i]*Ref_Mach*cos(Ref_Alpha);
+        Q3[i] = Q1[i]*Ref_Mach*sin(Ref_Alpha);
         Q4[i] = 0.0;
         Q5[i] = 1.0 / (Gamma * (Gamma - 1.0)) + 0.5 *(Q2[i]*Q2[i] + Q3[i]*Q3[i] + Q4[i]*Q4[i])/Q1[i];
     }
@@ -257,8 +258,8 @@ void Solver_Set_Initial_Conditions() {
 
     // Set the Free Stream Conditions
     Inf_Rho      = 1.0;
-    Inf_U        = Inf_Rho*Ref_Mach;
-    Inf_V        = 0.0;
+    Inf_U        = Inf_Rho*Ref_Mach*cos(Ref_Alpha);
+    Inf_V        = Inf_Rho*Ref_Mach*sin(Ref_Alpha);
     Inf_W        = 0.0;
     Inf_Et       = 1.0 / (Gamma * (Gamma - 1.0)) + 0.5 *(Inf_U*Inf_U + Inf_V*Inf_V + Inf_W*Inf_W)/Inf_Rho;
     Inf_Pressure = (Gamma - 1.0) * Inf_Rho * (Inf_Et - 0.5 * (Inf_U * Inf_U + Inf_V * Inf_V + Inf_W * Inf_W));
