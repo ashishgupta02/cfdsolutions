@@ -25,6 +25,7 @@
 int check_scanf(char *fmt, ...) {
     char buffer[NDM_BUF_SZ];
     char *f = fmt;
+    char *cdum;
 
     int got_it = 0;
     int no_fmt_spec = 0;
@@ -46,7 +47,7 @@ int check_scanf(char *fmt, ...) {
     --------------------------------------------------------------------------*/
 #ifdef __USE_ISOC99
     while (!got_it) {
-        fgets(buffer, NDM_BUF_SZ - 1, stdin);
+        cdum = fgets(buffer, NDM_BUF_SZ - 1, stdin);
 
         if (vsscanf(buffer, fmt, args) == no_fmt_spec)
             got_it++;
