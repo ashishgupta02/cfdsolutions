@@ -75,9 +75,11 @@ protected:
     void Write_dRdX_dXdBeta(const char* FileName);
     // Read - Write Boundary Field
     void Write_Boundary_Field(const char* FileName, int Size,
-                        int *NodeMap, double *FieldData);
+                        int *NodeMap, double *CoordX,
+                        double *CoordY, double *FieldData);
     void Read_Boundary_Field(const char* FileName, int *Size,
-                        int **NodeMap, double **FieldData);
+                        int **NodeMap, double **CoordX,
+                        double **CoordY, double **FieldData);
     
     // Design Solver Cost
     virtual void Design_Cost()=0;
