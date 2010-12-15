@@ -976,6 +976,8 @@ void Euler2D_Design_VanLeer::Compute_dIdX_dXdBeta(int iDesignVariable) {
     List bnodeRef;
     int    *NodeMapRef = NULL;
     double *PressureMapRef = NULL;
+    double *CoordXRef = NULL;
+    double *CoordYRef = NULL;
     double PressureCorrection_b;
 
     n1 = n2 = -1;
@@ -985,7 +987,8 @@ void Euler2D_Design_VanLeer::Compute_dIdX_dXdBeta(int iDesignVariable) {
 
     if ((CostType == 3) || (CostType == 4)) {
         // Read the Reference Boundary Pressure Distribution
-        Read_Boundary_Field("Pressure_Baseline.dat", &Size, &NodeMapRef, &PressureMapRef);
+        Read_Boundary_Field("Pressure_Baseline.dat", &Size, &NodeMapRef,
+                &CoordXRef, &CoordYRef, &PressureMapRef);
         for (i = 0; i < Size; i++)
             bnodeRef.Check_List(NodeMapRef[i]);
     }
@@ -1110,6 +1113,10 @@ void Euler2D_Design_VanLeer::Compute_dIdX_dXdBeta(int iDesignVariable) {
             free(NodeMapRef);
         if (PressureMapRef != NULL)
             free(PressureMapRef);
+        if (CoordXRef != NULL)
+            free(CoordXRef);
+        if (CoordYRef != NULL)
+            free(CoordYRef);
     }
 }
 
@@ -1134,6 +1141,10 @@ void Euler2D_Design_VanLeer::Compute_Cost() {
     int    *NodeMapRef = NULL;
     double *PressureMap = NULL;
     double *PressureMapRef = NULL;
+    double *CoordXRef = NULL;
+    double *CoordYRef = NULL;
+    double *CoordX = NULL;
+    double *CoordY = NULL;
     double PressureCorrection;
 
     n1 = n2 = -1;
@@ -1143,7 +1154,8 @@ void Euler2D_Design_VanLeer::Compute_Cost() {
 
     if ((CostType == 3) || (CostType == 4)) {
         // Read the Reference Boundary Pressure Distribution
-        Read_Boundary_Field("Pressure_Baseline.dat", &Size, &NodeMapRef, &PressureMapRef);
+        Read_Boundary_Field("Pressure_Baseline.dat", &Size, &NodeMapRef,
+                &CoordXRef, &CoordYRef, &PressureMapRef);
         for (i = 0; i < Size; i++)
             bnodeRef.Check_List(NodeMapRef[i]);
     }
@@ -1244,8 +1256,13 @@ void Euler2D_Design_VanLeer::Compute_Cost() {
         // Write Boundary Pressure Map
         NodeMap     = (int *) malloc(bnode.max*sizeof(int));
         PressureMap = (double *) malloc(bnode.max*sizeof(double));
+        CoordX      = (double *) malloc(bnode.max*sizeof(double));
+        CoordY      = (double *) malloc(bnode.max*sizeof(double));
         for (i = 0; i < bnode.max; i++) {
             NodeMap[i] = bnode.list[i];
+            // Get the coordinates
+            CoordX[i] = node[bnode.list[i]].x;
+            CoordY[i] = node[bnode.list[i]].y;
             // Calculate Rho
             Rho = node[bnode.list[i]].Q[0];
             // Calculate U
@@ -1257,7 +1274,7 @@ void Euler2D_Design_VanLeer::Compute_Cost() {
             // Calculate P
             PressureMap[i] = (Gamma - 1.0) * (E - 0.5 * Rho * (U * U + V * V));
         }
-        Write_Boundary_Field("Pressure.dat", bnode.max, NodeMap, PressureMap);
+        Write_Boundary_Field("Pressure.dat", bnode.max, NodeMap, CoordX, CoordY, PressureMap);
 
         // Free Memory
         if (NodeMapRef != NULL)
@@ -1268,6 +1285,14 @@ void Euler2D_Design_VanLeer::Compute_Cost() {
             free(NodeMap);
         if (PressureMap != NULL)
             free(PressureMap);
+        if (CoordXRef != NULL)
+            free(CoordXRef);
+        if (CoordYRef != NULL)
+            free(CoordYRef);
+        if (CoordX != NULL)
+            free(CoordX);
+        if (CoordY != NULL)
+            free(CoordY);
     }
 }
 
@@ -1291,6 +1316,8 @@ void Euler2D_Design_VanLeer::Compute_Adjoint_dIdQ() {
     List bnodeRef;
     int    *NodeMapRef = NULL;
     double *PressureMapRef = NULL;
+    double *CoordXRef = NULL;
+    double *CoordYRef = NULL;
 
     // Initialize
     for (iNode = 0; iNode < mesh.nnodes; iNode++) {
@@ -1300,7 +1327,8 @@ void Euler2D_Design_VanLeer::Compute_Adjoint_dIdQ() {
 
     // Read the Reference Boundary Pressure Distribution
     if ((CostType == 3) || (CostType == 4)) {
-        Read_Boundary_Field("Pressure_Baseline.dat", &Size, &NodeMapRef, &PressureMapRef);
+        Read_Boundary_Field("Pressure_Baseline.dat", &Size, &NodeMapRef,
+                &CoordXRef, &CoordYRef, &PressureMapRef);
         for (i = 0; i < Size; i++)
             bnodeRef.Check_List(NodeMapRef[i]);
     }
@@ -1424,6 +1452,10 @@ void Euler2D_Design_VanLeer::Compute_Adjoint_dIdQ() {
             free(NodeMapRef);
         if (PressureMapRef != NULL)
             free(PressureMapRef);
+        if (CoordXRef != NULL)
+            free(CoordXRef);
+        if (CoordYRef != NULL)
+            free(CoordYRef);
     }
 }
 

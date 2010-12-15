@@ -669,12 +669,13 @@ void Euler2D_Design::Write_dRdX_dXdBeta(const char* FileName) {
 // *****************************************************************************
 // *****************************************************************************
 void Euler2D_Design::Write_Boundary_Field(const char* FileName, int Size,
-        int* NodeMap, double* FieldData) {
+        int* NodeMap, double *CoordX, double *CoordY, double* FieldData) {
     FILE *fp;
     int i;
 
     // Some Error Checks
-    if ((Size <= 0)|| (NodeMap == NULL) || (FieldData == NULL))
+    if ((Size <= 0)|| (NodeMap == NULL) || (CoordX == NULL)
+            || (CoordY == NULL) || (FieldData == NULL))
         error("Write_Boundary_Field: Invalid Inputs");
     
     if ((fp = fopen(FileName, "w")) == (FILE *) NULL)
@@ -685,7 +686,8 @@ void Euler2D_Design::Write_Boundary_Field(const char* FileName, int Size,
 
     // NodeID and Field Data
     for (i = 0; i < Size; i++) {
-        fprintf(fp, "%6d  %22.15e\n", NodeMap[i], FieldData[i]);
+        fprintf(fp, "%6d  %22.15e %22.15e %22.15e\n",
+                NodeMap[i], CoordX[i], CoordY[i], FieldData[i]);
     }
 
     fclose(fp);
@@ -694,10 +696,12 @@ void Euler2D_Design::Write_Boundary_Field(const char* FileName, int Size,
 // *****************************************************************************
 // *****************************************************************************
 void Euler2D_Design::Read_Boundary_Field(const char* FileName, int* Size,
-        int** NodeMap, double** FieldData) {
+        int** NodeMap, double **CoordX, double **CoordY, double** FieldData) {
     FILE   *fp;
     int    *Map;
     double *FData;
+    double *XValue;
+    double *YValue;
     int i, iret;
 
     if ((fp = fopen(FileName, "r")) == (FILE *) NULL)
@@ -712,19 +716,25 @@ void Euler2D_Design::Read_Boundary_Field(const char* FileName, int* Size,
     }
 
     // Allocate Some Memory
-    Map   = (int *) malloc((*Size)*sizeof(int));
-    FData = (double *) malloc((*Size)*sizeof(double));
+    Map    = (int *) malloc((*Size)*sizeof(int));
+    FData  = (double *) malloc((*Size)*sizeof(double));
+    XValue = (double *) malloc((*Size)*sizeof(double));
+    YValue = (double *) malloc((*Size)*sizeof(double));
 
     // Now Get the NodeID and Field Data
     for (i = 0; i < *Size; i++) {
-        iret = fscanf(fp, "%d %lf", &Map[i], &FData[i]);
+        iret = fscanf(fp, "%d %lf %lf %lf", &Map[i], &XValue[i], &YValue[i], &FData[i]);
     }
 
     *NodeMap   = Map;
     *FieldData = FData;
+    *CoordX    = XValue;
+    *CoordY    = YValue;
 
-    Map   = NULL;
-    FData = NULL;
+    Map    = NULL;
+    FData  = NULL;
+    XValue = NULL;
+    YValue = NULL;
     fclose(fp);
 }
 
