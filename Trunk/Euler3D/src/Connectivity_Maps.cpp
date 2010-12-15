@@ -1010,6 +1010,7 @@ void Create_Connectivity_Maps(int reOrder) {
         // Create Node2Node Connectivity
         Create_Connectivity_Node2Node();
         // Reorder using Cuthill Mckee Algorithm
+        info("Reodering Nodes to Reduce Bandwidth for Matrix Computations");
         Cuthill_Mckee_Reorder();
         // Free Memory as they are currupt need to recreate
         for (int n = 0; n < nNode; n++) {
