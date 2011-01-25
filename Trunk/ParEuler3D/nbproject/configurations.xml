@@ -83,13 +83,15 @@
         <developmentServer>localhost</developmentServer>
         <compilerSet>GNU|GNU</compilerSet>
         <platform>2</platform>
+        <rebuildPropChanged>true</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <cTool>
+          <commandlineTool>mpicc</commandlineTool>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
-          <commandlineTool>/opt/HPC_LIBS/bin/mpic++</commandlineTool>
+          <commandlineTool>mpic++</commandlineTool>
           <incDir>
             <pElem>../UTILS/include</pElem>
             <pElem>../CFDDB/include</pElem>
@@ -98,12 +100,13 @@
             <pElem>GEOMETRY/include</pElem>
             <pElem>MESHIO/include</pElem>
             <pElem>SOLVER/include</pElem>
-            <pElem>/opt/HPC_LIBS/include</pElem>
+            <pElem>../../../../00-Applications/HPC_LIBS/include</pElem>
           </incDir>
           <commandLine>-Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer</commandLine>
           <warningLevel>2</warningLevel>
         </ccTool>
         <fortranCompilerTool>
+          <commandlineTool>mpif90</commandlineTool>
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
         <asmTool>
@@ -111,12 +114,9 @@
         </asmTool>
         <linkerTool>
           <linkerAddLib>
-            <pElem>/opt/HPC_LIBS/lib</pElem>
+            <pElem>../../../../00-Applications/HPC_LIBS/lib</pElem>
           </linkerAddLib>
-          <linkerDynSerch>
-            <pElem>/home/ashish/NetBeansProjects/CFDSolutions/Trunk/ParEuler3D/dist/Debug/GNU-Linux-x86</pElem>
-          </linkerDynSerch>
-          <commandlineTool>/opt/HPC_LIBS/bin/mpic++</commandlineTool>
+          <commandlineTool>mpic++</commandlineTool>
           <linkerLibItems>
             <linkerLibProjectItem>
               <makeArtifact PL="../UTILS"
@@ -174,15 +174,17 @@
         <developmentServer>localhost</developmentServer>
         <compilerSet>GNU|GNU</compilerSet>
         <platform>2</platform>
+        <rebuildPropChanged>true</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <cTool>
           <developmentMode>5</developmentMode>
+          <commandlineTool>mpicc</commandlineTool>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
           <developmentMode>5</developmentMode>
-          <commandlineTool>/opt/HPC_LIBS/bin/mpic++</commandlineTool>
+          <commandlineTool>mpic++</commandlineTool>
           <incDir>
             <pElem>../UTILS/include</pElem>
             <pElem>../CFDDB/include</pElem>
@@ -191,13 +193,14 @@
             <pElem>GEOMETRY/include</pElem>
             <pElem>MESHIO/include</pElem>
             <pElem>SOLVER/include</pElem>
-            <pElem>/opt/HPC_LIBS/include</pElem>
+            <pElem>../../../../00-Applications/HPC_LIBS/include</pElem>
           </incDir>
           <commandLine>-Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer</commandLine>
           <warningLevel>2</warningLevel>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
+          <commandlineTool>mpif90</commandlineTool>
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
         <asmTool>
@@ -205,9 +208,9 @@
         </asmTool>
         <linkerTool>
           <linkerAddLib>
-            <pElem>/opt/HPC_LIBS/lib</pElem>
+            <pElem>../../../../00-Applications/HPC_LIBS/lib</pElem>
           </linkerAddLib>
-          <commandlineTool>/opt/HPC_LIBS/bin/mpic++</commandlineTool>
+          <commandlineTool>mpic++</commandlineTool>
           <linkerLibItems>
             <linkerLibProjectItem>
               <makeArtifact PL="../UTILS"
