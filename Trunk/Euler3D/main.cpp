@@ -55,11 +55,11 @@ static char *usgmsg[] = {
  * Display usage message and exit
  *-------------------------------------------------------------------*/
 
-static void usage(char **usgmsg) {
+static void usage(char **usgstr) {
     int n;
 
-    for (n = 0; NULL != usgmsg[n]; n++)
-        fprintf(stderr, "%s\n", usgmsg[n]);
+    for (n = 0; NULL != usgstr[n]; n++)
+        fprintf(stderr, "%s\n", usgstr[n]);
 }
 
 /*---------- arguments ---------------------------------------------------
