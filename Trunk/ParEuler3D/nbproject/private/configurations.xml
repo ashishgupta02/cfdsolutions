@@ -4,9 +4,47 @@
   <defaultConf>0</defaultConf>
   <confs>
     <conf name="Debug" type="1">
+      <dbx_gdbdebugger version="1">
+        <gdb_pathmaps>
+        </gdb_pathmaps>
+        <gdb_interceptlist>
+          <gdbinterceptoptions gdb_all="false" gdb_unhandled="true" gdb_unexpected="true"/>
+        </gdb_interceptlist>
+        <gdb_options>
+          <DebugOptions>
+          </DebugOptions>
+        </gdb_options>
+        <gdb_buildfirst gdb_buildfirst_overriden="false" gdb_buildfirst_old="false"/>
+      </dbx_gdbdebugger>
+      <dbxdebugger version="1">
+        <pathmaps>
+        </pathmaps>
+        <interceptlist>
+          <interceptoptions all="false" unhandled="true" unexpected="true"/>
+        </interceptlist>
+        <signals>
+        </signals>
+        <options>
+          <DebugOptions>
+          </DebugOptions>
+        </options>
+        <buildfirst buildfirst_overriden="false" buildfirst_old="false"/>
+      </dbxdebugger>
+      <dbxrtc version="1">
+        <options>
+          <RtcOptions>
+            <option name="rtc_error_log_file_name" value="/dev/null"/>
+          </RtcOptions>
+        </options>
+        <loadobjs>
+        </loadobjs>
+      </dbxrtc>
       <gizmo_options version="3">
         <configurationname>GizmoSimple</configurationname>
       </gizmo_options>
+      <nativedebugger version="1">
+        <engine>dbx</engine>
+      </nativedebugger>
       <runprofile version="6">
         <args></args>
         <rundir></rundir>
@@ -19,9 +57,47 @@
       </runprofile>
     </conf>
     <conf name="Release" type="1">
+      <dbx_gdbdebugger version="1">
+        <gdb_pathmaps>
+        </gdb_pathmaps>
+        <gdb_interceptlist>
+          <gdbinterceptoptions gdb_all="false" gdb_unhandled="true" gdb_unexpected="true"/>
+        </gdb_interceptlist>
+        <gdb_options>
+          <DebugOptions>
+          </DebugOptions>
+        </gdb_options>
+        <gdb_buildfirst gdb_buildfirst_overriden="false" gdb_buildfirst_old="false"/>
+      </dbx_gdbdebugger>
+      <dbxdebugger version="1">
+        <pathmaps>
+        </pathmaps>
+        <interceptlist>
+          <interceptoptions all="false" unhandled="true" unexpected="true"/>
+        </interceptlist>
+        <signals>
+        </signals>
+        <options>
+          <DebugOptions>
+          </DebugOptions>
+        </options>
+        <buildfirst buildfirst_overriden="false" buildfirst_old="false"/>
+      </dbxdebugger>
+      <dbxrtc version="1">
+        <options>
+          <RtcOptions>
+            <option name="rtc_error_log_file_name" value="/dev/null"/>
+          </RtcOptions>
+        </options>
+        <loadobjs>
+        </loadobjs>
+      </dbxrtc>
       <gizmo_options version="3">
         <configurationname>GizmoSimple</configurationname>
       </gizmo_options>
+      <nativedebugger version="1">
+        <engine>dbx</engine>
+      </nativedebugger>
       <runprofile version="6">
         <args></args>
         <rundir></rundir>

@@ -14,10 +14,10 @@ GREP=grep
 NM=nm
 CCADMIN=CCadmin
 RANLIB=ranlib
-CC=gcc
-CCC=/opt/HPC_LIBS/bin/mpic++
-CXX=/opt/HPC_LIBS/bin/mpic++
-FC=gfortran
+CC=mpicc
+CCC=mpic++
+CXX=mpic++
+FC=mpif90
 AS=as
 
 # Macros
@@ -63,7 +63,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-L/opt/HPC_LIBS/lib -Wl,-rpath ../UTILS/dist/Release/GNU-Linux-x86 -L../UTILS/dist/Release/GNU-Linux-x86 -lUTILS -Wl,-rpath ../CFDDB/dist/Release/GNU-Linux-x86 -L../CFDDB/dist/Release/GNU-Linux-x86 -lCFDDB -lcgns -lnetcdf -lparmetis -lmetis
+LDLIBSOPTIONS=-L../../../../00-Applications/HPC_LIBS/lib -Wl,-rpath ../UTILS/dist/Release/GNU-Linux-x86 -L../UTILS/dist/Release/GNU-Linux-x86 -lUTILS -Wl,-rpath ../CFDDB/dist/Release/GNU-Linux-x86 -L../CFDDB/dist/Release/GNU-Linux-x86 -lCFDDB -lcgns -lnetcdf -lparmetis -lmetis
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -75,77 +75,77 @@ dist/Release/GNU-Linux-x86/pareuler3d: ../CFDDB/dist/Release/GNU-Linux-x86/libCF
 
 dist/Release/GNU-Linux-x86/pareuler3d: ${OBJECTFILES}
 	${MKDIR} -p dist/Release/GNU-Linux-x86
-	/opt/HPC_LIBS/bin/mpic++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/pareuler3d ${OBJECTFILES} ${LDLIBSOPTIONS} 
+	mpic++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/pareuler3d ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
-${OBJECTDIR}/MESHIO/src/Mesh3D_IO.o: MESHIO/src/Mesh3D_IO.cpp 
+${OBJECTDIR}/MESHIO/src/Mesh3D_IO.o: nbproject/Makefile-${CND_CONF}.mk MESHIO/src/Mesh3D_IO.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MESHIO/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I/opt/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/Mesh3D_IO.o MESHIO/src/Mesh3D_IO.cpp
+	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/Mesh3D_IO.o MESHIO/src/Mesh3D_IO.cpp
 
-${OBJECTDIR}/MESHIO/src/Node3D.o: MESHIO/src/Node3D.cpp 
+${OBJECTDIR}/MESHIO/src/Node3D.o: nbproject/Makefile-${CND_CONF}.mk MESHIO/src/Node3D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MESHIO/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I/opt/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/Node3D.o MESHIO/src/Node3D.cpp
+	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/Node3D.o MESHIO/src/Node3D.cpp
 
-${OBJECTDIR}/main.o: main.cpp 
+${OBJECTDIR}/main.o: nbproject/Makefile-${CND_CONF}.mk main.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I/opt/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
+	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
 
-${OBJECTDIR}/GEOMETRY/src/Vector2D.o: GEOMETRY/src/Vector2D.cpp 
+${OBJECTDIR}/GEOMETRY/src/Vector2D.o: nbproject/Makefile-${CND_CONF}.mk GEOMETRY/src/Vector2D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/GEOMETRY/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I/opt/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/GEOMETRY/src/Vector2D.o GEOMETRY/src/Vector2D.cpp
+	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/GEOMETRY/src/Vector2D.o GEOMETRY/src/Vector2D.cpp
 
-${OBJECTDIR}/MESHIO/src/Cell3D.o: MESHIO/src/Cell3D.cpp 
+${OBJECTDIR}/MESHIO/src/Cell3D.o: nbproject/Makefile-${CND_CONF}.mk MESHIO/src/Cell3D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MESHIO/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I/opt/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/Cell3D.o MESHIO/src/Cell3D.cpp
+	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/Cell3D.o MESHIO/src/Cell3D.cpp
 
-${OBJECTDIR}/CommMPI/src/CommMPI.o: CommMPI/src/CommMPI.cpp 
+${OBJECTDIR}/CommMPI/src/CommMPI.o: nbproject/Makefile-${CND_CONF}.mk CommMPI/src/CommMPI.cpp 
 	${MKDIR} -p ${OBJECTDIR}/CommMPI/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I/opt/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/CommMPI/src/CommMPI.o CommMPI/src/CommMPI.cpp
+	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/CommMPI/src/CommMPI.o CommMPI/src/CommMPI.cpp
 
-${OBJECTDIR}/MESHIO/src/BC3D.o: MESHIO/src/BC3D.cpp 
+${OBJECTDIR}/MESHIO/src/BC3D.o: nbproject/Makefile-${CND_CONF}.mk MESHIO/src/BC3D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MESHIO/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I/opt/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/BC3D.o MESHIO/src/BC3D.cpp
+	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/BC3D.o MESHIO/src/BC3D.cpp
 
-${OBJECTDIR}/GEOMETRY/src/Vector3D.o: GEOMETRY/src/Vector3D.cpp 
+${OBJECTDIR}/GEOMETRY/src/Vector3D.o: nbproject/Makefile-${CND_CONF}.mk GEOMETRY/src/Vector3D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/GEOMETRY/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I/opt/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/GEOMETRY/src/Vector3D.o GEOMETRY/src/Vector3D.cpp
+	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/GEOMETRY/src/Vector3D.o GEOMETRY/src/Vector3D.cpp
 
-${OBJECTDIR}/MESHIO/src/Ghost3D.o: MESHIO/src/Ghost3D.cpp 
+${OBJECTDIR}/MESHIO/src/Ghost3D.o: nbproject/Makefile-${CND_CONF}.mk MESHIO/src/Ghost3D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MESHIO/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I/opt/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/Ghost3D.o MESHIO/src/Ghost3D.cpp
+	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/Ghost3D.o MESHIO/src/Ghost3D.cpp
 
-${OBJECTDIR}/MESHIO/src/Grid3D.o: MESHIO/src/Grid3D.cpp 
+${OBJECTDIR}/MESHIO/src/Grid3D.o: nbproject/Makefile-${CND_CONF}.mk MESHIO/src/Grid3D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MESHIO/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I/opt/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/Grid3D.o MESHIO/src/Grid3D.cpp
+	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/Grid3D.o MESHIO/src/Grid3D.cpp
 
-${OBJECTDIR}/GEOMETRY/src/Point2D.o: GEOMETRY/src/Point2D.cpp 
+${OBJECTDIR}/GEOMETRY/src/Point2D.o: nbproject/Makefile-${CND_CONF}.mk GEOMETRY/src/Point2D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/GEOMETRY/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I/opt/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/GEOMETRY/src/Point2D.o GEOMETRY/src/Point2D.cpp
+	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/GEOMETRY/src/Point2D.o GEOMETRY/src/Point2D.cpp
 
-${OBJECTDIR}/GEOMETRY/src/Point3D.o: GEOMETRY/src/Point3D.cpp 
+${OBJECTDIR}/GEOMETRY/src/Point3D.o: nbproject/Makefile-${CND_CONF}.mk GEOMETRY/src/Point3D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/GEOMETRY/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I/opt/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/GEOMETRY/src/Point3D.o GEOMETRY/src/Point3D.cpp
+	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/GEOMETRY/src/Point3D.o GEOMETRY/src/Point3D.cpp
 
-${OBJECTDIR}/MESHIO/src/Face3D.o: MESHIO/src/Face3D.cpp 
+${OBJECTDIR}/MESHIO/src/Face3D.o: nbproject/Makefile-${CND_CONF}.mk MESHIO/src/Face3D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MESHIO/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I/opt/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/Face3D.o MESHIO/src/Face3D.cpp
+	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/Face3D.o MESHIO/src/Face3D.cpp
 
-${OBJECTDIR}/Commons.o: Commons.cpp 
+${OBJECTDIR}/Commons.o: nbproject/Makefile-${CND_CONF}.mk Commons.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I/opt/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/Commons.o Commons.cpp
+	$(COMPILE.cc) -O2 -Wall -I../UTILS/include -I../CFDDB/include -I. -ICommMPI/include -IGEOMETRY/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/Commons.o Commons.cpp
 
 # Subprojects
 .build-subprojects:
