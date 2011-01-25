@@ -46,7 +46,7 @@ static void UGrid_Translate_Winding(void) {
 void UGrid_Reader(const char* filename) {
     FILE *fp;
     int bdim = 256;
-    char buff[bdim];
+    char buff[256];
     char *dummy;
     
     if ((fp = fopen(filename, "r")) == NULL)

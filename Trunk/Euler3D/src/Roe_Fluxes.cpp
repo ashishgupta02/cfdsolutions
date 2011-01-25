@@ -306,7 +306,7 @@ void Compute_Residual(void) {
         Pinv[3][0] = 0.0;
         Pinv[3][1] = 0.5 * nx;
         Pinv[3][2] = 0.5 * ny;
-        Pinv[3][3] = 0,5 * nz;
+        Pinv[3][3] = 0.5 * nz;
         Pinv[3][4] = 1.0/(2.0 * rho * c);
 
         Pinv[4][0] = 0.0;
@@ -613,7 +613,7 @@ void Compute_Residual(void) {
         Pinv[3][0] = 0.0;
         Pinv[3][1] = 0.5 * nx;
         Pinv[3][2] = 0.5 * ny;
-        Pinv[3][3] = 0,5 * nz;
+        Pinv[3][3] = 0.5 * nz;
         Pinv[3][4] = 1.0/(2.0 * rho * c);
 
         Pinv[4][0] = 0.0;

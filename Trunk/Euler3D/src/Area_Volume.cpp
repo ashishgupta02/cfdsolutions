@@ -671,15 +671,15 @@ static void Calculate_Internal_Edge_Area_Volume() {
 
     // Allocate memory to store control volume associate with node
     cVolume = (double*) malloc(nNode * sizeof (double));
-    for (int i = 0; i < nNode; i++)
-        cVolume[i] = 0.0;
+    for (int iNode = 0; iNode < nNode; iNode++)
+        cVolume[iNode] = 0.0;
 
     // Loop Over all Cells
-    for (int i = 0; i < nCell; i++) {
+    for (int iCell = 0; iCell < nCell; iCell++) {
         // Get local cell number and type
-        cell_lid = i;
+        cell_lid = iCell;
         for (int etype = TRI; etype <= HEXA; etype++) {
-            if (i < cellGlobalOffset[etype]) {
+            if (iCell < cellGlobalOffset[etype]) {
                 cell_type = etype;
                 break;
             } else {

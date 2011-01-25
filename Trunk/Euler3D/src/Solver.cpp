@@ -129,7 +129,7 @@ void Solver_Finalize(void) {
 void Solver_Read_Params(const char *filename) {
     FILE *fp;
     int bdim = 256;
-    char buff[bdim];
+    char buff[256];
     char *dummy;
 
     if ((fp = fopen(filename, "r")) == NULL)
