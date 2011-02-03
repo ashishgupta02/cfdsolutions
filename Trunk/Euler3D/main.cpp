@@ -82,7 +82,7 @@ static int arguments(int argc, char **argv) {
             exit(0);
         } else if(argv[1][1] == options[7]) {
             printf("%s Utility, Version %s \n", PACKAGE, VERSION);
-            printf("Copyright (C) 2010 Ashish Gupta. All rights reserved.\n");
+            printf("Copyright (C) 2010-11 Ashish Gupta. All rights reserved.\n");
             printf("Contact for Help or Bugs %s \n", PACKAGE_BUGREPORT);
             exit(0);
         } else if (argc < 3) {
@@ -162,7 +162,7 @@ int main(int argc, char *argv[]) {
             std::string solfile;
             solfile.append(argv[2]);
             pos = solfile.find(".");
-            if (pos == -1)
+            if ((pos == -1) || (pos == 0 && solfile.length() != 0))
                 pos = solfile.length();
             solfile.replace(pos, solfile.length(), ".vtk");
             VTK_Writer(solfile.c_str());

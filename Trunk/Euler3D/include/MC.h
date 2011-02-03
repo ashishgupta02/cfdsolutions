@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-    typedef struct {
+    typedef struct _MC_CRS {
         int Block_nRow;
         int Block_nCol;
         int DIM;

@@ -7,8 +7,15 @@
 #ifndef COMMONS_H
 #define	COMMONS_H
 
+#include <math.h>
 #include "List.h"
 #include "Vector3D.h"
+
+#ifndef isnan
+inline bool isnan(double x) {
+    return x != x;
+}
+#endif
 
 #define PHY_DIM                         3
 #define CELL_DIM                        3
@@ -50,8 +57,6 @@
 #define NEDGE_HEXA                      12
 
 #define Invalid_Element                -999
-
-#define _ASSERT(x) {assert(x);}
 
 #define UNSIO_FLOWTYPE_UNKNOWN         -1
 #define UNSIO_FLOWTYPE_INCOMPRESSIBLE   0
