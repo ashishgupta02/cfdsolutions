@@ -252,6 +252,10 @@ extern "C" {
 #define DBL_ZERO        1.0E-15
 #define DBL_TOLERANCE   1.0E-7
 
+#ifndef _ASSERT
+#define _ASSERT(x) {assert(x);}
+#endif
+
 /* Define Function Libraries */
 /* Print error message to stderr and exit */
 void error(const char *fmt, ...);

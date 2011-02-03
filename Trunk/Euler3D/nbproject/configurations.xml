@@ -53,26 +53,66 @@
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
-    <conf name="Debug_SS" type="1">
+    <conf name="Release_GNU" type="1">
       <toolsSet>
         <developmentServer>localhost</developmentServer>
-        <compilerSet>OracleSolarisStudio|OracleSolarisStudio</compilerSet>
+        <compilerSet>GNU|GNU</compilerSet>
         <platform>2</platform>
         <rebuildPropChanged>true</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <cTool>
-          <commandlineTool>cc</commandlineTool>
+          <developmentMode>5</developmentMode>
+          <commandlineTool>gcc</commandlineTool>
           <incDir>
             <pElem>include</pElem>
           </incDir>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
-          <commandlineTool>CC</commandlineTool>
+          <developmentMode>5</developmentMode>
+          <commandlineTool>g++</commandlineTool>
           <incDir>
             <pElem>include</pElem>
           </incDir>
+          <commandLine>-Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer</commandLine>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <commandlineTool>g++</commandlineTool>
+          <commandLine>-lstdc++ -lm</commandLine>
+        </linkerTool>
+      </compileType>
+    </conf>
+    <conf name="Debug_GNU" type="1">
+      <toolsSet>
+        <developmentServer>localhost</developmentServer>
+        <compilerSet>GNU|GNU</compilerSet>
+        <platform>2</platform>
+        <rebuildPropChanged>true</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <commandlineTool>gcc</commandlineTool>
+          <incDir>
+            <pElem>include</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <commandlineTool>g++</commandlineTool>
+          <incDir>
+            <pElem>include</pElem>
+          </incDir>
+          <commandLine>-Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer</commandLine>
           <warningLevel>2</warningLevel>
         </ccTool>
         <fortranCompilerTool>
@@ -82,8 +122,8 @@
           <warningLevel>2</warningLevel>
         </asmTool>
         <linkerTool>
-          <commandlineTool>CC</commandlineTool>
-          <commandLine>-lm</commandLine>
+          <commandlineTool>g++</commandlineTool>
+          <commandLine>-lstdc++ -lm</commandLine>
         </linkerTool>
       </compileType>
     </conf>
@@ -125,27 +165,26 @@
         </linkerTool>
       </compileType>
     </conf>
-    <conf name="Debug_GNU" type="1">
+    <conf name="Debug_SS" type="1">
       <toolsSet>
         <developmentServer>localhost</developmentServer>
-        <compilerSet>GNU|GNU</compilerSet>
+        <compilerSet>OracleSolarisStudio|OracleSolarisStudio</compilerSet>
         <platform>2</platform>
         <rebuildPropChanged>true</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <cTool>
-          <commandlineTool>gcc</commandlineTool>
+          <commandlineTool>cc</commandlineTool>
           <incDir>
             <pElem>include</pElem>
           </incDir>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
-          <commandlineTool>g++</commandlineTool>
+          <commandlineTool>CC</commandlineTool>
           <incDir>
             <pElem>include</pElem>
           </incDir>
-          <commandLine>-Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer</commandLine>
           <warningLevel>2</warningLevel>
         </ccTool>
         <fortranCompilerTool>
@@ -155,47 +194,8 @@
           <warningLevel>2</warningLevel>
         </asmTool>
         <linkerTool>
-          <commandlineTool>g++</commandlineTool>
-          <commandLine>-lstdc++ -lm</commandLine>
-        </linkerTool>
-      </compileType>
-    </conf>
-    <conf name="Release_GNU" type="1">
-      <toolsSet>
-        <developmentServer>localhost</developmentServer>
-        <compilerSet>GNU|GNU</compilerSet>
-        <platform>2</platform>
-        <rebuildPropChanged>true</rebuildPropChanged>
-      </toolsSet>
-      <compileType>
-        <cTool>
-          <developmentMode>5</developmentMode>
-          <commandlineTool>gcc</commandlineTool>
-          <incDir>
-            <pElem>include</pElem>
-          </incDir>
-          <warningLevel>2</warningLevel>
-        </cTool>
-        <ccTool>
-          <developmentMode>5</developmentMode>
-          <commandlineTool>g++</commandlineTool>
-          <incDir>
-            <pElem>include</pElem>
-          </incDir>
-          <commandLine>-Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer</commandLine>
-          <warningLevel>2</warningLevel>
-        </ccTool>
-        <fortranCompilerTool>
-          <developmentMode>5</developmentMode>
-          <warningLevel>2</warningLevel>
-        </fortranCompilerTool>
-        <asmTool>
-          <developmentMode>5</developmentMode>
-          <warningLevel>2</warningLevel>
-        </asmTool>
-        <linkerTool>
-          <commandlineTool>g++</commandlineTool>
-          <commandLine>-lstdc++ -lm</commandLine>
+          <commandlineTool>CC</commandlineTool>
+          <commandLine>-lm</commandLine>
         </linkerTool>
       </compileType>
     </conf>

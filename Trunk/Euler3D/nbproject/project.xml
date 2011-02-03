@@ -12,10 +12,10 @@
             <make-dep-projects/>
             <sourceRootList/>
             <confList>
-                <confElem>Debug_SS</confElem>
-                <confElem>Release_SS</confElem>
-                <confElem>Debug_GNU</confElem>
                 <confElem>Release_GNU</confElem>
+                <confElem>Debug_GNU</confElem>
+                <confElem>Release_SS</confElem>
+                <confElem>Debug_SS</confElem>
             </confList>
         </data>
     </configuration>

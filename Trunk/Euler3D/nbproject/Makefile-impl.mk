@@ -27,11 +27,11 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 PROJECTNAME=Euler3D
 
 # Active Configuration
-DEFAULTCONF=Debug_SS
+DEFAULTCONF=Release_GNU
 CONF=${DEFAULTCONF}
 
 # All Configurations
-ALLCONFS=Debug_SS Release_SS Debug_GNU Release_GNU 
+ALLCONFS=Release_GNU Debug_GNU Release_SS Debug_SS 
 
 
 # build

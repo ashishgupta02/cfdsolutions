@@ -168,7 +168,7 @@ char *find_executable(char *exename) {
     /* get current directory */
 
     if (NULL == getcwd(exepath, MAX_FILENAME_LEN))
-        FATAL("find_executable", "couldn't get working directory");
+        error("find_executable", "couldn't get working directory");
     p = exepath + strlen(exepath);
     if (*(p - 1) == '\\')
         *--p = 0;
