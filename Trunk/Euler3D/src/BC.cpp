@@ -30,13 +30,20 @@ void Apply_Boundary_Condition() {
     Vector3D normal;
     double nx, ny, nz;
     double rho_b, u_b, v_b, w_b, et_b, e_b, p_b, c_b;
-    double rho_b_n, u_b_n, v_b_n, w_b_n, et_b_n, e_b_n, p_b_n, c_b_n;
+    double rho_b_n, u_b_n, v_b_n, w_b_n, et_b_n, p_b_n;
     double rho_i, u_i, v_i, w_i, et_i, e_i, p_i, c_i;
     double rho_0, u_0, v_0, w_0, et_0, e_0, p_0, c_0;
     double lamda1, lamda2, lamda3, lamda4, lamda5;
     double temp;
     int instance = BC_NONE;
-    
+
+    // Default Initialization
+    p_b_n   = Inf_Pressure;
+    rho_b_n = Inf_Rho;
+    u_b_n   = Inf_U;
+    v_b_n   = Inf_V;
+    w_b_n   = Inf_W;
+
     for (int i = 0; i < nBEdge; i++) {
         pnode     = bndEdge[i].node[0];
         ghostnode = bndEdge[i].node[1];

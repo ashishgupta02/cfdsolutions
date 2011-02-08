@@ -47,7 +47,7 @@ void UGrid_Reader(const char* filename) {
     FILE *fp;
     int bdim = 256;
     char buff[256];
-    char *dummy;
+    char *dummy = NULL;
     
     if ((fp = fopen(filename, "r")) == NULL)
         error("Ugrid_Reader: Unable to Read Grid File - %s", filename);
@@ -67,16 +67,24 @@ void UGrid_Reader(const char* filename) {
     
     // Allocate Cell to Node Pointers for All Element Types
     for (int c = 0; c < NUMBER_OF_ELEM_TYPES; c++) {
-        cell2Node[c] = (int*) malloc(elemNode[c] * nElem[c] * sizeof (int));
-        for (int n = 0; n < nElem[c]; n++)
-            cell2Node[c][n] = -1;
+        // Check for No of Elements
+        if (nElem[c] > 0) {
+            cell2Node[c] = (int*) malloc(elemNode[c] * nElem[c] * sizeof (int));
+            for (int n = 0; n < nElem[c]; n++)
+                cell2Node[c][n] = -1;
+        } else
+            cell2Node[c] = NULL;
     }
     
     // Allocate Surface tags for Triangles and Quads
     for (int c = TRI; c <= QUAD; c++) {
-        faceTag[c] = (int*) malloc(nElem[c] * sizeof (int));
-        for (int n = 0; n < nElem[c]; n++)
-            faceTag[c][n] = 0;
+        // Check for No of Elements
+        if (nElem[c] > 0) {
+            faceTag[c] = (int*) malloc(nElem[c] * sizeof (int));
+            for (int n = 0; n < nElem[c]; n++)
+                faceTag[c][n] = 0;
+        } else
+            faceTag[c] = NULL;
     }
     
     // Read in x, y, z coordinates

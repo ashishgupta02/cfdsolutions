@@ -120,6 +120,45 @@ void Solver_Init(void) {
 //!
 //------------------------------------------------------------------------------
 void Solver_Finalize(void) {
+    // Conservative Variables
+    if (Q1 != NULL)
+        delete[] Q1;
+    if (Q2 != NULL)
+        delete[] Q2;
+    if (Q3 != NULL)
+        delete[] Q3;
+    if (Q4 != NULL)
+        delete[] Q4;
+    if (Q5 != NULL)
+        delete[] Q5;
+    Q1 = NULL;
+    Q2 = NULL;
+    Q3 = NULL;
+    Q4 = NULL;
+    Q5 = NULL;
+
+    // Residuals
+    if (Res1 != NULL)
+        delete[] Res1;
+    if (Res2 != NULL)
+        delete[] Res2;
+    if (Res3 != NULL)
+        delete[] Res3;
+    if (Res4 != NULL)
+        delete[] Res4;
+    if (Res5 != NULL)
+        delete[] Res5;
+    Res1 = NULL;
+    Res2 = NULL;
+    Res3 = NULL;
+    Res4 = NULL;
+    Res5 = NULL;
+
+    // Local Time
+    if (DeltaT != NULL)
+        delete[] DeltaT;
+    DeltaT = NULL;
+    
     printf("=============================================================================\n");
 }
 
