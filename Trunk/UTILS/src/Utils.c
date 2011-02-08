@@ -94,8 +94,14 @@ double file_size(const char *fname) {
 int file_exists(char *file) {
     struct stat st;
 
-    if (access(file, 0) || stat(file, &st) ||
+#ifdef _WIN32
+    if (_access(file, 0) || stat(file, &st) ||
             S_IFREG != (st.st_mode & S_IFMT)) return 0;
+#else
+	if (access(file, 0) || stat(file, &st) ||
+            S_IFREG != (st.st_mode & S_IFMT)) return 0;
+#endif
+
     return 1;
 }
 
@@ -107,10 +113,16 @@ int is_executable(char *file) {
     struct stat st;
 
     /* needs to be executable and not a directory */
-
-    if (access(file, 1) || stat(file, &st) ||
+#ifdef _WIN32
+    if (_access(file, 1) || stat(file, &st) ||
             S_IFDIR == (st.st_mode & S_IFMT))
         return (0);
+#else
+	if (access(file, 1) || stat(file, &st) ||
+            S_IFDIR == (st.st_mode & S_IFMT))
+        return (0);
+#endif
+
     return (1);
 }
 
@@ -167,8 +179,8 @@ char *find_executable(char *exename) {
 
     /* get current directory */
 
-    if (NULL == getcwd(exepath, MAX_FILENAME_LEN))
-        FATAL("find_executable", "couldn't get working directory");
+    if (NULL == _getcwd(exepath, MAX_FILENAME_LEN))
+        error("find_executable", "couldn't get working directory");
     p = exepath + strlen(exepath);
     if (*(p - 1) == '\\')
         *--p = 0;
@@ -324,13 +336,13 @@ int temporary_file(char *name) {
     if (len <= 6) return 1;
 
     /* Allocate the memory to hold name */
-    temp = malloc((len + 1) * sizeof (char));
+    temp = (char*) malloc((len + 1) * sizeof (char));
     strcpy(temp, name);
     for (i = (len - 7); i < len; i++) temp[i] = 'X';
 
     /*    strcpy (temp, "cgnsXXXXXX"); */
 #ifdef _WIN32
-    if (mktemp(temp) == NULL)
+    if (_mktemp(temp) == NULL)
         error("temporary_file", "failed to create temporary filename\n");
 #else
     if (mkstemp(temp) == -1)
@@ -347,7 +359,11 @@ int unlink_name(char *name) {
     int result;
 
     result = 0;
-    result = unlink(name);
+#ifdef _WIN32
+    result = _unlink(name);
+#else
+	result = unlink(name);
+#endif
     return result;
 }
 
@@ -408,7 +424,7 @@ void sort_low2high(int n, int list[], double f[]) {
                 list[0] = ira;
                 break;
             }
-        }    
+        }
         i = l;
         j = l * 2;
         while (j <= ir) {
