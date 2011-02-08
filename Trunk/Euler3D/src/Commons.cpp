@@ -124,6 +124,127 @@ void Commons_Init(void) {
 //!
 //------------------------------------------------------------------------------
 void Commons_Finalize(void) {
+    // Boundary
+    if (bndType != NULL)
+        delete[] bndType;
+    bndType = NULL;
+    
+    // Coordinates
+    if (coordXYZ != NULL)
+        free(coordXYZ);
+    coordXYZ = NULL;
+
+    // Geometric Terms
+    if (cVolume != NULL)
+        free(cVolume);
+    cVolume = NULL;
+
+    // Connectivity Map Terms
+    if (cell2Node[TRI] != NULL)
+        free(cell2Node[TRI]);
+    cell2Node[TRI] = NULL;
+
+    if (cell2Node[QUAD] != NULL)
+        free(cell2Node[QUAD]);
+    cell2Node[QUAD] = NULL;
+
+    if (cell2Node[TETRA] != NULL)
+        free(cell2Node[TETRA]);
+    cell2Node[TETRA] = NULL;
+
+    if (cell2Node[PYRA] != NULL)
+        free(cell2Node[PYRA]);
+    cell2Node[PYRA] = NULL;
+
+    if (cell2Node[PRISM] != NULL)
+        free(cell2Node[PRISM]);
+    cell2Node[PRISM] = NULL;
+
+    if (cell2Node[HEXA] != NULL)
+        free(cell2Node[HEXA]);
+    cell2Node[HEXA] = NULL;
+
+    if (faceTag[TRI] != NULL)
+        free(faceTag[TRI]);
+    faceTag[TRI] = NULL;
+
+    if (faceTag[QUAD] != NULL)
+        free(faceTag[QUAD]);
+    faceTag[QUAD] = NULL;
+
+    if (node2Cell != NULL) {
+        for (int n = 0; n < nNode; n++)
+            delete node2Cell[n];
+        delete[] node2Cell;
+    }
+    node2Cell = NULL;
+
+    if (node2Node != NULL) {
+        for (int n = 0; n < nNode; n++)
+            delete node2Node[n];
+        delete[] node2Node;
+    }
+    node2Node = NULL;
+
+    if (node2Edge != NULL) {
+        for (int n = 0; n < nNode; n++)
+            delete node2Edge[n];
+        delete[] node2Edge;
+    }
+    node2Edge = NULL;
+
+    if (cell2Cell != NULL) {
+        for (int c = 0; c < nCell; c++)
+            delete cell2Cell[c];
+        delete[] cell2Cell;
+    }
+    cell2Cell = NULL;
+
+    if (edge2Node != NULL)
+        free(edge2Node);
+    edge2Node = NULL;
+    
+    if (crs_JA_Node2Node != NULL)
+        free(crs_JA_Node2Node);
+    crs_JA_Node2Node = NULL;
+
+    if (crs_IA_Node2Node != NULL)
+        free(crs_IA_Node2Node);
+    crs_IA_Node2Node = NULL;
+
+    if (crs_JA_Node2Cell != NULL)
+        free(crs_JA_Node2Cell);
+    crs_JA_Node2Cell = NULL;
+
+    if (crs_IA_Node2Cell != NULL)
+        free(crs_IA_Node2Cell);
+    crs_IA_Node2Cell = NULL;
+
+    if (crs_JA_Cell2Cell != NULL)
+        free(crs_JA_Cell2Cell);
+    crs_JA_Cell2Cell = NULL;
+
+    if (crs_IA_Cell2Cell != NULL)
+        free(crs_IA_Cell2Cell);
+    crs_IA_Cell2Cell = NULL;
+
+    if (crs_JA_Node2Edge != NULL)
+        free(crs_JA_Node2Edge);
+    crs_JA_Node2Edge = NULL;
+
+    if (crs_IA_Node2Edge != NULL)
+        free(crs_IA_Node2Edge);
+    crs_IA_Node2Edge = NULL;
+
+    // Edge Data
+    if (bndEdge != NULL)
+        free(bndEdge);
+    bndEdge = NULL;
+
+    if (intEdge != NULL)
+        free(intEdge);
+    intEdge = NULL;
+    
     printf("=============================================================================\n");
 }
 
