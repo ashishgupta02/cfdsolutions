@@ -8,6 +8,7 @@
 #include "Trim_Utils.h"
 #include "Commons.h"
 #include "Solver.h"
+#include "Gradient.h"
 
 // Linear Solver Params
 int    Order;

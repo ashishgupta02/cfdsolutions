@@ -41,6 +41,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Vector3D.o \
 	${OBJECTDIR}/src/BC.o \
 	${OBJECTDIR}/src/Time_Step.o \
+	${OBJECTDIR}/src/Gradient.o \
 	${OBJECTDIR}/src/Trim_Utils.o \
 	${OBJECTDIR}/src/Area_Volume.o \
 	${OBJECTDIR}/src/List.o \
@@ -74,77 +75,82 @@ dist/Release_GNU/GNU-Linux-x86/euler3d: ${OBJECTFILES}
 	${MKDIR} -p dist/Release_GNU/GNU-Linux-x86
 	g++ -lstdc++ -lm -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
-${OBJECTDIR}/src/Point3D.o: nbproject/Makefile-${CND_CONF}.mk src/Point3D.cpp 
+${OBJECTDIR}/src/Point3D.o: src/Point3D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Point3D.o src/Point3D.cpp
 
-${OBJECTDIR}/src/Commons.o: nbproject/Makefile-${CND_CONF}.mk src/Commons.cpp 
+${OBJECTDIR}/src/Commons.o: src/Commons.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Commons.o src/Commons.cpp
 
-${OBJECTDIR}/src/Cuthill_Mckee_Reorder.o: nbproject/Makefile-${CND_CONF}.mk src/Cuthill_Mckee_Reorder.cpp 
+${OBJECTDIR}/src/Cuthill_Mckee_Reorder.o: src/Cuthill_Mckee_Reorder.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Cuthill_Mckee_Reorder.o src/Cuthill_Mckee_Reorder.cpp
 
-${OBJECTDIR}/main.o: nbproject/Makefile-${CND_CONF}.mk main.cpp 
+${OBJECTDIR}/main.o: main.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
 
-${OBJECTDIR}/src/MC_Iterative_Jacobi.o: nbproject/Makefile-${CND_CONF}.mk src/MC_Iterative_Jacobi.c 
+${OBJECTDIR}/src/MC_Iterative_Jacobi.o: src/MC_Iterative_Jacobi.c 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.c) -O2 -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MC_Iterative_Jacobi.o src/MC_Iterative_Jacobi.c
 
-${OBJECTDIR}/src/Vector3D.o: nbproject/Makefile-${CND_CONF}.mk src/Vector3D.cpp 
+${OBJECTDIR}/src/Vector3D.o: src/Vector3D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Vector3D.o src/Vector3D.cpp
 
-${OBJECTDIR}/src/BC.o: nbproject/Makefile-${CND_CONF}.mk src/BC.cpp 
+${OBJECTDIR}/src/BC.o: src/BC.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/BC.o src/BC.cpp
 
-${OBJECTDIR}/src/Time_Step.o: nbproject/Makefile-${CND_CONF}.mk src/Time_Step.cpp 
+${OBJECTDIR}/src/Time_Step.o: src/Time_Step.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Time_Step.o src/Time_Step.cpp
 
-${OBJECTDIR}/src/Trim_Utils.o: nbproject/Makefile-${CND_CONF}.mk src/Trim_Utils.c 
+${OBJECTDIR}/src/Gradient.o: src/Gradient.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Gradient.o src/Gradient.cpp
+
+${OBJECTDIR}/src/Trim_Utils.o: src/Trim_Utils.c 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.c) -O2 -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Trim_Utils.o src/Trim_Utils.c
 
-${OBJECTDIR}/src/Area_Volume.o: nbproject/Makefile-${CND_CONF}.mk src/Area_Volume.cpp 
+${OBJECTDIR}/src/Area_Volume.o: src/Area_Volume.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Area_Volume.o src/Area_Volume.cpp
 
-${OBJECTDIR}/src/List.o: nbproject/Makefile-${CND_CONF}.mk src/List.cpp 
+${OBJECTDIR}/src/List.o: src/List.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/List.o src/List.cpp
 
-${OBJECTDIR}/src/MeshIO.o: nbproject/Makefile-${CND_CONF}.mk src/MeshIO.cpp 
+${OBJECTDIR}/src/MeshIO.o: src/MeshIO.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MeshIO.o src/MeshIO.cpp
 
-${OBJECTDIR}/src/Roe_Fluxes.o: nbproject/Makefile-${CND_CONF}.mk src/Roe_Fluxes.cpp 
+${OBJECTDIR}/src/Roe_Fluxes.o: src/Roe_Fluxes.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Roe_Fluxes.o src/Roe_Fluxes.cpp
 
-${OBJECTDIR}/src/Solver.o: nbproject/Makefile-${CND_CONF}.mk src/Solver.cpp 
+${OBJECTDIR}/src/Solver.o: src/Solver.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Solver.o src/Solver.cpp
 
-${OBJECTDIR}/src/Connectivity_Maps.o: nbproject/Makefile-${CND_CONF}.mk src/Connectivity_Maps.cpp 
+${OBJECTDIR}/src/Connectivity_Maps.o: src/Connectivity_Maps.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Connectivity_Maps.o src/Connectivity_Maps.cpp

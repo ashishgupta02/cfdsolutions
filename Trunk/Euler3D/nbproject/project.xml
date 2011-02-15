@@ -16,6 +16,8 @@
                 <confElem>Debug_GNU</confElem>
                 <confElem>Release_SS</confElem>
                 <confElem>Debug_SS</confElem>
+                <confElem>Release_Intel64</confElem>
+                <confElem>Debug_Intel64</confElem>
             </confList>
         </data>
     </configuration>
