@@ -194,14 +194,19 @@ void MC_Matrix_Mul_Matrix(int nRow, int nCol, double **Mat1, double **Mat2, doub
             (nRow <= 0) || (nCol <= 0) || (nRow != nCol))
         return;
 
+/*
     for (iRow = 0; iRow < nRow; iRow++)
         for (iCol = 0; iCol < nCol; iCol++)
             Out[iRow][iCol] = 0.0;
+*/
 
-    for (iRow = 0; iRow < nRow; iRow++)
-        for (iCol = 0; iCol < nCol; iCol++)
+    for (iRow = 0; iRow < nRow; iRow++) {
+        for (iCol = 0; iCol < nCol; iCol++) {
+            Out[iRow][iCol] = 0.0;
             for (k = 0; k < nCol; k++)
                 Out[iRow][iCol] += Mat1[iRow][k] * Mat2[k][iCol];
+        }
+    }
 }
 
 //------------------------------------------------------------------------------

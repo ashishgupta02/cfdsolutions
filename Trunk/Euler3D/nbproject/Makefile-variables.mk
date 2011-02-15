@@ -38,3 +38,19 @@ CND_ARTIFACT_PATH_Debug_SS=dist/Debug_SS/OracleSolarisStudio-Linux-x86/euler3d
 CND_PACKAGE_DIR_Debug_SS=dist/Debug_SS/OracleSolarisStudio-Linux-x86/package
 CND_PACKAGE_NAME_Debug_SS=euler3d.tar
 CND_PACKAGE_PATH_Debug_SS=dist/Debug_SS/OracleSolarisStudio-Linux-x86/package/euler3d.tar
+# Release_Intel64 configuration
+CND_PLATFORM_Release_Intel64=Intel64-Linux-x86
+CND_ARTIFACT_DIR_Release_Intel64=dist/Release_Intel64/Intel64-Linux-x86
+CND_ARTIFACT_NAME_Release_Intel64=euler3d
+CND_ARTIFACT_PATH_Release_Intel64=dist/Release_Intel64/Intel64-Linux-x86/euler3d
+CND_PACKAGE_DIR_Release_Intel64=dist/Release_Intel64/Intel64-Linux-x86/package
+CND_PACKAGE_NAME_Release_Intel64=euler3d.tar
+CND_PACKAGE_PATH_Release_Intel64=dist/Release_Intel64/Intel64-Linux-x86/package/euler3d.tar
+# Debug_Intel64 configuration
+CND_PLATFORM_Debug_Intel64=Intel64-Linux-x86
+CND_ARTIFACT_DIR_Debug_Intel64=dist/Debug_Intel64/Intel64-Linux-x86
+CND_ARTIFACT_NAME_Debug_Intel64=euler3d
+CND_ARTIFACT_PATH_Debug_Intel64=dist/Debug_Intel64/Intel64-Linux-x86/euler3d
+CND_PACKAGE_DIR_Debug_Intel64=dist/Debug_Intel64/Intel64-Linux-x86/package
+CND_PACKAGE_NAME_Debug_Intel64=euler3d.tar
+CND_PACKAGE_PATH_Debug_Intel64=dist/Debug_Intel64/Intel64-Linux-x86/package/euler3d.tar

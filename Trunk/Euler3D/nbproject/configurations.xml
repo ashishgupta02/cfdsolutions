@@ -6,6 +6,7 @@
                    projectFiles="true"
                    kind="SOURCE_LOGICAL_FOLDER">
       <itemPath>include/Commons.h</itemPath>
+      <itemPath>include/Gradient.h</itemPath>
       <itemPath>include/List.h</itemPath>
       <itemPath>include/MC.h</itemPath>
       <itemPath>include/MeshIO.h</itemPath>
@@ -28,6 +29,7 @@
       <itemPath>src/Commons.cpp</itemPath>
       <itemPath>src/Connectivity_Maps.cpp</itemPath>
       <itemPath>src/Cuthill_Mckee_Reorder.cpp</itemPath>
+      <itemPath>src/Gradient.cpp</itemPath>
       <itemPath>src/List.cpp</itemPath>
       <itemPath>src/MC_Iterative_Jacobi.c</itemPath>
       <itemPath>src/MeshIO.cpp</itemPath>
@@ -58,7 +60,6 @@
         <developmentServer>localhost</developmentServer>
         <compilerSet>GNU|GNU</compilerSet>
         <platform>2</platform>
-        <rebuildPropChanged>true</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <cTool>
@@ -97,7 +98,6 @@
         <developmentServer>localhost</developmentServer>
         <compilerSet>GNU|GNU</compilerSet>
         <platform>2</platform>
-        <rebuildPropChanged>true</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <cTool>
@@ -132,7 +132,6 @@
         <developmentServer>localhost</developmentServer>
         <compilerSet>OracleSolarisStudio|OracleSolarisStudio</compilerSet>
         <platform>2</platform>
-        <rebuildPropChanged>true</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <cTool>
@@ -170,7 +169,6 @@
         <developmentServer>localhost</developmentServer>
         <compilerSet>OracleSolarisStudio|OracleSolarisStudio</compilerSet>
         <platform>2</platform>
-        <rebuildPropChanged>true</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <cTool>
@@ -196,6 +194,58 @@
         <linkerTool>
           <commandlineTool>CC</commandlineTool>
           <commandLine>-lm</commandLine>
+        </linkerTool>
+      </compileType>
+    </conf>
+    <conf name="Release_Intel64" type="1">
+      <toolsSet>
+        <developmentServer>localhost</developmentServer>
+        <compilerSet>Intel64|GNU</compilerSet>
+        <platform>2</platform>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>include</pElem>
+          </incDir>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>include</pElem>
+          </incDir>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+        <linkerTool>
+          <commandLine>-lstdc++</commandLine>
+        </linkerTool>
+      </compileType>
+    </conf>
+    <conf name="Debug_Intel64" type="1">
+      <toolsSet>
+        <developmentServer>localhost</developmentServer>
+        <compilerSet>Intel64|GNU</compilerSet>
+        <platform>2</platform>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <incDir>
+            <pElem>include</pElem>
+          </incDir>
+        </cTool>
+        <ccTool>
+          <incDir>
+            <pElem>include</pElem>
+          </incDir>
+        </ccTool>
+        <linkerTool>
+          <commandLine>-lstdc++</commandLine>
         </linkerTool>
       </compileType>
     </conf>

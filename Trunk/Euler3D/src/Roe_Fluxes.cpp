@@ -14,7 +14,7 @@
 #include "Solver.h"
 
 //------------------------------------------------------------------------------
-//!
+//! TODO :  Optimization of Code by Removing Matrix-Matrix Multiplication
 //------------------------------------------------------------------------------
 void Compute_Residual(void) {
     int i, j, k;
@@ -25,7 +25,7 @@ void Compute_Residual(void) {
     double temp;
     
     Vector3D areavec;
-    double   area;
+    double area;
     double nx, ny, nz;
     double f_vec[5];
     double g_vec[5];
