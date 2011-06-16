@@ -1,7 +1,7 @@
 /*******************************************************************************
  * File:        BC.cpp
  * Author:      Ashish Gupta
- * Revision:    1
+ * Revision:    2
  ******************************************************************************/
 
 #include <assert.h>
@@ -22,7 +22,7 @@ void Initialize_Boundary_Condition() {
 }
 
 //------------------------------------------------------------------------------
-//!
+//! Note: Outward Pointing Boundary Normals
 //------------------------------------------------------------------------------
 void Apply_Boundary_Condition() {
     int pnode;
@@ -83,9 +83,10 @@ void Apply_Boundary_Condition() {
         w_0   = 0.5 * (w_i + w_b);
         et_0  = 0.5 * (et_i + et_b);
         e_0   = 0.5 * (e_i + e_b);
-        p_0   = rho_0 * e_0 *(Gamma - 1.0);
-        c_0   = sqrt(Gamma * p_0/rho_0);
-        
+//        p_0   = rho_0 * e_0 *(Gamma - 1.0);
+//        c_0   = sqrt(Gamma * p_0/rho_0);
+        p_0   = 0.5 * (p_i + p_b);
+        c_0   = 0.5 * (c_i + c_b);
         
         // Get eigenvalues
         lamda1 = u_i * nx + v_i * ny + w_i * nz;
@@ -111,36 +112,26 @@ void Apply_Boundary_Condition() {
             // Free Stream
             case BC_FREE_STREAM:
                 instance = BC_FREE_STREAM;
-                if (fabs(lamda1)/ c_0 >= 1.0) {
-                    // Supersonic inflow
-                    if ((lamda1 <= 0.0) && (lamda4 <= 0.0) && (lamda5 <= 0.0))
-                        instance = BC_SUPERSONIC_INFLOW;
+                // Supersonic inflow
+                if ((lamda1 <= 0.0) && (lamda4 <= 0.0) && (lamda5 <= 0.0))
+                    instance = BC_SUPERSONIC_INFLOW;
                     // Supersonic outflow
-                    else if ((lamda1 >= 0.0) && (lamda4 >= 0.0) && (lamda5 >= 0.0))
-                        instance = BC_SUPERSONIC_OUTFLOW;
-                    else {
-                        info(" Supersonic Lamda: %lf %lf %lf %lf %lf", lamda1, lamda2,
-                                lamda3, lamda4, lamda5);
-                        info("Nodes: %d %d", pnode, ghostnode);
-                        info("Normal: %lf %lf %lf ", nx, ny, nz);
-                        info("Velocity: %lf %lf %lf ", u_i, v_i, w_i);
-                        error("Apply_Boundary_Condition: Unable apply boundary condition edge[%d]", i);
-                    }
-                } else {
+                else if ((lamda1 >= 0.0) && (lamda4 >= 0.0) && (lamda5 >= 0.0))
+                    instance = BC_SUPERSONIC_OUTFLOW;
                     // Subsonic outflow
-                    if ((lamda1 >= 0.0) && (lamda5 <= 0.0) && (lamda4 >= 0.0))
-                        instance = BC_SUBSONIC_OUTFLOW;
+                else if ((lamda1 >= 0.0) && (lamda5 <= 0.0) && (lamda4 >= 0.0))
+                    instance = BC_SUBSONIC_OUTFLOW;
                     // Subsonic inflow
-                    else if ((lamda1 <= 0.0) && (lamda4 >= 0.0) && (lamda5 <= 0.0))
-                        instance = BC_SUBSONIC_INFLOW;
-                    else {
-                        info(" Subsonic Lamda: %lf %lf %lf %lf %lf", lamda1, lamda2,
-                                lamda3, lamda4, lamda5);
-                        info("Nodes: %d %d", pnode, ghostnode);
-                        info("Normal: %lf %lf %lf ", nx, ny, nz);
-                        info("Velocity: %lf %lf %lf ", u_i, v_i, w_i);
-                        error("Apply_Boundary_Condition: Unable apply boundary condition edge[%d]", i);
-                    }
+                else if ((lamda1 <= 0.0) && (lamda4 >= 0.0) && (lamda5 <= 0.0))
+                    instance = BC_SUBSONIC_INFLOW;
+                else {
+                    info("Lamda: %lf %lf %lf %10.5e %lf", lamda1, lamda2,
+                            lamda3, lamda4, lamda5);
+                    info("Mach: %lf", fabs(lamda1) / c_0);
+                    info("Nodes: %d %d", pnode, ghostnode);
+                    info("Normal: %lf %lf %lf ", nx, ny, nz);
+                    info("Velocity: %lf %lf %lf ", u_i, v_i, w_i);
+                    error("Apply_Boundary_Condition: Unable apply boundary condition edge[%d]", i);
                 }
                 break;
             default:
@@ -156,27 +147,31 @@ void Apply_Boundary_Condition() {
         // Apply Boundary Conditions
         switch (instance) {
             case BC_SOLID_WALL:
-                temp    = nx * u_i + ny * v_i + nz * w_i;
-                p_b_n   = p_i + rho_0 * c_0 * temp;
-                rho_b_n = rho_i + (p_b - p_i) / (c_0 * c_0);
-                u_b_n   = u_i - nx * (p_b - p_i) / (rho_0 * c_0);
-                v_b_n   = v_i - ny * (p_b - p_i) / (rho_0 * c_0);
-                w_b_n   = w_i - nz * (p_b - p_i) / (rho_0 * c_0);
+                temp    = rho_0 * c_0* (nx * u_i + ny * v_i + nz * w_i);
+                // Limiter for harsh initial conditions
+//                if ((temp < 0.0) && (fabs(p_i) < fabs(temp)))
+//                    p_b_n = fabs(p_i + temp);
+//                else
+                p_b_n = p_i + temp;
+                rho_b_n = rho_i + (p_b_n - p_i) / (c_0 * c_0);
+                u_b_n   = u_i - nx * (p_b_n - p_i) / (rho_0 * c_0);
+                v_b_n   = v_i - ny * (p_b_n - p_i) / (rho_0 * c_0);
+                w_b_n   = w_i - nz * (p_b_n - p_i) / (rho_0 * c_0);
                 break;
             case BC_SUBSONIC_OUTFLOW:
                 p_b_n   = Inf_Pressure;
-                rho_b_n = rho_i + (p_b - p_i) / (c_0 * c_0);
-                u_b_n   = u_i - nx * (p_b - p_i) / (rho_0 * c_0);
-                v_b_n   = v_i - ny * (p_b - p_i) / (rho_0 * c_0);
-                w_b_n   = w_i - nz * (p_b - p_i) / (rho_0 * c_0);
+                rho_b_n = rho_i + (p_b_n - p_i) / (c_0 * c_0);
+                u_b_n   = u_i - nx * (p_b_n - p_i) / (rho_0 * c_0);
+                v_b_n   = v_i - ny * (p_b_n - p_i) / (rho_0 * c_0);
+                w_b_n   = w_i - nz * (p_b_n - p_i) / (rho_0 * c_0);
                 break;
             case BC_SUBSONIC_INFLOW:
-                temp    =   nx * (Inf_U - u_i) + ny * (Inf_V - v_i) + nz * (Inf_W - w_i);
+                temp    = nx * (Inf_U - u_i) + ny * (Inf_V - v_i) + nz * (Inf_W - w_i);
                 p_b_n   = 0.5 * (Inf_Pressure + p_i - rho_0 * c_0 * temp);
-                rho_b_n = Inf_Rho + (p_b - Inf_Pressure) / (c_0 * c_0);
-                u_b_n   = Inf_U + nx * (p_b - Inf_Pressure) / (rho_0 * c_0);
-                v_b_n   = Inf_V + ny * (p_b - Inf_Pressure) / (rho_0 * c_0);
-                w_b_n   = Inf_W + nz * (p_b - Inf_Pressure) / (rho_0 * c_0);
+                rho_b_n = Inf_Rho + (p_b_n - Inf_Pressure) / (c_0 * c_0);
+                u_b_n   = Inf_U + nx * (p_b_n - Inf_Pressure) / (rho_0 * c_0);
+                v_b_n   = Inf_V + ny * (p_b_n - Inf_Pressure) / (rho_0 * c_0);
+                w_b_n   = Inf_W + nz * (p_b_n - Inf_Pressure) / (rho_0 * c_0);
                 break;
             case BC_SUPERSONIC_INFLOW:
                 p_b_n   = Inf_Pressure;
@@ -203,6 +198,9 @@ void Apply_Boundary_Condition() {
                 error("Apply_Boundary_Condition: Unable to set BC Type edge[%d]", i);
                 break;
         }
+
+        if (p_b_n < 0.0)
+            error("Negative Pressure: Node: %d Ghost: %d, P_i: %e, P_b_n: %e", pnode, ghostnode, p_i, p_b_n);
         
         et_b_n = p_b_n / ((Gamma - 1.0) * rho_b_n) + 0.5 * (u_b_n * u_b_n + v_b_n * v_b_n + w_b_n * w_b_n);
 

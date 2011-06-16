@@ -1,14 +1,13 @@
 /*******************************************************************************
- * File:        MeshIO.h
+ * File:        DebugSolver.h
  * Author:      Ashish Gupta
  * Revision:    2
  ******************************************************************************/
 
-#ifndef MESHIO_H
-#define	MESHIO_H
+#ifndef DEBUGSOLVER_H
+#define	DEBUGSOLVER_H
 
-void UGrid_Reader(const char* filename);
-void VTK_Writer(const char* filename);
+void DebugNAN(void);
 
-#endif	/* MESHIO_H */
+#endif	/* DEBUGSOLVER_H */
 

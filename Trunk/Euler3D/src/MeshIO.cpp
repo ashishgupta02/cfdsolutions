@@ -1,7 +1,7 @@
 /*******************************************************************************
  * File:        MeshIO.cpp
  * Author:      Ashish Gupta
- * Revision:    1
+ * Revision:    2
  ******************************************************************************/
 
 #include <string.h>
@@ -215,6 +215,8 @@ void UGrid_Reader(const char* filename) {
 void VTK_Writer(const char* filename) {
     int i, j;
     FILE *fp;
+
+    info("Writing VTK Solution File %s", filename);
     
     if ((fp = fopen(filename, "w")) == NULL)
         error("VTK_Writer: Unable to Write Solution File - %s", filename);

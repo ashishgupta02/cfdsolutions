@@ -1,7 +1,7 @@
 /*******************************************************************************
  * File:        List.cpp
  * Author:      Ashish Gupta
- * Revision:    1
+ * Revision:    2
  ******************************************************************************/
 
 #include <stdio.h>
@@ -20,7 +20,7 @@ int List::Redimension(int size) {
         else
             list = (int*) malloc(size * sizeof (int));
         if (list == NULL) {
-            fprintf(stderr, "Could not allocate space for list.");
+            fprintf(stderr, "List:Redimension -- Could not allocate space for list.");
             return (0);
         }
         //for (int i=max; i < size; i++)
@@ -71,7 +71,7 @@ int List::Check_List(int n) {
     if (!Is_In_List(n)) {
         if (max >= dim) {
             if (!Redimension(new_dim)) {
-                fprintf(stderr, "Could not add to list.");
+                fprintf(stderr, "List:Check_List -- Could not add to list.");
                 return (0);
             }
         }
@@ -91,7 +91,7 @@ int List::Add_To_List(int n) {
         list[max++] = n;
         return (1);
     } else {
-        fprintf(stderr,"Could not add to list.");
+        fprintf(stderr,"List:Add_To_List -- Could not add to list.");
         return (0);
     }
     return (1);
@@ -139,7 +139,7 @@ int List::Reset(int size) {
             free(list);
         list = (int*) malloc(size * sizeof (int));
         if (list == NULL) {
-            fprintf(stderr, "Could not allocate space for list.");
+            fprintf(stderr, "List:Reset -- Could not allocate space for list.");
             dim = max = 0;
             return (0);
         }
@@ -158,7 +158,7 @@ int List::RemoveDuplicates() {
         int *map = NULL;
         map = (int*) malloc(max*sizeof(int));
         if (map == NULL) {
-            fprintf(stderr, "Could not allocate space for list.");
+            fprintf(stderr, "List:RemoveDuplicates -- Could not allocate space for list.");
             dim = max = 0;
             return (0);
         }
@@ -177,7 +177,7 @@ int List::RemoveDuplicates() {
                 list[value++] = list[i];
         }
         if (max > value) {
-            printf("Hey\n");
+            printf("List:RemoveDuplicates -- Check for ERROR\n");
             max = value;
         }
         free(map);

@@ -1,7 +1,7 @@
 /*******************************************************************************
  * File:        Gradient.h
  * Author:      Ashish Gupta
- * Revision:    1
+ * Revision:    2
  ******************************************************************************/
 
 #ifndef GRADIENT_H
@@ -34,7 +34,7 @@ extern GradientData *LSCoeff;
 void Gradient_Init(void);
 void Gradient_Finalize(void);
 // Add the Function to the Gradient Computation List
-void Gradient_Add_Function(double *NewFunction, double *NewGradientX,
+int Gradient_Add_Function(double *NewFunction, double *NewGradientX,
         double *NewGradientY, double *NewGradientZ, int Size);
 // WeightType: 0 => Unweighted 1 => Inverse Distance
 void Compute_Least_Square_Gradient(int WeightType);

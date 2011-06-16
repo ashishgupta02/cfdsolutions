@@ -1,7 +1,7 @@
 /*******************************************************************************
  * File:        Gradient.cpp
  * Author:      Ashish Gupta
- * Revision:    1
+ * Revision:    2
  ******************************************************************************/
 
 // Custom header files
@@ -62,8 +62,9 @@ void Gradient_Finalize(void) {
 //------------------------------------------------------------------------------
 //! Add the Function to the List for Computation of Gradient
 //------------------------------------------------------------------------------
-void Gradient_Add_Function(double *NewFunction, double *NewGradientX, 
+int Gradient_Add_Function(double *NewFunction, double *NewGradientX,
         double *NewGradientY, double *NewGradientZ, int Size) {
+    int FunctionID;
     double **tmpFunction  = NULL;
     double **tmpGradientX = NULL;
     double **tmpGradientY = NULL;
@@ -121,8 +122,10 @@ void Gradient_Add_Function(double *NewFunction, double *NewGradientX,
         GradientZ[NFunction] = NewGradientZ;
     }
 
+    FunctionID = NFunction;
     // Increment the Size
     NFunction++;
+    return FunctionID;
 }
 
 //------------------------------------------------------------------------------

@@ -37,18 +37,22 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Commons.o \
 	${OBJECTDIR}/src/Cuthill_Mckee_Reorder.o \
 	${OBJECTDIR}/main.o \
+	${OBJECTDIR}/src/RestartIO.o \
 	${OBJECTDIR}/src/MC_Iterative_Jacobi.o \
 	${OBJECTDIR}/src/Vector3D.o \
 	${OBJECTDIR}/src/BC.o \
 	${OBJECTDIR}/src/Time_Step.o \
+	${OBJECTDIR}/src/LMRoe_Fluxes.o \
 	${OBJECTDIR}/src/Gradient.o \
 	${OBJECTDIR}/src/Trim_Utils.o \
 	${OBJECTDIR}/src/Area_Volume.o \
 	${OBJECTDIR}/src/List.o \
 	${OBJECTDIR}/src/MeshIO.o \
 	${OBJECTDIR}/src/Roe_Fluxes.o \
+	${OBJECTDIR}/src/Flux_Limiters.o \
 	${OBJECTDIR}/src/Solver.o \
-	${OBJECTDIR}/src/Connectivity_Maps.o
+	${OBJECTDIR}/src/Connectivity_Maps.o \
+	${OBJECTDIR}/src/DebugSolver.o
 
 
 # C Compiler Flags
@@ -95,6 +99,11 @@ ${OBJECTDIR}/main.o: nbproject/Makefile-${CND_CONF}.mk main.cpp
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
 
+${OBJECTDIR}/src/RestartIO.o: nbproject/Makefile-${CND_CONF}.mk src/RestartIO.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/RestartIO.o src/RestartIO.cpp
+
 ${OBJECTDIR}/src/MC_Iterative_Jacobi.o: nbproject/Makefile-${CND_CONF}.mk src/MC_Iterative_Jacobi.c 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
@@ -114,6 +123,11 @@ ${OBJECTDIR}/src/Time_Step.o: nbproject/Makefile-${CND_CONF}.mk src/Time_Step.cp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Time_Step.o src/Time_Step.cpp
+
+${OBJECTDIR}/src/LMRoe_Fluxes.o: nbproject/Makefile-${CND_CONF}.mk src/LMRoe_Fluxes.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/LMRoe_Fluxes.o src/LMRoe_Fluxes.cpp
 
 ${OBJECTDIR}/src/Gradient.o: nbproject/Makefile-${CND_CONF}.mk src/Gradient.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -145,6 +159,11 @@ ${OBJECTDIR}/src/Roe_Fluxes.o: nbproject/Makefile-${CND_CONF}.mk src/Roe_Fluxes.
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Roe_Fluxes.o src/Roe_Fluxes.cpp
 
+${OBJECTDIR}/src/Flux_Limiters.o: nbproject/Makefile-${CND_CONF}.mk src/Flux_Limiters.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Flux_Limiters.o src/Flux_Limiters.cpp
+
 ${OBJECTDIR}/src/Solver.o: nbproject/Makefile-${CND_CONF}.mk src/Solver.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
@@ -154,6 +173,11 @@ ${OBJECTDIR}/src/Connectivity_Maps.o: nbproject/Makefile-${CND_CONF}.mk src/Conn
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Connectivity_Maps.o src/Connectivity_Maps.cpp
+
+${OBJECTDIR}/src/DebugSolver.o: nbproject/Makefile-${CND_CONF}.mk src/DebugSolver.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/DebugSolver.o src/DebugSolver.cpp
 
 # Subprojects
 .build-subprojects:

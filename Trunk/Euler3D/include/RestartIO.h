@@ -1,14 +1,14 @@
 /*******************************************************************************
- * File:        MeshIO.h
+ * File:        RestartIO.h
  * Author:      Ashish Gupta
  * Revision:    2
  ******************************************************************************/
 
-#ifndef MESHIO_H
-#define	MESHIO_H
+#ifndef RESTARTIO_H
+#define	RESTARTIO_H
 
-void UGrid_Reader(const char* filename);
-void VTK_Writer(const char* filename);
+void Restart_Writer(const char* filename);
+void Restart_Reader(const char* filename);
 
-#endif	/* MESHIO_H */
+#endif	/* RESTARTIO_H */
 

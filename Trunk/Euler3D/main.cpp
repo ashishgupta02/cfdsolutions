@@ -1,7 +1,7 @@
 /*******************************************************************************
  * File:        main.cpp
  * Author:      Ashish Gupta
- * Revision:    1
+ * Revision:    2
  ******************************************************************************/
 
 #ifdef HAVE_CONFIG_H
@@ -156,16 +156,16 @@ int main(int argc, char *argv[]) {
             // -f = Roe Flux Splitting
             Solver_Read_Params(argv[3]);
             Solver_Set_Initial_Conditions();
-            Solve();
-
-            int pos;
-            std::string solfile;
-            solfile.append(argv[2]);
-            pos = solfile.find(".");
-            if ((pos == -1) || (pos == 0 && solfile.length() != 0))
-                pos = solfile.length();
-            solfile.replace(pos, solfile.length(), ".vtk");
-            VTK_Writer(solfile.c_str());
+            if (Solve() == EXIT_SUCCESS) {
+                int pos;
+                std::string solfile;
+                solfile.append(argv[2]);
+                pos = solfile.find(".");
+                if ((pos == -1) || (pos == 0 && solfile.length() != 0))
+                    pos = solfile.length();
+                solfile.replace(pos, solfile.length(), ".vtk");
+                VTK_Writer(solfile.c_str());
+            }
             break;
     }
     
