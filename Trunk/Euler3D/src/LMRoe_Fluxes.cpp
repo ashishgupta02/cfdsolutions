@@ -1,7 +1,9 @@
 /*******************************************************************************
- * File:        Roe_Fluxes.cpp
+ * File:        LMRoe_Fluxes.cpp
  * Author:      Ashish Gupta
- * Revision:    2
+ * Revision:    1
+ * Reference:   A Low-Mach Number Fix for Roe's Approximate Riemann Solver
+ *              Felix Rieper, Journal of Computational Physics, 230 (2011)
  ******************************************************************************/
 
 #include <assert.h>
@@ -16,27 +18,23 @@
 //------------------------------------------------------------------------------
 //! TODO :  Optimization of Code by Removing Matrix-Matrix Multiplication
 //------------------------------------------------------------------------------
-void Compute_Residual(void) {
+void Compute_Residual_LMRoe(void) {
     int i, j, k;
     int node_L, node_R;
     double rho_L, u_L, v_L, w_L, et_L, e_L, p_L, c_L, h_L, ht_L;
     double rho_R, u_R, v_R, w_R, et_R, e_R, p_R, c_R, h_R, ht_R;
     double rho, u, v, w, ht, c, phi;
-    double temp;
-    
+    double temp, fix;
+
+    double dq[5];
+    double Mach;
     Vector3D areavec;
     double area;
     double nx, ny, nz;
-    double Rx_L, Ry_L, Rz_L;
-    double Rx_R, Ry_R, Rz_R;
     double f_vec[5];
     double g_vec[5];
     double h_vec[5];
     double fluxA[5];
-    double Q_L[5];
-    double Q_R[5];
-    double Phi_L[5];
-    double Phi_R[5];
     double flux_L[5];
     double flux_R[5];
     double *dQ;
@@ -105,62 +103,13 @@ void Compute_Residual(void) {
         nx = areavec.vec[0];
         ny = areavec.vec[1];
         nz = areavec.vec[2];
-
-        // Make Solution Second Order
-        if (Order == 2) {
-            // Initialize Flux Limiters
-            Phi_L[0] = Phi_L[1] = Phi_L[2] = Phi_L[3] = Phi_L[4] = 1.0;
-            Phi_R[0] = Phi_R[1] = Phi_R[2] = Phi_R[3] = Phi_R[4] = 1.0;
-
-            // Compute Flux Limiter
-            switch (Limiter) {
-                case 1: // Barth and Jespersen
-                    Compute_Flux_Limiter_Barth_Jespersen(node_L, node_R, Phi_L, Phi_R);
-                    break;
-                case 2: // Venkatakrishnan
-                    Compute_Flux_Limiter_Venkatakrishnan(node_L, node_R, Phi_L, Phi_R);
-                    break;
-            }
-            
-            // Compute vector R
-            Rx_L = 0.5*(coordXYZ[PHY_DIM * node_R + 0] - coordXYZ[PHY_DIM * node_L + 0]);
-            Ry_L = 0.5*(coordXYZ[PHY_DIM * node_R + 1] - coordXYZ[PHY_DIM * node_L + 1]);
-            Rz_L = 0.5*(coordXYZ[PHY_DIM * node_R + 2] - coordXYZ[PHY_DIM * node_L + 2]);
-            // Compute Left Q's
-            Q_L[0]  = Q1[node_L] + Phi_L[0]*(Q1x[node_L]*Rx_L + Q1y[node_L]*Ry_L + Q1z[node_L]*Rz_L);
-            Q_L[1]  = Q2[node_L] + Phi_L[1]*(Q2x[node_L]*Rx_L + Q2y[node_L]*Ry_L + Q2z[node_L]*Rz_L);
-            Q_L[2]  = Q3[node_L] + Phi_L[2]*(Q3x[node_L]*Rx_L + Q3y[node_L]*Ry_L + Q3z[node_L]*Rz_L);
-            Q_L[3]  = Q4[node_L] + Phi_L[3]*(Q4x[node_L]*Rx_L + Q4y[node_L]*Ry_L + Q4z[node_L]*Rz_L);
-            Q_L[4]  = Q5[node_L] + Phi_L[4]*(Q5x[node_L]*Rx_L + Q5y[node_L]*Ry_L + Q5z[node_L]*Rz_L);
-            // Compute vector R
-            Rx_R = - Rx_L;
-            Ry_R = - Ry_L;
-            Rz_R = - Rz_L;
-            // Finally Compute Right Q's
-            Q_R[0]  = Q1[node_R] + Phi_R[0]*(Q1x[node_R]*Rx_R + Q1y[node_R]*Ry_R + Q1z[node_R]*Rz_R);
-            Q_R[1]  = Q2[node_R] + Phi_R[1]*(Q2x[node_R]*Rx_R + Q2y[node_R]*Ry_R + Q2z[node_R]*Rz_R);
-            Q_R[2]  = Q3[node_R] + Phi_R[2]*(Q3x[node_R]*Rx_R + Q3y[node_R]*Ry_R + Q3z[node_R]*Rz_R);
-            Q_R[3]  = Q4[node_R] + Phi_R[3]*(Q4x[node_R]*Rx_R + Q4y[node_R]*Ry_R + Q4z[node_R]*Rz_R);
-            Q_R[4]  = Q5[node_R] + Phi_R[4]*(Q5x[node_R]*Rx_R + Q5y[node_R]*Ry_R + Q5z[node_R]*Rz_R);
-        } else {
-            Q_L[0] = Q1[node_L];
-            Q_L[1] = Q2[node_L];
-            Q_L[2] = Q3[node_L];
-            Q_L[3] = Q4[node_L];
-            Q_L[4] = Q5[node_L];
-            Q_R[0] = Q1[node_R];
-            Q_R[1] = Q2[node_R];
-            Q_R[2] = Q3[node_R];
-            Q_R[3] = Q4[node_R];
-            Q_R[4] = Q5[node_R];
-        }
         
         // Left Node
-        rho_L = Q_L[0];
-        u_L   = Q_L[1] / rho_L;
-        v_L   = Q_L[2] / rho_L;
-        w_L   = Q_L[3] / rho_L;
-        et_L  = Q_L[4] / rho_L;
+        rho_L = Q1[node_L];
+        u_L   = Q2[node_L] / rho_L;
+        v_L   = Q3[node_L] / rho_L;
+        w_L   = Q4[node_L] / rho_L;
+        et_L  = Q5[node_L] / rho_L;
         e_L   = et_L - 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
         p_L   = (Gamma - 1.0) * rho_L * e_L;
         c_L   = sqrt((Gamma * p_L) / rho_L);
@@ -196,11 +145,11 @@ void Compute_Residual(void) {
         flux_L[4] = f_vec[4] * nx + g_vec[4] * ny + h_vec[4] * nz;
 
         // Right Node
-        rho_R = Q_R[0];
-        u_R   = Q_R[1] / rho_R;
-        v_R   = Q_R[2] / rho_R;
-        w_R   = Q_R[3] / rho_R;
-        et_R  = Q_R[4] / rho_R;
+        rho_R = Q1[node_R];
+        u_R   = Q2[node_R] / rho_R;
+        v_R   = Q3[node_R] / rho_R;
+        w_R   = Q4[node_R] / rho_R;
+        et_R  = Q5[node_R] / rho_R;
         e_R   = et_R - 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
         p_R   = (Gamma - 1.0) * rho_R * e_R;
         c_R   = sqrt((Gamma * p_R) / rho_R);
@@ -246,6 +195,13 @@ void Compute_Residual(void) {
         c    = sqrt(c);
         phi  = 0.5 * (Gamma - 1.0)*(u * u + v * v + w * w);
 
+        // Compute Local Mach Scaling Fix
+        temp = u * nx + v * ny + w * nz;
+        Mach = fabs(temp) + sqrt((u - temp*nx)*(u - temp*nx) +
+                (v - temp*ny)*(v - temp*ny) + (w - temp*nz)*(w - temp*nz));
+        Mach = Mach/c;
+        fix = MIN(Mach, 1.0);
+        
         // M
         M[0][0] = 1.0;
         M[0][1] = 0.0;
@@ -359,21 +315,21 @@ void Compute_Residual(void) {
         Pinv[2][4] = -nz/(c * c);
 
         Pinv[3][0] = 0.0;
-        Pinv[3][1] = 0.5 * nx;
-        Pinv[3][2] = 0.5 * ny;
-        Pinv[3][3] = 0.5 * nz;
+        Pinv[3][1] = 0.5 * nx * fix;
+        Pinv[3][2] = 0.5 * ny * fix;
+        Pinv[3][3] = 0.5 * nz * fix;
         Pinv[3][4] = 1.0/(2.0 * rho * c);
 
         Pinv[4][0] = 0.0;
-        Pinv[4][1] = -0.5 * nx;
-        Pinv[4][2] = -0.5 * ny;
-        Pinv[4][3] = -0.5 * nz;
+        Pinv[4][1] = -0.5 * nx * fix;
+        Pinv[4][2] = -0.5 * ny * fix;
+        Pinv[4][3] = -0.5 * nz * fix;
         Pinv[4][4] = 1.0/(2.0 * rho * c);
 
         // Calculate T = M*P
         MC_Matrix_Mul_Matrix(5, 5, M, P, T);
         // Calculate Tinv = Pinv*Minv
-        MC_Matrix_Mul_Matrix(5, 5, Pinv, Minv, Tinv);
+        // MC_Matrix_Mul_Matrix(5, 5, Pinv, Minv, Tinv);
         
         // EigenMatrix
         for (j = 0; j < 5; j++)
@@ -386,30 +342,42 @@ void Compute_Residual(void) {
         Eigen[3][3] = fabs((u * nx + v * ny + w * nz) + c);
         Eigen[4][4] = fabs((u * nx + v * ny + w * nz) - c);
 
-        // EigenMatrix*Tinv
-        MC_Matrix_Mul_Matrix(5, 5, Eigen, Tinv, A);
+//        // EigenMatrix*Tinv
+//        MC_Matrix_Mul_Matrix(5, 5, Eigen, Tinv, A);
+//
+//        // Tinv = EigenMatrix*Tinv
+//        for (j = 0; j < 5; j++) {
+//            for (k = 0; k < 5; k++) {
+//                Tinv[j][k] = A[j][k];
+//                A[j][k] = 0.0;
+//            }
+//        }
 
-        // Tinv = EigenMatrix*Tinv
-        for (j = 0; j < 5; j++) {
-            for (k = 0; k < 5; k++) {
-                Tinv[j][k] = A[j][k];
-                A[j][k] = 0.0;
-            }
-        }
-        
+        // Tinv = EigenMatrix*Pinv
+        MC_Matrix_Mul_Matrix(5, 5, Eigen, Pinv, Tinv);
+
         // Get Matrix A
         MC_Matrix_Mul_Matrix(5, 5, T, Tinv, A);
 
-        // Set up matrix vector multiplication
-        dQ[0] = dQ[1] = dQ[2] = dQ[3] = dQ[4] = 0.0;
-        dQ[0] = Q_R[0] - Q_L[0];
-        dQ[1] = Q_R[1] - Q_L[1];
-        dQ[2] = Q_R[2] - Q_L[2];
-        dQ[3] = Q_R[3] - Q_L[3];
-        dQ[4] = Q_R[4] - Q_L[4];
-        
+        // Compute dq
+        dq[0] = rho_R - rho_L;
+        dq[1] = u_R   - u_L;
+        dq[2] = v_R   - v_L;
+        dq[3] = w_R   - w_L;
+        dq[4] = p_R   - p_L;
+
+//        // Compute dQ
+//        dQ[0] = dQ[1] = dQ[2] = dQ[3] = dQ[4] = 0.0;
+//        dQ[0] = Q1[node_R] - Q1[node_L];
+//        dQ[1] = Q2[node_R] - Q2[node_L];
+//        dQ[2] = Q3[node_R] - Q3[node_L];
+//        dQ[3] = Q4[node_R] - Q4[node_L];
+//        dQ[4] = Q5[node_R] - Q5[node_L];
+
+        // Compute |A|*dQ
         fluxA[0] = fluxA[1] = fluxA[2] = fluxA[3] = fluxA[4] = 0.0;
-        MC_Matrix_Mul_Vector(5, 5, A, dQ, fluxA);
+//        MC_Matrix_Mul_Vector(5, 5, A, dQ, fluxA);
+        MC_Matrix_Mul_Vector(5, 5, A, dq, fluxA);
         
         // Compute for LHS
         Res1[node_L] += 0.5 * (flux_L[0] + flux_R[0] - fluxA[0]) * area;
@@ -461,12 +429,7 @@ void Compute_Residual(void) {
         nx = areavec.vec[0];
         ny = areavec.vec[1];
         nz = areavec.vec[2];
-
-        // Make Solution Second Order
-        // Note: Boundary Residual cannot be made second order
-        // because node_R is ghost node with no physical coordinates value
-        // Hence boundary residual always remains first order
-
+        
         // Left Node
         rho_L = Q1[node_L];
         u_L   = Q2[node_L] / rho_L;
@@ -478,7 +441,7 @@ void Compute_Residual(void) {
         c_L   = sqrt((Gamma * p_L) / rho_L);
         h_L   = (c_L * c_L) / (Gamma - 1.0);
         ht_L  = h_L + 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
-        
+
         // F Vector
         f_vec[0] = rho_L * u_L;
         f_vec[1] = rho_L * u_L * u_L + p_L;
@@ -518,7 +481,7 @@ void Compute_Residual(void) {
         c_R   = sqrt((Gamma * p_R) / rho_R);
         h_R   = (c_R * c_R) / (Gamma - 1.0);
         ht_R  = h_R + 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
-        
+
         // F Vector
         f_vec[0] = rho_R * u_R;
         f_vec[1] = rho_R * u_R * u_R + p_R;
@@ -558,6 +521,13 @@ void Compute_Residual(void) {
         c    = sqrt(c);
         phi  = 0.5 * (Gamma - 1.0)*(u * u + v * v + w * w);
 
+        // Compute Local Mach Scaling Fix
+        temp = u * nx + v * ny + w * nz;
+        Mach = fabs(temp) + sqrt((u - temp*nx)*(u - temp*nx) +
+                (v - temp*ny)*(v - temp*ny) + (w - temp*nz)*(w - temp*nz));
+        Mach = Mach/c;
+        fix = MIN(Mach, 1.0);
+        
         // M
         M[0][0] = 1.0;
         M[0][1] = 0.0;
@@ -671,21 +641,21 @@ void Compute_Residual(void) {
         Pinv[2][4] = -nz/(c * c);
 
         Pinv[3][0] = 0.0;
-        Pinv[3][1] = 0.5 * nx;
-        Pinv[3][2] = 0.5 * ny;
-        Pinv[3][3] = 0.5 * nz;
+        Pinv[3][1] = 0.5 * nx * fix;
+        Pinv[3][2] = 0.5 * ny * fix;
+        Pinv[3][3] = 0.5 * nz * fix;
         Pinv[3][4] = 1.0/(2.0 * rho * c);
 
         Pinv[4][0] = 0.0;
-        Pinv[4][1] = -0.5 * nx;
-        Pinv[4][2] = -0.5 * ny;
-        Pinv[4][3] = -0.5 * nz;
+        Pinv[4][1] = -0.5 * nx * fix;
+        Pinv[4][2] = -0.5 * ny * fix;
+        Pinv[4][3] = -0.5 * nz * fix;
         Pinv[4][4] = 1.0/(2.0 * rho * c);
 
         // Calculate T = M*P
         MC_Matrix_Mul_Matrix(5, 5, M, P, T);
-        // Calculate Tinv = Pinv*Minv
-        MC_Matrix_Mul_Matrix(5, 5, Pinv, Minv, Tinv);
+//        // Calculate Tinv = Pinv*Minv
+//        MC_Matrix_Mul_Matrix(5, 5, Pinv, Minv, Tinv);
 
         // EigenMatrix
         for (j = 0; j < 5; j++)
@@ -698,31 +668,43 @@ void Compute_Residual(void) {
         Eigen[3][3] = fabs((u * nx + v * ny + w * nz) + c);
         Eigen[4][4] = fabs((u * nx + v * ny + w * nz) - c);
         
-        // EigenMatrix*Tinv
-        MC_Matrix_Mul_Matrix(5, 5, Eigen, Tinv, A);
+//        // EigenMatrix*Tinv
+//        MC_Matrix_Mul_Matrix(5, 5, Eigen, Tinv, A);
+//
+//        // Tinv = EigenMatrix*Tinv
+//        for (j = 0; j < 5; j++) {
+//            for (k = 0; k < 5; k++) {
+//                Tinv[j][k] = A[j][k];
+//                A[j][k] = 0.0;
+//            }
+//        }
 
-        // Tinv = EigenMatrix*Tinv
-        for (j = 0; j < 5; j++) {
-            for (k = 0; k < 5; k++) {
-                Tinv[j][k] = A[j][k];
-                A[j][k] = 0.0;
-            }
-        }
+        // Tinv = EigenMatrix*Pinv
+        MC_Matrix_Mul_Matrix(5, 5, Eigen, Pinv, Tinv);
 
         // Get Matrix A
         MC_Matrix_Mul_Matrix(5, 5, T, Tinv, A);
-        
-        // Set up matrix vector multiplication
-        dQ[0] = dQ[1] = dQ[2] = dQ[3] = dQ[4] = 0.0;
-        dQ[0] = Q1[node_R] - Q1[node_L];
-        dQ[1] = Q2[node_R] - Q2[node_L];
-        dQ[2] = Q3[node_R] - Q3[node_L];
-        dQ[3] = Q4[node_R] - Q4[node_L];
-        dQ[4] = Q5[node_R] - Q5[node_L];
 
+        // Compute dq
+        dq[0] = rho_R - rho_L;
+        dq[1] = u_R   - u_L;
+        dq[2] = v_R   - v_L;
+        dq[3] = w_R   - w_L;
+        dq[4] = p_R   - p_L;
+
+//        // Compute dQ
+//        dQ[0] = dQ[1] = dQ[2] = dQ[3] = dQ[4] = 0.0;
+//        dQ[0] = Q1[node_R] - Q1[node_L];
+//        dQ[1] = Q2[node_R] - Q2[node_L];
+//        dQ[2] = Q3[node_R] - Q3[node_L];
+//        dQ[3] = Q4[node_R] - Q4[node_L];
+//        dQ[4] = Q5[node_R] - Q5[node_L];
+
+        // Compute |A|*dQ
         fluxA[0] = fluxA[1] = fluxA[2] = fluxA[3] = fluxA[4] = 0.0;
-        MC_Matrix_Mul_Vector(5, 5, A, dQ, fluxA);
-        
+//        MC_Matrix_Mul_Vector(5, 5, A, dQ, fluxA);
+        MC_Matrix_Mul_Vector(5, 5, A, dq, fluxA);
+
         // Compute LHS for Boundary Nodes
         Res1[node_L] += 0.5 * (flux_L[0] + flux_R[0] - fluxA[0]) * area;
         Res2[node_L] += 0.5 * (flux_L[1] + flux_R[1] - fluxA[1]) * area;
@@ -730,7 +712,7 @@ void Compute_Residual(void) {
         Res4[node_L] += 0.5 * (flux_L[3] + flux_R[3] - fluxA[3]) * area;
         Res5[node_L] += 0.5 * (flux_L[4] + flux_R[4] - fluxA[4]) * area;
     }
-    
+
     // Free the Memory
     for (i = 0; i < 5; i++) {
         free(M[i]);

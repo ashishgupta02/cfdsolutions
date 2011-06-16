@@ -1,7 +1,7 @@
 /*******************************************************************************
  * File:        Commons.h
  * Author:      Ashish Gupta
- * Revision:    1
+ * Revision:    2
  ******************************************************************************/
 
 #ifndef COMMONS_H
@@ -114,11 +114,11 @@ void Commons_Finalize(void);
 // Create Connectivity Maps
 void Create_Connectivity_Maps(int reOrder);
 // Free Excess Memory Used in Connectivity Creation
-void Trim_Connectivity_Memory();
+void Trim_Connectivity_Memory(void);
 // Reordering of Graph to reduce Matrix-Computation Bandwidth
 void Cuthill_Mckee_Reorder(void);
 // Calculate Areas and Control Volume
-void Calculate_Area_Volume();
+void Calculate_Area_Volume(void);
 
 #endif	/* COMMONS_H */
 

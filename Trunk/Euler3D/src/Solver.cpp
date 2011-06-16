@@ -1,20 +1,35 @@
 /*******************************************************************************
  * File:        Solver.h
  * Author:      Ashish Gupta
- * Revision:    1
+ * Revision:    2
  ******************************************************************************/
 
 // Custom header files
 #include "Trim_Utils.h"
+#include "RestartIO.h"
 #include "Commons.h"
 #include "Solver.h"
 #include "Gradient.h"
+#include "DebugSolver.h"
 
 // Linear Solver Params
 int    Order;
 int    NIteration;
 int    InnerNIteration;
+int    FirstOrderNIteration;
 double Relaxation;
+
+// Flux Limiter
+int  Limiter;
+int  StartLimiterNIteration;
+int  EndLimiterNIteration;
+
+// Restart Params
+int  RestartInput;
+int  RestartOutput;
+int  RestartIteration;
+char RestartInputFilename[256];
+char RestartOutputFilename[256];
 
 // Reference Conditions
 double Ref_Mach;
@@ -48,6 +63,27 @@ double *Q3;
 double *Q4;
 double *Q5;
 
+// Conservative Variables Gradients
+double *Q1x;
+double *Q1y;
+double *Q1z;
+
+double *Q2x;
+double *Q2y;
+double *Q2z;
+
+double *Q3x;
+double *Q3y;
+double *Q3z;
+
+double *Q4x;
+double *Q4y;
+double *Q4z;
+
+double *Q5x;
+double *Q5y;
+double *Q5z;
+
 // Residuals
 double *Res1;
 double *Res2;
@@ -67,7 +103,20 @@ void Solver_Init(void) {
     Order           = 0;
     NIteration      = 0;
     InnerNIteration = 0;
+    FirstOrderNIteration    = 0;
     Relaxation      = 0.0;
+
+    // Flux Limiter
+    Limiter         = 0;
+    StartLimiterNIteration  = 0;
+    EndLimiterNIteration    = 0;
+    
+    // Restart Params
+    RestartInput    = 0;
+    RestartOutput   = 0;
+    RestartIteration= 0;
+    str_blank(RestartInputFilename);
+    str_blank(RestartOutputFilename);
 
     // Reference Conditions
     Ref_Mach        = 0.0;
@@ -94,13 +143,34 @@ void Solver_Init(void) {
     // Local Time
     DeltaT          = NULL;
 
-    // Conservative Variables
+    // Conservative/Primitive Variables
     Q1              = NULL;
     Q2              = NULL;
     Q3              = NULL;
     Q4              = NULL;
     Q5              = NULL;
 
+    // Conservative/Primitive Variables Gradients
+    Q1x             = NULL;
+    Q1y             = NULL;
+    Q1z             = NULL;
+
+    Q2x             = NULL;
+    Q2y             = NULL;
+    Q2z             = NULL;
+
+    Q3x             = NULL;
+    Q3y             = NULL;
+    Q3z             = NULL;
+
+    Q4x             = NULL;
+    Q4y             = NULL;
+    Q4z             = NULL;
+
+    Q5x             = NULL;
+    Q5y             = NULL;
+    Q5z             = NULL;
+    
     // Residuals
     Res1            = NULL;
     Res2            = NULL;
@@ -138,6 +208,57 @@ void Solver_Finalize(void) {
     Q4 = NULL;
     Q5 = NULL;
 
+     // Conservative Variables Gradient
+    if (Q1x != NULL)
+        delete[] Q1x;
+    if (Q1y != NULL)
+        delete[] Q1y;
+    if (Q1z != NULL)
+        delete[] Q1z;
+    Q1x = NULL;
+    Q1y = NULL;
+    Q1z = NULL;
+
+    if (Q2x != NULL)
+        delete[] Q2x;
+    if (Q2y != NULL)
+        delete[] Q2y;
+    if (Q2z != NULL)
+        delete[] Q2z;
+    Q2x = NULL;
+    Q2y = NULL;
+    Q2z = NULL;
+
+    if (Q3x != NULL)
+        delete[] Q3x;
+    if (Q3y != NULL)
+        delete[] Q3y;
+    if (Q3z != NULL)
+        delete[] Q3z;
+    Q3x = NULL;
+    Q3y = NULL;
+    Q3z = NULL;
+    
+    if (Q4x != NULL)
+        delete[] Q4x;
+    if (Q4y != NULL)
+        delete[] Q4y;
+    if (Q4z != NULL)
+        delete[] Q4z;
+    Q4x = NULL;
+    Q4y = NULL;
+    Q4z = NULL;
+
+    if (Q5x != NULL)
+        delete[] Q5x;
+    if (Q5y != NULL)
+        delete[] Q5y;
+    if (Q5z != NULL)
+        delete[] Q5z;
+    Q5x = NULL;
+    Q5y = NULL;
+    Q5z = NULL;
+
     // Residuals
     if (Res1 != NULL)
         delete[] Res1;
@@ -159,6 +280,10 @@ void Solver_Finalize(void) {
     if (DeltaT != NULL)
         delete[] DeltaT;
     DeltaT = NULL;
+    
+    // Finalize Gradient Infrastructure
+    if (Order == 2)
+        Gradient_Finalize();
     
     printf("=============================================================================\n");
 }
@@ -194,7 +319,7 @@ void Solver_Read_Params(const char *filename) {
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &Order);
-
+    
     // Get Number of Outer Iterations
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
@@ -204,12 +329,31 @@ void Solver_Read_Params(const char *filename) {
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &InnerNIteration);
+
+    dummy = fgets(buff, bdim, fp);
+    dummy = fgets(buff, bdim, fp);
+    sscanf(buff, "%d", &FirstOrderNIteration);
     
     // Get the Relaxation Factor
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%lf", &Relaxation);
 
+    // Get the Flux Limiter
+    dummy = fgets(buff, bdim, fp);
+    dummy = fgets(buff, bdim, fp);
+    sscanf(buff, "%d", &Limiter);
+
+    // Get the Start Limiter Iterations
+    dummy = fgets(buff, bdim, fp);
+    dummy = fgets(buff, bdim, fp);
+    sscanf(buff, "%d", &StartLimiterNIteration);
+
+    // Get the End Limiter Iterations
+    dummy = fgets(buff, bdim, fp);
+    dummy = fgets(buff, bdim, fp);
+    sscanf(buff, "%d", &EndLimiterNIteration);
+    
     // Read Gamma
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
@@ -245,6 +389,17 @@ void Solver_Read_Params(const char *filename) {
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%lf", &CFL_MAX);
 
+    // Read Restart Solution
+    dummy = fgets(buff, bdim, fp);
+    dummy = fgets(buff, bdim, fp);
+    sscanf(buff, "%d", &RestartInput);
+    dummy = fgets(buff, bdim, fp);
+    sscanf(buff, "%d", &RestartOutput);
+    dummy = fgets(buff, bdim, fp);
+    sscanf(buff, "%s", RestartInputFilename);
+    dummy = fgets(buff, bdim, fp);
+    sscanf(buff, "%s", RestartOutputFilename);
+    
     CFL             = CFL_MIN;
     Ref_Alpha       = Ref_Alpha * M_PI / 180.0;
     
@@ -255,7 +410,7 @@ void Solver_Read_Params(const char *filename) {
 //------------------------------------------------------------------------------
 //! Set Initial Conditions
 //------------------------------------------------------------------------------
-void Solver_Set_Initial_Conditions() {
+void Solver_Set_Initial_Conditions(void) {
 
     // Allocate Memory to Store Conservative Variables
     Q1 = new double[nNode + nBNode];
@@ -271,6 +426,37 @@ void Solver_Set_Initial_Conditions() {
         Q3[i] = Q1[i]*Ref_Mach*sin(Ref_Alpha);
         Q4[i] = 0.0;
         Q5[i] = 1.0 / (Gamma * (Gamma - 1.0)) + 0.5 *(Q2[i]*Q2[i] + Q3[i]*Q3[i] + Q4[i]*Q4[i])/Q1[i];
+    }
+    
+    // Allocate Memory to Store Conservative Variables Gradients
+    if (Order == 2) {
+        // Initialize Gradient Infrastructure
+        Gradient_Init();
+
+        Q1x = new double[nNode];
+        Q1y = new double[nNode];
+        Q1z = new double[nNode];
+        Gradient_Add_Function(Q1, Q1x, Q1y, Q1z, nNode);
+        
+        Q2x = new double[nNode];
+        Q2y = new double[nNode];
+        Q2z = new double[nNode];
+        Gradient_Add_Function(Q2, Q2x, Q2y, Q2z, nNode);
+
+        Q3x = new double[nNode];
+        Q3y = new double[nNode];
+        Q3z = new double[nNode];
+        Gradient_Add_Function(Q3, Q3x, Q3y, Q3z, nNode);
+
+        Q4x = new double[nNode];
+        Q4y = new double[nNode];
+        Q4z = new double[nNode];
+        Gradient_Add_Function(Q4, Q4x, Q4y, Q4z, nNode);
+
+        Q5x = new double[nNode];
+        Q5y = new double[nNode];
+        Q5z = new double[nNode];
+        Gradient_Add_Function(Q5, Q5x, Q5y, Q5z, nNode);
     }
     
     // Allocate  Memory to Store Residuals
@@ -292,7 +478,7 @@ void Solver_Set_Initial_Conditions() {
     // Initialize
     for (int i = 0; i < nNode; i++)
         DeltaT[i] = 0.0;
-
+    
     // Set Boundary Conditions
     Initialize_Boundary_Condition();
 
@@ -308,12 +494,24 @@ void Solver_Set_Initial_Conditions() {
 //------------------------------------------------------------------------------
 //! 
 //------------------------------------------------------------------------------
-void Solve() {
+int Solve(void) {
+    int CheckNAN  = 0;
+    int SaveOrder = 0;
+    int SaveLimiter = 0;
+    
+    // Check if Solution Restart is Requested
+    if (RestartInput)
+        Restart_Reader(RestartInputFilename);
+
+    // Save Solver Params
+    SaveOrder   = Order;
+    SaveLimiter = Limiter;
+
     printf("=============================================================================\n");
     printf("-----------------------------------------------------------------------------\n");
     printf(" Iter        RMS_RHO    RMS_RHOU    RMS_RHOV    RMS_RHOW    RMS_E     RMS_RES\n");
     printf("-----------------------------------------------------------------------------\n");
-    for (int iter = 0; iter < NIteration; iter++) {
+    for (int iter = RestartIteration; iter < NIteration; iter++) {
         // Reset Residuals and DeltaT
         for (int i = 0; i < nNode; i++) {
             Res1[i]   = 0.0;
@@ -323,13 +521,30 @@ void Solve() {
             Res5[i]   = 0.0;
             DeltaT[i] = 0.0;
         }
+
+        // Check if First Order Iterations are Required
+        Order = SaveOrder;
+        if (FirstOrderNIteration > iter)
+            Order = 1;
+
+        // Set the Start and End of Limiter Iterations
+        Limiter = 0;
+        if (StartLimiterNIteration < EndLimiterNIteration) {
+            if ((StartLimiterNIteration <= iter+1) && (EndLimiterNIteration > iter))
+                Limiter = SaveLimiter;
+        }
+
+        // Compute Least Square Gradient -- Unweighted
+        if (Order == 2)
+            Compute_Least_Square_Gradient(0);
         
         // Apply boundary conditions
         Apply_Boundary_Condition();
 
         // Compute Residuals
         Compute_Residual();
-
+        //Compute_Residual_LMRoe();
+        
         // Compute Local Time Stepping
         Compute_DeltaT(iter);
 
@@ -365,10 +580,26 @@ void Solve() {
         if (isnan(RMS_Res)) {
             info("Solve: NAN Encountered ! - Abort");
             iter = NIteration + 1;
+            CheckNAN = 1;
         }
 
-        if ((RMS_Res < (DBL_EPSILON*10.0))|| ((iter+1) == NIteration))
+        if ((RMS_Res < (DBL_EPSILON*10.0))|| ((iter+1) == NIteration)) {
+            RestartIteration = iter + 1;
             iter = NIteration + 1;
+        }
     }
+
+    // Check if Solution Restart is Requested
+    if (RestartOutput && CheckNAN != 1)
+        Restart_Writer(RestartOutputFilename);
+
+    // Debug the NAN
+    if (CheckNAN)
+        DebugNAN();
+
+    if (CheckNAN)
+        return EXIT_FAILURE;
+    else
+        return EXIT_SUCCESS;
 }
 
