@@ -152,7 +152,7 @@ void Apply_Boundary_Condition() {
 //                if ((temp < 0.0) && (fabs(p_i) < fabs(temp)))
 //                    p_b_n = fabs(p_i + temp);
 //                else
-                p_b_n = p_i + temp;
+                    p_b_n = p_i + temp;
                 rho_b_n = rho_i + (p_b_n - p_i) / (c_0 * c_0);
                 u_b_n   = u_i - nx * (p_b_n - p_i) / (rho_0 * c_0);
                 v_b_n   = v_i - ny * (p_b_n - p_i) / (rho_0 * c_0);

@@ -40,6 +40,7 @@
       <itemPath>src/MeshIO.cpp</itemPath>
       <itemPath>src/Point3D.cpp</itemPath>
       <itemPath>src/RestartIO.cpp</itemPath>
+      <itemPath>/home/agupta/NetBeansProjects/CFDSolutions/Trunk/Euler3D/src/Roe_EntropyFix.cpp</itemPath>
       <itemPath>src/Roe_Fluxes.cpp</itemPath>
       <itemPath>src/Solver.cpp</itemPath>
       <itemPath>src/Time_Step.cpp</itemPath>

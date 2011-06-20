@@ -19,9 +19,9 @@
 void Compute_Residual(void) {
     int i, j, k;
     int node_L, node_R;
-    double rho_L, u_L, v_L, w_L, et_L, e_L, p_L, c_L, h_L, ht_L;
-    double rho_R, u_R, v_R, w_R, et_R, e_R, p_R, c_R, h_R, ht_R;
-    double rho, u, v, w, ht, c, phi;
+    double rho_L, u_L, v_L, w_L, et_L, e_L, p_L, c_L, h_L, ht_L, ubar_L;
+    double rho_R, u_R, v_R, w_R, et_R, e_R, p_R, c_R, h_R, ht_R, ubar_R;
+    double rho, u, v, w, ht, c, phi, ubar;
     double temp;
     
     Vector3D areavec;
@@ -156,16 +156,17 @@ void Compute_Residual(void) {
         }
         
         // Left Node
-        rho_L = Q_L[0];
-        u_L   = Q_L[1] / rho_L;
-        v_L   = Q_L[2] / rho_L;
-        w_L   = Q_L[3] / rho_L;
-        et_L  = Q_L[4] / rho_L;
-        e_L   = et_L - 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
-        p_L   = (Gamma - 1.0) * rho_L * e_L;
-        c_L   = sqrt((Gamma * p_L) / rho_L);
-        h_L   = (c_L * c_L) / (Gamma - 1.0);
-        ht_L  = h_L + 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
+        rho_L  = Q_L[0];
+        u_L    = Q_L[1] / rho_L;
+        v_L    = Q_L[2] / rho_L;
+        w_L    = Q_L[3] / rho_L;
+        et_L   = Q_L[4] / rho_L;
+        e_L    = et_L - 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
+        p_L    = (Gamma - 1.0) * rho_L * e_L;
+        c_L    = sqrt((Gamma * p_L) / rho_L);
+        h_L    = (c_L * c_L) / (Gamma - 1.0);
+        ht_L   = h_L + 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
+        ubar_L = u_L * nx + v_L * ny + w_L * nz;
 
         // F Vector
         f_vec[0] = rho_L * u_L;
@@ -196,16 +197,17 @@ void Compute_Residual(void) {
         flux_L[4] = f_vec[4] * nx + g_vec[4] * ny + h_vec[4] * nz;
 
         // Right Node
-        rho_R = Q_R[0];
-        u_R   = Q_R[1] / rho_R;
-        v_R   = Q_R[2] / rho_R;
-        w_R   = Q_R[3] / rho_R;
-        et_R  = Q_R[4] / rho_R;
-        e_R   = et_R - 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
-        p_R   = (Gamma - 1.0) * rho_R * e_R;
-        c_R   = sqrt((Gamma * p_R) / rho_R);
-        h_R   = (c_R * c_R) / (Gamma - 1.0);
-        ht_R  = h_R + 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
+        rho_R  = Q_R[0];
+        u_R    = Q_R[1] / rho_R;
+        v_R    = Q_R[2] / rho_R;
+        w_R    = Q_R[3] / rho_R;
+        et_R   = Q_R[4] / rho_R;
+        e_R    = et_R - 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
+        p_R    = (Gamma - 1.0) * rho_R * e_R;
+        c_R    = sqrt((Gamma * p_R) / rho_R);
+        h_R    = (c_R * c_R) / (Gamma - 1.0);
+        ht_R   = h_R + 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
+        ubar_R = u_R * nx + v_R * ny + w_R * nz;
 
         // F Vector
         f_vec[0] = rho_R * u_R;
@@ -245,6 +247,7 @@ void Compute_Residual(void) {
         c    = (Gamma - 1.0) * (ht - 0.5 * (u * u + v * v + w * w));
         c    = sqrt(c);
         phi  = 0.5 * (Gamma - 1.0)*(u * u + v * v + w * w);
+        ubar = u * nx + v * ny + w * nz;
 
         // M
         M[0][0] = 1.0;
@@ -379,13 +382,18 @@ void Compute_Residual(void) {
         for (j = 0; j < 5; j++)
             for (k = 0; k < 5; k++)
                 Eigen[j][k] = 0.0;
-        
-        Eigen[0][0] = fabs(u * nx + v * ny + w * nz);
-        Eigen[1][1] = fabs(u * nx + v * ny + w * nz);
-        Eigen[2][2] = fabs(u * nx + v * ny + w * nz);
-        Eigen[3][3] = fabs((u * nx + v * ny + w * nz) + c);
-        Eigen[4][4] = fabs((u * nx + v * ny + w * nz) - c);
 
+        // Apply Entropy Fix
+        if (EntropyFix != 0) {
+            Roe_EntropyFix(ubar_L, c_L, ubar_R, c_R, ubar, c, Eigen);
+        } else {
+            Eigen[0][0] = fabs(ubar);
+            Eigen[1][1] = Eigen[0][0];
+            Eigen[2][2] = Eigen[0][0];
+            Eigen[3][3] = fabs(ubar + c);
+            Eigen[4][4] = fabs(ubar - c);
+        }
+        
         // EigenMatrix*Tinv
         MC_Matrix_Mul_Matrix(5, 5, Eigen, Tinv, A);
 
@@ -468,16 +476,17 @@ void Compute_Residual(void) {
         // Hence boundary residual always remains first order
 
         // Left Node
-        rho_L = Q1[node_L];
-        u_L   = Q2[node_L] / rho_L;
-        v_L   = Q3[node_L] / rho_L;
-        w_L   = Q4[node_L] / rho_L;
-        et_L  = Q5[node_L] / rho_L;
-        e_L   = et_L - 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
-        p_L   = (Gamma - 1.0) * rho_L * e_L;
-        c_L   = sqrt((Gamma * p_L) / rho_L);
-        h_L   = (c_L * c_L) / (Gamma - 1.0);
-        ht_L  = h_L + 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
+        rho_L  = Q1[node_L];
+        u_L    = Q2[node_L] / rho_L;
+        v_L    = Q3[node_L] / rho_L;
+        w_L    = Q4[node_L] / rho_L;
+        et_L   = Q5[node_L] / rho_L;
+        e_L    = et_L - 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
+        p_L    = (Gamma - 1.0) * rho_L * e_L;
+        c_L    = sqrt((Gamma * p_L) / rho_L);
+        h_L    = (c_L * c_L) / (Gamma - 1.0);
+        ht_L   = h_L + 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
+        ubar_L = u_L * nx + v_L * ny + w_L * nz;
         
         // F Vector
         f_vec[0] = rho_L * u_L;
@@ -508,16 +517,17 @@ void Compute_Residual(void) {
         flux_L[4] = f_vec[4] * nx + g_vec[4] * ny + h_vec[4] * nz;
 
         // Right Node
-        rho_R = Q1[node_R];
-        u_R   = Q2[node_R] / rho_R;
-        v_R   = Q3[node_R] / rho_R;
-        w_R   = Q4[node_R] / rho_R;
-        et_R  = Q5[node_R] / rho_R;
-        e_R   = et_R - 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
-        p_R   = (Gamma - 1.0) * rho_R * e_R;
-        c_R   = sqrt((Gamma * p_R) / rho_R);
-        h_R   = (c_R * c_R) / (Gamma - 1.0);
-        ht_R  = h_R + 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
+        rho_R  = Q1[node_R];
+        u_R    = Q2[node_R] / rho_R;
+        v_R    = Q3[node_R] / rho_R;
+        w_R    = Q4[node_R] / rho_R;
+        et_R   = Q5[node_R] / rho_R;
+        e_R    = et_R - 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
+        p_R    = (Gamma - 1.0) * rho_R * e_R;
+        c_R    = sqrt((Gamma * p_R) / rho_R);
+        h_R    = (c_R * c_R) / (Gamma - 1.0);
+        ht_R   = h_R + 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
+        ubar_R = u_R * nx + v_R * ny + w_R * nz;
         
         // F Vector
         f_vec[0] = rho_R * u_R;
@@ -557,6 +567,7 @@ void Compute_Residual(void) {
         c    = (Gamma - 1.0) * (ht - 0.5 * (u * u + v * v + w * w));
         c    = sqrt(c);
         phi  = 0.5 * (Gamma - 1.0)*(u * u + v * v + w * w);
+        ubar = u * nx + v * ny + w * nz;
 
         // M
         M[0][0] = 1.0;
@@ -692,11 +703,16 @@ void Compute_Residual(void) {
             for (k = 0; k < 5; k++)
                 Eigen[j][k] = 0.0;
 
-        Eigen[0][0] = fabs(u * nx + v * ny + w * nz);
-        Eigen[1][1] = fabs(u * nx + v * ny + w * nz);
-        Eigen[2][2] = fabs(u * nx + v * ny + w * nz);
-        Eigen[3][3] = fabs((u * nx + v * ny + w * nz) + c);
-        Eigen[4][4] = fabs((u * nx + v * ny + w * nz) - c);
+        // Apply Entropy Fix
+        if (EntropyFix != 0) {
+            Roe_EntropyFix(ubar_L, c_L, ubar_R, c_R, ubar, c, Eigen);
+        } else {
+            Eigen[0][0] = fabs(ubar);
+            Eigen[1][1] = Eigen[0][0];
+            Eigen[2][2] = Eigen[0][0];
+            Eigen[3][3] = fabs(ubar + c);
+            Eigen[4][4] = fabs(ubar - c);
+        }
         
         // EigenMatrix*Tinv
         MC_Matrix_Mul_Matrix(5, 5, Eigen, Tinv, A);

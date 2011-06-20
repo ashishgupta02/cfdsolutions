@@ -888,9 +888,9 @@ void Check_Area_Volume() {
         TotalVolume += cVolume[n];
     }
 
-    info("Check_Area_Volume: Total Area:         %10.5e", TotalArea);
-    info("Check_Area_Volume: Total Volume:       %10.5e", TotalVolume);
-    info("Check_Area_Volume: Total Surface Area: %10.5e", TotalSurface);
+    info("Check_Area_Volume: Total Area         : %10.5e", TotalArea);
+    info("Check_Area_Volume: Total Volume       : %10.5e", TotalVolume);
+    info("Check_Area_Volume: Total Surface Area : %10.5e", TotalSurface);
     delete [] areav;
 }
 

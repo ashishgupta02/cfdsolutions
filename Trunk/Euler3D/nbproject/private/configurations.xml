@@ -40,7 +40,6 @@
         </loadobjs>
       </dbxrtc>
       <gizmo_options version="3">
-        <configurationname>GizmoSunStudioStandard</configurationname>
       </gizmo_options>
       <nativedebugger version="1">
         <engine>dbx</engine>
@@ -93,7 +92,6 @@
         </loadobjs>
       </dbxrtc>
       <gizmo_options version="3">
-        <configurationname>GizmoSunStudioStandard</configurationname>
       </gizmo_options>
       <nativedebugger version="1">
         <engine>dbx</engine>
@@ -146,7 +144,6 @@
         </loadobjs>
       </dbxrtc>
       <gizmo_options version="3">
-        <configurationname>GizmoSunStudioStandard</configurationname>
       </gizmo_options>
       <nativedebugger version="1">
         <engine>dbx</engine>
@@ -199,7 +196,6 @@
         </loadobjs>
       </dbxrtc>
       <gizmo_options version="3">
-        <configurationname>GizmoSunStudioStandard</configurationname>
       </gizmo_options>
       <nativedebugger version="1">
         <engine>dbx</engine>
@@ -252,7 +248,6 @@
         </loadobjs>
       </dbxrtc>
       <gizmo_options version="3">
-        <configurationname>GizmoSunStudioStandard</configurationname>
       </gizmo_options>
       <nativedebugger version="1">
         <engine>dbx</engine>
@@ -305,7 +300,6 @@
         </loadobjs>
       </dbxrtc>
       <gizmo_options version="3">
-        <configurationname>GizmoSunStudioStandard</configurationname>
       </gizmo_options>
       <nativedebugger version="1">
         <engine>dbx</engine>
