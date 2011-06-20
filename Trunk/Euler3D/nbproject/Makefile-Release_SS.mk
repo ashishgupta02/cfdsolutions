@@ -41,6 +41,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/MC_Iterative_Jacobi.o \
 	${OBJECTDIR}/src/Vector3D.o \
 	${OBJECTDIR}/src/BC.o \
+	${OBJECTDIR}/_ext/979082451/Roe_EntropyFix.o \
 	${OBJECTDIR}/src/Time_Step.o \
 	${OBJECTDIR}/src/LMRoe_Fluxes.o \
 	${OBJECTDIR}/src/Gradient.o \
@@ -110,6 +111,10 @@ ${OBJECTDIR}/src/Vector3D.o: nbproject/Makefile-${CND_CONF}.mk src/Vector3D.cpp
 ${OBJECTDIR}/src/BC.o: nbproject/Makefile-${CND_CONF}.mk src/BC.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	$(COMPILE.cc) -fast -g0 +w -Iinclude -o ${OBJECTDIR}/src/BC.o src/BC.cpp
+
+${OBJECTDIR}/_ext/979082451/Roe_EntropyFix.o: nbproject/Makefile-${CND_CONF}.mk /home/agupta/NetBeansProjects/CFDSolutions/Trunk/Euler3D/src/Roe_EntropyFix.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/979082451
+	$(COMPILE.cc) -fast -g0 +w -Iinclude -o ${OBJECTDIR}/_ext/979082451/Roe_EntropyFix.o /home/agupta/NetBeansProjects/CFDSolutions/Trunk/Euler3D/src/Roe_EntropyFix.cpp
 
 ${OBJECTDIR}/src/Time_Step.o: nbproject/Makefile-${CND_CONF}.mk src/Time_Step.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

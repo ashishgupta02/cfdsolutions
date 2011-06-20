@@ -7,12 +7,14 @@
 // Custom header files
 #include "Trim_Utils.h"
 #include "RestartIO.h"
+#include "MeshIO.h"
 #include "Commons.h"
 #include "Solver.h"
 #include "Gradient.h"
 #include "DebugSolver.h"
 
 // Linear Solver Params
+int    TimeStepScheme;
 int    Order;
 int    NIteration;
 int    InnerNIteration;
@@ -20,9 +22,13 @@ int    FirstOrderNIteration;
 double Relaxation;
 
 // Flux Limiter
-int  Limiter;
-int  StartLimiterNIteration;
-int  EndLimiterNIteration;
+int    Limiter;
+int    StartLimiterNIteration;
+int    EndLimiterNIteration;
+double Venkat_KThreshold;
+
+// Entropy Fix
+int EntropyFix;
 
 // Restart Params
 int  RestartInput;
@@ -100,6 +106,7 @@ double RMS_Res;
 //------------------------------------------------------------------------------
 void Solver_Init(void) {
     // Linear Solver Params
+    TimeStepScheme  = 1;
     Order           = 0;
     NIteration      = 0;
     InnerNIteration = 0;
@@ -110,7 +117,11 @@ void Solver_Init(void) {
     Limiter         = 0;
     StartLimiterNIteration  = 0;
     EndLimiterNIteration    = 0;
-    
+    Venkat_KThreshold       = 0.0;
+
+    // Entropy Fix
+    EntropyFix      = 0;
+
     // Restart Params
     RestartInput    = 0;
     RestartOutput   = 0;
@@ -315,6 +326,11 @@ void Solver_Read_Params(const char *filename) {
         sscanf(buff, "%d", &bndType[i]);
     }
 
+    // Get the Time Stepping Scheme
+    dummy = fgets(buff, bdim, fp);
+    dummy = fgets(buff, bdim, fp);
+    sscanf(buff, "%d", &TimeStepScheme);
+    
     // Get the Order
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
@@ -330,6 +346,7 @@ void Solver_Read_Params(const char *filename) {
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &InnerNIteration);
 
+    // Get Number of First Order Iterations
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &FirstOrderNIteration);
@@ -353,6 +370,16 @@ void Solver_Read_Params(const char *filename) {
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &EndLimiterNIteration);
+
+    // Read Ventakakrishanan K Threshold
+    dummy = fgets(buff, bdim, fp);
+    dummy = fgets(buff, bdim, fp);
+    sscanf(buff, "%lf", &Venkat_KThreshold);
+
+    // Read Entropy Fix
+    dummy = fgets(buff, bdim, fp);
+    dummy = fgets(buff, bdim, fp);
+    sscanf(buff, "%d", &EntropyFix);
     
     // Read Gamma
     dummy = fgets(buff, bdim, fp);
@@ -405,12 +432,39 @@ void Solver_Read_Params(const char *filename) {
     
     // Close file
     fclose(fp);
+
+    printf("=============================================================================\n");
+    info("Input Solver Parameters");
+    printf("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-\n");
+    info("Time Stepping Scheme -----------------: %d",  TimeStepScheme);
+    info("Order --------------------------------: %d",  Order);
+    info("No of Iterations ---------------------: %d",  NIteration);
+    info("No of Inner Iterations ---------------: %d",  InnerNIteration);
+    info("No of First Order Iterations ---------: %d",  FirstOrderNIteration);
+    info("Relaxation Factor --------------------: %lf", Relaxation);
+    info("Limiter Type -------------------------: %d",  Limiter);
+    info("Limiter Start Iteration --------------: %d",  StartLimiterNIteration);
+    info("Limiter End Iteration ----------------: %d",  EndLimiterNIteration);
+    info("Venkatakrishan Limiter Threshold -----: %lf", Venkat_KThreshold);
+    info("Entropy Fix --------------------------: %d",  EntropyFix);
+    info("Gamma --------------------------------: %lf", Gamma);
+    info("Reference Mach Number ----------------: %lf", Ref_Mach);
+    info("Reference Pressure -------------------: %lf", Ref_Pressure);
+    info("Reference Alpha ----------------------: %lf", Ref_Alpha);
+    info("CFL Ramp -----------------------------: %d",  CFL_Ramp);
+    info("CFL_Min ------------------------------: %lf", CFL_MIN);
+    info("CFL_Max ------------------------------: %lf", CFL_MAX);
+    info("Restart Input ------------------------: %d",  RestartInput);
+    info("Restart Input Filename ---------------: %s",  RestartInputFilename);
+    info("Restart Output -----------------------: %d",  RestartOutput);
+    info("Restart Output Filename --------------: %s",  RestartOutputFilename);
 }
 
 //------------------------------------------------------------------------------
 //! Set Initial Conditions
 //------------------------------------------------------------------------------
 void Solver_Set_Initial_Conditions(void) {
+    double scalefactor;
 
     // Allocate Memory to Store Conservative Variables
     Q1 = new double[nNode + nBNode];
@@ -419,11 +473,15 @@ void Solver_Set_Initial_Conditions(void) {
     Q4 = new double[nNode + nBNode];
     Q5 = new double[nNode + nBNode];
 
+    scalefactor = 1.0;
+    if (Ref_Mach > 0.7)
+        scalefactor = Ref_Mach*Gamma;
+
     // Intialize the variable with reference conditions
     for (int i = 0; i < (nNode + nBNode); i++) {
         Q1[i] = 1.0;
-        Q2[i] = Q1[i]*Ref_Mach*cos(Ref_Alpha);
-        Q3[i] = Q1[i]*Ref_Mach*sin(Ref_Alpha);
+        Q2[i] = Q1[i]*Ref_Mach*cos(Ref_Alpha)/scalefactor;
+        Q3[i] = Q1[i]*Ref_Mach*sin(Ref_Alpha)/scalefactor;
         Q4[i] = 0.0;
         Q5[i] = 1.0 / (Gamma * (Gamma - 1.0)) + 0.5 *(Q2[i]*Q2[i] + Q3[i]*Q3[i] + Q4[i]*Q4[i])/Q1[i];
     }
@@ -498,6 +556,28 @@ int Solve(void) {
     int CheckNAN  = 0;
     int SaveOrder = 0;
     int SaveLimiter = 0;
+    double dtmp;
+    double *W01, *W02, *W03, *W04, *W05;
+    double *W41, *W42, *W43, *W44, *W45;
+    
+    // Check if Euler or Runge-Kutta Scheme
+    W01 = W02 = W03 = W04 = W05 = NULL;
+    W41 = W42 = W43 = W44 = W45 = NULL;
+    if (TimeStepScheme == 2) {
+        // Wo
+        W01 = new double[nNode];
+        W02 = new double[nNode];
+        W03 = new double[nNode];
+        W04 = new double[nNode];
+        W05 = new double[nNode];
+
+        // W4
+        W41 = new double[nNode];
+        W42 = new double[nNode];
+        W43 = new double[nNode];
+        W44 = new double[nNode];
+        W45 = new double[nNode];
+    }
     
     // Check if Solution Restart is Requested
     if (RestartInput)
@@ -548,15 +628,6 @@ int Solve(void) {
         // Compute Local Time Stepping
         Compute_DeltaT(iter);
 
-        // Update Conservative Variables
-        for (int i = 0; i < nNode; i++) {
-            Q1[i] -= (DeltaT[i] / cVolume[i]) * Res1[i];
-            Q2[i] -= (DeltaT[i] / cVolume[i]) * Res2[i];
-            Q3[i] -= (DeltaT[i] / cVolume[i]) * Res3[i];
-            Q4[i] -= (DeltaT[i] / cVolume[i]) * Res4[i];
-            Q5[i] -= (DeltaT[i] / cVolume[i]) * Res5[i];
-        }
-        
         // Compute RMS
         RMS[0] = RMS[1] = RMS[2] = RMS[3] = RMS[4] = 0.0;
         for (int i = 0; i < nNode; i++) {
@@ -581,6 +652,148 @@ int Solve(void) {
             info("Solve: NAN Encountered ! - Abort");
             iter = NIteration + 1;
             CheckNAN = 1;
+            VTK_Writer("SolutionBeforeNAN.vtk");;
+        }
+
+        // Euler Time Stepping Scheme
+        if (TimeStepScheme == 1) {
+            // Update Conservative Variables
+            for (int i = 0; i < nNode; i++) {
+                dtmp = DeltaT[i]/cVolume[i];
+                Q1[i] -= dtmp * Res1[i];
+                Q2[i] -= dtmp * Res2[i];
+                Q3[i] -= dtmp * Res3[i];
+                Q4[i] -= dtmp * Res4[i];
+                Q5[i] -= dtmp * Res5[i];
+            }
+        }
+
+        // Runge-Kutta Time Stepping Scheme
+        if (TimeStepScheme == 2) {
+            for (int i = 0; i < nNode; i++) {
+                // W0 = Wn
+                W01[i] = Q1[i];
+                W02[i] = Q2[i];
+                W03[i] = Q3[i];
+                W04[i] = Q4[i];
+                W05[i] = Q5[i];
+
+                // W1 = W0 - (dT/2)*RES0
+                dtmp = DeltaT[i]/(2.0*cVolume[i]);
+                Q1[i] = W01[i] - dtmp*Res1[i];
+                Q2[i] = W02[i] - dtmp*Res2[i];
+                Q3[i] = W03[i] - dtmp*Res3[i];
+                Q4[i] = W04[i] - dtmp*Res4[i];
+                Q5[i] = W05[i] - dtmp*Res5[i];
+
+                // W4 = W0 - (dT/6)*RES0
+                dtmp = DeltaT[i]/(6.0*cVolume[i]);
+                W41[i] = W01[i] - dtmp*Res1[i];
+                W42[i] = W02[i] - dtmp*Res2[i];
+                W43[i] = W03[i] - dtmp*Res3[i];
+                W44[i] = W04[i] - dtmp*Res4[i];
+                W45[i] = W05[i] - dtmp*Res5[i];
+
+                // Reset the Residual
+                Res1[i] = 0.0;
+                Res2[i] = 0.0;
+                Res3[i] = 0.0;
+                Res4[i] = 0.0;
+                Res5[i] = 0.0;
+            }
+            
+            // Compute RES1
+            // Compute Least Square Gradient -- Unweighted
+            if (Order == 2)
+                Compute_Least_Square_Gradient(0);
+
+            // Apply boundary conditions
+            Apply_Boundary_Condition();
+
+            // Compute Residuals
+            Compute_Residual();
+            
+            for (int i = 0; i < nNode; i++) {
+                // W2 = W0 - (dT/2)*RES1
+                dtmp = DeltaT[i]/(2.0*cVolume[i]);
+                Q1[i] = W01[i] - dtmp*Res1[i];
+                Q2[i] = W02[i] - dtmp*Res2[i];
+                Q3[i] = W03[i] - dtmp*Res3[i];
+                Q4[i] = W04[i] - dtmp*Res4[i];
+                Q5[i] = W05[i] - dtmp*Res5[i];
+
+                // W4 = W0 - (dT/6)*RES0 - (dT/3)*RES1
+                dtmp = DeltaT[i]/(3.0*cVolume[i]);
+                W41[i] = W41[i] - dtmp*Res1[i];
+                W42[i] = W42[i] - dtmp*Res2[i];
+                W43[i] = W43[i] - dtmp*Res3[i];
+                W44[i] = W44[i] - dtmp*Res4[i];
+                W45[i] = W45[i] - dtmp*Res5[i];
+
+                // Reset the Residual
+                Res1[i] = 0.0;
+                Res2[i] = 0.0;
+                Res3[i] = 0.0;
+                Res4[i] = 0.0;
+                Res5[i] = 0.0;
+            }
+
+            // Compute RES2
+            // Compute Least Square Gradient -- Unweighted
+            if (Order == 2)
+                Compute_Least_Square_Gradient(0);
+
+            // Apply boundary conditions
+            Apply_Boundary_Condition();
+
+            // Compute Residuals
+            Compute_Residual();
+
+            for (int i = 0; i < nNode; i++) {
+                // W3 = W0 - dT*RES2
+                dtmp = DeltaT[i]/cVolume[i];
+                Q1[i] = W01[i] - dtmp*Res1[i];
+                Q2[i] = W02[i] - dtmp*Res2[i];
+                Q3[i] = W03[i] - dtmp*Res3[i];
+                Q4[i] = W04[i] - dtmp*Res4[i];
+                Q5[i] = W05[i] - dtmp*Res5[i];
+
+                // W4 = W0 - (dT/6)*RES0 - (dT/3)*RES1 - (dT/3)*RES2
+                dtmp = DeltaT[i]/(3.0*cVolume[i]);
+                W41[i] = W41[i] - dtmp*Res1[i];
+                W42[i] = W42[i] - dtmp*Res2[i];
+                W43[i] = W43[i] - dtmp*Res3[i];
+                W44[i] = W44[i] - dtmp*Res4[i];
+                W45[i] = W45[i] - dtmp*Res5[i];
+
+                // Reset the Residual
+                Res1[i] = 0.0;
+                Res2[i] = 0.0;
+                Res3[i] = 0.0;
+                Res4[i] = 0.0;
+                Res5[i] = 0.0;
+            }
+
+            // Compute RES3
+            // Compute Least Square Gradient -- Unweighted
+            if (Order == 2)
+                Compute_Least_Square_Gradient(0);
+
+            // Apply boundary conditions
+            Apply_Boundary_Condition();
+
+            // Compute Residuals
+            Compute_Residual();
+
+            for (int i = 0; i < nNode; i++) {
+                // W4 = W0 - (dT/6)*RES0 - (dT/3)*RES1 - (dT/3)*RES2 - (dT/6)*RES3
+                dtmp = DeltaT[i]/(6.0*cVolume[i]);
+                Q1[i] = W41[i] - dtmp*Res1[i];
+                Q2[i] = W42[i] - dtmp*Res2[i];
+                Q3[i] = W43[i] - dtmp*Res3[i];
+                Q4[i] = W44[i] - dtmp*Res4[i];
+                Q5[i] = W45[i] - dtmp*Res5[i];
+            }
         }
 
         if ((RMS_Res < (DBL_EPSILON*10.0))|| ((iter+1) == NIteration)) {
@@ -597,6 +810,37 @@ int Solve(void) {
     if (CheckNAN)
         DebugNAN();
 
+    // Free Memory
+    if (TimeStepScheme == 2) {
+        // Wo
+        if (W01 != NULL)
+            delete[] W01;
+        if (W02 != NULL)
+            delete[] W02;
+        if (W03 != NULL)
+            delete[] W03;
+        if (W04 != NULL)
+            delete[] W04;
+        if (W05 != NULL)
+            delete[] W05;
+
+        // W4
+        if (W41 != NULL)
+            delete[] W41;
+        if (W42 != NULL)
+            delete[] W42;
+        if (W43 != NULL)
+            delete[] W43;
+        if (W44 != NULL)
+            delete[] W44;
+        if (W45 != NULL)
+            delete[] W45;
+        
+        W01 = W02 = W03 = W04 = W05 = NULL;
+        W41 = W42 = W43 = W44 = W45 = NULL;
+    }
+
+    // Return Solver State
     if (CheckNAN)
         return EXIT_FAILURE;
     else
