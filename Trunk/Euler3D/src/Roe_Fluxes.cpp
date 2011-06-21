@@ -14,6 +14,54 @@
 #include "Solver.h"
 
 //------------------------------------------------------------------------------
+//! Compute Roe Averaged Variables
+//------------------------------------------------------------------------------
+void Compute_RoeVariables(double *Q_L, double *Q_R, double *Q_Roe) {
+    double rho_L, u_L, v_L, w_L, et_L, e_L, p_L, c_L, h_L, ht_L;
+    double rho_R, u_R, v_R, w_R, et_R, e_R, p_R, c_R, h_R, ht_R;
+    double rho, u, v, w, ht;
+    double temp;
+
+    // Left Node
+    rho_L  = Q_L[0];
+    u_L    = Q_L[1] / rho_L;
+    v_L    = Q_L[2] / rho_L;
+    w_L    = Q_L[3] / rho_L;
+    et_L   = Q_L[4] / rho_L;
+    e_L    = et_L - 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
+    p_L    = (Gamma - 1.0) * rho_L * e_L;
+    c_L    = sqrt((Gamma * p_L) / rho_L);
+    h_L    = (c_L * c_L) / (Gamma - 1.0);
+    ht_L   = h_L + 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
+
+    // Right Node
+    rho_R  = Q_R[0];
+    u_R    = Q_R[1] / rho_R;
+    v_R    = Q_R[2] / rho_R;
+    w_R    = Q_R[3] / rho_R;
+    et_R   = Q_R[4] / rho_R;
+    e_R    = et_R - 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
+    p_R    = (Gamma - 1.0) * rho_R * e_R;
+    c_R    = sqrt((Gamma * p_R) / rho_R);
+    h_R    = (c_R * c_R) / (Gamma - 1.0);
+    ht_R   = h_R + 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
+
+    // ROE AVERAGE VARIABLES
+    temp = sqrt(rho_R) + sqrt(rho_L);
+    rho  = sqrt(rho_R * rho_L);
+    u    = (u_L * sqrt(rho_L)  + u_R * sqrt(rho_R)) / temp;
+    v    = (v_L * sqrt(rho_L)  + v_R * sqrt(rho_R)) / temp;
+    w    = (w_L * sqrt(rho_L)  + w_R * sqrt(rho_R)) / temp;
+    ht   = (ht_L * sqrt(rho_L) + ht_R * sqrt(rho_R)) / temp;
+
+    Q_Roe[0] = rho;
+    Q_Roe[1] = rho*u;
+    Q_Roe[2] = rho*v;
+    Q_Roe[3] = rho*w;
+    Q_Roe[4] = (rho/Gamma)*(ht + 0.5*(Gamma - 1)*(u*u + v*v + w*w));
+}
+
+//------------------------------------------------------------------------------
 //! TODO :  Optimization of Code by Removing Matrix-Matrix Multiplication
 //------------------------------------------------------------------------------
 void Compute_Residual(void) {
@@ -115,10 +163,10 @@ void Compute_Residual(void) {
             // Compute Flux Limiter
             switch (Limiter) {
                 case 1: // Barth and Jespersen
-                    Compute_Flux_Limiter_Barth_Jespersen(node_L, node_R, Phi_L, Phi_R);
+                    Compute_Limiter_Barth_Jespersen(node_L, node_R, Phi_L, Phi_R);
                     break;
                 case 2: // Venkatakrishnan
-                    Compute_Flux_Limiter_Venkatakrishnan(node_L, node_R, Phi_L, Phi_R);
+                    Compute_Limiter_Venkatakrishnan(node_L, node_R, Phi_L, Phi_R);
                     break;
             }
             
@@ -127,21 +175,37 @@ void Compute_Residual(void) {
             Ry_L = 0.5*(coordXYZ[PHY_DIM * node_R + 1] - coordXYZ[PHY_DIM * node_L + 1]);
             Rz_L = 0.5*(coordXYZ[PHY_DIM * node_R + 2] - coordXYZ[PHY_DIM * node_L + 2]);
             // Compute Left Q's
-            Q_L[0]  = Q1[node_L] + Phi_L[0]*(Q1x[node_L]*Rx_L + Q1y[node_L]*Ry_L + Q1z[node_L]*Rz_L);
-            Q_L[1]  = Q2[node_L] + Phi_L[1]*(Q2x[node_L]*Rx_L + Q2y[node_L]*Ry_L + Q2z[node_L]*Rz_L);
-            Q_L[2]  = Q3[node_L] + Phi_L[2]*(Q3x[node_L]*Rx_L + Q3y[node_L]*Ry_L + Q3z[node_L]*Rz_L);
-            Q_L[3]  = Q4[node_L] + Phi_L[3]*(Q4x[node_L]*Rx_L + Q4y[node_L]*Ry_L + Q4z[node_L]*Rz_L);
-            Q_L[4]  = Q5[node_L] + Phi_L[4]*(Q5x[node_L]*Rx_L + Q5y[node_L]*Ry_L + Q5z[node_L]*Rz_L);
+            if (LimiterOrder == 2) {
+                Q_L[0]  = Q1[node_L] + Phi_L[0]*(0.5*(Q1[node_R] - Q1[node_L]) + 0.5*(Q1x[node_L]*Rx_L + Q1y[node_L]*Ry_L + Q1z[node_L]*Rz_L));
+                Q_L[1]  = Q2[node_L] + Phi_L[1]*(0.5*(Q2[node_R] - Q2[node_L]) + 0.5*(Q2x[node_L]*Rx_L + Q2y[node_L]*Ry_L + Q2z[node_L]*Rz_L));
+                Q_L[2]  = Q3[node_L] + Phi_L[2]*(0.5*(Q3[node_R] - Q3[node_L]) + 0.5*(Q3x[node_L]*Rx_L + Q3y[node_L]*Ry_L + Q3z[node_L]*Rz_L));
+                Q_L[3]  = Q4[node_L] + Phi_L[3]*(0.5*(Q4[node_R] - Q4[node_L]) + 0.5*(Q4x[node_L]*Rx_L + Q4y[node_L]*Ry_L + Q4z[node_L]*Rz_L));
+                Q_L[4]  = Q5[node_L] + Phi_L[4]*(0.5*(Q5[node_R] - Q5[node_L]) + 0.5*(Q5x[node_L]*Rx_L + Q5y[node_L]*Ry_L + Q5z[node_L]*Rz_L));
+            } else {
+                Q_L[0]  = Q1[node_L] + Phi_L[0]*(Q1x[node_L]*Rx_L + Q1y[node_L]*Ry_L + Q1z[node_L]*Rz_L);
+                Q_L[1]  = Q2[node_L] + Phi_L[1]*(Q2x[node_L]*Rx_L + Q2y[node_L]*Ry_L + Q2z[node_L]*Rz_L);
+                Q_L[2]  = Q3[node_L] + Phi_L[2]*(Q3x[node_L]*Rx_L + Q3y[node_L]*Ry_L + Q3z[node_L]*Rz_L);
+                Q_L[3]  = Q4[node_L] + Phi_L[3]*(Q4x[node_L]*Rx_L + Q4y[node_L]*Ry_L + Q4z[node_L]*Rz_L);
+                Q_L[4]  = Q5[node_L] + Phi_L[4]*(Q5x[node_L]*Rx_L + Q5y[node_L]*Ry_L + Q5z[node_L]*Rz_L);
+            }
             // Compute vector R
             Rx_R = - Rx_L;
             Ry_R = - Ry_L;
             Rz_R = - Rz_L;
             // Finally Compute Right Q's
-            Q_R[0]  = Q1[node_R] + Phi_R[0]*(Q1x[node_R]*Rx_R + Q1y[node_R]*Ry_R + Q1z[node_R]*Rz_R);
-            Q_R[1]  = Q2[node_R] + Phi_R[1]*(Q2x[node_R]*Rx_R + Q2y[node_R]*Ry_R + Q2z[node_R]*Rz_R);
-            Q_R[2]  = Q3[node_R] + Phi_R[2]*(Q3x[node_R]*Rx_R + Q3y[node_R]*Ry_R + Q3z[node_R]*Rz_R);
-            Q_R[3]  = Q4[node_R] + Phi_R[3]*(Q4x[node_R]*Rx_R + Q4y[node_R]*Ry_R + Q4z[node_R]*Rz_R);
-            Q_R[4]  = Q5[node_R] + Phi_R[4]*(Q5x[node_R]*Rx_R + Q5y[node_R]*Ry_R + Q5z[node_R]*Rz_R);
+            if (LimiterOrder == 2) {
+                Q_R[0]  = Q1[node_R] + Phi_R[0]*(0.5*(Q1[node_L] - Q1[node_R]) + 0.5*(Q1x[node_R]*Rx_R + Q1y[node_R]*Ry_R + Q1z[node_R]*Rz_R));
+                Q_R[1]  = Q2[node_R] + Phi_R[1]*(0.5*(Q2[node_L] - Q2[node_R]) + 0.5*(Q2x[node_R]*Rx_R + Q2y[node_R]*Ry_R + Q2z[node_R]*Rz_R));
+                Q_R[2]  = Q3[node_R] + Phi_R[2]*(0.5*(Q3[node_L] - Q3[node_R]) + 0.5*(Q3x[node_R]*Rx_R + Q3y[node_R]*Ry_R + Q3z[node_R]*Rz_R));
+                Q_R[3]  = Q4[node_R] + Phi_R[3]*(0.5*(Q4[node_L] - Q4[node_R]) + 0.5*(Q4x[node_R]*Rx_R + Q4y[node_R]*Ry_R + Q4z[node_R]*Rz_R));
+                Q_R[4]  = Q5[node_R] + Phi_R[4]*(0.5*(Q5[node_L] - Q5[node_R]) + 0.5*(Q5x[node_R]*Rx_R + Q5y[node_R]*Ry_R + Q5z[node_R]*Rz_R));
+            } else {
+                Q_R[0]  = Q1[node_R] + Phi_R[0]*(Q1x[node_R]*Rx_R + Q1y[node_R]*Ry_R + Q1z[node_R]*Rz_R);
+                Q_R[1]  = Q2[node_R] + Phi_R[1]*(Q2x[node_R]*Rx_R + Q2y[node_R]*Ry_R + Q2z[node_R]*Rz_R);
+                Q_R[2]  = Q3[node_R] + Phi_R[2]*(Q3x[node_R]*Rx_R + Q3y[node_R]*Ry_R + Q3z[node_R]*Rz_R);
+                Q_R[3]  = Q4[node_R] + Phi_R[3]*(Q4x[node_R]*Rx_R + Q4y[node_R]*Ry_R + Q4z[node_R]*Rz_R);
+                Q_R[4]  = Q5[node_R] + Phi_R[4]*(Q5x[node_R]*Rx_R + Q5y[node_R]*Ry_R + Q5z[node_R]*Rz_R);
+            }
         } else {
             Q_L[0] = Q1[node_L];
             Q_L[1] = Q2[node_L];

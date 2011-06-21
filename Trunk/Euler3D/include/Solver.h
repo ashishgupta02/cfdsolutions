@@ -16,7 +16,13 @@
 #define BC_SUPERSONIC_INFLOW    4
 #define BC_SUPERSONIC_OUTFLOW   5
 
+// Solver Type
+#define SOLVER_NONE             0
+#define SOLVER_ROE              1
+#define SOLVER_LMROE            2
+
 // Linear Solver Params
+extern int    SolverScheme;
 extern int    TimeStepScheme;
 extern int    Order;
 extern int    NIteration;
@@ -26,6 +32,8 @@ extern double Relaxation;
 
 // Flux Limiters
 extern int    Limiter;
+extern int    LimiterSmooth;
+extern int    LimiterOrder;
 extern int    StartLimiterNIteration;
 extern int    EndLimiterNIteration;
 extern double Venkat_KThreshold;
@@ -119,9 +127,13 @@ void Compute_Residual(void);
 void Compute_Residual_LMRoe(void);
 void Compute_DeltaT(int Iteration);
 
+// Roe Scheme Functions
+void Compute_RoeVariables(double *Q_L, double *Q_R, double *Q_Roe);
+
 // Flux Limiter
-void Compute_Flux_Limiter_Barth_Jespersen(int node_L, int node_R, double *Phi_L, double *Phi_R);
-void Compute_Flux_Limiter_Venkatakrishnan(int node_L, int node_R, double *Phi_L, double *Phi_R);
+void Compute_Limiter_Barth_Jespersen(int node_L, int node_R, double *Phi_L, double *Phi_R);
+void Compute_Limiter_Venkatakrishnan(int node_L, int node_R, double *Phi_L, double *Phi_R);
+void Compute_Limiter_PressureCorrection(int node_L, int node_R, double *Phi_L, double *Phi_R);
 
 // Entropy Fix
 void Roe_EntropyFix(double ubar_L, double c_L, double ubar_R, double c_R, double ubar, double c, double **Eigen);

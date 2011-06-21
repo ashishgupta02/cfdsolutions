@@ -14,6 +14,7 @@
 #include "DebugSolver.h"
 
 // Linear Solver Params
+int    SolverScheme;
 int    TimeStepScheme;
 int    Order;
 int    NIteration;
@@ -23,6 +24,8 @@ double Relaxation;
 
 // Flux Limiter
 int    Limiter;
+int    LimiterSmooth;
+int    LimiterOrder;
 int    StartLimiterNIteration;
 int    EndLimiterNIteration;
 double Venkat_KThreshold;
@@ -106,7 +109,8 @@ double RMS_Res;
 //------------------------------------------------------------------------------
 void Solver_Init(void) {
     // Linear Solver Params
-    TimeStepScheme  = 1;
+    SolverScheme    = SOLVER_NONE;
+    TimeStepScheme  = 0;
     Order           = 0;
     NIteration      = 0;
     InnerNIteration = 0;
@@ -115,6 +119,8 @@ void Solver_Init(void) {
 
     // Flux Limiter
     Limiter         = 0;
+    LimiterSmooth   = 0;
+    LimiterOrder    = 0;
     StartLimiterNIteration  = 0;
     EndLimiterNIteration    = 0;
     Venkat_KThreshold       = 0.0;
@@ -326,97 +332,112 @@ void Solver_Read_Params(const char *filename) {
         sscanf(buff, "%d", &bndType[i]);
     }
 
-    // Get the Time Stepping Scheme
+    // 1) Get the Solver Scheme
+    dummy = fgets(buff, bdim, fp);
+    dummy = fgets(buff, bdim, fp);
+    sscanf(buff, "%d", &SolverScheme);
+
+    // 2) Get the Time Stepping Scheme
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &TimeStepScheme);
     
-    // Get the Order
+    // 3) Get the Order
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &Order);
     
-    // Get Number of Outer Iterations
+    // 4) Get Number of Outer Iterations
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &NIteration);
 
-    // Get Number of Inner Iterations
+    // 5) Get Number of Inner Iterations
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &InnerNIteration);
 
-    // Get Number of First Order Iterations
+    // 6) Get Number of First Order Iterations
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &FirstOrderNIteration);
     
-    // Get the Relaxation Factor
+    // 7) Get the Relaxation Factor
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%lf", &Relaxation);
 
-    // Get the Flux Limiter
+    // 8) Get the Flux Limiter
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &Limiter);
 
-    // Get the Start Limiter Iterations
+    // 9) Get the Flux Limiter Smooth
+    dummy = fgets(buff, bdim, fp);
+    dummy = fgets(buff, bdim, fp);
+    sscanf(buff, "%d", &LimiterSmooth);
+
+    // 10) Get the Flux Limiter Order
+    dummy = fgets(buff, bdim, fp);
+    dummy = fgets(buff, bdim, fp);
+    sscanf(buff, "%d", &LimiterOrder);
+    
+    // 11) Get the Start Limiter Iterations
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &StartLimiterNIteration);
 
-    // Get the End Limiter Iterations
+    // 12) Get the End Limiter Iterations
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &EndLimiterNIteration);
 
-    // Read Ventakakrishanan K Threshold
+    // 13) Read Ventakakrishanan K Threshold
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%lf", &Venkat_KThreshold);
 
-    // Read Entropy Fix
+    // 14) Read Entropy Fix
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &EntropyFix);
     
-    // Read Gamma
+    // 15) Read Gamma
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%lf", &Gamma);
 
-    // Read Mach
+    // 16) Read Mach
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%lf", &Ref_Mach);
 
-    // Read Pressure
+    // 17) Read Pressure
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%lf", &Ref_Pressure);
 
-    // Read Alpha
+    // 18) Read Alpha
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%lf", &Ref_Alpha);
 
-    // Read CFL Ramp
+    // 19) Read CFL Ramp
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &CFL_Ramp);
 
-    // Read CFL MIN
+    // 20) Read CFL MIN
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%lf", &CFL_MIN);
 
-    // Read CFL MAX
+    // 21) Read CFL MAX
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%lf", &CFL_MAX);
 
-    // Read Restart Solution
+    // 22) Read Restart Solution
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &RestartInput);
@@ -436,6 +457,7 @@ void Solver_Read_Params(const char *filename) {
     printf("=============================================================================\n");
     info("Input Solver Parameters");
     printf("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-\n");
+    info("Solver Scheme ------------------------: %d",  SolverScheme);
     info("Time Stepping Scheme -----------------: %d",  TimeStepScheme);
     info("Order --------------------------------: %d",  Order);
     info("No of Iterations ---------------------: %d",  NIteration);
@@ -443,6 +465,8 @@ void Solver_Read_Params(const char *filename) {
     info("No of First Order Iterations ---------: %d",  FirstOrderNIteration);
     info("Relaxation Factor --------------------: %lf", Relaxation);
     info("Limiter Type -------------------------: %d",  Limiter);
+    info("Limiter Smooth -----------------------: %d",  LimiterSmooth);
+    info("Limiter Order ------------------------: %d",  LimiterOrder);
     info("Limiter Start Iteration --------------: %d",  StartLimiterNIteration);
     info("Limiter End Iteration ----------------: %d",  EndLimiterNIteration);
     info("Venkatakrishan Limiter Threshold -----: %lf", Venkat_KThreshold);
@@ -622,8 +646,17 @@ int Solve(void) {
         Apply_Boundary_Condition();
 
         // Compute Residuals
-        Compute_Residual();
-        //Compute_Residual_LMRoe();
+        switch (SolverScheme) {
+            case SOLVER_ROE: // Roe
+                Compute_Residual();
+                break;
+            case SOLVER_LMROE: // LMRoe
+                Compute_Residual_LMRoe();
+                break;
+            default:
+                error("Solve: Invalid Solver Scheme - %d", SolverScheme);
+                break;
+        }
         
         // Compute Local Time Stepping
         Compute_DeltaT(iter);
