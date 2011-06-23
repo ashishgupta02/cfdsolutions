@@ -34,10 +34,12 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/src/Point3D.o \
+	${OBJECTDIR}/src/Limiters.o \
+	${OBJECTDIR}/_ext/979082451/HigherOrderReconstructQ.o \
 	${OBJECTDIR}/src/Commons.o \
 	${OBJECTDIR}/src/Cuthill_Mckee_Reorder.o \
-	${OBJECTDIR}/main.o \
 	${OBJECTDIR}/src/RestartIO.o \
+	${OBJECTDIR}/main.o \
 	${OBJECTDIR}/src/MC_Iterative_Jacobi.o \
 	${OBJECTDIR}/src/Vector3D.o \
 	${OBJECTDIR}/src/BC.o \
@@ -50,7 +52,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/List.o \
 	${OBJECTDIR}/src/MeshIO.o \
 	${OBJECTDIR}/src/Roe_Fluxes.o \
-	${OBJECTDIR}/src/Flux_Limiters.o \
 	${OBJECTDIR}/src/Solver.o \
 	${OBJECTDIR}/src/Connectivity_Maps.o \
 	${OBJECTDIR}/src/DebugSolver.o
@@ -84,6 +85,14 @@ ${OBJECTDIR}/src/Point3D.o: nbproject/Makefile-${CND_CONF}.mk src/Point3D.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	$(COMPILE.cc) -g +w -Iinclude -o ${OBJECTDIR}/src/Point3D.o src/Point3D.cpp
 
+${OBJECTDIR}/src/Limiters.o: nbproject/Makefile-${CND_CONF}.mk src/Limiters.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	$(COMPILE.cc) -g +w -Iinclude -o ${OBJECTDIR}/src/Limiters.o src/Limiters.cpp
+
+${OBJECTDIR}/_ext/979082451/HigherOrderReconstructQ.o: nbproject/Makefile-${CND_CONF}.mk /home/agupta/NetBeansProjects/CFDSolutions/Trunk/Euler3D/src/HigherOrderReconstructQ.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/979082451
+	$(COMPILE.cc) -g +w -Iinclude -o ${OBJECTDIR}/_ext/979082451/HigherOrderReconstructQ.o /home/agupta/NetBeansProjects/CFDSolutions/Trunk/Euler3D/src/HigherOrderReconstructQ.cpp
+
 ${OBJECTDIR}/src/Commons.o: nbproject/Makefile-${CND_CONF}.mk src/Commons.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	$(COMPILE.cc) -g +w -Iinclude -o ${OBJECTDIR}/src/Commons.o src/Commons.cpp
@@ -92,13 +101,13 @@ ${OBJECTDIR}/src/Cuthill_Mckee_Reorder.o: nbproject/Makefile-${CND_CONF}.mk src/
 	${MKDIR} -p ${OBJECTDIR}/src
 	$(COMPILE.cc) -g +w -Iinclude -o ${OBJECTDIR}/src/Cuthill_Mckee_Reorder.o src/Cuthill_Mckee_Reorder.cpp
 
-${OBJECTDIR}/main.o: nbproject/Makefile-${CND_CONF}.mk main.cpp 
-	${MKDIR} -p ${OBJECTDIR}
-	$(COMPILE.cc) -g +w -Iinclude -o ${OBJECTDIR}/main.o main.cpp
-
 ${OBJECTDIR}/src/RestartIO.o: nbproject/Makefile-${CND_CONF}.mk src/RestartIO.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	$(COMPILE.cc) -g +w -Iinclude -o ${OBJECTDIR}/src/RestartIO.o src/RestartIO.cpp
+
+${OBJECTDIR}/main.o: nbproject/Makefile-${CND_CONF}.mk main.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	$(COMPILE.cc) -g +w -Iinclude -o ${OBJECTDIR}/main.o main.cpp
 
 ${OBJECTDIR}/src/MC_Iterative_Jacobi.o: nbproject/Makefile-${CND_CONF}.mk src/MC_Iterative_Jacobi.c 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -147,10 +156,6 @@ ${OBJECTDIR}/src/MeshIO.o: nbproject/Makefile-${CND_CONF}.mk src/MeshIO.cpp
 ${OBJECTDIR}/src/Roe_Fluxes.o: nbproject/Makefile-${CND_CONF}.mk src/Roe_Fluxes.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	$(COMPILE.cc) -g +w -Iinclude -o ${OBJECTDIR}/src/Roe_Fluxes.o src/Roe_Fluxes.cpp
-
-${OBJECTDIR}/src/Flux_Limiters.o: nbproject/Makefile-${CND_CONF}.mk src/Flux_Limiters.cpp 
-	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.cc) -g +w -Iinclude -o ${OBJECTDIR}/src/Flux_Limiters.o src/Flux_Limiters.cpp
 
 ${OBJECTDIR}/src/Solver.o: nbproject/Makefile-${CND_CONF}.mk src/Solver.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

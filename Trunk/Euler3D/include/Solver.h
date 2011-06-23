@@ -108,6 +108,13 @@ extern double *Res5;
 // Local Time
 extern double *DeltaT;
 
+// Limiters
+extern double *Limiter_Phi1;
+extern double *Limiter_Phi2;
+extern double *Limiter_Phi3;
+extern double *Limiter_Phi4;
+extern double *Limiter_Phi5;
+
 // RMS
 extern double RMS[5];
 extern double RMS_Res;
@@ -123,17 +130,22 @@ int  Solve(void);
 
 void Initialize_Boundary_Condition(void);
 void Apply_Boundary_Condition(void);
-void Compute_Residual(void);
+void Compute_Residual_Roe(void);
 void Compute_Residual_LMRoe(void);
 void Compute_DeltaT(int Iteration);
 
 // Roe Scheme Functions
 void Compute_RoeVariables(double *Q_L, double *Q_R, double *Q_Roe);
 
-// Flux Limiter
-void Compute_Limiter_Barth_Jespersen(int node_L, int node_R, double *Phi_L, double *Phi_R);
-void Compute_Limiter_Venkatakrishnan(int node_L, int node_R, double *Phi_L, double *Phi_R);
-void Compute_Limiter_PressureCorrection(int node_L, int node_R, double *Phi_L, double *Phi_R);
+// Limiter
+void Compute_Limiter(void);
+void Compute_Limiter_Barth_Jespersen(int node_C, double *Phi_C);
+void Compute_Limiter_Venkatakrishnan(int node_C, double *Phi_C);
+void Compute_Limiter_PressureCorrection(int node_C, double *Phi_C);
+void Compute_Limiter_RoePressureCorrection(int node_L, int node_R, double *Phi_L, double *Phi_R);
+
+// Higher Order Reconstruction of Q's
+void Compute_SecondOrderReconstructQ(int node_L, int node_R, double *Q_L, double *Q_R);
 
 // Entropy Fix
 void Roe_EntropyFix(double ubar_L, double c_L, double ubar_R, double c_R, double ubar, double c, double **Eigen);
