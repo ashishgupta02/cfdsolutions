@@ -100,6 +100,13 @@ double *Res3;
 double *Res4;
 double *Res5;
 
+// Limiters
+double *Limiter_Phi1;
+double *Limiter_Phi2;
+double *Limiter_Phi3;
+double *Limiter_Phi4;
+double *Limiter_Phi5;
+
 //RMS
 double RMS[5];
 double RMS_Res;
@@ -195,6 +202,13 @@ void Solver_Init(void) {
     Res4            = NULL;
     Res5            = NULL;
 
+    // Limiters
+    Limiter_Phi1    = NULL;
+    Limiter_Phi2    = NULL;
+    Limiter_Phi3    = NULL;
+    Limiter_Phi4    = NULL;
+    Limiter_Phi5    = NULL;
+    
     // RMS
     RMS[0]          = 0.0;
     RMS[1]          = 0.0;
@@ -276,6 +290,23 @@ void Solver_Finalize(void) {
     Q5y = NULL;
     Q5z = NULL;
 
+    // Limiters
+    if (Limiter_Phi1 != NULL)
+        delete[] Limiter_Phi1;
+    if (Limiter_Phi2 != NULL)
+        delete[] Limiter_Phi2;
+    if (Limiter_Phi3 != NULL)
+        delete[] Limiter_Phi3;
+    if (Limiter_Phi4 != NULL)
+        delete[] Limiter_Phi4;
+    if (Limiter_Phi5 != NULL)
+        delete[] Limiter_Phi5;
+    Limiter_Phi1 = NULL;
+    Limiter_Phi2 = NULL;
+    Limiter_Phi3 = NULL;
+    Limiter_Phi4 = NULL;
+    Limiter_Phi5 = NULL;
+    
     // Residuals
     if (Res1 != NULL)
         delete[] Res1;
@@ -539,6 +570,15 @@ void Solver_Set_Initial_Conditions(void) {
         Q5y = new double[nNode];
         Q5z = new double[nNode];
         Gradient_Add_Function(Q5, Q5x, Q5y, Q5z, nNode);
+
+        // Check if Limiter Memory is Required
+        if (Limiter > 0) {
+            Limiter_Phi1 = new double[nNode];
+            Limiter_Phi2 = new double[nNode];
+            Limiter_Phi3 = new double[nNode];
+            Limiter_Phi4 = new double[nNode];
+            Limiter_Phi5 = new double[nNode];
+        }
     }
     
     // Allocate  Memory to Store Residuals
@@ -639,8 +679,11 @@ int Solve(void) {
         }
 
         // Compute Least Square Gradient -- Unweighted
-        if (Order == 2)
+        if (Order == 2) {
             Compute_Least_Square_Gradient(0);
+            if (Limiter > 0)
+                Compute_Limiter();
+        }
         
         // Apply boundary conditions
         Apply_Boundary_Condition();
@@ -648,7 +691,7 @@ int Solve(void) {
         // Compute Residuals
         switch (SolverScheme) {
             case SOLVER_ROE: // Roe
-                Compute_Residual();
+                Compute_Residual_Roe();
                 break;
             case SOLVER_LMROE: // LMRoe
                 Compute_Residual_LMRoe();
@@ -737,14 +780,17 @@ int Solve(void) {
             
             // Compute RES1
             // Compute Least Square Gradient -- Unweighted
-            if (Order == 2)
+            if (Order == 2) {
                 Compute_Least_Square_Gradient(0);
+                if (Limiter > 0)
+                    Compute_Limiter();
+            }
 
             // Apply boundary conditions
             Apply_Boundary_Condition();
 
             // Compute Residuals
-            Compute_Residual();
+            Compute_Residual_Roe();
             
             for (int i = 0; i < nNode; i++) {
                 // W2 = W0 - (dT/2)*RES1
@@ -773,14 +819,17 @@ int Solve(void) {
 
             // Compute RES2
             // Compute Least Square Gradient -- Unweighted
-            if (Order == 2)
+            if (Order == 2) {
                 Compute_Least_Square_Gradient(0);
+                if (Limiter > 0)
+                    Compute_Limiter();
+            }
 
             // Apply boundary conditions
             Apply_Boundary_Condition();
 
             // Compute Residuals
-            Compute_Residual();
+            Compute_Residual_Roe();
 
             for (int i = 0; i < nNode; i++) {
                 // W3 = W0 - dT*RES2
@@ -809,14 +858,17 @@ int Solve(void) {
 
             // Compute RES3
             // Compute Least Square Gradient -- Unweighted
-            if (Order == 2)
+            if (Order == 2) {
                 Compute_Least_Square_Gradient(0);
+                if (Limiter > 0)
+                    Compute_Limiter();
+            }
 
             // Apply boundary conditions
             Apply_Boundary_Condition();
 
             // Compute Residuals
-            Compute_Residual();
+            Compute_Residual_Roe();
 
             for (int i = 0; i < nNode; i++) {
                 // W4 = W0 - (dT/6)*RES0 - (dT/3)*RES1 - (dT/3)*RES2 - (dT/6)*RES3

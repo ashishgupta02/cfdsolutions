@@ -32,9 +32,10 @@
       <itemPath>src/Connectivity_Maps.cpp</itemPath>
       <itemPath>src/Cuthill_Mckee_Reorder.cpp</itemPath>
       <itemPath>src/DebugSolver.cpp</itemPath>
-      <itemPath>src/Flux_Limiters.cpp</itemPath>
       <itemPath>src/Gradient.cpp</itemPath>
+      <itemPath>/home/agupta/NetBeansProjects/CFDSolutions/Trunk/Euler3D/src/HigherOrderReconstructQ.cpp</itemPath>
       <itemPath>src/LMRoe_Fluxes.cpp</itemPath>
+      <itemPath>src/Limiters.cpp</itemPath>
       <itemPath>src/List.cpp</itemPath>
       <itemPath>src/MC_Iterative_Jacobi.c</itemPath>
       <itemPath>src/MeshIO.cpp</itemPath>
