@@ -1,7 +1,7 @@
 /*******************************************************************************
  * File:        MeshIO.cpp
  * Author:      Ashish Gupta
- * Revision:    2
+ * Revision:    3
  ******************************************************************************/
 
 #include <string.h>
@@ -212,11 +212,12 @@ void UGrid_Reader(const char* filename) {
 //------------------------------------------------------------------------------
 //! VTK Solution Writer
 //------------------------------------------------------------------------------
-void VTK_Writer(const char* filename) {
+void VTK_Writer(const char* filename, int verbose) {
     int i, j;
     FILE *fp;
 
-    info("Writing VTK Solution File %s", filename);
+    if (verbose == 1)
+        info("Writing VTK Solution File %s", filename);
     
     if ((fp = fopen(filename, "w")) == NULL)
         error("VTK_Writer: Unable to Write Solution File - %s", filename);
@@ -304,24 +305,24 @@ void VTK_Writer(const char* filename) {
     fprintf(fp, "SCALARS Density double 1\n");
     fprintf(fp, "LOOKUP_TABLE default\n");
     for (i = 0; i < nNode; i++)
-        fprintf(fp, "%f\n", Q1[i]);
+        fprintf(fp, "%22.15e\n", Q1[i]);
 
 
     fprintf(fp, "SCALARS X_Velocity double 1\n");
     fprintf(fp, "LOOKUP_TABLE default\n");
     for (i = 0; i < nNode; i++)
-        fprintf(fp, "%f\n", Q2[i] / Q1[i]);
+        fprintf(fp, "%22.15e\n", Q2[i] / Q1[i]);
 
 
     fprintf(fp, "SCALARS Y_Velocity double 1\n");
     fprintf(fp, "LOOKUP_TABLE default\n");
     for (i = 0; i < nNode; i++)
-        fprintf(fp, "%f\n", Q3[i] / Q1[i]);
+        fprintf(fp, "%22.15e\n", Q3[i] / Q1[i]);
 
     fprintf(fp, "SCALARS Z_Velocity double 1\n");
     fprintf(fp, "LOOKUP_TABLE default\n");
     for (i = 0; i < nNode; i++)
-        fprintf(fp, "%f\n", Q4[i] / Q1[i]);
+        fprintf(fp, "%22.15e\n", Q4[i] / Q1[i]);
 
     double p, rho, et, u, v, w;
 
@@ -335,7 +336,7 @@ void VTK_Writer(const char* filename) {
         et  = Q5[i] / rho;
         p   = (Gamma - 1.0) * rho * (et - 0.5 * (u * u + v * v + w * w));
 
-        fprintf(fp, "%f\n", p);
+        fprintf(fp, "%22.15e\n", p);
     }
 
     fclose(fp);

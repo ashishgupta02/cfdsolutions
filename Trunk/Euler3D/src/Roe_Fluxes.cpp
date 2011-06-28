@@ -1,10 +1,12 @@
 /*******************************************************************************
  * File:        Roe_Fluxes.cpp
  * Author:      Ashish Gupta
- * Revision:    2
+ * Revision:    3
  ******************************************************************************/
 
+#ifdef DEBUG
 #include <assert.h>
+#endif
 
 // Custom header files
 #include "Trim_Utils.h"
@@ -79,10 +81,10 @@ void Compute_Residual_Roe(void) {
     double g_vec[5];
     double h_vec[5];
     double fluxA[5];
-    double Q_L[5];
-    double Q_R[5];
     double flux_L[5];
     double flux_R[5];
+    double Q_L[5];
+    double Q_R[5];
     double *dQ;
     double **A;
     double **Eigen;
@@ -140,8 +142,10 @@ void Compute_Residual_Roe(void) {
         node_L = intEdge[i].node[0];
         node_R = intEdge[i].node[1];
 
+#ifdef DEBUG
         assert(node_R > node_L);
-
+#endif
+        
         // Get area vector
         areavec = intEdge[i].areav;
         area = areavec.magnitude();
@@ -384,12 +388,13 @@ void Compute_Residual_Roe(void) {
         Pinv[4][3] = -0.5 * nz;
         Pinv[4][4] = 1.0/(2.0 * rho * c);
 
+        // START: Computing A*dQ = M*P*|Lambda|*Pinv*Minv*dQ
         // Calculate T = M*P
         MC_Matrix_Mul_Matrix(5, 5, M, P, T);
         // Calculate Tinv = Pinv*Minv
         MC_Matrix_Mul_Matrix(5, 5, Pinv, Minv, Tinv);
         
-        // EigenMatrix
+        // Calculate EigenMatrix |Lambda|
         for (j = 0; j < 5; j++)
             for (k = 0; k < 5; k++)
                 Eigen[j][k] = 0.0;
@@ -405,7 +410,7 @@ void Compute_Residual_Roe(void) {
             Eigen[4][4] = fabs(ubar - c);
         }
         
-        // EigenMatrix*Tinv
+        // EigenMatrix*Tinv = |Lambda|*Pinv*Minv
         MC_Matrix_Mul_Matrix(5, 5, Eigen, Tinv, A);
 
         // Tinv = EigenMatrix*Tinv
@@ -416,20 +421,23 @@ void Compute_Residual_Roe(void) {
             }
         }
         
-        // Get Matrix A
+        // Get Matrix A = M*P*|Lambda|*Pinv*Minv
         MC_Matrix_Mul_Matrix(5, 5, T, Tinv, A);
 
         // Set up matrix vector multiplication
+        // Compute dQ
         dQ[0] = dQ[1] = dQ[2] = dQ[3] = dQ[4] = 0.0;
         dQ[0] = Q_R[0] - Q_L[0];
         dQ[1] = Q_R[1] - Q_L[1];
         dQ[2] = Q_R[2] - Q_L[2];
         dQ[3] = Q_R[3] - Q_L[3];
         dQ[4] = Q_R[4] - Q_L[4];
-        
+
+        // Compute |A|*dQ
         fluxA[0] = fluxA[1] = fluxA[2] = fluxA[3] = fluxA[4] = 0.0;
         MC_Matrix_Mul_Vector(5, 5, A, dQ, fluxA);
-        
+        // END: Computing A*dQ = M*P*|Lambda|*Pinv*Minv*dQ
+
         // Compute for LHS
         Res1[node_L] += 0.5 * (flux_L[0] + flux_R[0] - fluxA[0]) * area;
         Res2[node_L] += 0.5 * (flux_L[1] + flux_R[1] - fluxA[1]) * area;
@@ -471,8 +479,10 @@ void Compute_Residual_Roe(void) {
         node_L = bndEdge[i].node[0];
         node_R = bndEdge[i].node[1];
 
+#ifdef DEBUG
         assert(node_R > node_L);
-
+#endif
+        
         // Get area vector
         areavec = bndEdge[i].areav;
         area = areavec.magnitude();
@@ -704,12 +714,13 @@ void Compute_Residual_Roe(void) {
         Pinv[4][3] = -0.5 * nz;
         Pinv[4][4] = 1.0/(2.0 * rho * c);
 
+        // START: Computing A*dQ = M*P*|Lambda|*Pinv*Minv*dQ
         // Calculate T = M*P
         MC_Matrix_Mul_Matrix(5, 5, M, P, T);
         // Calculate Tinv = Pinv*Minv
         MC_Matrix_Mul_Matrix(5, 5, Pinv, Minv, Tinv);
 
-        // EigenMatrix
+        // Calculate EigenMatrix |Lambda|
         for (j = 0; j < 5; j++)
             for (k = 0; k < 5; k++)
                 Eigen[j][k] = 0.0;
@@ -725,7 +736,7 @@ void Compute_Residual_Roe(void) {
             Eigen[4][4] = fabs(ubar - c);
         }
         
-        // EigenMatrix*Tinv
+        // EigenMatrix*Tinv = |Lambda|*Pinv*Minv
         MC_Matrix_Mul_Matrix(5, 5, Eigen, Tinv, A);
 
         // Tinv = EigenMatrix*Tinv
@@ -736,10 +747,11 @@ void Compute_Residual_Roe(void) {
             }
         }
 
-        // Get Matrix A
+        // Get Matrix A = M*P*|Lambda|*Pinv*Minv
         MC_Matrix_Mul_Matrix(5, 5, T, Tinv, A);
         
         // Set up matrix vector multiplication
+        // Compute dQ
         dQ[0] = dQ[1] = dQ[2] = dQ[3] = dQ[4] = 0.0;
         dQ[0] = Q1[node_R] - Q1[node_L];
         dQ[1] = Q2[node_R] - Q2[node_L];
@@ -747,9 +759,11 @@ void Compute_Residual_Roe(void) {
         dQ[3] = Q4[node_R] - Q4[node_L];
         dQ[4] = Q5[node_R] - Q5[node_L];
 
+        // Compute |A|*dQ
         fluxA[0] = fluxA[1] = fluxA[2] = fluxA[3] = fluxA[4] = 0.0;
         MC_Matrix_Mul_Vector(5, 5, A, dQ, fluxA);
-        
+        // END: Computing A*dQ = M*P*|Lambda|*Pinv*Minv*dQ
+
         // Compute LHS for Boundary Nodes
         Res1[node_L] += 0.5 * (flux_L[0] + flux_R[0] - fluxA[0]) * area;
         Res2[node_L] += 0.5 * (flux_L[1] + flux_R[1] - fluxA[1]) * area;

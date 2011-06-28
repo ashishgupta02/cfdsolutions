@@ -1,10 +1,12 @@
 /*******************************************************************************
  * File:        BC.cpp
  * Author:      Ashish Gupta
- * Revision:    2
+ * Revision:    3
  ******************************************************************************/
 
+#ifdef DEBUG
 #include <assert.h>
+#endif
 
 // Custom header files
 #include "Trim_Utils.h"
@@ -22,9 +24,34 @@ void Initialize_Boundary_Condition() {
 }
 
 //------------------------------------------------------------------------------
+//! Compute Free Stream Condition with Mach Ramping
+//------------------------------------------------------------------------------
+void ComputeFreeStreamCondition(int Iteration) {
+    double tmpMach = 0.0;
+
+    // Compute the Free Stream Condition Ramping
+    if ((Mach_Ramp > 1) && (Mach_MAX > Mach_MIN)) {
+        if (Iteration < Mach_Ramp)
+            tmpMach = Mach_MIN + (Mach_MAX - Mach_MIN)*(((double)Iteration)/((double)(Mach_Ramp-1)));
+        else
+            tmpMach = Mach_MAX;
+    } else
+        tmpMach = Mach_MAX;
+
+    // Set the Free Stream Conditions
+    Inf_Mach     = tmpMach;
+    Inf_Rho      = Ref_Rho;
+    Inf_Pressure = Ref_Pressure;
+    Inf_U        = Inf_Mach*cos(Ref_Alpha);
+    Inf_V        = Inf_Mach*sin(Ref_Alpha);
+    Inf_W        = 0.0;
+    Inf_Et       = Inf_Pressure/((Gamma - 1.0)*Inf_Rho) + 0.5 *(Inf_U*Inf_U + Inf_V*Inf_V + Inf_W*Inf_W);
+}
+
+//------------------------------------------------------------------------------
 //! Note: Outward Pointing Boundary Normals
 //------------------------------------------------------------------------------
-void Apply_Boundary_Condition() {
+void Apply_Boundary_Condition(int Iteration) {
     int pnode;
     int ghostnode;
     Vector3D normal;
@@ -37,6 +64,9 @@ void Apply_Boundary_Condition() {
     double temp;
     int instance = BC_NONE;
 
+    // Compute Free Stream Conditions
+    ComputeFreeStreamCondition(Iteration);
+    
     // Default Initialization
     p_b_n   = Inf_Pressure;
     rho_b_n = Inf_Rho;
@@ -48,7 +78,9 @@ void Apply_Boundary_Condition() {
         pnode     = bndEdge[i].node[0];
         ghostnode = bndEdge[i].node[1];
 
+#ifdef DEBUG
         assert(ghostnode > pnode);
+#endif
         
         // Get area vector
         normal = bndEdge[i].areav;
@@ -77,36 +109,38 @@ void Apply_Boundary_Condition() {
         p_b   = rho_b * e_b * (Gamma - 1.0);
         c_b   = sqrt((Gamma * p_b) / rho_b);
 
-        rho_0 = 0.5 * (rho_i + rho_b);
-        u_0   = 0.5 * (u_i + u_b);
-        v_0   = 0.5 * (v_i + v_b);
-        w_0   = 0.5 * (w_i + w_b);
-        et_0  = 0.5 * (et_i + et_b);
-        e_0   = 0.5 * (e_i + e_b);
-//        p_0   = rho_0 * e_0 *(Gamma - 1.0);
-//        c_0   = sqrt(Gamma * p_0/rho_0);
-        p_0   = 0.5 * (p_i + p_b);
-        c_0   = 0.5 * (c_i + c_b);
+        // Compute the average
+        rho_0 = 0.5 * (Q1[pnode] + Q1[ghostnode]);
+        u_0   = 0.5 * (Q2[pnode] + Q2[ghostnode])/rho_0;
+        v_0   = 0.5 * (Q3[pnode] + Q3[ghostnode])/rho_0;
+        w_0   = 0.5 * (Q4[pnode] + Q4[ghostnode])/rho_0;
+        et_0  = 0.5 * (Q5[pnode] + Q5[ghostnode])/rho_0;
+        e_0   = et_0 - 0.5 * (u_0 * u_0 + v_0 * v_0 + w_0 * w_0);
+        p_0   = rho_0 * e_0 * (Gamma - 1.0);
+        c_0   = sqrt((Gamma * p_0) / rho_0);
         
         // Get eigenvalues
-        lamda1 = u_i * nx + v_i * ny + w_i * nz;
+        lamda1 = u_0 * nx + v_0 * ny + w_0 * nz;
         lamda2 = lamda1;
         lamda3 = lamda1;
-        lamda4 = lamda1 + c_i;
-        lamda5 = lamda1 - c_i;
-        
+        lamda4 = lamda1 + c_0;
+        lamda5 = lamda1 - c_0;
+
         // Determine how to set boundary conditions for edge
         switch (bndEdge[i].type) {
             // Solid Wall
             case BC_SOLID_WALL:
                 instance = BC_SOLID_WALL;
-                if ((lamda5 > 0.0) || (lamda4 < 0.0)) {
-                    info("Wall Lamda: %lf %lf %lf %lf %lf", lamda1, lamda2,
-                            lamda3, lamda4, lamda5);
-                    info("Nodes: %d %d", pnode, ghostnode);
-                    info("Normal: %lf %lf %lf ", nx, ny, nz);
-                    info("Velocity: %lf %lf %lf ", u_i, v_i, w_i);
-                    error("Apply_Boundary_Condition: Unable apply Solid Wall boundary condition edge[%d]", i);
+                if (Iteration >= ZPGIteration) {
+                    if ((lamda5 > 0.0) || (lamda4 < 0.0)) {
+                        info("Wall Lamda: %lf %lf %lf %lf %lf", lamda1, lamda2,
+                                lamda3, lamda4, lamda5);
+                        info("Mach: %lf", fabs(lamda1) / c_0);
+                        info("Nodes: %d %d", pnode, ghostnode);
+                        info("Normal: %lf %lf %lf ", nx, ny, nz);
+                        info("Velocity: %lf %lf %lf ", u_i, v_i, w_i);
+                        warn("Apply_Boundary_Condition: Unable apply Solid Wall boundary condition edge[%d] - 1", i);
+                    }
                 }
                 break;
             // Free Stream
@@ -131,16 +165,17 @@ void Apply_Boundary_Condition() {
                     info("Nodes: %d %d", pnode, ghostnode);
                     info("Normal: %lf %lf %lf ", nx, ny, nz);
                     info("Velocity: %lf %lf %lf ", u_i, v_i, w_i);
-                    error("Apply_Boundary_Condition: Unable apply boundary condition edge[%d]", i);
+                    error("Apply_Boundary_Condition: Unable apply boundary condition edge[%d] - 2", i);
                 }
                 break;
             default:
                 info("Lamda: %lf %lf %lf %lf %lf", lamda1, lamda2,
                         lamda3, lamda4, lamda5);
+                info("Mach: %lf", fabs(lamda1) / c_0);
                 info("Nodes: %d %d", pnode, ghostnode);
                 info("Normal: %lf %lf %lf ", nx, ny, nz);
                 info("Velocity: %lf %lf %lf ", u_i, v_i, w_i);
-                error("Apply_Boundary_Condition: Unable apply boundary condition edge[%d]", i);
+                error("Apply_Boundary_Condition: Unable apply boundary condition edge[%d] - 3", i);
                 break;
         }
 
@@ -148,11 +183,13 @@ void Apply_Boundary_Condition() {
         switch (instance) {
             case BC_SOLID_WALL:
                 temp    = rho_0 * c_0* (nx * u_i + ny * v_i + nz * w_i);
-                // Limiter for harsh initial conditions
-//                if ((temp < 0.0) && (fabs(p_i) < fabs(temp)))
-//                    p_b_n = fabs(p_i + temp);
-//                else
-                    p_b_n = p_i + temp;
+                p_b_n = p_i + temp;
+                // Apply Zero Pressure Gradient (ZPG) BC for Harsh initialization
+                // This causes the flow to be allowed through the surface initially
+                if (Iteration < ZPGIteration) {
+                    if (p_b_n < 0.0)
+                        p_b_n = p_i;
+                }   
                 rho_b_n = rho_i + (p_b_n - p_i) / (c_0 * c_0);
                 u_b_n   = u_i - nx * (p_b_n - p_i) / (rho_0 * c_0);
                 v_b_n   = v_i - ny * (p_b_n - p_i) / (rho_0 * c_0);

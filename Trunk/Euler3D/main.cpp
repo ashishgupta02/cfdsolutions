@@ -1,7 +1,7 @@
 /*******************************************************************************
  * File:        main.cpp
  * Author:      Ashish Gupta
- * Revision:    2
+ * Revision:    3
  ******************************************************************************/
 
 #ifdef HAVE_CONFIG_H
@@ -164,7 +164,7 @@ int main(int argc, char *argv[]) {
                 if ((pos == -1) || (pos == 0 && solfile.length() != 0))
                     pos = solfile.length();
                 solfile.replace(pos, solfile.length(), ".vtk");
-                VTK_Writer(solfile.c_str());
+                VTK_Writer(solfile.c_str(), 1);
             }
             break;
     }

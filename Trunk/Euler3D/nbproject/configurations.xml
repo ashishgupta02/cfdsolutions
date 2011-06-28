@@ -6,6 +6,7 @@
                    projectFiles="true"
                    kind="SOURCE_LOGICAL_FOLDER">
       <itemPath>include/Commons.h</itemPath>
+      <itemPath>/home/agupta/NetBeansProjects/CFDSolutions/Trunk/Euler3D/include/CompressibleUtils.h</itemPath>
       <itemPath>include/DebugSolver.h</itemPath>
       <itemPath>include/Gradient.h</itemPath>
       <itemPath>include/List.h</itemPath>
@@ -29,6 +30,7 @@
       <itemPath>src/Area_Volume.cpp</itemPath>
       <itemPath>src/BC.cpp</itemPath>
       <itemPath>src/Commons.cpp</itemPath>
+      <itemPath>/home/agupta/NetBeansProjects/CFDSolutions/Trunk/Euler3D/src/CompressibleUtils.cpp</itemPath>
       <itemPath>src/Connectivity_Maps.cpp</itemPath>
       <itemPath>src/Cuthill_Mckee_Reorder.cpp</itemPath>
       <itemPath>src/DebugSolver.cpp</itemPath>
