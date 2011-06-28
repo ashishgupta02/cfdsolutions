@@ -1,79 +1,63 @@
 /*******************************************************************************
  * File:        Time_Step.cpp
  * Author:      Ashish Gupta
- * Revision:    2
+ * Revision:    3
  ******************************************************************************/
+
+#ifdef DEBUG
+#include <assert.h>
+#endif
 
 // Custom header files
 #include "Trim_Utils.h"
 #include "Vector3D.h"
 #include "Commons.h"
 #include "Solver.h"
-#include <assert.h>
 
 //------------------------------------------------------------------------------
 //!
 //------------------------------------------------------------------------------
 void Compute_DeltaT(int Iteration) {
-    int nodeL, nodeR;
+    int i, nodeL, nodeR;
     double denom = 0.0;
     
     Vector3D areavec;
     double   area;
 
-    double rho_L, u_L, v_L, w_L, et_L, e_L, p_L, c_L;
-    double rho_R, u_R, v_R, w_R, et_R, e_R, p_R, c_R;
-
+    double Ubar_avg, p_avg, c_avg,Q_avg[5];
     double lamda4, lamda5;
     double max_lamda;
-    double rho_avg, p_avg, e_avg, u_avg, v_avg, w_avg, c_avg;
+    
 
     // Internal Edges
-    for (int i = 0; i < nEdge; i++) {
+    for (i = 0; i < nEdge; i++) {
         // Get two nodes of edge
         nodeL = intEdge[i].node[0];
         nodeR = intEdge[i].node[1];
 
+#ifdef DEBUG
         assert(nodeR > nodeL);
+#endif
         
         // Get area vector
         areavec = intEdge[i].areav;
         area  = areavec.magnitude();
         areavec.normalize();
-        
-        // Left Node
-        rho_L = Q1[nodeL];
-        u_L   = Q2[nodeL] / rho_L;
-        v_L   = Q3[nodeL] / rho_L;
-        w_L   = Q4[nodeL] / rho_L;
-        et_L  = Q5[nodeL] / rho_L;
-        e_L   = et_L - 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
-        p_L   = (Gamma - 1.0) * rho_L * e_L;
-        c_L   = sqrt((Gamma * p_L) / rho_L);
 
-        // Right Node
-        rho_R = Q1[nodeR];
-        u_R   = Q2[nodeR] / rho_R;
-        v_R   = Q3[nodeR] / rho_R;
-        w_R   = Q4[nodeR] / rho_R;
-        et_R  = Q5[nodeR] / rho_R;
-        e_R   = et_R - 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
-        p_R   = (Gamma - 1.0) * rho_R * e_R;
-        c_R   = sqrt((Gamma * p_R) / rho_R);
+        // Get the average
+        Q_avg[0] = 0.5*(Q1[nodeL] + Q1[nodeR]);
+        Q_avg[1] = 0.5*(Q2[nodeL] + Q2[nodeR]);
+        Q_avg[2] = 0.5*(Q3[nodeL] + Q3[nodeR]);
+        Q_avg[3] = 0.5*(Q4[nodeL] + Q4[nodeR]);
+        Q_avg[4] = 0.5*(Q5[nodeL] + Q5[nodeR]);
+        Ubar_avg = (Q_avg[1]*areavec.vec[0] + Q_avg[2]*areavec.vec[1] + Q_avg[3]*areavec.vec[2])/Q_avg[0];
+        p_avg    = (Gamma - 1.0)*(Q_avg[4] - 0.5*((Q_avg[1]*Q_avg[1] + Q_avg[2]*Q_avg[2] + Q_avg[3]*Q_avg[3])/Q_avg[0]));
+        c_avg    = sqrt(Gamma*p_avg/Q_avg[0]);
 
-        // Get averaged variables
-        rho_avg = 0.5*(rho_L + rho_R);
-        e_avg   = 0.5*(e_L   + e_R);
-        u_avg   = 0.5*(u_L   + u_R);
-        v_avg   = 0.5*(v_L   + v_R);
-        w_avg   = 0.5*(w_L   + w_R);
-        p_avg   = 0.5*(p_L   + p_R);
-        c_avg   = 0.5*(c_L   + c_R);
-        
-        // Find maximum eigenvalue for nodeL
-        lamda4 = fabs((u_avg * areavec.vec[0] + v_avg * areavec.vec[1] + w_avg * areavec.vec[2]) + c_avg);
-        lamda5 = fabs((u_avg * areavec.vec[0] + v_avg * areavec.vec[1] + w_avg * areavec.vec[2]) - c_avg);
-        max_lamda = MAX(lamda4, lamda5);
+        // Find maximum eigenvalue
+        lamda4 = Ubar_avg + c_avg;
+        lamda5 = Ubar_avg - c_avg;
+        max_lamda = MAX(fabs(lamda4), fabs(lamda5));
 
         denom = (max_lamda * area);
 
@@ -83,12 +67,14 @@ void Compute_DeltaT(int Iteration) {
     }
 
     // Boundary Edges
-    for (int i = 0; i < nBEdge; i++) {
+    for (i = 0; i < nBEdge; i++) {
         // Get two nodes of edge
         nodeL = bndEdge[i].node[0];
         nodeR = bndEdge[i].node[1];
 
+#ifdef DEBUG
         assert(nodeR > nodeL);
+#endif
         
         // Get area vector
         areavec = bndEdge[i].areav;
@@ -96,39 +82,20 @@ void Compute_DeltaT(int Iteration) {
         areavec.normalize();
 
         // Note we only need to accumulate for the left node
-        // Left Node
-        rho_L = Q1[nodeL];
-        u_L   = Q2[nodeL] / rho_L;
-        v_L   = Q3[nodeL] / rho_L;
-        w_L   = Q4[nodeL] / rho_L;
-        et_L  = Q5[nodeL] / rho_L;
-        e_L   = et_L - 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
-        p_L   = (Gamma - 1.0) * rho_L * e_L;
-        c_L   = sqrt((Gamma * p_L) / rho_L);
+        // Get the average
+        Q_avg[0] = 0.5*(Q1[nodeL] + Q1[nodeR]);
+        Q_avg[1] = 0.5*(Q2[nodeL] + Q2[nodeR]);
+        Q_avg[2] = 0.5*(Q3[nodeL] + Q3[nodeR]);
+        Q_avg[3] = 0.5*(Q4[nodeL] + Q4[nodeR]);
+        Q_avg[4] = 0.5*(Q5[nodeL] + Q5[nodeR]);
+        Ubar_avg = (Q_avg[1]*areavec.vec[0] + Q_avg[2]*areavec.vec[1] + Q_avg[3]*areavec.vec[2])/Q_avg[0];
+        p_avg    = (Gamma - 1.0)*(Q_avg[4] - 0.5*((Q_avg[1]*Q_avg[1] + Q_avg[2]*Q_avg[2] + Q_avg[3]*Q_avg[3])/Q_avg[0]));
+        c_avg    = sqrt(Gamma*p_avg/Q_avg[0]);
 
-        // Right Node
-        rho_R = Q1[nodeR];
-        u_R   = Q2[nodeR] / rho_R;
-        v_R   = Q3[nodeR] / rho_R;
-        w_R   = Q4[nodeR] / rho_R;
-        et_R  = Q5[nodeR] / rho_R;
-        e_R   = et_R - 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
-        p_R   = (Gamma - 1.0) * rho_R * e_R;
-        c_R   = sqrt((Gamma * p_R) / rho_R);
-
-        // Get averaged variables
-        rho_avg = 0.5*(rho_L + rho_R);
-        e_avg   = 0.5*(e_L   + e_R);
-        u_avg   = 0.5*(u_L   + u_R);
-        v_avg   = 0.5*(v_L   + v_R);
-        w_avg   = 0.5*(w_L   + w_R);
-        p_avg   = 0.5*(p_L   + p_R);
-        c_avg   = 0.5*(c_L   + c_R);
-
-        // Find maximum eigenvalue for nodeL
-        lamda4 = fabs((u_avg * areavec.vec[0] + v_avg * areavec.vec[1] + w_avg * areavec.vec[2]) + c_avg);
-        lamda5 = fabs((u_avg * areavec.vec[0] + v_avg * areavec.vec[1] + w_avg * areavec.vec[2]) - c_avg);
-        max_lamda = MAX(lamda4, lamda5);
+        // Find maximum eigenvalue
+        lamda4 = Ubar_avg + c_avg;
+        lamda5 = Ubar_avg - c_avg;
+        max_lamda = MAX(fabs(lamda4), fabs(lamda5));
 
         denom = (max_lamda * area);
         
@@ -137,7 +104,7 @@ void Compute_DeltaT(int Iteration) {
     }
     
     // Finally Compute the Local Time Stepping
-    if (CFL_Ramp > 1) {
+    if ((CFL_Ramp > 1) && (CFL_MAX > CFL_MIN)) {
         if (Iteration < CFL_Ramp)
             CFL = CFL_MIN + (CFL_MAX - CFL_MIN)*(((double)Iteration)/((double)(CFL_Ramp-1)));
         else
@@ -145,7 +112,16 @@ void Compute_DeltaT(int Iteration) {
     } else
         CFL = CFL_MAX;
 
-    for (int i = 0; i < nNode; i++)
+    for (i = 0; i < nNode; i++)
         DeltaT[i] = cVolume[i] * CFL / DeltaT[i];
+
+    // Check if Global Time Stepping is Required
+    if (TimeAccuracy == 1) {
+        denom = DeltaT[0];
+        for (i = 0; i < nNode; i++)
+            denom = MIN(denom, DeltaT[i]);
+        for (i = 0; i < nNode; i++)
+            DeltaT[i] = denom;
+    }
 }
 

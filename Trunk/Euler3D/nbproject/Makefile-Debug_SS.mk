@@ -38,8 +38,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/979082451/HigherOrderReconstructQ.o \
 	${OBJECTDIR}/src/Commons.o \
 	${OBJECTDIR}/src/Cuthill_Mckee_Reorder.o \
-	${OBJECTDIR}/src/RestartIO.o \
 	${OBJECTDIR}/main.o \
+	${OBJECTDIR}/src/RestartIO.o \
 	${OBJECTDIR}/src/MC_Iterative_Jacobi.o \
 	${OBJECTDIR}/src/Vector3D.o \
 	${OBJECTDIR}/src/BC.o \
@@ -50,6 +50,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Trim_Utils.o \
 	${OBJECTDIR}/src/Area_Volume.o \
 	${OBJECTDIR}/src/List.o \
+	${OBJECTDIR}/_ext/979082451/CompressibleUtils.o \
 	${OBJECTDIR}/src/MeshIO.o \
 	${OBJECTDIR}/src/Roe_Fluxes.o \
 	${OBJECTDIR}/src/Solver.o \
@@ -101,13 +102,13 @@ ${OBJECTDIR}/src/Cuthill_Mckee_Reorder.o: nbproject/Makefile-${CND_CONF}.mk src/
 	${MKDIR} -p ${OBJECTDIR}/src
 	$(COMPILE.cc) -g +w -Iinclude -o ${OBJECTDIR}/src/Cuthill_Mckee_Reorder.o src/Cuthill_Mckee_Reorder.cpp
 
-${OBJECTDIR}/src/RestartIO.o: nbproject/Makefile-${CND_CONF}.mk src/RestartIO.cpp 
-	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.cc) -g +w -Iinclude -o ${OBJECTDIR}/src/RestartIO.o src/RestartIO.cpp
-
 ${OBJECTDIR}/main.o: nbproject/Makefile-${CND_CONF}.mk main.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	$(COMPILE.cc) -g +w -Iinclude -o ${OBJECTDIR}/main.o main.cpp
+
+${OBJECTDIR}/src/RestartIO.o: nbproject/Makefile-${CND_CONF}.mk src/RestartIO.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	$(COMPILE.cc) -g +w -Iinclude -o ${OBJECTDIR}/src/RestartIO.o src/RestartIO.cpp
 
 ${OBJECTDIR}/src/MC_Iterative_Jacobi.o: nbproject/Makefile-${CND_CONF}.mk src/MC_Iterative_Jacobi.c 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -148,6 +149,10 @@ ${OBJECTDIR}/src/Area_Volume.o: nbproject/Makefile-${CND_CONF}.mk src/Area_Volum
 ${OBJECTDIR}/src/List.o: nbproject/Makefile-${CND_CONF}.mk src/List.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	$(COMPILE.cc) -g +w -Iinclude -o ${OBJECTDIR}/src/List.o src/List.cpp
+
+${OBJECTDIR}/_ext/979082451/CompressibleUtils.o: nbproject/Makefile-${CND_CONF}.mk /home/agupta/NetBeansProjects/CFDSolutions/Trunk/Euler3D/src/CompressibleUtils.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/979082451
+	$(COMPILE.cc) -g +w -Iinclude -o ${OBJECTDIR}/_ext/979082451/CompressibleUtils.o /home/agupta/NetBeansProjects/CFDSolutions/Trunk/Euler3D/src/CompressibleUtils.cpp
 
 ${OBJECTDIR}/src/MeshIO.o: nbproject/Makefile-${CND_CONF}.mk src/MeshIO.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

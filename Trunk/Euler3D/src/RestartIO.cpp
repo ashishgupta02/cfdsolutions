@@ -1,27 +1,53 @@
 /*******************************************************************************
- * File:        MeshIO.cpp
+ * File:        RestartIO.cpp
  * Author:      Ashish Gupta
- * Revision:    2
+ * Revision:    3
  ******************************************************************************/
-
-#include <string.h>
 
 // Custom header files
 #include "Trim_Utils.h"
 #include "Commons.h"
+#include "MeshIO.h"
 #include "RestartIO.h"
 #include "Solver.h"
+
+static int RestartCounter = 0;
+
+//------------------------------------------------------------------------------
+//! Check if Restart File is Requested
+//------------------------------------------------------------------------------
+void Check_Restart(int Iteration) {
+    if (RestartCycle > 0) {
+        char filename[256];
+        if (RestartCounter != (RestartCycle - 1)) {
+            RestartCounter++;
+            return;
+        } else {
+            RestartCounter = 0;
+            str_blank(filename);
+            sprintf(filename, "Restart_%d.srt", Iteration+1);
+            // Now Write the file
+            Restart_Writer(filename, 0);
+            // Write VTK File
+            str_blank(filename);
+            sprintf(filename, "Solution_%d.vtk", Iteration+1);
+            VTK_Writer(filename, 0);
+        }
+    }
+}
 
 //------------------------------------------------------------------------------
 //! Restart Solution Writer
 //------------------------------------------------------------------------------
-void Restart_Writer(const char* filename) {
+void Restart_Writer(const char* filename, int verbose) {
     int i, var;
     FILE *fp;
 
-    printf("=============================================================================\n");
-    info("Writing Restart File %s", filename);
-
+    if (verbose == 1) {
+        printf("=============================================================================\n");
+        info("Writing Restart File %s", filename);
+    }
+    
     if ((fp = fopen(filename, "wb")) == NULL)
         error("Restart_Writer: Unable to Write Solution File - %s", filename);
 

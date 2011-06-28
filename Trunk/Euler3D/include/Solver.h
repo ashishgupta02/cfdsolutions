@@ -1,7 +1,7 @@
 /*******************************************************************************
  * File:        Solver.h
  * Author:      Ashish Gupta
- * Revision:    2
+ * Revision:    3
  ******************************************************************************/
 
 #ifndef SOLVER_H
@@ -23,6 +23,7 @@
 
 // Linear Solver Params
 extern int    SolverScheme;
+extern int    TimeAccuracy;
 extern int    TimeStepScheme;
 extern int    Order;
 extern int    NIteration;
@@ -45,13 +46,16 @@ extern int EntropyFix;
 extern int  RestartInput;
 extern int  RestartOutput;
 extern int  RestartIteration;
+extern int  RestartCycle;
 extern char RestartInputFilename[256];
 extern char RestartOutputFilename[256];
 
 // Reference Conditions
+extern double Ref_Rho;
 extern double Ref_Mach;
 extern double Ref_Alpha;
 extern double Ref_Pressure;
+extern double Ref_Temperature;
 
 // Free Stream Conditions
 extern double Inf_Rho;
@@ -60,15 +64,25 @@ extern double Inf_V;
 extern double Inf_W;
 extern double Inf_Et;
 extern double Inf_Pressure;
+extern double Inf_Mach;
 
 // Constants
 extern double Gamma;
 
+// Solver Tunning Parameters
 // CFL Conditons
 extern int    CFL_Ramp;
 extern double CFL_MAX;
 extern double CFL_MIN;
 extern double CFL;
+
+// Mach Ramping
+extern int    Mach_Ramp;
+extern double Mach_MAX;
+extern double Mach_MIN;
+
+// Zero Pressure Gradient No of Iterations
+extern int    ZPGIteration;
 
 // Conservative Variables
 extern double *Q1;
@@ -119,6 +133,9 @@ extern double *Limiter_Phi5;
 extern double RMS[5];
 extern double RMS_Res;
 
+// Compute Free Stream Condition with Mach Ramping
+void ComputeFreeStreamCondition(int Iteration);
+
 // Initialize the Solver Data Structure
 void Solver_Init(void);
 // Finalize the Solver Data Structure
@@ -129,7 +146,7 @@ void Solver_Set_Initial_Conditions(void);
 int  Solve(void);
 
 void Initialize_Boundary_Condition(void);
-void Apply_Boundary_Condition(void);
+void Apply_Boundary_Condition(int Iteration);
 void Compute_Residual_Roe(void);
 void Compute_Residual_LMRoe(void);
 void Compute_DeltaT(int Iteration);

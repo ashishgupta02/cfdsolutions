@@ -1,12 +1,14 @@
 /*******************************************************************************
  * File:        LMRoe_Fluxes.cpp
  * Author:      Ashish Gupta
- * Revision:    1
+ * Revision:    3
  * Reference:   A Low-Mach Number Fix for Roe's Approximate Riemann Solver
  *              Felix Rieper, Journal of Computational Physics, 230 (2011)
  ******************************************************************************/
 
+#ifdef DEBUG
 #include <assert.h>
+#endif
 
 // Custom header files
 #include "Trim_Utils.h"
@@ -21,9 +23,9 @@
 void Compute_Residual_LMRoe(void) {
     int i, j, k;
     int node_L, node_R;
-    double rho_L, u_L, v_L, w_L, et_L, e_L, p_L, c_L, h_L, ht_L;
-    double rho_R, u_R, v_R, w_R, et_R, e_R, p_R, c_R, h_R, ht_R;
-    double rho, u, v, w, ht, c, phi;
+    double rho_L, u_L, v_L, w_L, et_L, e_L, p_L, c_L, h_L, ht_L, ubar_L;
+    double rho_R, u_R, v_R, w_R, et_R, e_R, p_R, c_R, h_R, ht_R, ubar_R;
+    double rho, u, v, w, ht, c, phi, ubar;
     double temp, fix;
 
     double dq[5];
@@ -37,6 +39,8 @@ void Compute_Residual_LMRoe(void) {
     double fluxA[5];
     double flux_L[5];
     double flux_R[5];
+    double Q_L[5];
+    double Q_R[5];
     double *dQ;
     double **A;
     double **Eigen;
@@ -94,8 +98,10 @@ void Compute_Residual_LMRoe(void) {
         node_L = intEdge[i].node[0];
         node_R = intEdge[i].node[1];
 
+#ifdef DEBUG
         assert(node_R > node_L);
-
+#endif
+        
         // Get area vector
         areavec = intEdge[i].areav;
         area = areavec.magnitude();
@@ -104,17 +110,34 @@ void Compute_Residual_LMRoe(void) {
         ny = areavec.vec[1];
         nz = areavec.vec[2];
         
+        // Make Solution Second Order
+        if (Order == 2) {
+            Compute_SecondOrderReconstructQ(node_L, node_R, Q_L, Q_R);
+        } else {
+            Q_L[0] = Q1[node_L];
+            Q_L[1] = Q2[node_L];
+            Q_L[2] = Q3[node_L];
+            Q_L[3] = Q4[node_L];
+            Q_L[4] = Q5[node_L];
+            Q_R[0] = Q1[node_R];
+            Q_R[1] = Q2[node_R];
+            Q_R[2] = Q3[node_R];
+            Q_R[3] = Q4[node_R];
+            Q_R[4] = Q5[node_R];
+        }
+
         // Left Node
-        rho_L = Q1[node_L];
-        u_L   = Q2[node_L] / rho_L;
-        v_L   = Q3[node_L] / rho_L;
-        w_L   = Q4[node_L] / rho_L;
-        et_L  = Q5[node_L] / rho_L;
-        e_L   = et_L - 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
-        p_L   = (Gamma - 1.0) * rho_L * e_L;
-        c_L   = sqrt((Gamma * p_L) / rho_L);
-        h_L   = (c_L * c_L) / (Gamma - 1.0);
-        ht_L  = h_L + 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
+        rho_L  = Q_L[0];
+        u_L    = Q_L[1] / rho_L;
+        v_L    = Q_L[2] / rho_L;
+        w_L    = Q_L[3] / rho_L;
+        et_L   = Q_L[4] / rho_L;
+        e_L    = et_L - 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
+        p_L    = (Gamma - 1.0) * rho_L * e_L;
+        c_L    = sqrt((Gamma * p_L) / rho_L);
+        h_L    = (c_L * c_L) / (Gamma - 1.0);
+        ht_L   = h_L + 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
+        ubar_L = u_L * nx + v_L * ny + w_L * nz;
 
         // F Vector
         f_vec[0] = rho_L * u_L;
@@ -145,16 +168,17 @@ void Compute_Residual_LMRoe(void) {
         flux_L[4] = f_vec[4] * nx + g_vec[4] * ny + h_vec[4] * nz;
 
         // Right Node
-        rho_R = Q1[node_R];
-        u_R   = Q2[node_R] / rho_R;
-        v_R   = Q3[node_R] / rho_R;
-        w_R   = Q4[node_R] / rho_R;
-        et_R  = Q5[node_R] / rho_R;
-        e_R   = et_R - 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
-        p_R   = (Gamma - 1.0) * rho_R * e_R;
-        c_R   = sqrt((Gamma * p_R) / rho_R);
-        h_R   = (c_R * c_R) / (Gamma - 1.0);
-        ht_R  = h_R + 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
+        rho_R  = Q_R[0];
+        u_R    = Q_R[1] / rho_R;
+        v_R    = Q_R[2] / rho_R;
+        w_R    = Q_R[3] / rho_R;
+        et_R   = Q_R[4] / rho_R;
+        e_R    = et_R - 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
+        p_R    = (Gamma - 1.0) * rho_R * e_R;
+        c_R    = sqrt((Gamma * p_R) / rho_R);
+        h_R    = (c_R * c_R) / (Gamma - 1.0);
+        ht_R   = h_R + 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
+        ubar_R = u_R * nx + v_R * ny + w_R * nz;
 
         // F Vector
         f_vec[0] = rho_R * u_R;
@@ -194,11 +218,11 @@ void Compute_Residual_LMRoe(void) {
         c    = (Gamma - 1.0) * (ht - 0.5 * (u * u + v * v + w * w));
         c    = sqrt(c);
         phi  = 0.5 * (Gamma - 1.0)*(u * u + v * v + w * w);
-
+        ubar = u * nx + v * ny + w * nz;
+        
         // Compute Local Mach Scaling Fix
-        temp = u * nx + v * ny + w * nz;
-        Mach = fabs(temp) + sqrt((u - temp*nx)*(u - temp*nx) +
-                (v - temp*ny)*(v - temp*ny) + (w - temp*nz)*(w - temp*nz));
+        Mach = fabs(ubar) + sqrt((u - ubar*nx)*(u - ubar*nx) +
+                (v - ubar*ny)*(v - ubar*ny) + (w - ubar*nz)*(w - ubar*nz));
         Mach = Mach/c;
         fix = MIN(Mach, 1.0);
         
@@ -326,37 +350,32 @@ void Compute_Residual_LMRoe(void) {
         Pinv[4][3] = -0.5 * nz * fix;
         Pinv[4][4] = 1.0/(2.0 * rho * c);
 
+        // START: Computing A*dq = M*P*|Lambda|*Pinv*dq
+        // Note: q = non-conservative {rho, v, u, w, p}
+        // Where: dQ = Minv*dq
         // Calculate T = M*P
         MC_Matrix_Mul_Matrix(5, 5, M, P, T);
-        // Calculate Tinv = Pinv*Minv
-        // MC_Matrix_Mul_Matrix(5, 5, Pinv, Minv, Tinv);
         
-        // EigenMatrix
+        // Calculate EigenMatrix |Lambda|
         for (j = 0; j < 5; j++)
             for (k = 0; k < 5; k++)
                 Eigen[j][k] = 0.0;
-        
-        Eigen[0][0] = fabs(u * nx + v * ny + w * nz);
-        Eigen[1][1] = fabs(u * nx + v * ny + w * nz);
-        Eigen[2][2] = fabs(u * nx + v * ny + w * nz);
-        Eigen[3][3] = fabs((u * nx + v * ny + w * nz) + c);
-        Eigen[4][4] = fabs((u * nx + v * ny + w * nz) - c);
 
-//        // EigenMatrix*Tinv
-//        MC_Matrix_Mul_Matrix(5, 5, Eigen, Tinv, A);
-//
-//        // Tinv = EigenMatrix*Tinv
-//        for (j = 0; j < 5; j++) {
-//            for (k = 0; k < 5; k++) {
-//                Tinv[j][k] = A[j][k];
-//                A[j][k] = 0.0;
-//            }
-//        }
+        // Apply Entropy Fix
+        if (EntropyFix != 0) {
+            Roe_EntropyFix(ubar_L, c_L, ubar_R, c_R, ubar, c, Eigen);
+        } else {
+            Eigen[0][0] = fabs(ubar);
+            Eigen[1][1] = Eigen[0][0];
+            Eigen[2][2] = Eigen[0][0];
+            Eigen[3][3] = fabs(ubar + c);
+            Eigen[4][4] = fabs(ubar - c);
+        }
 
-        // Tinv = EigenMatrix*Pinv
+        // Temporary = Tinv = EigenMatrix*Pinv
         MC_Matrix_Mul_Matrix(5, 5, Eigen, Pinv, Tinv);
 
-        // Get Matrix A
+        // Get Matrix A = M*P*|Lambda|*Pinv
         MC_Matrix_Mul_Matrix(5, 5, T, Tinv, A);
 
         // Compute dq
@@ -365,20 +384,12 @@ void Compute_Residual_LMRoe(void) {
         dq[2] = v_R   - v_L;
         dq[3] = w_R   - w_L;
         dq[4] = p_R   - p_L;
-
-//        // Compute dQ
-//        dQ[0] = dQ[1] = dQ[2] = dQ[3] = dQ[4] = 0.0;
-//        dQ[0] = Q1[node_R] - Q1[node_L];
-//        dQ[1] = Q2[node_R] - Q2[node_L];
-//        dQ[2] = Q3[node_R] - Q3[node_L];
-//        dQ[3] = Q4[node_R] - Q4[node_L];
-//        dQ[4] = Q5[node_R] - Q5[node_L];
-
-        // Compute |A|*dQ
-        fluxA[0] = fluxA[1] = fluxA[2] = fluxA[3] = fluxA[4] = 0.0;
-//        MC_Matrix_Mul_Vector(5, 5, A, dQ, fluxA);
-        MC_Matrix_Mul_Vector(5, 5, A, dq, fluxA);
         
+        // Compute |A|*dq
+        fluxA[0] = fluxA[1] = fluxA[2] = fluxA[3] = fluxA[4] = 0.0;
+        MC_Matrix_Mul_Vector(5, 5, A, dq, fluxA);
+        // END: Computing A*dq = M*P*|Lambda|*Pinv*dq
+
         // Compute for LHS
         Res1[node_L] += 0.5 * (flux_L[0] + flux_R[0] - fluxA[0]) * area;
         Res2[node_L] += 0.5 * (flux_L[1] + flux_R[1] - fluxA[1]) * area;
@@ -420,8 +431,10 @@ void Compute_Residual_LMRoe(void) {
         node_L = bndEdge[i].node[0];
         node_R = bndEdge[i].node[1];
 
+#ifdef DEBUG
         assert(node_R > node_L);
-
+#endif
+        
         // Get area vector
         areavec = bndEdge[i].areav;
         area = areavec.magnitude();
@@ -429,6 +442,11 @@ void Compute_Residual_LMRoe(void) {
         nx = areavec.vec[0];
         ny = areavec.vec[1];
         nz = areavec.vec[2];
+
+        // Make Solution Second Order
+        // Note: Boundary Residual cannot be made second order
+        // because node_R is ghost node with no physical coordinates value
+        // Hence boundary residual always remains first order
         
         // Left Node
         rho_L = Q1[node_L];
@@ -441,6 +459,7 @@ void Compute_Residual_LMRoe(void) {
         c_L   = sqrt((Gamma * p_L) / rho_L);
         h_L   = (c_L * c_L) / (Gamma - 1.0);
         ht_L  = h_L + 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
+        ubar_L = u_L * nx + v_L * ny + w_L * nz;
 
         // F Vector
         f_vec[0] = rho_L * u_L;
@@ -481,7 +500,8 @@ void Compute_Residual_LMRoe(void) {
         c_R   = sqrt((Gamma * p_R) / rho_R);
         h_R   = (c_R * c_R) / (Gamma - 1.0);
         ht_R  = h_R + 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
-
+        ubar_R = u_R * nx + v_R * ny + w_R * nz;
+        
         // F Vector
         f_vec[0] = rho_R * u_R;
         f_vec[1] = rho_R * u_R * u_R + p_R;
@@ -520,11 +540,11 @@ void Compute_Residual_LMRoe(void) {
         c    = (Gamma - 1.0) * (ht - 0.5 * (u * u + v * v + w * w));
         c    = sqrt(c);
         phi  = 0.5 * (Gamma - 1.0)*(u * u + v * v + w * w);
-
+        ubar = u * nx + v * ny + w * nz;
+        
         // Compute Local Mach Scaling Fix
-        temp = u * nx + v * ny + w * nz;
-        Mach = fabs(temp) + sqrt((u - temp*nx)*(u - temp*nx) +
-                (v - temp*ny)*(v - temp*ny) + (w - temp*nz)*(w - temp*nz));
+        Mach = fabs(ubar) + sqrt((u - ubar*nx)*(u - ubar*nx) +
+                (v - ubar*ny)*(v - ubar*ny) + (w - ubar*nz)*(w - ubar*nz));
         Mach = Mach/c;
         fix = MIN(Mach, 1.0);
         
@@ -652,37 +672,32 @@ void Compute_Residual_LMRoe(void) {
         Pinv[4][3] = -0.5 * nz * fix;
         Pinv[4][4] = 1.0/(2.0 * rho * c);
 
+        // START: Computing A*dq = M*P*|Lambda|*Pinv*dq
+        // Note: q = non-conservative {rho, v, u, w, p}
+        // Where: dQ = Minv*dq
         // Calculate T = M*P
         MC_Matrix_Mul_Matrix(5, 5, M, P, T);
-//        // Calculate Tinv = Pinv*Minv
-//        MC_Matrix_Mul_Matrix(5, 5, Pinv, Minv, Tinv);
 
-        // EigenMatrix
+        // Calculate EigenMatrix |Lambda|
         for (j = 0; j < 5; j++)
             for (k = 0; k < 5; k++)
                 Eigen[j][k] = 0.0;
 
-        Eigen[0][0] = fabs(u * nx + v * ny + w * nz);
-        Eigen[1][1] = fabs(u * nx + v * ny + w * nz);
-        Eigen[2][2] = fabs(u * nx + v * ny + w * nz);
-        Eigen[3][3] = fabs((u * nx + v * ny + w * nz) + c);
-        Eigen[4][4] = fabs((u * nx + v * ny + w * nz) - c);
-        
-//        // EigenMatrix*Tinv
-//        MC_Matrix_Mul_Matrix(5, 5, Eigen, Tinv, A);
-//
-//        // Tinv = EigenMatrix*Tinv
-//        for (j = 0; j < 5; j++) {
-//            for (k = 0; k < 5; k++) {
-//                Tinv[j][k] = A[j][k];
-//                A[j][k] = 0.0;
-//            }
-//        }
+        // Apply Entropy Fix
+        if (EntropyFix != 0) {
+            Roe_EntropyFix(ubar_L, c_L, ubar_R, c_R, ubar, c, Eigen);
+        } else {
+            Eigen[0][0] = fabs(ubar);
+            Eigen[1][1] = Eigen[0][0];
+            Eigen[2][2] = Eigen[0][0];
+            Eigen[3][3] = fabs(ubar + c);
+            Eigen[4][4] = fabs(ubar - c);
+        }
 
-        // Tinv = EigenMatrix*Pinv
+        // Temporary = Tinv = EigenMatrix*Pinv
         MC_Matrix_Mul_Matrix(5, 5, Eigen, Pinv, Tinv);
 
-        // Get Matrix A
+        // Get Matrix A = M*P*|Lambda|*Pinv
         MC_Matrix_Mul_Matrix(5, 5, T, Tinv, A);
 
         // Compute dq
@@ -692,18 +707,10 @@ void Compute_Residual_LMRoe(void) {
         dq[3] = w_R   - w_L;
         dq[4] = p_R   - p_L;
 
-//        // Compute dQ
-//        dQ[0] = dQ[1] = dQ[2] = dQ[3] = dQ[4] = 0.0;
-//        dQ[0] = Q1[node_R] - Q1[node_L];
-//        dQ[1] = Q2[node_R] - Q2[node_L];
-//        dQ[2] = Q3[node_R] - Q3[node_L];
-//        dQ[3] = Q4[node_R] - Q4[node_L];
-//        dQ[4] = Q5[node_R] - Q5[node_L];
-
-        // Compute |A|*dQ
+        // Compute |A|*dq
         fluxA[0] = fluxA[1] = fluxA[2] = fluxA[3] = fluxA[4] = 0.0;
-//        MC_Matrix_Mul_Vector(5, 5, A, dQ, fluxA);
         MC_Matrix_Mul_Vector(5, 5, A, dq, fluxA);
+        // END: Computing A*dq = M*P*|Lambda|*Pinv*dq
 
         // Compute LHS for Boundary Nodes
         Res1[node_L] += 0.5 * (flux_L[0] + flux_R[0] - fluxA[0]) * area;
