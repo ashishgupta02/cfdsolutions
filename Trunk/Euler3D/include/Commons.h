@@ -21,6 +21,7 @@ inline bool isnan(double x) {
 #define CELL_DIM                        3
 
 // Cell
+#define CELL_TYPE_NONE                 -1
 #define NUMBER_OF_ELEM_TYPES            6
 #define TRI                             0
 #define QUAD                            1
@@ -55,8 +56,6 @@ inline bool isnan(double x) {
 #define NEDGE_PYRA                      8
 #define NEDGE_PRISM                     9
 #define NEDGE_HEXA                      12
-
-#define Invalid_Element                -999
 
 #define UNSIO_FLOWTYPE_UNKNOWN         -1
 #define UNSIO_FLOWTYPE_INCOMPRESSIBLE   0

@@ -670,7 +670,7 @@ static void Calculate_Internal_Edge_Area_Volume() {
     int      node[MAX_ELEM_NNODE];
 
     // Default Initialization
-    cell_type = Invalid_Element;
+    cell_type = CELL_TYPE_NONE;
     
     // Allocate memory to store control volume associate with node
     cVolume = (double*) malloc(nNode * sizeof (double));

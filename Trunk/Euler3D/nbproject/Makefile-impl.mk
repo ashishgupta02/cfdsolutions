@@ -31,7 +31,7 @@ DEFAULTCONF=Release_GNU
 CONF=${DEFAULTCONF}
 
 # All Configurations
-ALLCONFS=Release_GNU Debug_GNU Release_SS Debug_SS Release_Intel64 Debug_Intel64 
+ALLCONFS=Release_GNU Debug_GNU Release_Intel64 Debug_Intel64 
 
 
 # build
