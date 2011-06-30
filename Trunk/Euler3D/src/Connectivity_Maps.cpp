@@ -796,6 +796,9 @@ static void Verify_Surface_Connectivity() {
     Point3D  scen;
     Point3D  vcen;
     
+    scell_type = CELL_TYPE_NONE;
+    vcell_type = CELL_TYPE_NONE;
+    
     // Loop Over Surface Cells Only
     for (int c = 0; c < nSurfCell; c++) {
         scell_gid = c;

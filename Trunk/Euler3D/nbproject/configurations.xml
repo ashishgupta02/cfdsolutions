@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="69">
-  <logicalFolder name="root" displayName="root" projectFiles="true">
+<configurationDescriptor version="79">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
-                   projectFiles="true"
-                   kind="SOURCE_LOGICAL_FOLDER">
+                   projectFiles="true">
       <itemPath>include/Commons.h</itemPath>
-      <itemPath>/home/agupta/NetBeansProjects/CFDSolutions/Trunk/Euler3D/include/CompressibleUtils.h</itemPath>
+      <itemPath>include/CompressibleUtils.h</itemPath>
       <itemPath>include/DebugSolver.h</itemPath>
       <itemPath>include/Gradient.h</itemPath>
       <itemPath>include/List.h</itemPath>
@@ -20,22 +19,20 @@
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
-                   projectFiles="true"
-                   kind="SOURCE_LOGICAL_FOLDER">
+                   projectFiles="true">
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
-                   projectFiles="true"
-                   kind="SOURCE_LOGICAL_FOLDER">
+                   projectFiles="true">
       <itemPath>src/Area_Volume.cpp</itemPath>
       <itemPath>src/BC.cpp</itemPath>
       <itemPath>src/Commons.cpp</itemPath>
-      <itemPath>/home/agupta/NetBeansProjects/CFDSolutions/Trunk/Euler3D/src/CompressibleUtils.cpp</itemPath>
+      <itemPath>src/CompressibleUtils.cpp</itemPath>
       <itemPath>src/Connectivity_Maps.cpp</itemPath>
       <itemPath>src/Cuthill_Mckee_Reorder.cpp</itemPath>
       <itemPath>src/DebugSolver.cpp</itemPath>
       <itemPath>src/Gradient.cpp</itemPath>
-      <itemPath>/home/agupta/NetBeansProjects/CFDSolutions/Trunk/Euler3D/src/HigherOrderReconstructQ.cpp</itemPath>
+      <itemPath>src/HigherOrderReconstructQ.cpp</itemPath>
       <itemPath>src/LMRoe_Fluxes.cpp</itemPath>
       <itemPath>src/Limiters.cpp</itemPath>
       <itemPath>src/List.cpp</itemPath>
@@ -43,7 +40,7 @@
       <itemPath>src/MeshIO.cpp</itemPath>
       <itemPath>src/Point3D.cpp</itemPath>
       <itemPath>src/RestartIO.cpp</itemPath>
-      <itemPath>/home/agupta/NetBeansProjects/CFDSolutions/Trunk/Euler3D/src/Roe_EntropyFix.cpp</itemPath>
+      <itemPath>src/Roe_EntropyFix.cpp</itemPath>
       <itemPath>src/Roe_Fluxes.cpp</itemPath>
       <itemPath>src/Solver.cpp</itemPath>
       <itemPath>src/Time_Step.cpp</itemPath>
@@ -67,9 +64,8 @@
   <confs>
     <conf name="Release_GNU" type="1">
       <toolsSet>
-        <developmentServer>localhost</developmentServer>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
-        <platform>2</platform>
       </toolsSet>
       <compileType>
         <cTool>
@@ -105,9 +101,8 @@
     </conf>
     <conf name="Debug_GNU" type="1">
       <toolsSet>
-        <developmentServer>localhost</developmentServer>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
-        <platform>2</platform>
       </toolsSet>
       <compileType>
         <cTool>
@@ -137,81 +132,10 @@
         </linkerTool>
       </compileType>
     </conf>
-    <conf name="Release_SS" type="1">
-      <toolsSet>
-        <developmentServer>localhost</developmentServer>
-        <compilerSet>OracleSolarisStudio|OracleSolarisStudio</compilerSet>
-        <platform>2</platform>
-      </toolsSet>
-      <compileType>
-        <cTool>
-          <developmentMode>5</developmentMode>
-          <commandlineTool>cc</commandlineTool>
-          <incDir>
-            <pElem>include</pElem>
-          </incDir>
-          <warningLevel>2</warningLevel>
-        </cTool>
-        <ccTool>
-          <developmentMode>5</developmentMode>
-          <commandlineTool>CC</commandlineTool>
-          <incDir>
-            <pElem>include</pElem>
-          </incDir>
-          <warningLevel>2</warningLevel>
-        </ccTool>
-        <fortranCompilerTool>
-          <developmentMode>5</developmentMode>
-          <warningLevel>2</warningLevel>
-        </fortranCompilerTool>
-        <asmTool>
-          <developmentMode>5</developmentMode>
-          <warningLevel>2</warningLevel>
-        </asmTool>
-        <linkerTool>
-          <commandlineTool>CC</commandlineTool>
-          <commandLine>-lm</commandLine>
-        </linkerTool>
-      </compileType>
-    </conf>
-    <conf name="Debug_SS" type="1">
-      <toolsSet>
-        <developmentServer>localhost</developmentServer>
-        <compilerSet>OracleSolarisStudio|OracleSolarisStudio</compilerSet>
-        <platform>2</platform>
-      </toolsSet>
-      <compileType>
-        <cTool>
-          <commandlineTool>cc</commandlineTool>
-          <incDir>
-            <pElem>include</pElem>
-          </incDir>
-          <warningLevel>2</warningLevel>
-        </cTool>
-        <ccTool>
-          <commandlineTool>CC</commandlineTool>
-          <incDir>
-            <pElem>include</pElem>
-          </incDir>
-          <warningLevel>2</warningLevel>
-        </ccTool>
-        <fortranCompilerTool>
-          <warningLevel>2</warningLevel>
-        </fortranCompilerTool>
-        <asmTool>
-          <warningLevel>2</warningLevel>
-        </asmTool>
-        <linkerTool>
-          <commandlineTool>CC</commandlineTool>
-          <commandLine>-lm</commandLine>
-        </linkerTool>
-      </compileType>
-    </conf>
     <conf name="Release_Intel64" type="1">
       <toolsSet>
-        <developmentServer>localhost</developmentServer>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>Intel64|GNU</compilerSet>
-        <platform>2</platform>
       </toolsSet>
       <compileType>
         <cTool>
@@ -219,18 +143,22 @@
           <incDir>
             <pElem>include</pElem>
           </incDir>
+          <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
           <developmentMode>5</developmentMode>
           <incDir>
             <pElem>include</pElem>
           </incDir>
+          <warningLevel>2</warningLevel>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
         </fortranCompilerTool>
         <asmTool>
           <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
         </asmTool>
         <linkerTool>
           <commandLine>-lstdc++</commandLine>
@@ -239,21 +167,28 @@
     </conf>
     <conf name="Debug_Intel64" type="1">
       <toolsSet>
-        <developmentServer>localhost</developmentServer>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>Intel64|GNU</compilerSet>
-        <platform>2</platform>
       </toolsSet>
       <compileType>
         <cTool>
           <incDir>
             <pElem>include</pElem>
           </incDir>
+          <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
           <incDir>
             <pElem>include</pElem>
           </incDir>
+          <warningLevel>2</warningLevel>
         </ccTool>
+        <fortranCompilerTool>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
         <linkerTool>
           <commandLine>-lstdc++</commandLine>
         </linkerTool>

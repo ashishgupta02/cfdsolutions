@@ -12,12 +12,22 @@
             <make-dep-projects/>
             <sourceRootList/>
             <confList>
-                <confElem>Release_GNU</confElem>
-                <confElem>Debug_GNU</confElem>
-                <confElem>Release_SS</confElem>
-                <confElem>Debug_SS</confElem>
-                <confElem>Release_Intel64</confElem>
-                <confElem>Debug_Intel64</confElem>
+                <confElem>
+                    <name>Release_GNU</name>
+                    <type>1</type>
+                </confElem>
+                <confElem>
+                    <name>Debug_GNU</name>
+                    <type>1</type>
+                </confElem>
+                <confElem>
+                    <name>Release_Intel64</name>
+                    <type>1</type>
+                </confElem>
+                <confElem>
+                    <name>Debug_Intel64</name>
+                    <type>1</type>
+                </confElem>
             </confList>
         </data>
     </configuration>
