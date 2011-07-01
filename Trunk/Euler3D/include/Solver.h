@@ -21,7 +21,14 @@
 #define SOLVER_ROE              1
 #define SOLVER_LMROE            2
 
-// Linear Solver Params
+// Variable Type
+#define VARIABLE_NONE           0
+#define VARIABLE_CONSERVATIVE   1
+#define VARIABLE_RUP            2
+#define VARIABLE_RUT            3
+#define VARIABLE_PUT            4
+
+// Linear Solver Parameters
 extern int    SolverScheme;
 extern int    TimeAccuracy;
 extern int    TimeStepScheme;
@@ -42,7 +49,7 @@ extern double Venkat_KThreshold;
 // Entropy Fix
 extern int EntropyFix;
 
-// Restart Params
+// Restart Parameters
 extern int  RestartInput;
 extern int  RestartOutput;
 extern int  RestartIteration;
@@ -69,8 +76,8 @@ extern double Inf_Mach;
 // Constants
 extern double Gamma;
 
-// Solver Tunning Parameters
-// CFL Conditons
+// Solver Tuning Parameters
+// CFL Conditions
 extern int    CFL_Ramp;
 extern double CFL_MAX;
 extern double CFL_MIN;

@@ -19,48 +19,42 @@
 //! Compute Roe Averaged Variables
 //------------------------------------------------------------------------------
 void Compute_RoeVariables(double *Q_L, double *Q_R, double *Q_Roe) {
-    double rho_L, u_L, v_L, w_L, et_L, e_L, p_L, c_L, h_L, ht_L;
-    double rho_R, u_R, v_R, w_R, et_R, e_R, p_R, c_R, h_R, ht_R;
+    double rho_L, u_L, v_L, w_L, rhoet_L, p_L, ht_L;
+    double rho_R, u_R, v_R, w_R, rhoet_R, p_R, ht_R;
     double rho, u, v, w, ht;
-    double temp;
+    double sigma;
 
     // Left Node
-    rho_L  = Q_L[0];
-    u_L    = Q_L[1] / rho_L;
-    v_L    = Q_L[2] / rho_L;
-    w_L    = Q_L[3] / rho_L;
-    et_L   = Q_L[4] / rho_L;
-    e_L    = et_L - 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
-    p_L    = (Gamma - 1.0) * rho_L * e_L;
-    c_L    = sqrt((Gamma * p_L) / rho_L);
-    h_L    = (c_L * c_L) / (Gamma - 1.0);
-    ht_L   = h_L + 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
+    rho_L   = Q_L[0];
+    u_L     = Q_L[1] / rho_L;
+    v_L     = Q_L[2] / rho_L;
+    w_L     = Q_L[3] / rho_L;
+    rhoet_L = Q_L[4];
+    p_L     = (Gamma - 1.0)*(rhoet_L - 0.5*rho_L*(u_L*u_L + v_L*v_L + w_L*w_L));
+    ht_L    = (rhoet_L + p_L)/rho_L;
 
     // Right Node
-    rho_R  = Q_R[0];
-    u_R    = Q_R[1] / rho_R;
-    v_R    = Q_R[2] / rho_R;
-    w_R    = Q_R[3] / rho_R;
-    et_R   = Q_R[4] / rho_R;
-    e_R    = et_R - 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
-    p_R    = (Gamma - 1.0) * rho_R * e_R;
-    c_R    = sqrt((Gamma * p_R) / rho_R);
-    h_R    = (c_R * c_R) / (Gamma - 1.0);
-    ht_R   = h_R + 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
-
+    rho_R   = Q_R[0];
+    u_R     = Q_R[1] / rho_R;
+    v_R     = Q_R[2] / rho_R;
+    w_R     = Q_R[3] / rho_R;
+    rhoet_R = Q_R[4];
+    p_R     = (Gamma - 1.0)*(rhoet_R - 0.5*rho_R*(u_R*u_R + v_R*v_R + w_R*w_R));
+    ht_R    = (rhoet_R + p_R)/rho_R;
+    
     // ROE AVERAGE VARIABLES
-    temp = sqrt(rho_R) + sqrt(rho_L);
-    rho  = sqrt(rho_R * rho_L);
-    u    = (u_L * sqrt(rho_L)  + u_R * sqrt(rho_R)) / temp;
-    v    = (v_L * sqrt(rho_L)  + v_R * sqrt(rho_R)) / temp;
-    w    = (w_L * sqrt(rho_L)  + w_R * sqrt(rho_R)) / temp;
-    ht   = (ht_L * sqrt(rho_L) + ht_R * sqrt(rho_R)) / temp;
+    rho   = sqrt(rho_R * rho_L);
+    sigma = rho/(rho_L + rho);
+    u     = u_L  + sigma*(u_R  - u_L);
+    v     = v_L  + sigma*(v_R  - v_L);
+    w     = w_L  + sigma*(w_R  - w_L);
+    ht    = ht_L + sigma*(ht_R - ht_L);
 
     Q_Roe[0] = rho;
     Q_Roe[1] = rho*u;
     Q_Roe[2] = rho*v;
     Q_Roe[3] = rho*w;
-    Q_Roe[4] = (rho/Gamma)*(ht + 0.5*(Gamma - 1)*(u*u + v*v + w*w));
+    Q_Roe[4] = (rho/Gamma)*(ht + 0.5*(Gamma - 1.0)*(u*u + v*v + w*w));
 }
 
 //------------------------------------------------------------------------------
@@ -69,10 +63,10 @@ void Compute_RoeVariables(double *Q_L, double *Q_R, double *Q_Roe) {
 void Compute_Residual_Roe(void) {
     int i, j, k;
     int node_L, node_R;
-    double rho_L, u_L, v_L, w_L, et_L, e_L, p_L, c_L, h_L, ht_L, ubar_L;
-    double rho_R, u_R, v_R, w_R, et_R, e_R, p_R, c_R, h_R, ht_R, ubar_R;
+    double rho_L, u_L, v_L, w_L, rhoet_L, p_L, c_L, ht_L, ubar_L;
+    double rho_R, u_R, v_R, w_R, rhoet_R, p_R, c_R, ht_R, ubar_R;
     double rho, u, v, w, ht, c, phi, ubar;
-    double temp;
+    double sigma;
     
     Vector3D areavec;
     double area;
@@ -115,7 +109,7 @@ void Compute_Residual_Roe(void) {
         Eigen[i] = (double *) malloc(5*sizeof(double));
     }
 
-    // Initialialize
+    // Initialization
     for (i = 0; i < 5; i++) {
         fluxA[i]  = 0.0;
         flux_L[i] = 0.0;
@@ -171,17 +165,15 @@ void Compute_Residual_Roe(void) {
         }
         
         // Left Node
-        rho_L  = Q_L[0];
-        u_L    = Q_L[1] / rho_L;
-        v_L    = Q_L[2] / rho_L;
-        w_L    = Q_L[3] / rho_L;
-        et_L   = Q_L[4] / rho_L;
-        e_L    = et_L - 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
-        p_L    = (Gamma - 1.0) * rho_L * e_L;
-        c_L    = sqrt((Gamma * p_L) / rho_L);
-        h_L    = (c_L * c_L) / (Gamma - 1.0);
-        ht_L   = h_L + 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
-        ubar_L = u_L * nx + v_L * ny + w_L * nz;
+        rho_L   = Q_L[0];
+        u_L     = Q_L[1] / rho_L;
+        v_L     = Q_L[2] / rho_L;
+        w_L     = Q_L[3] / rho_L;
+        rhoet_L = Q_L[4];
+        p_L     = (Gamma - 1.0)*(rhoet_L - 0.5*rho_L*(u_L*u_L + v_L*v_L + w_L*w_L));
+        ht_L    = (rhoet_L + p_L)/rho_L;
+        c_L     = sqrt((Gamma * p_L) / rho_L);
+        ubar_L  = u_L*nx + v_L*ny + w_L*nz;
 
         // F Vector
         f_vec[0] = rho_L * u_L;
@@ -212,17 +204,15 @@ void Compute_Residual_Roe(void) {
         flux_L[4] = f_vec[4] * nx + g_vec[4] * ny + h_vec[4] * nz;
 
         // Right Node
-        rho_R  = Q_R[0];
-        u_R    = Q_R[1] / rho_R;
-        v_R    = Q_R[2] / rho_R;
-        w_R    = Q_R[3] / rho_R;
-        et_R   = Q_R[4] / rho_R;
-        e_R    = et_R - 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
-        p_R    = (Gamma - 1.0) * rho_R * e_R;
-        c_R    = sqrt((Gamma * p_R) / rho_R);
-        h_R    = (c_R * c_R) / (Gamma - 1.0);
-        ht_R   = h_R + 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
-        ubar_R = u_R * nx + v_R * ny + w_R * nz;
+        rho_R   = Q_R[0];
+        u_R     = Q_R[1] / rho_R;
+        v_R     = Q_R[2] / rho_R;
+        w_R     = Q_R[3] / rho_R;
+        rhoet_R = Q_R[4];
+        p_R     = (Gamma - 1.0)*(rhoet_R - 0.5*rho_R*(u_R*u_R + v_R*v_R + w_R*w_R));
+        ht_R    = (rhoet_R + p_R)/rho_R;
+        c_R     = sqrt((Gamma * p_R) / rho_R);
+        ubar_R  = u_R*nx + v_R*ny + w_R*nz;
 
         // F Vector
         f_vec[0] = rho_R * u_R;
@@ -253,16 +243,16 @@ void Compute_Residual_Roe(void) {
         flux_R[4] = f_vec[4] * nx + g_vec[4] * ny + h_vec[4] * nz;
         
         // ROE AVERAGE VARIABLES
-        temp = sqrt(rho_R) + sqrt(rho_L);
-        rho  = sqrt(rho_R * rho_L);
-        u    = (u_L * sqrt(rho_L)  + u_R * sqrt(rho_R)) / temp;
-        v    = (v_L * sqrt(rho_L)  + v_R * sqrt(rho_R)) / temp;
-        w    = (w_L * sqrt(rho_L)  + w_R * sqrt(rho_R)) / temp;
-        ht   = (ht_L * sqrt(rho_L) + ht_R * sqrt(rho_R)) / temp;
-        c    = (Gamma - 1.0) * (ht - 0.5 * (u * u + v * v + w * w));
-        c    = sqrt(c);
-        phi  = 0.5 * (Gamma - 1.0)*(u * u + v * v + w * w);
-        ubar = u * nx + v * ny + w * nz;
+        rho   = sqrt(rho_R * rho_L);
+        sigma = rho/(rho_L + rho);
+        u     = u_L  + sigma*(u_R  - u_L);
+        v     = v_L  + sigma*(v_R  - v_L);
+        w     = w_L  + sigma*(w_R  - w_L);
+        ht    = ht_L + sigma*(ht_R - ht_L);
+        phi   = 0.5*(Gamma - 1.0)*(u*u + v*v + w*w);
+        c     = (Gamma - 1.0)*ht - phi;
+        c     = sqrt(c);
+        ubar  = u*nx + v*ny + w*nz;
 
         // M
         M[0][0] = 1.0;
@@ -452,7 +442,7 @@ void Compute_Residual_Roe(void) {
         Res5[node_R] -= 0.5 * (flux_L[4] + flux_R[4] - fluxA[4]) * area;
     }
     
-    // Initialialize
+    // Initialization
     for (i = 0; i < 5; i++) {
         fluxA[i]  = 0.0;
         flux_L[i] = 0.0;
@@ -495,19 +485,27 @@ void Compute_Residual_Roe(void) {
         // Note: Boundary Residual cannot be made second order
         // because node_R is ghost node with no physical coordinates value
         // Hence boundary residual always remains first order
-
+        Q_L[0] = Q1[node_L];
+        Q_L[1] = Q2[node_L];
+        Q_L[2] = Q3[node_L];
+        Q_L[3] = Q4[node_L];
+        Q_L[4] = Q5[node_L];
+        Q_R[0] = Q1[node_R];
+        Q_R[1] = Q2[node_R];
+        Q_R[2] = Q3[node_R];
+        Q_R[3] = Q4[node_R];
+        Q_R[4] = Q5[node_R];
+        
         // Left Node
-        rho_L  = Q1[node_L];
-        u_L    = Q2[node_L] / rho_L;
-        v_L    = Q3[node_L] / rho_L;
-        w_L    = Q4[node_L] / rho_L;
-        et_L   = Q5[node_L] / rho_L;
-        e_L    = et_L - 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
-        p_L    = (Gamma - 1.0) * rho_L * e_L;
-        c_L    = sqrt((Gamma * p_L) / rho_L);
-        h_L    = (c_L * c_L) / (Gamma - 1.0);
-        ht_L   = h_L + 0.5 * (u_L * u_L + v_L * v_L + w_L * w_L);
-        ubar_L = u_L * nx + v_L * ny + w_L * nz;
+        rho_L   = Q_L[0];
+        u_L     = Q_L[1] / rho_L;
+        v_L     = Q_L[2] / rho_L;
+        w_L     = Q_L[3] / rho_L;
+        rhoet_L = Q_L[4];
+        p_L     = (Gamma - 1.0)*(rhoet_L - 0.5*rho_L*(u_L*u_L + v_L*v_L + w_L*w_L));
+        ht_L    = (rhoet_L + p_L)/rho_L;
+        c_L     = sqrt((Gamma * p_L) / rho_L);
+        ubar_L  = u_L*nx + v_L*ny + w_L*nz;
         
         // F Vector
         f_vec[0] = rho_L * u_L;
@@ -538,17 +536,15 @@ void Compute_Residual_Roe(void) {
         flux_L[4] = f_vec[4] * nx + g_vec[4] * ny + h_vec[4] * nz;
 
         // Right Node
-        rho_R  = Q1[node_R];
-        u_R    = Q2[node_R] / rho_R;
-        v_R    = Q3[node_R] / rho_R;
-        w_R    = Q4[node_R] / rho_R;
-        et_R   = Q5[node_R] / rho_R;
-        e_R    = et_R - 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
-        p_R    = (Gamma - 1.0) * rho_R * e_R;
-        c_R    = sqrt((Gamma * p_R) / rho_R);
-        h_R    = (c_R * c_R) / (Gamma - 1.0);
-        ht_R   = h_R + 0.5 * (u_R * u_R + v_R * v_R + w_R * w_R);
-        ubar_R = u_R * nx + v_R * ny + w_R * nz;
+        rho_R   = Q_R[0];
+        u_R     = Q_R[1] / rho_R;
+        v_R     = Q_R[2] / rho_R;
+        w_R     = Q_R[3] / rho_R;
+        rhoet_R = Q_R[4];
+        p_R     = (Gamma - 1.0)*(rhoet_R - 0.5*rho_R*(u_R*u_R + v_R*v_R + w_R*w_R));
+        ht_R    = (rhoet_R + p_R)/rho_R;
+        c_R     = sqrt((Gamma * p_R) / rho_R);
+        ubar_R  = u_R*nx + v_R*ny + w_R*nz;
         
         // F Vector
         f_vec[0] = rho_R * u_R;
@@ -579,16 +575,16 @@ void Compute_Residual_Roe(void) {
         flux_R[4] = f_vec[4] * nx + g_vec[4] * ny + h_vec[4] * nz;
 
         // ROE AVERAGE VARIABLES
-        temp = sqrt(rho_R) + sqrt(rho_L);
-        rho  = sqrt(rho_R * rho_L);
-        u    = (u_L * sqrt(rho_L) + u_R * sqrt(rho_R)) / temp;
-        v    = (v_L * sqrt(rho_L) + v_R * sqrt(rho_R)) / temp;
-        w    = (w_L * sqrt(rho_L) + w_R * sqrt(rho_R)) / temp;
-        ht   = (ht_L * sqrt(rho_L) + ht_R * sqrt(rho_R)) / temp;
-        c    = (Gamma - 1.0) * (ht - 0.5 * (u * u + v * v + w * w));
-        c    = sqrt(c);
-        phi  = 0.5 * (Gamma - 1.0)*(u * u + v * v + w * w);
-        ubar = u * nx + v * ny + w * nz;
+        rho   = sqrt(rho_R * rho_L);
+        sigma = rho/(rho_L + rho);
+        u     = u_L  + sigma*(u_R  - u_L);
+        v     = v_L  + sigma*(v_R  - v_L);
+        w     = w_L  + sigma*(w_R  - w_L);
+        ht    = ht_L + sigma*(ht_R - ht_L);
+        phi   = 0.5*(Gamma - 1.0)*(u*u + v*v + w*w);
+        c     = (Gamma - 1.0)*ht - phi;
+        c     = sqrt(c);
+        ubar  = u*nx + v*ny + w*nz;
 
         // M
         M[0][0] = 1.0;
