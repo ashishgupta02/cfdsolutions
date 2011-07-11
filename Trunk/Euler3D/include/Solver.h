@@ -49,6 +49,9 @@ extern double Venkat_KThreshold;
 // Entropy Fix
 extern int EntropyFix;
 
+// Low Mach Fix
+extern int LMRoeFix;
+
 // Restart Parameters
 extern int  RestartInput;
 extern int  RestartOutput;
@@ -154,12 +157,11 @@ int  Solve(void);
 
 void Initialize_Boundary_Condition(void);
 void Apply_Boundary_Condition(int Iteration);
-void Compute_Residual_Roe(void);
-void Compute_Residual_LMRoe(void);
 void Compute_DeltaT(int Iteration);
 
 // Roe Scheme Functions
 void Compute_RoeVariables(double *Q_L, double *Q_R, double *Q_Roe);
+void Compute_Residual_Roe(void);
 
 // Limiter
 void Compute_Limiter(void);

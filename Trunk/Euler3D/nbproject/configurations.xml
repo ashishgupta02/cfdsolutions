@@ -33,7 +33,6 @@
       <itemPath>src/DebugSolver.cpp</itemPath>
       <itemPath>src/Gradient.cpp</itemPath>
       <itemPath>src/HigherOrderReconstructQ.cpp</itemPath>
-      <itemPath>src/LMRoe_Fluxes.cpp</itemPath>
       <itemPath>src/Limiters.cpp</itemPath>
       <itemPath>src/List.cpp</itemPath>
       <itemPath>src/MC_Iterative_Jacobi.c</itemPath>

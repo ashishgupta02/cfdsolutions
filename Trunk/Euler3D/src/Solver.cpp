@@ -34,7 +34,10 @@ double Venkat_KThreshold;
 // Entropy Fix
 int EntropyFix;
 
-// Restart Params
+// Low Mach Fix
+int LMRoeFix;
+
+// Restart Parameters
 int  RestartInput;
 int  RestartOutput;
 int  RestartIteration;
@@ -61,8 +64,8 @@ double Inf_Mach;
 // Constants
 double Gamma;
 
-// Solver Tunning Parameters
-// CFL Conditons
+// Solver Tuning Parameters
+// CFL Conditions
 int    CFL_Ramp;
 double CFL_MAX;
 double CFL_MIN;
@@ -129,7 +132,7 @@ double RMS_Res;
 //!
 //------------------------------------------------------------------------------
 void Solver_Init(void) {
-    // Linear Solver Params
+    // Linear Solver Parameters
     SolverScheme    = SOLVER_NONE;
     TimeAccuracy    = 0;
     TimeStepScheme  = 0;
@@ -149,8 +152,11 @@ void Solver_Init(void) {
 
     // Entropy Fix
     EntropyFix      = 0;
-
-    // Restart Params
+    
+    // Low Mach Fix
+    LMRoeFix        = 0;
+    
+    // Restart Parameters
     RestartInput    = 0;
     RestartOutput   = 0;
     RestartIteration= 0;
@@ -177,7 +183,7 @@ void Solver_Init(void) {
     // Constants
     Gamma           = 0.0;
 
-    // CFL Conditons
+    // CFL Conditions
     CFL_Ramp        = 0;
     CFL_MAX         = 0.0;
     CFL_MIN         = 0.0;
@@ -603,7 +609,7 @@ void Solver_Set_Initial_Conditions(void) {
     // Compute Free Stream Conditions
     ComputeFreeStreamCondition(0);
     
-    // Intialize the variable with reference conditions
+    // Initialize the variable with reference conditions
     for (int i = 0; i < (nNode + nBNode); i++) {
         Q1[i] = Inf_Rho;
         Q2[i] = Inf_Rho*Inf_U;
@@ -710,7 +716,7 @@ int Solve(void) {
     if (RestartInput)
         Restart_Reader(RestartInputFilename);
 
-    // Save Solver Params
+    // Save Solver Parameters
     SaveOrder   = Order;
     SaveLimiter = Limiter;
 
@@ -757,7 +763,8 @@ int Solve(void) {
                 Compute_Residual_Roe();
                 break;
             case SOLVER_LMROE: // LMRoe
-                Compute_Residual_LMRoe();
+                LMRoeFix = 1;
+                Compute_Residual_Roe();
                 break;
             default:
                 error("Solve: Invalid Solver Scheme - %d", SolverScheme);
@@ -858,7 +865,8 @@ int Solve(void) {
                     Compute_Residual_Roe();
                     break;
                 case SOLVER_LMROE: // LMRoe
-                    Compute_Residual_LMRoe();
+                    LMRoeFix = 1;
+                    Compute_Residual_Roe();
                     break;
                 default:
                     error("Solve: Invalid Solver Scheme - %d", SolverScheme);
@@ -907,7 +915,8 @@ int Solve(void) {
                     Compute_Residual_Roe();
                     break;
                 case SOLVER_LMROE: // LMRoe
-                    Compute_Residual_LMRoe();
+                    LMRoeFix = 1;
+                    Compute_Residual_Roe();
                     break;
                 default:
                     error("Solve: Invalid Solver Scheme - %d", SolverScheme);
@@ -956,7 +965,8 @@ int Solve(void) {
                     Compute_Residual_Roe();
                     break;
                 case SOLVER_LMROE: // LMRoe
-                    Compute_Residual_LMRoe();
+                    LMRoeFix = 1;
+                    Compute_Residual_Roe();
                     break;
                 default:
                     error("Solve: Invalid Solver Scheme - %d", SolverScheme);
