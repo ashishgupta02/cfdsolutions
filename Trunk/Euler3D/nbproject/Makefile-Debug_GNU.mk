@@ -45,7 +45,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/BC.o \
 	${OBJECTDIR}/src/Time_Step.o \
 	${OBJECTDIR}/src/Roe_EntropyFix.o \
-	${OBJECTDIR}/src/LMRoe_Fluxes.o \
 	${OBJECTDIR}/src/Gradient.o \
 	${OBJECTDIR}/src/Trim_Utils.o \
 	${OBJECTDIR}/src/CompressibleUtils.o \
@@ -137,11 +136,6 @@ ${OBJECTDIR}/src/Roe_EntropyFix.o: src/Roe_EntropyFix.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Roe_EntropyFix.o src/Roe_EntropyFix.cpp
-
-${OBJECTDIR}/src/LMRoe_Fluxes.o: src/LMRoe_Fluxes.cpp 
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/LMRoe_Fluxes.o src/LMRoe_Fluxes.cpp
 
 ${OBJECTDIR}/src/Gradient.o: src/Gradient.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
