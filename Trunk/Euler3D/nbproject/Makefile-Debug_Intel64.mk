@@ -48,7 +48,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Gradient.o \
 	${OBJECTDIR}/src/Trim_Utils.o \
 	${OBJECTDIR}/src/Area_Volume.o \
-	${OBJECTDIR}/src/TestCode.o \
 	${OBJECTDIR}/src/CompressibleUtils.o \
 	${OBJECTDIR}/src/List.o \
 	${OBJECTDIR}/src/HigherOrderReconstructQ.o \
@@ -152,11 +151,6 @@ ${OBJECTDIR}/src/Area_Volume.o: src/Area_Volume.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Area_Volume.o src/Area_Volume.cpp
-
-${OBJECTDIR}/src/TestCode.o: src/TestCode.cpp 
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/TestCode.o src/TestCode.cpp
 
 ${OBJECTDIR}/src/CompressibleUtils.o: src/CompressibleUtils.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
