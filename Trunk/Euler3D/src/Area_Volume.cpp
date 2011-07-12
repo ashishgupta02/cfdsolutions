@@ -550,7 +550,7 @@ static void Calculate_Boundary_Edge_Area() {
         bndEdge[NEDGE_TRI * i + 1].areav += 0.5 * (V1.cross(V2) + V2.cross(V3));
 
         // -- Node 2
-        //Calculate centroid of edges for node 1
+        // Calculate centroid of edges for node 2
         for (int j = 0; j < 3; j++) {
             edgcen1.pos[j] = (coordXYZ[3 * n2 + j] + coordXYZ[3 * n0 + j]) / 2.0;
             edgcen2.pos[j] = (coordXYZ[3 * n2 + j] + coordXYZ[3 * n1 + j]) / 2.0;
@@ -830,7 +830,7 @@ static void Initialize_Edge_Data() {
             nBEdge  += elemNode[e];
     nBNode = nBEdge;
 
-    //Allocate  memory for boundary nodes and boundary edges
+    // Allocate  memory for boundary nodes and boundary edges
     bndEdge = (Edge3D*) malloc(nBEdge * sizeof (Edge3D));
     // Allocate memory for edge
     intEdge = (Edge3D*) malloc(nEdge * sizeof (Edge3D));
@@ -900,7 +900,7 @@ void Check_Area_Volume() {
 void Calculate_Area_Volume() {
     printf("=============================================================================\n");
     info("Computing Edge Areas and Control Volumes");
-    // Intialize Edge Data
+    // Initialize Edge Data
     Initialize_Edge_Data();
     // Calculate Boundary Edge Area
     Calculate_Boundary_Edge_Area();

@@ -42,6 +42,7 @@
       <itemPath>src/Roe_EntropyFix.cpp</itemPath>
       <itemPath>src/Roe_Fluxes.cpp</itemPath>
       <itemPath>src/Solver.cpp</itemPath>
+      <itemPath>src/TestCode.cpp</itemPath>
       <itemPath>src/Time_Step.cpp</itemPath>
       <itemPath>src/Trim_Utils.c</itemPath>
       <itemPath>src/Vector3D.cpp</itemPath>

@@ -28,6 +28,9 @@
 #define VARIABLE_RUT            3
 #define VARIABLE_PUT            4
 
+// No of Equations
+#define NEQUATIONS              5
+
 // Linear Solver Parameters
 extern int    SolverScheme;
 extern int    TimeAccuracy;
@@ -160,7 +163,12 @@ void Apply_Boundary_Condition(int Iteration);
 void Compute_DeltaT(int Iteration);
 
 // Roe Scheme Functions
+void Roe_Init(void);
+void Roe_Finalize(void);
+void Roe_Reset(void);
+void Compute_EulerFlux(double *Q_Node, Vector3D areavec, double *Flux_Euler);
 void Compute_RoeVariables(double *Q_L, double *Q_R, double *Q_Roe);
+void Compute_RoeFlux(int node_L, int node_R, Vector3D areavec, double *Flux_Roe);
 void Compute_Residual_Roe(void);
 
 // Limiter
