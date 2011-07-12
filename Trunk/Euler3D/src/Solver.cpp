@@ -712,6 +712,19 @@ int Solve(void) {
         W45 = new double[nNode];
     }
     
+    // Initialize the Solver Scheme Data Structure
+    switch (SolverScheme) {
+        case SOLVER_ROE: // Roe
+            Roe_Init();
+            break;
+        case SOLVER_LMROE: // LMRoe
+            Roe_Init();
+            break;
+        default:
+            error("Solve: Invalid Solver Scheme - %d", SolverScheme);
+            break;
+    }
+        
     // Check if Solution Restart is Requested
     if (RestartInput)
         Restart_Reader(RestartInputFilename);
@@ -1030,7 +1043,20 @@ int Solve(void) {
         W01 = W02 = W03 = W04 = W05 = NULL;
         W41 = W42 = W43 = W44 = W45 = NULL;
     }
-
+    
+    // Finalize the Solver Scheme Data Structure
+    switch (SolverScheme) {
+        case SOLVER_ROE: // Roe
+            Roe_Finalize();
+            break;
+        case SOLVER_LMROE: // LMRoe
+            Roe_Finalize();
+            break;
+        default:
+            error("Solve: Invalid Solver Scheme - %d", SolverScheme);
+            break;
+    }
+    
     // Return Solver State
     if (CheckNAN)
         return EXIT_FAILURE;
