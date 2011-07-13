@@ -1,18 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="69">
-  <logicalFolder name="root" displayName="root" projectFiles="true">
+<configurationDescriptor version="79">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="DESIGN" displayName="DESIGN" projectFiles="true">
-      <logicalFolder name="include"
-                     displayName="include"
-                     projectFiles="true"
-                     kind="SOURCE_LOGICAL_FOLDER">
+      <logicalFolder name="include" displayName="include" projectFiles="true">
         <itemPath>DESIGN/include/Euler2D_Design.h</itemPath>
         <itemPath>DESIGN/include/Euler2D_Design_VanLeer.h</itemPath>
       </logicalFolder>
-      <logicalFolder name="src"
-                     displayName="src"
-                     projectFiles="true"
-                     kind="SOURCE_LOGICAL_FOLDER">
+      <logicalFolder name="src" displayName="src" projectFiles="true">
         <itemPath>DESIGN/src/Euler2D_Design.cpp</itemPath>
         <itemPath>DESIGN/src/Euler2D_Design_VanLeer.cpp</itemPath>
       </logicalFolder>
@@ -86,9 +80,8 @@
   <confs>
     <conf name="Debug" type="1">
       <toolsSet>
-        <developmentServer>localhost</developmentServer>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
-        <platform>2</platform>
       </toolsSet>
       <compileType>
         <cTool>
@@ -123,6 +116,9 @@
         <fortranCompilerTool>
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
         <linkerTool>
           <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
@@ -157,9 +153,8 @@
     </conf>
     <conf name="Release" type="1">
       <toolsSet>
-        <developmentServer>localhost</developmentServer>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
-        <platform>2</platform>
       </toolsSet>
       <compileType>
         <cTool>
@@ -189,6 +184,9 @@
           <developmentMode>5</developmentMode>
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
         <linkerTool>
           <linkerLibItems>
             <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
