@@ -1,7 +1,7 @@
 /*******************************************************************************
  * File:        Warn_Error.c
  * Author:      Ashish Gupta
- * Revision:    1
+ * Revision:    4
  ******************************************************************************/
 
 #include <stdarg.h>
@@ -13,6 +13,7 @@
 #include "Interface_MPI.h"
 #include "Logging.h"
 #include "Utils.h"
+#include "Log.h"
 #include "Warn_Error.h"
 #include "Output_Level.h"
 

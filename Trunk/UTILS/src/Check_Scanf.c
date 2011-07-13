@@ -1,7 +1,7 @@
 /*******************************************************************************
  * File:        Check_Scanf.c
  * Author:      Ashish Gupta
- * Revision:    1
+ * Revision:    4
  ******************************************************************************/
 
 #include <stdio.h>
@@ -12,6 +12,7 @@
 #include "Check_String.h"
 #include "NDM_Dimensions.h"
 #include "Utils.h"
+#include "Log.h"
 #include "Check_Scanf.h"
 
 /*******************************************************************************

@@ -1,17 +1,20 @@
 /*******************************************************************************
- * File:        List.cpp
+ * File:        DoubleList.cpp
  * Author:      Ashish Gupta
  * Revision:    4
  ******************************************************************************/
 
 #include <stdio.h>
-#include "List.h"
+#include "DoubleList.h"
 
-int List::Redimension(int size) {
+int DoubleList::Redimension(int size) {
     if (size <= 0) {
         if (list != NULL)
             free(list);
+        if (data != NULL)
+            free(data);
         list = NULL;
+        data = NULL;
         dim = max = 0;
         return (1);
     } else if (size != dim) {
@@ -19,8 +22,14 @@ int List::Redimension(int size) {
             list = (int*) realloc((void*) list, size * sizeof (int));
         else
             list = (int*) malloc(size * sizeof (int));
-        if (list == NULL) {
-            fprintf(stderr, "List:Redimension -- Could not allocate space for list.");
+
+        if (data != NULL)
+            data = (double*) realloc((void*) data, size * sizeof (double));
+        else
+            data = (double*) malloc(size * sizeof (double));
+        
+        if ((list == NULL) || (data == NULL)) {
+            fprintf(stderr, "DoubleList:Redimension -- Could not allocate space for list.");
             return (0);
         }
         //for (int i=max; i < size; i++)
@@ -32,7 +41,7 @@ int List::Redimension(int size) {
     return (1);
 }
 
-int List::Is_In_List(int n) {
+int DoubleList::Is_In_List(int n) {
     int i, y;
 
     for (y = i = 0; i < max && !y; i++)
@@ -42,7 +51,7 @@ int List::Is_In_List(int n) {
     return (y);
 }
 
-int List::Times_In_List(int n) {
+int DoubleList::Times_In_List(int n) {
     int i, y;
 
     for (y = i = 0; i < max; i++)
@@ -52,7 +61,7 @@ int List::Times_In_List(int n) {
     return (y);
 }
 
-int List::Index(int n) {
+int DoubleList::Index(int n) {
     int i, j;
 
     j = -1;
@@ -63,7 +72,7 @@ int List::Index(int n) {
     return (j);
 }
 
-int List::Check_List(int n) {
+int DoubleList::Check_List(int n, double val) {
     const int INC = 5;
     int new_dim;
 
@@ -71,39 +80,44 @@ int List::Check_List(int n) {
     if (!Is_In_List(n)) {
         if (max >= dim) {
             if (!Redimension(new_dim)) {
-                fprintf(stderr, "List:Check_List -- Could not add to list.");
+                fprintf(stderr, "DoubleList:Check_List -- Could not add to list.");
                 return (0);
             }
         }
-        list[max++] = n;
+        list[max]   = n;
+        data[max++] = val;
     }
     return (1);
 }
 
-int List::Add_To_List(int n) {
+int DoubleList::Add_To_List(int n, double val) {
     const int INC = 5;
     int new_dim;
 
     new_dim = dim + INC;
-    if (max < dim)
-        list[max++] = n;
-    else if (Redimension(new_dim)) {
-        list[max++] = n;
+    if (max < dim) {
+        list[max]   = n;
+        data[max++] = val;
+    } else if (Redimension(new_dim)) {
+        list[max]   = n;
+        data[max++] = val;
         return (1);
     } else {
-        fprintf(stderr,"List:Add_To_List -- Could not add to list.");
+        fprintf(stderr,"DoubleList:Add_To_List -- Could not add to list.");
         return (0);
     }
     return (1);
 }
 
-int List::Delete_From_List(int n) {
+int DoubleList::Delete_From_List(int n) {
     int i, j, flag = 0;
 
     for (i = 0; i < max; i++)
         if (list[i] == n) {
-            for (j = i; j < max - 1; j++)
+            for (j = i; j < max - 1; j++) {
                 list[j] = list[j + 1];
+                data[j] = data[j + 1];
+            }
             max--;
             flag = 1;
             break;
@@ -112,23 +126,27 @@ int List::Delete_From_List(int n) {
     return (flag);
 }
 
-int List::Replace(int m, int n) {
+int DoubleList::Replace(int m, int n, double val) {
     int i, flag = 0;
 
     for (i = 0; i < max; i++)
         if (list[i] == m) {
             list[i] = n;
+            data[i] = val;
             flag = 1;
         }
 
     return (flag);
 }
 
-int List::Reset(int size) {
+int DoubleList::Reset(int size) {
     if (size < 0) {
         if (list != NULL)
             free(list);
+        if (data != NULL)
+            free(data);
         list = NULL;
+        data = NULL;
         dim = max = 0;
         return (1);
     } else if (size <= dim) {
@@ -137,9 +155,12 @@ int List::Reset(int size) {
     } else {
         if (list != NULL)
             free(list);
+        if (data != NULL)
+            free(data);
         list = (int*) malloc(size * sizeof (int));
-        if (list == NULL) {
-            fprintf(stderr, "List:Reset -- Could not allocate space for list.");
+        data = (double*) malloc(size * sizeof (double));
+        if ((list == NULL) || (data == NULL)) {
+            fprintf(stderr, "DoubleList:Reset -- Could not allocate space for list.");
             dim = max = 0;
             return (0);
         }
@@ -151,14 +172,14 @@ int List::Reset(int size) {
     return (1);
 }
 
-int List::RemoveDuplicates() {
+int DoubleList::RemoveDuplicates() {
     if (max > 0) {
         int i, j;
         int value;
         int *map = NULL;
         map = (int*) malloc(max*sizeof(int));
         if (map == NULL) {
-            fprintf(stderr, "List:RemoveDuplicates -- Could not allocate space for list.");
+            fprintf(stderr, "DoubleList:RemoveDuplicates -- Could not allocate space for list.");
             dim = max = 0;
             return (0);
         }
@@ -173,16 +194,17 @@ int List::RemoveDuplicates() {
         }
         value = 1;
         for (i = 1; i < max; i++) {
-            if (!map[i])
-                list[value++] = list[i];
+            if (!map[i]) {
+                list[value]   = list[i];
+                data[value++] = data[i];
+            }
         }
         if (max > value) {
-            printf("List:RemoveDuplicates -- Check for ERROR\n");
+            printf("DoubleList:RemoveDuplicates -- Check for ERROR\n");
             max = value;
         }
         free(map);
     }
     return(1);
 }
-
 

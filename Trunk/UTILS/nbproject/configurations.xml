@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="62">
-  <logicalFolder name="root" displayName="root" projectFiles="true">
+<configurationDescriptor version="79">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
@@ -8,12 +8,15 @@
       <itemPath>include/Check_Scanf.h</itemPath>
       <itemPath>include/Check_String.h</itemPath>
       <itemPath>include/Command_Line.h</itemPath>
+      <itemPath>include/Complex.h</itemPath>
+      <itemPath>include/DoubleList.h</itemPath>
       <itemPath>include/Formatting_Control.h</itemPath>
       <itemPath>include/Interface_MPI.h</itemPath>
       <itemPath>include/Interface_MPI_Lib.h</itemPath>
       <itemPath>include/Interface_MPI_Set.h</itemPath>
       <itemPath>include/Linked_List.h</itemPath>
       <itemPath>include/List.h</itemPath>
+      <itemPath>include/Log.h</itemPath>
       <itemPath>include/Logging.h</itemPath>
       <itemPath>include/MUtils.h</itemPath>
       <itemPath>include/Machine_Parameters.h</itemPath>
@@ -24,6 +27,7 @@
       <itemPath>include/Output_Level.h</itemPath>
       <itemPath>include/Stopwatch.h</itemPath>
       <itemPath>include/Timing.h</itemPath>
+      <itemPath>include/Trim_Utils.h</itemPath>
       <itemPath>include/Utils.h</itemPath>
       <itemPath>include/Warn_Error.h</itemPath>
     </logicalFolder>
@@ -38,6 +42,7 @@
       <itemPath>src/Check_Scanf.c</itemPath>
       <itemPath>src/Check_String.c</itemPath>
       <itemPath>src/Command_Line.c</itemPath>
+      <itemPath>src/DoubleList.cpp</itemPath>
       <itemPath>src/Formatting_Control.c</itemPath>
       <itemPath>src/Interface_MPI.c</itemPath>
       <itemPath>src/Interface_MPI_Lib.c</itemPath>
@@ -52,6 +57,7 @@
       <itemPath>src/MemUtils.cpp</itemPath>
       <itemPath>src/Stopwatch.c</itemPath>
       <itemPath>src/Timing.c</itemPath>
+      <itemPath>src/Trim_Utils.c</itemPath>
       <itemPath>src/Utils.c</itemPath>
       <itemPath>src/Warn_Error.c</itemPath>
     </logicalFolder>
@@ -65,9 +71,8 @@
   <confs>
     <conf name="Debug" type="2">
       <toolsSet>
-        <developmentServer>localhost</developmentServer>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
-        <platform>2</platform>
       </toolsSet>
       <compileType>
         <cTool>
@@ -86,17 +91,15 @@
         <fortranCompilerTool>
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
-        <linkerTool>
-          <linkerLibItems>
-          </linkerLibItems>
-        </linkerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
       </compileType>
     </conf>
     <conf name="Release" type="2">
       <toolsSet>
-        <developmentServer>localhost</developmentServer>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
-        <platform>2</platform>
       </toolsSet>
       <compileType>
         <cTool>
@@ -118,10 +121,9 @@
           <developmentMode>5</developmentMode>
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
-        <linkerTool>
-          <linkerLibItems>
-          </linkerLibItems>
-        </linkerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
       </compileType>
     </conf>
   </confs>

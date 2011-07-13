@@ -1,7 +1,7 @@
 /*******************************************************************************
  * File:        Command_Line.c
  * Author:      Ashish Gupta
- * Revision:    1
+ * Revision:    4
  ******************************************************************************/
 
 #include <ctype.h>
@@ -12,6 +12,7 @@
 #include "Check_Malloc.h"
 #include "Command_Line.h"
 #include "Utils.h"
+#include "Log.h"
 #include "Warn_Error.h"
 #include "Logging.h"
 

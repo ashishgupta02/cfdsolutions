@@ -1,7 +1,7 @@
 /*******************************************************************************
  * File:        Interface_MPI.h
  * Author:      Ashish Gupta
- * Revision:    1
+ * Revision:    4
  ******************************************************************************/
 
 #include <stdarg.h>
@@ -20,6 +20,7 @@
 #include "Stopwatch.h"
 #include "NDM_TypeDefs.h"
 #include "Utils.h"
+#include "Log.h"
 #include "Warn_Error.h"
 #include "Interface_MPI.h"
 
