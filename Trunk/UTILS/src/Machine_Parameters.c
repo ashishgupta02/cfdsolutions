@@ -1,7 +1,7 @@
 /*******************************************************************************
  * File:        Machine_Parameters.c
  * Author:      Ashish Gupta
- * Revision:    1
+ * Revision:    4
  ******************************************************************************/
 
 #include <math.h>
@@ -10,6 +10,7 @@
 
 #include "NDM_TypeDefs.h"
 #include "Utils.h"
+#include "Log.h"
 #include "Machine_Parameters.h"
 
 #define CONV(i) ((NDMDouble)(i))

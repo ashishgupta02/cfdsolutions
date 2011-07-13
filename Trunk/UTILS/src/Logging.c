@@ -1,13 +1,14 @@
 /*******************************************************************************
  * File:        Logging.c
  * Author:      Ashish Gupta
- * Revision:    1
+ * Revision:    4
  ******************************************************************************/
 
 #include <stdio.h>
 #include <string.h>
 
 #include "Utils.h"
+#include "Log.h"
 #include "Warn_Error.h"
 #include "Logging.h"
 

@@ -1,7 +1,7 @@
 /*******************************************************************************
  * File:        Log.c
  * Author:      Ashish Gupta
- * Revision:    1
+ * Revision:    4
  ******************************************************************************/
 
 #include <stdio.h>
@@ -9,6 +9,7 @@
 #include <stdarg.h>
 
 #include "Utils.h"
+#include "Log.h"
 #include "Stopwatch.h"
 #include "Output_Level.h"
 #include "Interface_MPI.h"

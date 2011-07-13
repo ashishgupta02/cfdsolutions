@@ -1,7 +1,7 @@
 /*******************************************************************************
  * File:        Check_Malloc.c
  * Author:      Ashish Gupta
- * Revision:    1
+ * Revision:    4
  ******************************************************************************/
 
 #include <stdio.h>
@@ -10,6 +10,7 @@
 
 #include "Check_Malloc.h"
 #include "Utils.h"
+#include "Log.h"
 #include "Warn_Error.h"
 
 #ifdef DEBUG_CHECK_MALLOC

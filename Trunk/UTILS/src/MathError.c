@@ -1,7 +1,7 @@
 /*******************************************************************************
  * File:        MathError.c
  * Author:      Ashish Gupta
- * Revision:    1
+ * Revision:    4
  ******************************************************************************/
 
 #include <stdio.h>
@@ -9,6 +9,7 @@
 
 #include "MathError.h"
 #include "Utils.h"
+#include "Log.h"
 
 int math_err_msg_level = 0;
 int math_err_check_finite = 0;
