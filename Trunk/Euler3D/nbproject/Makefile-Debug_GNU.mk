@@ -47,12 +47,13 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Roe_EntropyFix.o \
 	${OBJECTDIR}/src/Gradient.o \
 	${OBJECTDIR}/src/Trim_Utils.o \
-	${OBJECTDIR}/src/Area_Volume.o \
 	${OBJECTDIR}/src/CompressibleUtils.o \
+	${OBJECTDIR}/src/Area_Volume.o \
 	${OBJECTDIR}/src/List.o \
 	${OBJECTDIR}/src/HigherOrderReconstructQ.o \
 	${OBJECTDIR}/src/MeshIO.o \
 	${OBJECTDIR}/src/Roe_Fluxes.o \
+	${OBJECTDIR}/src/DoubleList.o \
 	${OBJECTDIR}/src/Solver.o \
 	${OBJECTDIR}/src/Connectivity_Maps.o \
 	${OBJECTDIR}/src/DebugSolver.o
@@ -147,15 +148,15 @@ ${OBJECTDIR}/src/Trim_Utils.o: src/Trim_Utils.c
 	${RM} $@.d
 	$(COMPILE.c) -g -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Trim_Utils.o src/Trim_Utils.c
 
-${OBJECTDIR}/src/Area_Volume.o: src/Area_Volume.cpp 
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Area_Volume.o src/Area_Volume.cpp
-
 ${OBJECTDIR}/src/CompressibleUtils.o: src/CompressibleUtils.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/CompressibleUtils.o src/CompressibleUtils.cpp
+
+${OBJECTDIR}/src/Area_Volume.o: src/Area_Volume.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Area_Volume.o src/Area_Volume.cpp
 
 ${OBJECTDIR}/src/List.o: src/List.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -176,6 +177,11 @@ ${OBJECTDIR}/src/Roe_Fluxes.o: src/Roe_Fluxes.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Roe_Fluxes.o src/Roe_Fluxes.cpp
+
+${OBJECTDIR}/src/DoubleList.o: src/DoubleList.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/DoubleList.o src/DoubleList.cpp
 
 ${OBJECTDIR}/src/Solver.o: src/Solver.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

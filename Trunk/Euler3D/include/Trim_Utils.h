@@ -13,6 +13,10 @@
 #include <math.h>
 #include <float.h>
 
+#ifdef HAVE_MPI
+#include <mpi.h>
+#endif
+
 /*******************************************************************************
  * Keep C++ compilers from getting confused
  *******************************************************************************/
@@ -248,9 +252,10 @@ extern "C" {
 /*------------------------------------------------------------------------------
 |
 ------------------------------------------------------------------------------*/
-#define NDM_ZERO        0.0e+0
-#define DBL_ZERO        1.0E-15
-#define DBL_TOLERANCE   1.0E-7
+#define NDM_ZERO          0.0e+0
+#define DBL_ZERO          1.0E-15
+#define DBL_TOLERANCE     1.0E-7
+#define DBL_RES_TOLERANCE 1.0E-10
 
 #ifndef _ASSERT
 #define _ASSERT(x) {assert(x);}

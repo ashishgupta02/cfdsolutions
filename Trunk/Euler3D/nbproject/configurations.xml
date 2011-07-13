@@ -5,8 +5,10 @@
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>include/Commons.h</itemPath>
+      <itemPath>include/Complex.h</itemPath>
       <itemPath>include/CompressibleUtils.h</itemPath>
       <itemPath>include/DebugSolver.h</itemPath>
+      <itemPath>include/DoubleList.h</itemPath>
       <itemPath>include/Gradient.h</itemPath>
       <itemPath>include/List.h</itemPath>
       <itemPath>include/MC.h</itemPath>
@@ -31,6 +33,7 @@
       <itemPath>src/Connectivity_Maps.cpp</itemPath>
       <itemPath>src/Cuthill_Mckee_Reorder.cpp</itemPath>
       <itemPath>src/DebugSolver.cpp</itemPath>
+      <itemPath>src/DoubleList.cpp</itemPath>
       <itemPath>src/Gradient.cpp</itemPath>
       <itemPath>src/HigherOrderReconstructQ.cpp</itemPath>
       <itemPath>src/Limiters.cpp</itemPath>
