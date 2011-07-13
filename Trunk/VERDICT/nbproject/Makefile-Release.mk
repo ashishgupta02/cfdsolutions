@@ -10,6 +10,8 @@
 # Environment
 MKDIR=mkdir
 CP=cp
+GREP=grep
+NM=nm
 CCADMIN=CCadmin
 RANLIB=ranlib
 CC=gcc
@@ -22,25 +24,27 @@ AS=as
 CND_PLATFORM=GNU-Linux-x86
 CND_CONF=Release
 CND_DISTDIR=dist
+CND_BUILDDIR=build
 
 # Include project Makefile
 include Makefile
 
 # Object Directory
-OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
+OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/src/V_QuadMetric.o \
-	${OBJECTDIR}/src/V_TetMetric.o \
+	${OBJECTDIR}/src/V_WedgeMetric.o \
 	${OBJECTDIR}/src/V_PyramidMetric.o \
-	${OBJECTDIR}/src/V_GaussIntegration.o \
 	${OBJECTDIR}/src/VerdictVector.o \
+	${OBJECTDIR}/src/V_TriMetric.o \
+	${OBJECTDIR}/src/V_QuadMetric.o \
+	${OBJECTDIR}/src/V_GaussIntegration.o \
 	${OBJECTDIR}/src/V_EdgeMetric.o \
 	${OBJECTDIR}/src/V_HexMetric.o \
-	${OBJECTDIR}/src/V_WedgeMetric.o \
 	${OBJECTDIR}/src/V_KnifeMetric.o \
-	${OBJECTDIR}/src/V_TriMetric.o
+	${OBJECTDIR}/src/V_TetMetric.o
+
 
 # C Compiler Flags
 CFLAGS=
@@ -60,69 +64,69 @@ LDLIBSOPTIONS=
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	${MAKE}  -f nbproject/Makefile-Release.mk dist/Release/GNU-Linux-x86/libVERDICT.so
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libVERDICT.so
 
-dist/Release/GNU-Linux-x86/libVERDICT.so: ${OBJECTFILES}
-	${MKDIR} -p dist/Release/GNU-Linux-x86
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libVERDICT.so: ${OBJECTFILES}
+	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.cc} -shared -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libVERDICT.so -fPIC ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
-${OBJECTDIR}/src/V_QuadMetric.o: nbproject/Makefile-${CND_CONF}.mk src/V_QuadMetric.cpp 
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_QuadMetric.o src/V_QuadMetric.cpp
-
-${OBJECTDIR}/src/V_TetMetric.o: nbproject/Makefile-${CND_CONF}.mk src/V_TetMetric.cpp 
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_TetMetric.o src/V_TetMetric.cpp
-
-${OBJECTDIR}/src/V_PyramidMetric.o: nbproject/Makefile-${CND_CONF}.mk src/V_PyramidMetric.cpp 
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_PyramidMetric.o src/V_PyramidMetric.cpp
-
-${OBJECTDIR}/src/V_GaussIntegration.o: nbproject/Makefile-${CND_CONF}.mk src/V_GaussIntegration.cpp 
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_GaussIntegration.o src/V_GaussIntegration.cpp
-
-${OBJECTDIR}/src/VerdictVector.o: nbproject/Makefile-${CND_CONF}.mk src/VerdictVector.cpp 
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/VerdictVector.o src/VerdictVector.cpp
-
-${OBJECTDIR}/src/V_EdgeMetric.o: nbproject/Makefile-${CND_CONF}.mk src/V_EdgeMetric.cpp 
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_EdgeMetric.o src/V_EdgeMetric.cpp
-
-${OBJECTDIR}/src/V_HexMetric.o: nbproject/Makefile-${CND_CONF}.mk src/V_HexMetric.cpp 
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_HexMetric.o src/V_HexMetric.cpp
-
-${OBJECTDIR}/src/V_WedgeMetric.o: nbproject/Makefile-${CND_CONF}.mk src/V_WedgeMetric.cpp 
+${OBJECTDIR}/src/V_WedgeMetric.o: src/V_WedgeMetric.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_WedgeMetric.o src/V_WedgeMetric.cpp
 
-${OBJECTDIR}/src/V_KnifeMetric.o: nbproject/Makefile-${CND_CONF}.mk src/V_KnifeMetric.cpp 
+${OBJECTDIR}/src/V_PyramidMetric.o: src/V_PyramidMetric.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_PyramidMetric.o src/V_PyramidMetric.cpp
+
+${OBJECTDIR}/src/VerdictVector.o: src/VerdictVector.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/VerdictVector.o src/VerdictVector.cpp
+
+${OBJECTDIR}/src/V_TriMetric.o: src/V_TriMetric.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_TriMetric.o src/V_TriMetric.cpp
+
+${OBJECTDIR}/src/V_QuadMetric.o: src/V_QuadMetric.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_QuadMetric.o src/V_QuadMetric.cpp
+
+${OBJECTDIR}/src/V_GaussIntegration.o: src/V_GaussIntegration.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_GaussIntegration.o src/V_GaussIntegration.cpp
+
+${OBJECTDIR}/src/V_EdgeMetric.o: src/V_EdgeMetric.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_EdgeMetric.o src/V_EdgeMetric.cpp
+
+${OBJECTDIR}/src/V_HexMetric.o: src/V_HexMetric.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_HexMetric.o src/V_HexMetric.cpp
+
+${OBJECTDIR}/src/V_KnifeMetric.o: src/V_KnifeMetric.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_KnifeMetric.o src/V_KnifeMetric.cpp
 
-${OBJECTDIR}/src/V_TriMetric.o: nbproject/Makefile-${CND_CONF}.mk src/V_TriMetric.cpp 
+${OBJECTDIR}/src/V_TetMetric.o: src/V_TetMetric.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_TriMetric.o src/V_TriMetric.cpp
+	$(COMPILE.cc) -O2 -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_TetMetric.o src/V_TetMetric.cpp
 
 # Subprojects
 .build-subprojects:
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
-	${RM} -r build/Release
-	${RM} dist/Release/GNU-Linux-x86/libVERDICT.so
+	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
+	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libVERDICT.so
 
 # Subprojects
 .clean-subprojects:
