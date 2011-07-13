@@ -12,6 +12,17 @@
             <make-dep-projects>
                 <make-dep-project>../UTILS</make-dep-project>
             </make-dep-projects>
+            <sourceRootList/>
+            <confList>
+                <confElem>
+                    <name>Debug</name>
+                    <type>2</type>
+                </confElem>
+                <confElem>
+                    <name>Release</name>
+                    <type>2</type>
+                </confElem>
+            </confList>
         </data>
     </configuration>
 </project>
