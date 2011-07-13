@@ -29,8 +29,13 @@
 void error(const char *fmt, ...) {
     va_list args;
 
+#ifdef HAVE_MPI
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    (void) fprintf(stderr, "ERROR [%3d]: ", rank);
+#else
     (void) fprintf(stderr, "ERROR: ");
-
+#endif
     va_start(args, fmt);
     (void) vfprintf(stderr, fmt, args);
     va_end(args);
@@ -39,7 +44,11 @@ void error(const char *fmt, ...) {
 
     /* To ensure log files are current */
     (void) fflush(stderr);
+#ifdef HAVE_MPI
+    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+#else
     exit(EXIT_FAILURE);
+#endif
 }
 
 /*---------- warn ------------------------------------------------------
@@ -49,7 +58,13 @@ void error(const char *fmt, ...) {
 void warn(const char *fmt, ...) {
     va_list args;
 
+#ifdef HAVE_MPI
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    (void) fprintf(stderr, "WARNING [%3d]: ", rank);
+#else
     (void) fprintf(stderr, "WARNING: ");
+#endif
     va_start(args, fmt);
     (void) vfprintf(stderr, fmt, args);
     va_end(args);
@@ -60,13 +75,19 @@ void warn(const char *fmt, ...) {
 }
 
 /*---------- info ------------------------------------------------------
- * Print Infomation message to stdout and continue
+ * Print Information message to stdout and continue
  *---------------------------------------------------------------------*/
 
 void info(const char *fmt, ...) {
     va_list args;
 
+#ifdef HAVE_MPI
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    (void) fprintf(stdout, "INFO [%3d]: ", rank);
+#else
     (void) fprintf(stdout, "INFO: ");
+#endif
     va_start(args, fmt);
     (void) vfprintf(stdout, fmt, args);
     va_end(args);
