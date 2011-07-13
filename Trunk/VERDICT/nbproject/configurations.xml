@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="62">
-  <logicalFolder name="root" displayName="root" projectFiles="true">
+<configurationDescriptor version="79">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
@@ -38,10 +38,9 @@
   <confs>
     <conf name="Debug" type="2">
       <toolsSet>
-        <developmentServer>localhost</developmentServer>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
         <cRequired>true</cRequired>
-        <platform>2</platform>
       </toolsSet>
       <compileType>
         <cTool>
@@ -65,18 +64,16 @@
         <fortranCompilerTool>
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
-        <linkerTool>
-          <linkerLibItems>
-          </linkerLibItems>
-        </linkerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
       </compileType>
     </conf>
     <conf name="Release" type="2">
       <toolsSet>
-        <developmentServer>localhost</developmentServer>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
         <cRequired>true</cRequired>
-        <platform>2</platform>
       </toolsSet>
       <compileType>
         <cTool>
@@ -103,10 +100,9 @@
           <developmentMode>5</developmentMode>
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
-        <linkerTool>
-          <linkerLibItems>
-          </linkerLibItems>
-        </linkerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
       </compileType>
     </conf>
   </confs>
