@@ -1,9 +1,8 @@
-/*
- * File:   Point2D.cpp
- * Author: Ashish Gupta
- *
- * Created on April 20, 2010, 5:31 PM
- */
+/*******************************************************************************
+ * File:        Point2D.cpp
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
 
 #include <stdio.h>
 

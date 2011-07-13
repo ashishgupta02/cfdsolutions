@@ -1,9 +1,8 @@
-/*
- * File:   Bowyer_Watson.cpp
- * Author: Ashish Gupta
- *
- * Created on February 5, 2010, 7:22 PM
- */
+/*******************************************************************************
+ * File:        Bowyer_Watson.cpp
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
 
 #include "Grid_Utils.h"
 #include "Bowyer_Watson.h"

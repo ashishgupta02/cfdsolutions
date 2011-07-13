@@ -1,9 +1,8 @@
-/* 
- * File:   TriangleMesh.h
- * Author: Ashish Gupta
- *
- * Created on February 5, 2010, 7:22 PM
- */
+/*******************************************************************************
+ * File:        TriangleMesh.h
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
 
 #ifndef _TRIANGLEMESH_H
 #define	_TRIANGLEMESH_H

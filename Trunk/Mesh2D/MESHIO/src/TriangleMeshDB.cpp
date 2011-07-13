@@ -1,9 +1,8 @@
-/*
- * File:   TriangleMeshDB.cpp
- * Author: Ashish Gupta
- *
- * Created on March 15, 2010, 10:38 PM
- */
+/*******************************************************************************
+ * File:        TriangleMeshDB.cpp
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,10 +1,8 @@
-/* 
- * File:   TriangleLinearElasticSmoother.h
- * Author: Ashish Gupta
- *
- * Created on February 5, 2010, 7:22 PM
- * Modified on April 6, 2010
- */
+/*******************************************************************************
+ * File:        TriangleLinearElasticSmoother.h
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
 
 #ifndef _TRIANGLELINEARELASTICSMOOTHER_H
 #define	_TRIANGLELINEARELASTICSMOOTHER_H

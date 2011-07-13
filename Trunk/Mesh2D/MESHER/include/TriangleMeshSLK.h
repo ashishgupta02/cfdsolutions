@@ -1,9 +1,8 @@
-/* 
- * File:   TriangleMeshSLK.h
- * Author: Ashish Gupta
- *
- * Created on April 20, 2010, 5:24 PM
- */
+/*******************************************************************************
+ * File:        TriangleMeshSLK.h
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
 
 #ifndef _TRIANGLEMESHSLK_H
 #define	_TRIANGLEMESHSLK_H

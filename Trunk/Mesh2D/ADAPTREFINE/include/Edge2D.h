@@ -1,9 +1,8 @@
-/* 
- * File:   Edge2D.h
- * Author: Ashish Gupta
- *
- * Created on April 24, 2010, 2:24 PM
- */
+/*******************************************************************************
+ * File:        Edge2D.h
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
 
 #ifndef _EDGE2D_H
 #define	_EDGE2D_H

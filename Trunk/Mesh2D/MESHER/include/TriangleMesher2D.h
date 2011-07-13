@@ -1,9 +1,8 @@
-/* 
- * File:   TriangleMesher2D.h
- * Author: Ashish Gupta
- *
- * Created on February 5, 2010, 7:22 PM
- */
+/*******************************************************************************
+ * File:        TriangleMesher2D.h
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
 
 #ifndef _TRIANGLEMESHER2D_H
 #define	_TRIANGLEMESHER2D_H

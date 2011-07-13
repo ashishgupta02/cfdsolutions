@@ -1,9 +1,8 @@
-/* 
- * File:   TriangleAdaptiveRefinement.h
- * Author: Ashish Gupta
- *
- * Created on March 15, 2010, 8:06 PM
- */
+/*******************************************************************************
+ * File:        TriangleAdaptiveRefinement.h
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
 
 #ifndef _TRIANGLEADAPTIVEREFINEMENT_H
 #define	_TRIANGLEADAPTIVEREFINEMENT_H

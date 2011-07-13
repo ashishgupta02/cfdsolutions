@@ -1,10 +1,8 @@
-/*
- * File:   TriangleAdaptiveRefinement.cpp
- * Author: Ashish Gupta
- *
- * Created on March 15, 2010, 8:06 PM
- */
-
+/*******************************************************************************
+ * File:        TriangleAdaptiveRefinement.cpp
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
