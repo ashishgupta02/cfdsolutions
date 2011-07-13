@@ -12,6 +12,26 @@
             <make-dep-projects>
                 <make-dep-project>../UTILS</make-dep-project>
             </make-dep-projects>
+            <sourceRootList>
+                <sourceRootElem>MESHER</sourceRootElem>
+                <sourceRootElem>OPTIMESH</sourceRootElem>
+                <sourceRootElem>WINSLOW</sourceRootElem>
+                <sourceRootElem>LESMOOTH</sourceRootElem>
+                <sourceRootElem>WINSLOWVV</sourceRootElem>
+                <sourceRootElem>ADAPTREFINE</sourceRootElem>
+                <sourceRootElem>MESHIO</sourceRootElem>
+                <sourceRootElem>GEOMETRY</sourceRootElem>
+            </sourceRootList>
+            <confList>
+                <confElem>
+                    <name>Debug</name>
+                    <type>1</type>
+                </confElem>
+                <confElem>
+                    <name>Release</name>
+                    <type>1</type>
+                </confElem>
+            </confList>
         </data>
     </configuration>
 </project>

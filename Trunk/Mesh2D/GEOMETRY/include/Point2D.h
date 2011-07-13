@@ -1,11 +1,8 @@
-/* 
- * File:   Point2D.h
- * Author: Ashish Gupta
- *
- * Created on April 20, 2010, 5:31 PM
- */
-
-
+/*******************************************************************************
+ * File:        Point2D.h
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
 
 #ifndef _POINT2D_H
 #define	_POINT2D_H

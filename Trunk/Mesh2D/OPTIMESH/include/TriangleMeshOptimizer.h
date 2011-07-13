@@ -1,10 +1,8 @@
-/* 
- * File:   TriangleMeshOptimizer.h
- * Author: Ashish Gupta
- *
- * Created on February 5, 2010, 7:22 PM
- * Modified on April 6, 2010
- */
+/*******************************************************************************
+ * File:        TriangleMeshOptimizer.h
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
 
 #ifndef _TRIANGLEMESHOPTIMIZER_H
 #define	_TRIANGLEMESHOPTIMIZER_H

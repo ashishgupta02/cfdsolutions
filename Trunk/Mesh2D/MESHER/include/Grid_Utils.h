@@ -1,9 +1,8 @@
-/* 
- * File:   Grid_Utils.h
- * Author: Ashish Gupta
- *
- * Created on February 5, 2010, 7:22 PM
- */
+/*******************************************************************************
+ * File:        Grid_Utils.h
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
 
 #ifndef _GRID_UTILS_H
 #define	_GRID_UTILS_H

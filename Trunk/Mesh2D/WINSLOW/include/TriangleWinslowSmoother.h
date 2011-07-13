@@ -1,10 +1,8 @@
-/* 
- * File:   TriangleWinslowSmoother.h
- * Author: Ashish Gupta
- *
- * Created on February 5, 2010, 7:22 PM
- * Modified on April 6, 2010
- */
+/*******************************************************************************
+ * File:        TriangleWinslowSmoother.h
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
 
 #ifndef _TRIANGLEWINSLOWSMOOTHER_H
 #define	_TRIANGLEWINSLOWSMOOTHER_H

@@ -1,10 +1,8 @@
-/*
- * File:   main.cpp
- * Author: Ashish Gupta
- * 
- * Created on February 5, 2010, 7:22 PM
- * Modified on April 6, 2010
- */
+/*******************************************************************************
+ * File:        main.cpp
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

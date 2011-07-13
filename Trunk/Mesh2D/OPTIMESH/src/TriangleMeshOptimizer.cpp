@@ -1,10 +1,8 @@
-/* 
- * File:   TriangleMeshOptimizer.cpp
- * Author: Ashish Gupta
- * 
- * Created on February 5, 2010, 7:22 PM
- * Modified on April 6, 2010
- */
+/*******************************************************************************
+ * File:        TriangleMeshOptimizer.cpp
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>

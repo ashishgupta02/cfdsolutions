@@ -1,9 +1,8 @@
-/*
- * File:   Grid_Utils.cpp
- * Author: Ashish Gupta
- *
- * Created on February 5, 2010, 7:22 PM
- */
+/*******************************************************************************
+ * File:        Grid_Utils.cpp
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
 
 // For Double Min-Max
 #include <float.h>

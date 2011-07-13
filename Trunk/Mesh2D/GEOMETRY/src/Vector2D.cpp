@@ -1,9 +1,8 @@
-/*
- * File:   Vector2D.cpp
- * Author: Ashish Gupta
- *
- * Created on April 20, 2010, 5:52 PM
- */
+/*******************************************************************************
+ * File:        Vector2D.cpp
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
 
 #include <stdio.h>
 #include <math.h>

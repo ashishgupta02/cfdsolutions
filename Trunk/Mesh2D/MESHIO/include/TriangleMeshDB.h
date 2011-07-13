@@ -1,9 +1,8 @@
-/* 
- * File:   TriangleMeshDB.h
- * Author: Ashish Gupta
- *
- * Created on March 15, 2010, 10:38 PM
- */
+/*******************************************************************************
+ * File:        TriangleMeshDB.h
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
 
 #ifndef _TRIANGLEMESHDB_H
 #define	_TRIANGLEMESHDB_H

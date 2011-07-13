@@ -1,9 +1,8 @@
-/* 
- * File:   TriangleMesher2D.cpp
- * Author: Ashish Gupta
- *
- * Created on February 5, 2010, 7:22 PM
- */
+/*******************************************************************************
+ * File:        TriangleMesher2D.cpp
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>

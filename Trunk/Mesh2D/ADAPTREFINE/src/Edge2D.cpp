@@ -1,9 +1,8 @@
-/*
- * File:   Edge2D.cpp
- * Author: Ashish Gupta
- *
- * Created on April 24, 2010, 2:24 PM
- */
+/*******************************************************************************
+ * File:        Edge2D.cpp
+ * Author:      Ashish Gupta
+ * Revision:    4
+ ******************************************************************************/
 
 #include <stdlib.h>
 #include "Edge2D.h"
