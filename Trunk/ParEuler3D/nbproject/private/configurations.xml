@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="69">
+<configurationDescriptor version="79">
   <projectmakefile>Makefile</projectmakefile>
-  <defaultConf>0</defaultConf>
   <confs>
     <conf name="Debug" type="1">
+      <toolsSet>
+        <developmentServer>localhost</developmentServer>
+        <platform>2</platform>
+      </toolsSet>
       <dbx_gdbdebugger version="1">
         <gdb_pathmaps>
         </gdb_pathmaps>
@@ -16,40 +19,19 @@
         </gdb_options>
         <gdb_buildfirst gdb_buildfirst_overriden="false" gdb_buildfirst_old="false"/>
       </dbx_gdbdebugger>
-      <dbxdebugger version="1">
-        <pathmaps>
-        </pathmaps>
-        <interceptlist>
-          <interceptoptions all="false" unhandled="true" unexpected="true"/>
-        </interceptlist>
-        <signals>
-        </signals>
-        <options>
-          <DebugOptions>
-          </DebugOptions>
-        </options>
-        <buildfirst buildfirst_overriden="false" buildfirst_old="false"/>
-      </dbxdebugger>
-      <dbxrtc version="1">
-        <options>
-          <RtcOptions>
-            <option name="rtc_error_log_file_name" value="/dev/null"/>
-          </RtcOptions>
-        </options>
-        <loadobjs>
-        </loadobjs>
-      </dbxrtc>
       <gizmo_options version="3">
         <configurationname>GizmoSimple</configurationname>
       </gizmo_options>
       <nativedebugger version="1">
-        <engine>dbx</engine>
+        <engine>gdb</engine>
       </nativedebugger>
-      <runprofile version="6">
-        <args></args>
+      <runprofile version="9">
+        <runcommandpicklist>
+          <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
+        </runcommandpicklist>
+        <runcommand>"${OUTPUT_PATH}"</runcommand>
         <rundir></rundir>
         <buildfirst>true</buildfirst>
-        <console-type>0</console-type>
         <terminal-type>0</terminal-type>
         <remove-instrumentation>0</remove-instrumentation>
         <environment>
@@ -57,6 +39,10 @@
       </runprofile>
     </conf>
     <conf name="Release" type="1">
+      <toolsSet>
+        <developmentServer>localhost</developmentServer>
+        <platform>2</platform>
+      </toolsSet>
       <dbx_gdbdebugger version="1">
         <gdb_pathmaps>
         </gdb_pathmaps>
@@ -69,40 +55,19 @@
         </gdb_options>
         <gdb_buildfirst gdb_buildfirst_overriden="false" gdb_buildfirst_old="false"/>
       </dbx_gdbdebugger>
-      <dbxdebugger version="1">
-        <pathmaps>
-        </pathmaps>
-        <interceptlist>
-          <interceptoptions all="false" unhandled="true" unexpected="true"/>
-        </interceptlist>
-        <signals>
-        </signals>
-        <options>
-          <DebugOptions>
-          </DebugOptions>
-        </options>
-        <buildfirst buildfirst_overriden="false" buildfirst_old="false"/>
-      </dbxdebugger>
-      <dbxrtc version="1">
-        <options>
-          <RtcOptions>
-            <option name="rtc_error_log_file_name" value="/dev/null"/>
-          </RtcOptions>
-        </options>
-        <loadobjs>
-        </loadobjs>
-      </dbxrtc>
       <gizmo_options version="3">
         <configurationname>GizmoSimple</configurationname>
       </gizmo_options>
       <nativedebugger version="1">
-        <engine>dbx</engine>
+        <engine>gdb</engine>
       </nativedebugger>
-      <runprofile version="6">
-        <args></args>
+      <runprofile version="9">
+        <runcommandpicklist>
+          <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
+        </runcommandpicklist>
+        <runcommand>"${OUTPUT_PATH}"</runcommand>
         <rundir></rundir>
         <buildfirst>true</buildfirst>
-        <console-type>0</console-type>
         <terminal-type>0</terminal-type>
         <remove-instrumentation>0</remove-instrumentation>
         <environment>
