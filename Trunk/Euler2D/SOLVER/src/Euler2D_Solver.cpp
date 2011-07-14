@@ -42,9 +42,11 @@ void Euler2D_Solver::Init() {
     CFL_Ramp                     = 0;
     CFL_Min                      = 0.0;
     CFL_Max                      = 0.0;
-    SolverBlockMatrix.VectorSize = 0;
-    SolverBlockMatrix.BlockSize  = 0;
-    SolverBlockMatrix.CRSSize    = 0;
+    SolverBlockMatrix.nROW       = 0;
+    SolverBlockMatrix.nCOL       = 0;
+    SolverBlockMatrix.Block_nRow = 0;
+    SolverBlockMatrix.Block_nCol = 0;
+    SolverBlockMatrix.DIM        = 0;
     SolverBlockMatrix.A          = NULL;
     SolverBlockMatrix.B          = NULL;
     SolverBlockMatrix.IA         = NULL;
@@ -71,9 +73,9 @@ Euler2D_Solver::~Euler2D_Solver() {
     int i, j;
 
     if (SolverBlockMatrix.A != NULL) {
-        for (i = 0; i < SolverBlockMatrix.CRSSize; i++) {
+        for (i = 0; i < SolverBlockMatrix.DIM; i++) {
             if (SolverBlockMatrix.A[i] != NULL) {
-                for (j = 0; j < SolverBlockMatrix.BlockSize; j++) {
+                for (j = 0; j < SolverBlockMatrix.Block_nRow; j++) {
                     if (SolverBlockMatrix.A[i][j] != NULL)
                         free(SolverBlockMatrix.A[i][j]);
                 }
@@ -83,14 +85,14 @@ Euler2D_Solver::~Euler2D_Solver() {
         free(SolverBlockMatrix.A);
     }
     if (SolverBlockMatrix.B != NULL) {
-        for (i = 0; i < SolverBlockMatrix.VectorSize ; i++) {
+        for (i = 0; i < SolverBlockMatrix.nROW; i++) {
             if (SolverBlockMatrix.B[i] != NULL)
                 free(SolverBlockMatrix.B[i]);
         }
         free(SolverBlockMatrix.B);
     }
     if (SolverBlockMatrix.X != NULL) {
-        for (i = 0; i < SolverBlockMatrix.VectorSize ; i++) {
+        for (i = 0; i < SolverBlockMatrix.nROW; i++) {
             if (SolverBlockMatrix.X[i] != NULL)
                 free(SolverBlockMatrix.X[i]);
         }

@@ -767,16 +767,16 @@ void Euler2D_Design_VanLeer::Compute_Direct_dQdBeta() {
     double lrms;
 
     // Update the CRS Design Matrix with solver dR/dQ and
-    for (i = 0; i < DesignBlockMatrix.CRSSize; i++) {
-        for (j = 0; j < 4; j++) {
-            for (k = 0; k < 4; k++)
+    for (i = 0; i < DesignBlockMatrix.DIM; i++) {
+        for (j = 0; j < DesignBlockMatrix.Block_nRow; j++) {
+            for (k = 0; k < DesignBlockMatrix.Block_nCol; k++)
                 DesignBlockMatrix.A[i][j][k] = SolverBlockMatrix.A[i][j][k];
         }
     }
 
     // Update the CRS Design Matrix Vector B with dR/dBeta
     for (iNode = 0; iNode < mesh.nnodes; iNode++) {
-        for (j = 0; j < DesignBlockMatrix.BlockSize; j++) {
+        for (j = 0; j < DesignBlockMatrix.Block_nRow; j++) {
             DesignBlockMatrix.B[iNode][j] = -dRdX_dXdBeta[iNode][j];
         }
     }
@@ -793,7 +793,7 @@ void Euler2D_Design_VanLeer::Compute_Direct_dQdBeta() {
 
     // Get the Solution
     for (iNode = 0; iNode < mesh.nnodes; iNode++) {
-        for (j = 0; j < DesignBlockMatrix.BlockSize; j++)
+        for (j = 0; j < DesignBlockMatrix.Block_nRow; j++)
             dQdBeta[iNode][j] = DesignBlockMatrix.X[iNode][j];
     }
 }
@@ -831,7 +831,7 @@ void Euler2D_Design_VanLeer::Verify_Direct_dQdBeta() {
         Solver2.Solver_Finalize();
     };
 
-    // Read the Solver1 Q for the Perticular Node
+    // Read the Solver1 Q for the Particular Node
     // Open Mesh File
     if ((fp = fopen("OutputRestart1.q", "rb")) == (FILE *) NULL)
         error("Verify_dQdBeta: Unable to Open Mesh File OutputRestart1.q");
@@ -1347,7 +1347,7 @@ void Euler2D_Design_VanLeer::Compute_Adjoint_dIdQ() {
         bn[0] = edge[iedge].node1;
         bn[1] = edge[iedge].node2;
 
-        // Get the coordiantes
+        // Get the coordinates
         x[0]  = node[bn[0]].x;
         y[0]  = node[bn[0]].y;
         x[1]  = node[bn[1]].x;
@@ -1469,11 +1469,11 @@ void Euler2D_Design_VanLeer::Compute_Adjoint_Lambda() {
     
     // Update the CRS Design Matrix with solver trans[dR/dQ]
     // Allocate memory to store the transpose locations
-    connect = (int *) malloc(DesignBlockMatrix.CRSSize*sizeof(int));
+    connect = (int *) malloc(DesignBlockMatrix.DIM*sizeof(int));
     // Step - 1 Get the transpose location
     count = 0;
     for (iNode = 0; iNode < mesh.nnodes; iNode++) {
-        for (i = 0; i < DesignBlockMatrix.CRSSize; i++) {
+        for (i = 0; i < DesignBlockMatrix.DIM; i++) {
             if (DesignBlockMatrix.JA[i] == iNode) {
                 connect[count] = i;
                 count++;
@@ -1482,16 +1482,16 @@ void Euler2D_Design_VanLeer::Compute_Adjoint_Lambda() {
     }
     
     // Step - 2: Copy the transpose to new location
-    for (i = 0; i < DesignBlockMatrix.CRSSize; i++) {
-        for (j = 0; j < DesignBlockMatrix.BlockSize; j++) {
-            for (k = 0; k < DesignBlockMatrix.BlockSize; k++)
+    for (i = 0; i < DesignBlockMatrix.DIM; i++) {
+        for (j = 0; j < DesignBlockMatrix.Block_nRow; j++) {
+            for (k = 0; k < DesignBlockMatrix.Block_nCol; k++)
                 DesignBlockMatrix.A[i][k][j] = SolverBlockMatrix.A[connect[i]][j][k];
         }
     }
 
     // Update the CRS Design Matrix Vector B with dR/dBeta
     for (iNode = 0; iNode < mesh.nnodes; iNode++) {
-        for (j = 0; j < DesignBlockMatrix.BlockSize; j++) {
+        for (j = 0; j < DesignBlockMatrix.Block_nRow; j++) {
             DesignBlockMatrix.B[iNode][j] = dIdQ[iNode][j];
         }
     }
@@ -1507,7 +1507,7 @@ void Euler2D_Design_VanLeer::Compute_Adjoint_Lambda() {
 #endif
     // Get the Solution
     for (iNode = 0; iNode < mesh.nnodes; iNode++) {
-        for (j = 0; j < DesignBlockMatrix.BlockSize; j++)
+        for (j = 0; j < DesignBlockMatrix.Block_nRow; j++)
             Lambda[iNode][j] = DesignBlockMatrix.X[iNode][j];
     }
     

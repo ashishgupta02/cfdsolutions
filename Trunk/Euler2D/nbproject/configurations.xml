@@ -15,14 +15,6 @@
                    displayName="Header Files"
                    projectFiles="true">
     </logicalFolder>
-    <logicalFolder name="MATCOMP" displayName="MATCOMP" projectFiles="true">
-      <logicalFolder name="include" displayName="include" projectFiles="true">
-        <itemPath>MATCOMP/include/MC.h</itemPath>
-      </logicalFolder>
-      <logicalFolder name="src" displayName="src" projectFiles="true">
-        <itemPath>MATCOMP/src/MC_Iterative_Jacobi.c</itemPath>
-      </logicalFolder>
-    </logicalFolder>
     <logicalFolder name="MESH" displayName="MESH" projectFiles="true">
       <logicalFolder name="include" displayName="include" projectFiles="true">
         <itemPath>MESH/include/Euler2D_Mesh.h</itemPath>
@@ -71,7 +63,6 @@
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
-    <Elem>MATCOMP</Elem>
     <Elem>MESH</Elem>
     <Elem>SOLVER</Elem>
     <Elem>DESIGN</Elem>
@@ -88,13 +79,14 @@
           <commandlineTool>gcc</commandlineTool>
           <incDir>
             <pElem>../UTILS/include</pElem>
-            <pElem>MATCOMP/include</pElem>
+            <pElem>../MATH/include</pElem>
             <pElem>MESH/include</pElem>
             <pElem>SOLVER/include</pElem>
             <pElem>DESIGN/include</pElem>
           </incDir>
           <preprocessorList>
             <Elem>VERBOSE</Elem>
+            <Elem>DEBUG</Elem>
           </preprocessorList>
           <warningLevel>2</warningLevel>
         </cTool>
@@ -102,7 +94,7 @@
           <commandlineTool>g++</commandlineTool>
           <incDir>
             <pElem>../UTILS/include</pElem>
-            <pElem>MATCOMP/include</pElem>
+            <pElem>../MATH/include</pElem>
             <pElem>MESH/include</pElem>
             <pElem>SOLVER/include</pElem>
             <pElem>DESIGN/include</pElem>
@@ -110,6 +102,7 @@
           <commandLine>-Wno-write-strings</commandLine>
           <preprocessorList>
             <Elem>VERBOSE</Elem>
+            <Elem>DEBUG</Elem>
           </preprocessorList>
           <warningLevel>2</warningLevel>
         </ccTool>
@@ -135,20 +128,20 @@
                             OP="dist/Debug/GNU-Linux-x86/libUTILS.so">
               </makeArtifact>
             </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../MATH"
+                            CT="2"
+                            CN="Debug"
+                            AC="true"
+                            BL="true"
+                            WD="../MATH"
+                            BC="${MAKE}  -f Makefile CONF=Debug"
+                            CC="${MAKE}  -f Makefile CONF=Debug clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
           </linkerLibItems>
         </linkerTool>
-        <requiredProjects>
-          <makeArtifact PL="../UTILS"
-                        CT="2"
-                        CN="Debug"
-                        AC="true"
-                        BL="true"
-                        WD="../UTILS"
-                        BC="${MAKE}  -f Makefile CONF=Debug"
-                        CC="${MAKE}  -f Makefile CONF=Debug clean"
-                        OP="dist/Debug/GNU-Linux-x86/libUTILS.so">
-          </makeArtifact>
-        </requiredProjects>
       </compileType>
     </conf>
     <conf name="Release" type="1">
@@ -161,7 +154,7 @@
           <developmentMode>5</developmentMode>
           <incDir>
             <pElem>../UTILS/include</pElem>
-            <pElem>MATCOMP/include</pElem>
+            <pElem>../MATH/include</pElem>
             <pElem>MESH/include</pElem>
             <pElem>SOLVER/include</pElem>
             <pElem>DESIGN/include</pElem>
@@ -172,7 +165,7 @@
           <developmentMode>5</developmentMode>
           <incDir>
             <pElem>../UTILS/include</pElem>
-            <pElem>MATCOMP/include</pElem>
+            <pElem>../MATH/include</pElem>
             <pElem>MESH/include</pElem>
             <pElem>SOLVER/include</pElem>
             <pElem>DESIGN/include</pElem>
@@ -202,20 +195,20 @@
                             OP="dist/Release/GNU-Linux-x86/libUTILS.so">
               </makeArtifact>
             </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../MATH"
+                            CT="2"
+                            CN="Release"
+                            AC="false"
+                            BL="true"
+                            WD="../MATH"
+                            BC="${MAKE}  -f Makefile CONF=Release"
+                            CC="${MAKE}  -f Makefile CONF=Release clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
           </linkerLibItems>
         </linkerTool>
-        <requiredProjects>
-          <makeArtifact PL="../UTILS"
-                        CT="2"
-                        CN="Release"
-                        AC="false"
-                        BL="true"
-                        WD="../UTILS"
-                        BC="${MAKE}  -f Makefile CONF=Release"
-                        CC="${MAKE}  -f Makefile CONF=Release clean"
-                        OP="dist/Release/GNU-Linux-x86/libUTILS.so">
-          </makeArtifact>
-        </requiredProjects>
       </compileType>
     </conf>
   </confs>

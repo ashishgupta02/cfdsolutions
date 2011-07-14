@@ -5,15 +5,15 @@
         <data xmlns="http://www.netbeans.org/ns/make-project/1">
             <name>Euler2D</name>
             <make-project-type>0</make-project-type>
-            <c-extensions>c</c-extensions>
+            <c-extensions/>
             <cpp-extensions>cpp</cpp-extensions>
             <header-extensions>h</header-extensions>
             <sourceEncoding>UTF-8</sourceEncoding>
             <make-dep-projects>
+                <make-dep-project>../MATH</make-dep-project>
                 <make-dep-project>../UTILS</make-dep-project>
             </make-dep-projects>
             <sourceRootList>
-                <sourceRootElem>MATCOMP</sourceRootElem>
                 <sourceRootElem>MESH</sourceRootElem>
                 <sourceRootElem>SOLVER</sourceRootElem>
                 <sourceRootElem>DESIGN</sourceRootElem>

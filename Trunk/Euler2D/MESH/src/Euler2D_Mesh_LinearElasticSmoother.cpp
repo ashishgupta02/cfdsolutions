@@ -44,9 +44,11 @@ void Euler2D_Mesh_LinearElasticSmoother::Init() {
     boundaryEdge                   = NULL;
     boundaryNode                   = NULL;
     BNTag                          = NULL;
-    LESmoothBlockMatrix.VectorSize = 0;
-    LESmoothBlockMatrix.BlockSize  = 0;
-    LESmoothBlockMatrix.CRSSize    = 0;
+    LESmoothBlockMatrix.nROW       = 0;
+    LESmoothBlockMatrix.nCOL       = 0;
+    LESmoothBlockMatrix.Block_nRow = 0;
+    LESmoothBlockMatrix.Block_nCol = 0;
+    LESmoothBlockMatrix.DIM        = 0;
     LESmoothBlockMatrix.A          = NULL;
     LESmoothBlockMatrix.B          = NULL;
     LESmoothBlockMatrix.IA         = NULL;
@@ -94,9 +96,9 @@ void Euler2D_Mesh_LinearElasticSmoother::Reset() {
     LESmoothBlockMatrix.IAU = NULL;
     // Free the memory
     if (LESmoothBlockMatrix.A != NULL) {
-        for (i = 0; i < LESmoothBlockMatrix.CRSSize; i++) {
+        for (i = 0; i < LESmoothBlockMatrix.DIM; i++) {
             if (LESmoothBlockMatrix.A[i] != NULL) {
-                for (j = 0; j < LESmoothBlockMatrix.BlockSize; j++) {
+                for (j = 0; j < LESmoothBlockMatrix.Block_nRow; j++) {
                     if (LESmoothBlockMatrix.A[i][j] != NULL)
                         free(LESmoothBlockMatrix.A[i][j]);
                 }
@@ -106,14 +108,14 @@ void Euler2D_Mesh_LinearElasticSmoother::Reset() {
         free(LESmoothBlockMatrix.A);
     }
     if (LESmoothBlockMatrix.B != NULL) {
-        for (i = 0; i < LESmoothBlockMatrix.VectorSize ; i++) {
+        for (i = 0; i < LESmoothBlockMatrix.nROW ; i++) {
             if (LESmoothBlockMatrix.B[i] != NULL)
                 free(LESmoothBlockMatrix.B[i]);
         }
         free(LESmoothBlockMatrix.B);
     }
     if (LESmoothBlockMatrix.X != NULL) {
-        for (i = 0; i < LESmoothBlockMatrix.VectorSize ; i++) {
+        for (i = 0; i < LESmoothBlockMatrix.nROW ; i++) {
             if (LESmoothBlockMatrix.X[i] != NULL)
                 free(LESmoothBlockMatrix.X[i]);
         }
@@ -224,9 +226,11 @@ void Euler2D_Mesh_LinearElasticSmoother::Create_CRS_LESmoothBlockMatrix(MC_CRS *
     int i, j, k;
 
     // Get the value from Solver Block Matrix
-    LESmoothBlockMatrix.VectorSize = VectorSize;
-    LESmoothBlockMatrix.BlockSize  = BlockSize;
-    LESmoothBlockMatrix.CRSSize    = Object->CRSSize;
+    LESmoothBlockMatrix.nROW = VectorSize;
+    LESmoothBlockMatrix.nCOL = VectorSize;
+    LESmoothBlockMatrix.Block_nRow = BlockSize;
+    LESmoothBlockMatrix.Block_nCol = BlockSize;
+    LESmoothBlockMatrix.DIM        = Object->DIM;
     // Share the memory with Solver Block Matrix
     LESmoothBlockMatrix.IA         = Object->IA;
     LESmoothBlockMatrix.IAU        = Object->IAU;
@@ -235,63 +239,63 @@ void Euler2D_Mesh_LinearElasticSmoother::Create_CRS_LESmoothBlockMatrix(MC_CRS *
     // Allocate Memory for Design Specific Computations
     // Allocate Memory for CRS Matrix
     LESmoothBlockMatrix.A = NULL;
-    LESmoothBlockMatrix.A = (double ***) malloc (LESmoothBlockMatrix.CRSSize*sizeof(double**));
+    LESmoothBlockMatrix.A = (double ***) malloc (LESmoothBlockMatrix.DIM*sizeof(double**));
 #ifdef DEBUG
     if (LESmoothBlockMatrix.A == NULL)
         error("Create_CRS_LESmoothBlockMatrix: %s\n", "Error Allocating Memory 1");
 #endif
-    for (i = 0; i < LESmoothBlockMatrix.CRSSize; i++) {
+    for (i = 0; i < LESmoothBlockMatrix.DIM; i++) {
         LESmoothBlockMatrix.A[i] = NULL;
-        LESmoothBlockMatrix.A[i] = (double **) malloc (LESmoothBlockMatrix.BlockSize*sizeof(double*));
+        LESmoothBlockMatrix.A[i] = (double **) malloc (LESmoothBlockMatrix.Block_nRow*sizeof(double*));
 #ifdef DEBUG
         if (LESmoothBlockMatrix.A[i] == NULL)
             error("Create_CRS_LESmoothBlockMatrix: %s\n", "Error Allocating Memory 2");
 #endif
-        for (j = 0; j < LESmoothBlockMatrix.BlockSize; j++) {
+        for (j = 0; j < LESmoothBlockMatrix.Block_nRow; j++) {
             LESmoothBlockMatrix.A[i][j] = NULL;
-            LESmoothBlockMatrix.A[i][j] = (double *) malloc (LESmoothBlockMatrix.BlockSize*sizeof(double));
+            LESmoothBlockMatrix.A[i][j] = (double *) malloc (LESmoothBlockMatrix.Block_nCol*sizeof(double));
 #ifdef DEBUG
             if (LESmoothBlockMatrix.A[i] == NULL)
                 error("Create_CRS_LESmoothBlockMatrix: %s\n", "Error Allocating Memory 3");
 #endif
-            for (k = 0; k < LESmoothBlockMatrix.BlockSize; k++)
+            for (k = 0; k < LESmoothBlockMatrix.Block_nCol; k++)
                 LESmoothBlockMatrix.A[i][j][k] = 0.0;
         }
     }
 
     // Allocate Memory of RHS
     LESmoothBlockMatrix.B = NULL;
-    LESmoothBlockMatrix.B = (double **) malloc (LESmoothBlockMatrix.VectorSize*sizeof(double*));
+    LESmoothBlockMatrix.B = (double **) malloc (LESmoothBlockMatrix.nROW*sizeof(double*));
 #ifdef DEBUG
     if (LESmoothBlockMatrix.B == NULL)
         error("Create_CRS_LESmoothBlockMatrix: %s\n", "Error Allocating Memory 4");
 #endif
-    for (i = 0; i < LESmoothBlockMatrix.VectorSize; i++) {
+    for (i = 0; i < LESmoothBlockMatrix.nROW; i++) {
         LESmoothBlockMatrix.B[i] = NULL;
-        LESmoothBlockMatrix.B[i] = (double *) malloc (LESmoothBlockMatrix.BlockSize*sizeof(double));
+        LESmoothBlockMatrix.B[i] = (double *) malloc (LESmoothBlockMatrix.Block_nRow*sizeof(double));
 #ifdef DEBUG
         if (LESmoothBlockMatrix.B[i] == NULL)
             error("Create_CRS_LESmoothBlockMatrix: %s\n", "Error Allocating Memory 5");
 #endif
-        for (j = 0; j < LESmoothBlockMatrix.BlockSize; j++)
+        for (j = 0; j < LESmoothBlockMatrix.Block_nRow; j++)
             LESmoothBlockMatrix.B[i][j] = 0.0;
     }
 
     // Allocate Memory for X
     LESmoothBlockMatrix.X = NULL;
-    LESmoothBlockMatrix.X = (double **) malloc (LESmoothBlockMatrix.VectorSize*sizeof(double*));
+    LESmoothBlockMatrix.X = (double **) malloc (LESmoothBlockMatrix.nROW*sizeof(double*));
 #ifdef DEBUG
     if (LESmoothBlockMatrix.X == NULL)
         error("Create_CRS_LESmoothBlockMatrix: %s\n", "Error Allocating Memory 6");
 #endif
-    for (i = 0; i < LESmoothBlockMatrix.VectorSize; i++) {
+    for (i = 0; i < LESmoothBlockMatrix.nROW; i++) {
         LESmoothBlockMatrix.X[i] = NULL;
-        LESmoothBlockMatrix.X[i] = (double *) malloc (LESmoothBlockMatrix.BlockSize*sizeof(double));
+        LESmoothBlockMatrix.X[i] = (double *) malloc (LESmoothBlockMatrix.Block_nRow*sizeof(double));
 #ifdef DEBUG
         if (LESmoothBlockMatrix.X[i] == NULL)
             error("Create_CRS_LESmoothBlockMatrix: %s\n", "Error Allocating Memory 7");
 #endif
-        for (j = 0; j < LESmoothBlockMatrix.BlockSize; j++)
+        for (j = 0; j < LESmoothBlockMatrix.Block_nRow; j++)
             LESmoothBlockMatrix.X[i][j] = 0.0;
     }
 }
@@ -315,9 +319,9 @@ void Euler2D_Mesh_LinearElasticSmoother::Compute_CRS_LESmoothBlockMatrix() {
     n2 = -1;
 
     // Initialize the CRS Matrix
-    for (i = 0; i < LESmoothBlockMatrix.CRSSize; i++) {
-        for (j = 0; j < LESmoothBlockMatrix.BlockSize; j++)
-            for (k = 0; k < LESmoothBlockMatrix.BlockSize; k++)
+    for (i = 0; i < LESmoothBlockMatrix.DIM; i++) {
+        for (j = 0; j < LESmoothBlockMatrix.Block_nRow; j++)
+            for (k = 0; k < LESmoothBlockMatrix.Block_nCol; k++)
                 LESmoothBlockMatrix.A[i][j][k] = 0.0;
     }
     
