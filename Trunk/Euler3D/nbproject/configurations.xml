@@ -5,19 +5,12 @@
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>include/Commons.h</itemPath>
-      <itemPath>include/Complex.h</itemPath>
       <itemPath>include/CompressibleUtils.h</itemPath>
       <itemPath>include/DebugSolver.h</itemPath>
-      <itemPath>include/DoubleList.h</itemPath>
       <itemPath>include/Gradient.h</itemPath>
-      <itemPath>include/List.h</itemPath>
-      <itemPath>include/MC.h</itemPath>
       <itemPath>include/MeshIO.h</itemPath>
-      <itemPath>include/Point3D.h</itemPath>
       <itemPath>include/RestartIO.h</itemPath>
       <itemPath>include/Solver.h</itemPath>
-      <itemPath>include/Trim_Utils.h</itemPath>
-      <itemPath>include/Vector3D.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -33,21 +26,15 @@
       <itemPath>src/Connectivity_Maps.cpp</itemPath>
       <itemPath>src/Cuthill_Mckee_Reorder.cpp</itemPath>
       <itemPath>src/DebugSolver.cpp</itemPath>
-      <itemPath>src/DoubleList.cpp</itemPath>
       <itemPath>src/Gradient.cpp</itemPath>
       <itemPath>src/HigherOrderReconstructQ.cpp</itemPath>
       <itemPath>src/Limiters.cpp</itemPath>
-      <itemPath>src/List.cpp</itemPath>
-      <itemPath>src/MC_Iterative_Jacobi.c</itemPath>
       <itemPath>src/MeshIO.cpp</itemPath>
-      <itemPath>src/Point3D.cpp</itemPath>
       <itemPath>src/RestartIO.cpp</itemPath>
       <itemPath>src/Roe_EntropyFix.cpp</itemPath>
       <itemPath>src/Roe_Fluxes.cpp</itemPath>
       <itemPath>src/Solver.cpp</itemPath>
       <itemPath>src/Time_Step.cpp</itemPath>
-      <itemPath>src/Trim_Utils.c</itemPath>
-      <itemPath>src/Vector3D.cpp</itemPath>
       <itemPath>main.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -74,6 +61,8 @@
           <developmentMode>5</developmentMode>
           <commandlineTool>gcc</commandlineTool>
           <incDir>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
             <pElem>include</pElem>
           </incDir>
           <warningLevel>2</warningLevel>
@@ -82,6 +71,8 @@
           <developmentMode>5</developmentMode>
           <commandlineTool>g++</commandlineTool>
           <incDir>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
             <pElem>include</pElem>
           </incDir>
           <commandLine>-Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer</commandLine>
@@ -97,6 +88,32 @@
         </asmTool>
         <linkerTool>
           <commandlineTool>g++</commandlineTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Release"
+                            AC="false"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Release"
+                            CC="${MAKE}  -f Makefile CONF=Release clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../MATH"
+                            CT="2"
+                            CN="Release"
+                            AC="false"
+                            BL="true"
+                            WD="../MATH"
+                            BC="${MAKE}  -f Makefile CONF=Release"
+                            CC="${MAKE}  -f Makefile CONF=Release clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
           <commandLine>-lstdc++ -lm</commandLine>
         </linkerTool>
       </compileType>
@@ -110,6 +127,8 @@
         <cTool>
           <commandlineTool>gcc</commandlineTool>
           <incDir>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
             <pElem>include</pElem>
           </incDir>
           <warningLevel>2</warningLevel>
@@ -117,6 +136,8 @@
         <ccTool>
           <commandlineTool>g++</commandlineTool>
           <incDir>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
             <pElem>include</pElem>
           </incDir>
           <commandLine>-Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer</commandLine>
@@ -130,6 +151,32 @@
         </asmTool>
         <linkerTool>
           <commandlineTool>g++</commandlineTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Debug"
+                            AC="true"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Debug"
+                            CC="${MAKE}  -f Makefile CONF=Debug clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../MATH"
+                            CT="2"
+                            CN="Debug"
+                            AC="true"
+                            BL="true"
+                            WD="../MATH"
+                            BC="${MAKE}  -f Makefile CONF=Debug"
+                            CC="${MAKE}  -f Makefile CONF=Debug clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
           <commandLine>-lstdc++ -lm</commandLine>
         </linkerTool>
       </compileType>
@@ -143,6 +190,8 @@
         <cTool>
           <developmentMode>5</developmentMode>
           <incDir>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
             <pElem>include</pElem>
           </incDir>
           <warningLevel>2</warningLevel>
@@ -150,6 +199,8 @@
         <ccTool>
           <developmentMode>5</developmentMode>
           <incDir>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
             <pElem>include</pElem>
           </incDir>
           <warningLevel>2</warningLevel>
@@ -163,6 +214,32 @@
           <warningLevel>2</warningLevel>
         </asmTool>
         <linkerTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Release"
+                            AC="false"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Release"
+                            CC="${MAKE}  -f Makefile CONF=Release clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../MATH"
+                            CT="2"
+                            CN="Release"
+                            AC="false"
+                            BL="true"
+                            WD="../MATH"
+                            BC="${MAKE}  -f Makefile CONF=Release"
+                            CC="${MAKE}  -f Makefile CONF=Release clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
           <commandLine>-lstdc++</commandLine>
         </linkerTool>
       </compileType>
@@ -175,12 +252,16 @@
       <compileType>
         <cTool>
           <incDir>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
             <pElem>include</pElem>
           </incDir>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
           <incDir>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
             <pElem>include</pElem>
           </incDir>
           <warningLevel>2</warningLevel>
@@ -192,6 +273,32 @@
           <warningLevel>2</warningLevel>
         </asmTool>
         <linkerTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Debug"
+                            AC="true"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Debug"
+                            CC="${MAKE}  -f Makefile CONF=Debug clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../MATH"
+                            CT="2"
+                            CN="Debug"
+                            AC="true"
+                            BL="true"
+                            WD="../MATH"
+                            BC="${MAKE}  -f Makefile CONF=Debug"
+                            CC="${MAKE}  -f Makefile CONF=Debug clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
           <commandLine>-lstdc++</commandLine>
         </linkerTool>
       </compileType>
