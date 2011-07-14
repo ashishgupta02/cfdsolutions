@@ -9,20 +9,6 @@
         <itemPath>CommMPI/src/CommMPI.cpp</itemPath>
       </logicalFolder>
     </logicalFolder>
-    <logicalFolder name="GEOMETRY" displayName="GEOMETRY" projectFiles="true">
-      <logicalFolder name="include" displayName="include" projectFiles="true">
-        <itemPath>GEOMETRY/include/Point2D.h</itemPath>
-        <itemPath>GEOMETRY/include/Point3D.h</itemPath>
-        <itemPath>GEOMETRY/include/Vector2D.h</itemPath>
-        <itemPath>GEOMETRY/include/Vector3D.h</itemPath>
-      </logicalFolder>
-      <logicalFolder name="src" displayName="src" projectFiles="true">
-        <itemPath>GEOMETRY/src/Point2D.cpp</itemPath>
-        <itemPath>GEOMETRY/src/Point3D.cpp</itemPath>
-        <itemPath>GEOMETRY/src/Vector2D.cpp</itemPath>
-        <itemPath>GEOMETRY/src/Vector3D.cpp</itemPath>
-      </logicalFolder>
-    </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
@@ -73,7 +59,6 @@
   <sourceRootList>
     <Elem>MESHIO</Elem>
     <Elem>CommMPI</Elem>
-    <Elem>GEOMETRY</Elem>
     <Elem>SOLVER</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
@@ -87,16 +72,26 @@
       <compileType>
         <cTool>
           <commandlineTool>mpicc</commandlineTool>
+          <incDir>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
+            <pElem>../CFDDB/include</pElem>
+            <pElem>.</pElem>
+            <pElem>CommMPI/include</pElem>
+            <pElem>MESHIO/include</pElem>
+            <pElem>SOLVER/include</pElem>
+            <pElem>../../../../00-Applications/HPC_LIBS/include</pElem>
+          </incDir>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
           <commandlineTool>mpic++</commandlineTool>
           <incDir>
             <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
             <pElem>../CFDDB/include</pElem>
             <pElem>.</pElem>
             <pElem>CommMPI/include</pElem>
-            <pElem>GEOMETRY/include</pElem>
             <pElem>MESHIO/include</pElem>
             <pElem>SOLVER/include</pElem>
             <pElem>../../../../00-Applications/HPC_LIBS/include</pElem>
@@ -130,6 +125,18 @@
               </makeArtifact>
             </linkerLibProjectItem>
             <linkerLibProjectItem>
+              <makeArtifact PL="../MATH"
+                            CT="2"
+                            CN="Debug"
+                            AC="true"
+                            BL="true"
+                            WD="../MATH"
+                            BC="${MAKE}  -f Makefile CONF=Debug"
+                            CC="${MAKE}  -f Makefile CONF=Debug clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
               <makeArtifact PL="../CFDDB"
                             CT="2"
                             CN="Debug"
@@ -144,28 +151,6 @@
             <linkerOptionItem>-lcgns -lnetcdf -lparmetis -lmetis</linkerOptionItem>
           </linkerLibItems>
         </linkerTool>
-        <requiredProjects>
-          <makeArtifact PL="../UTILS"
-                        CT="2"
-                        CN="Debug"
-                        AC="true"
-                        BL="true"
-                        WD="../UTILS"
-                        BC="${MAKE}  -f Makefile CONF=Debug"
-                        CC="${MAKE}  -f Makefile CONF=Debug clean"
-                        OP="dist/Debug/GNU-Linux-x86/libUTILS.so">
-          </makeArtifact>
-          <makeArtifact PL="../CFDDB"
-                        CT="2"
-                        CN="Debug"
-                        AC="true"
-                        BL="true"
-                        WD="../CFDDB"
-                        BC="${MAKE}  -f Makefile CONF=Debug"
-                        CC="${MAKE}  -f Makefile CONF=Debug clean"
-                        OP="dist/Debug/GNU-Linux-x86/libCFDDB.so">
-          </makeArtifact>
-        </requiredProjects>
       </compileType>
     </conf>
     <conf name="Release" type="1">
@@ -178,6 +163,16 @@
         <cTool>
           <developmentMode>5</developmentMode>
           <commandlineTool>mpicc</commandlineTool>
+          <incDir>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
+            <pElem>../CFDDB/include</pElem>
+            <pElem>.</pElem>
+            <pElem>CommMPI/include</pElem>
+            <pElem>MESHIO/include</pElem>
+            <pElem>SOLVER/include</pElem>
+            <pElem>../../../../00-Applications/HPC_LIBS/include</pElem>
+          </incDir>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
@@ -185,10 +180,10 @@
           <commandlineTool>mpic++</commandlineTool>
           <incDir>
             <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
             <pElem>../CFDDB/include</pElem>
             <pElem>.</pElem>
             <pElem>CommMPI/include</pElem>
-            <pElem>GEOMETRY/include</pElem>
             <pElem>MESHIO/include</pElem>
             <pElem>SOLVER/include</pElem>
             <pElem>../../../../00-Applications/HPC_LIBS/include</pElem>
@@ -223,6 +218,18 @@
               </makeArtifact>
             </linkerLibProjectItem>
             <linkerLibProjectItem>
+              <makeArtifact PL="../MATH"
+                            CT="2"
+                            CN="Release"
+                            AC="false"
+                            BL="true"
+                            WD="../MATH"
+                            BC="${MAKE}  -f Makefile CONF=Release"
+                            CC="${MAKE}  -f Makefile CONF=Release clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
               <makeArtifact PL="../CFDDB"
                             CT="2"
                             CN="Release"
@@ -237,28 +244,6 @@
             <linkerOptionItem>-lcgns -lnetcdf -lparmetis -lmetis</linkerOptionItem>
           </linkerLibItems>
         </linkerTool>
-        <requiredProjects>
-          <makeArtifact PL="../UTILS"
-                        CT="2"
-                        CN="Release"
-                        AC="false"
-                        BL="true"
-                        WD="../UTILS"
-                        BC="${MAKE}  -f Makefile CONF=Release"
-                        CC="${MAKE}  -f Makefile CONF=Release clean"
-                        OP="dist/Release/GNU-Linux-x86/libUTILS.so">
-          </makeArtifact>
-          <makeArtifact PL="../CFDDB"
-                        CT="2"
-                        CN="Release"
-                        AC="false"
-                        BL="true"
-                        WD="../CFDDB"
-                        BC="${MAKE}  -f Makefile CONF=Release"
-                        CC="${MAKE}  -f Makefile CONF=Release clean"
-                        OP="dist/Release/GNU-Linux-x86/libCFDDB.so">
-          </makeArtifact>
-        </requiredProjects>
       </compileType>
     </conf>
   </confs>
