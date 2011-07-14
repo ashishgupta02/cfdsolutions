@@ -11,16 +11,6 @@
         <itemPath>ADAPTREFINE/src/TriangleAdaptiveRefinement.cpp</itemPath>
       </logicalFolder>
     </logicalFolder>
-    <logicalFolder name="GEOMETRY" displayName="GEOMETRY" projectFiles="true">
-      <logicalFolder name="include" displayName="include" projectFiles="true">
-        <itemPath>GEOMETRY/include/Point2D.h</itemPath>
-        <itemPath>GEOMETRY/include/Vector2D.h</itemPath>
-      </logicalFolder>
-      <logicalFolder name="src" displayName="src" projectFiles="true">
-        <itemPath>GEOMETRY/src/Point2D.cpp</itemPath>
-        <itemPath>GEOMETRY/src/Vector2D.cpp</itemPath>
-      </logicalFolder>
-    </logicalFolder>
     <logicalFolder name="f1" displayName="Header Files" projectFiles="true">
     </logicalFolder>
     <logicalFolder name="LESMOOTH" displayName="LESMOOTH" projectFiles="true">
@@ -116,6 +106,7 @@
           <commandlineTool>gcc</commandlineTool>
           <incDir>
             <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
             <pElem>MESHER/include</pElem>
             <pElem>OPTIMESH/include</pElem>
             <pElem>WINSLOW/include</pElem>
@@ -123,7 +114,6 @@
             <pElem>WINSLOWVV/include</pElem>
             <pElem>ADAPTREFINE/include</pElem>
             <pElem>MESHIO/include</pElem>
-            <pElem>GEOMETRY/include</pElem>
           </incDir>
           <warningLevel>2</warningLevel>
         </cTool>
@@ -131,6 +121,7 @@
           <commandlineTool>g++</commandlineTool>
           <incDir>
             <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
             <pElem>MESHER/include</pElem>
             <pElem>OPTIMESH/include</pElem>
             <pElem>WINSLOW/include</pElem>
@@ -138,7 +129,6 @@
             <pElem>WINSLOWVV/include</pElem>
             <pElem>ADAPTREFINE/include</pElem>
             <pElem>MESHIO/include</pElem>
-            <pElem>GEOMETRY/include</pElem>
           </incDir>
           <commandLine>-Wno-write-strings</commandLine>
           <warningLevel>2</warningLevel>
@@ -165,21 +155,21 @@
                             OP="dist/Debug/GNU-Linux-x86/libUTILS.so">
               </makeArtifact>
             </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../MATH"
+                            CT="2"
+                            CN="Debug"
+                            AC="true"
+                            BL="true"
+                            WD="../MATH"
+                            BC="${MAKE}  -f Makefile CONF=Debug"
+                            CC="${MAKE}  -f Makefile CONF=Debug clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
           </linkerLibItems>
           <commandLine>-lstdc++</commandLine>
         </linkerTool>
-        <requiredProjects>
-          <makeArtifact PL="../UTILS"
-                        CT="2"
-                        CN="Debug"
-                        AC="false"
-                        BL="true"
-                        WD="../UTILS"
-                        BC="${MAKE}  -f Makefile CONF=Debug"
-                        CC="${MAKE}  -f Makefile CONF=Debug clean"
-                        OP="dist/Debug/GNU-Linux-x86/libUTILS.so">
-          </makeArtifact>
-        </requiredProjects>
       </compileType>
     </conf>
     <conf name="Release" type="1">
@@ -192,6 +182,7 @@
           <developmentMode>5</developmentMode>
           <incDir>
             <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
             <pElem>MESHER/include</pElem>
             <pElem>OPTIMESH/include</pElem>
             <pElem>WINSLOW/include</pElem>
@@ -199,7 +190,6 @@
             <pElem>WINSLOWVV/include</pElem>
             <pElem>ADAPTREFINE/include</pElem>
             <pElem>MESHIO/include</pElem>
-            <pElem>GEOMETRY/include</pElem>
           </incDir>
           <warningLevel>2</warningLevel>
         </cTool>
@@ -207,6 +197,7 @@
           <developmentMode>5</developmentMode>
           <incDir>
             <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
             <pElem>MESHER/include</pElem>
             <pElem>OPTIMESH/include</pElem>
             <pElem>WINSLOW/include</pElem>
@@ -214,7 +205,6 @@
             <pElem>WINSLOWVV/include</pElem>
             <pElem>ADAPTREFINE/include</pElem>
             <pElem>MESHIO/include</pElem>
-            <pElem>GEOMETRY/include</pElem>
           </incDir>
           <commandLine>-Wno-write-strings</commandLine>
           <warningLevel>2</warningLevel>
@@ -241,21 +231,21 @@
                             OP="dist/Release/GNU-Linux-x86/libUTILS.so">
               </makeArtifact>
             </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../MATH"
+                            CT="2"
+                            CN="Release"
+                            AC="false"
+                            BL="true"
+                            WD="../MATH"
+                            BC="${MAKE}  -f Makefile CONF=Release"
+                            CC="${MAKE}  -f Makefile CONF=Release clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
           </linkerLibItems>
           <commandLine>-lstdc++</commandLine>
         </linkerTool>
-        <requiredProjects>
-          <makeArtifact PL="../UTILS"
-                        CT="2"
-                        CN="Release"
-                        AC="true"
-                        BL="true"
-                        WD="../UTILS"
-                        BC="${MAKE}  -f Makefile CONF=Release"
-                        CC="${MAKE}  -f Makefile CONF=Release clean"
-                        OP="dist/Release/GNU-Linux-x86/libUTILS.so">
-          </makeArtifact>
-        </requiredProjects>
       </compileType>
     </conf>
   </confs>
