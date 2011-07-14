@@ -900,8 +900,10 @@ void Euler2D_Solver_VanLeer::Create_CRS_SolverBlockMatrix() {
     int min, minsave;
     int *degree = NULL;
 
-    SolverBlockMatrix.VectorSize = mesh.nnodes;
-    SolverBlockMatrix.BlockSize  = 4;
+    SolverBlockMatrix.nROW = mesh.nnodes;
+    SolverBlockMatrix.nCOL = mesh.nnodes;
+    SolverBlockMatrix.Block_nRow  = 4;
+    SolverBlockMatrix.Block_nCol  = 4;
     
     // Allocate Memory to Find Node2Node Connectivity Degree
     degree = new int[mesh.nnodes];
@@ -927,10 +929,10 @@ void Euler2D_Solver_VanLeer::Create_CRS_SolverBlockMatrix() {
 
     // Start Filling the Row Location and
     // Get the No of Non Zero Entries for SolverBlockMatrix
-    SolverBlockMatrix.CRSSize = 0;
+    SolverBlockMatrix.DIM = 0;
     SolverBlockMatrix.IA[0] = 0;
     for (i = 0; i < mesh.nnodes; i++) {
-        SolverBlockMatrix.CRSSize += degree[i] + 1;
+        SolverBlockMatrix.DIM += degree[i] + 1;
         SolverBlockMatrix.IA[i+1] = SolverBlockMatrix.IA[i] + degree[i] + 1;
     }
     
@@ -944,7 +946,7 @@ void Euler2D_Solver_VanLeer::Create_CRS_SolverBlockMatrix() {
 
     // Allocate Memory to JA Array to store location of Non Zero Entries
     SolverBlockMatrix.JA = NULL;
-    SolverBlockMatrix.JA = new int[SolverBlockMatrix.CRSSize];
+    SolverBlockMatrix.JA = new int[SolverBlockMatrix.DIM];
 #ifdef DEBUG
     if (SolverBlockMatrix.JA == NULL)
         error("Create_CRS_SolverBlockMatrix: %s\n", "Error Allocating Memory 4");
@@ -994,63 +996,63 @@ void Euler2D_Solver_VanLeer::Create_CRS_SolverBlockMatrix() {
     
     // Allocate Memory for CRS Matrix
     SolverBlockMatrix.A = NULL;
-    SolverBlockMatrix.A = (double ***) malloc (SolverBlockMatrix.CRSSize*sizeof(double**));
+    SolverBlockMatrix.A = (double ***) malloc (SolverBlockMatrix.DIM*sizeof(double**));
 #ifdef DEBUG
     if (SolverBlockMatrix.A == NULL)
         error("Create_CRS_SolverBlockMatrix: %s\n", "Error Allocating Memory 5");
 #endif
-    for (i = 0; i < SolverBlockMatrix.CRSSize; i++) {
+    for (i = 0; i < SolverBlockMatrix.DIM; i++) {
         SolverBlockMatrix.A[i] = NULL;
-        SolverBlockMatrix.A[i] = (double **) malloc (SolverBlockMatrix.BlockSize*sizeof(double*));
+        SolverBlockMatrix.A[i] = (double **) malloc (SolverBlockMatrix.Block_nRow*sizeof(double*));
 #ifdef DEBUG
         if (SolverBlockMatrix.A[i] == NULL)
             error("Create_CRS_SolverBlockMatrix: %s\n", "Error Allocating Memory 6");
 #endif
-        for (j = 0; j < SolverBlockMatrix.BlockSize; j++) {
+        for (j = 0; j < SolverBlockMatrix.Block_nRow; j++) {
             SolverBlockMatrix.A[i][j] = NULL;
-            SolverBlockMatrix.A[i][j] = (double *) malloc (SolverBlockMatrix.BlockSize*sizeof(double));
+            SolverBlockMatrix.A[i][j] = (double *) malloc (SolverBlockMatrix.Block_nCol*sizeof(double));
 #ifdef DEBUG
             if (SolverBlockMatrix.A[i] == NULL)
                 error("Create_CRS_SolverBlockMatrix: %s\n", "Error Allocating Memory 7");
 #endif
-            for (k = 0; k < SolverBlockMatrix.BlockSize; k++)
+            for (k = 0; k < SolverBlockMatrix.Block_nCol; k++)
                 SolverBlockMatrix.A[i][j][k] = 0.0;
         }
     }
     
     // Allocate Memory of RHS
     SolverBlockMatrix.B = NULL;
-    SolverBlockMatrix.B = (double **) malloc (SolverBlockMatrix.VectorSize*sizeof(double*));
+    SolverBlockMatrix.B = (double **) malloc (SolverBlockMatrix.nROW*sizeof(double*));
 #ifdef DEBUG
     if (SolverBlockMatrix.B == NULL)
         error("Create_CRS_SolverBlockMatrix: %s\n", "Error Allocating Memory 8");
 #endif
-    for (i = 0; i < SolverBlockMatrix.VectorSize; i++) {
+    for (i = 0; i < SolverBlockMatrix.nROW; i++) {
         SolverBlockMatrix.B[i] = NULL;
-        SolverBlockMatrix.B[i] = (double *) malloc (SolverBlockMatrix.BlockSize*sizeof(double));
+        SolverBlockMatrix.B[i] = (double *) malloc (SolverBlockMatrix.Block_nRow*sizeof(double));
 #ifdef DEBUG
         if (SolverBlockMatrix.B[i] == NULL)
             error("Create_CRS_SolverBlockMatrix: %s\n", "Error Allocating Memory 9");
 #endif
-        for (j = 0; j < SolverBlockMatrix.BlockSize; j++)
+        for (j = 0; j < SolverBlockMatrix.Block_nRow; j++)
             SolverBlockMatrix.B[i][j] = 0.0;
     }
 
     // Allocate Memory for X
     SolverBlockMatrix.X = NULL;
-    SolverBlockMatrix.X = (double **) malloc (SolverBlockMatrix.VectorSize*sizeof(double*));
+    SolverBlockMatrix.X = (double **) malloc (SolverBlockMatrix.nROW*sizeof(double*));
 #ifdef DEBUG
     if (SolverBlockMatrix.X == NULL)
         error("Create_CRS_SolverBlockMatrix: %s\n", "Error Allocating Memory 10");
 #endif
-    for (i = 0; i < SolverBlockMatrix.VectorSize; i++) {
+    for (i = 0; i < SolverBlockMatrix.nROW; i++) {
         SolverBlockMatrix.X[i] = NULL;
-        SolverBlockMatrix.X[i] = (double *) malloc (SolverBlockMatrix.BlockSize*sizeof(double));
+        SolverBlockMatrix.X[i] = (double *) malloc (SolverBlockMatrix.Block_nRow*sizeof(double));
 #ifdef DEBUG
         if (SolverBlockMatrix.X[i] == NULL)
             error("Create_CRS_SolverBlockMatrix: %s\n", "Error Allocating Memory 11");
 #endif
-        for (j = 0; j < SolverBlockMatrix.BlockSize; j++)
+        for (j = 0; j < SolverBlockMatrix.Block_nRow; j++)
             SolverBlockMatrix.X[i][j] = 0.0;
     }
     
@@ -1071,7 +1073,7 @@ void Euler2D_Solver_VanLeer::Compute_CRS_SolverBlockMatrix(int AddTime) {
     double **Ap,**Am;
 
     // Initialize the CRS Matrix
-    for (i = 0; i < SolverBlockMatrix.CRSSize; i++) {
+    for (i = 0; i < SolverBlockMatrix.DIM; i++) {
         for (j = 0; j < 4; j++) {
             for (k = 0; k < 4; k++)
                 SolverBlockMatrix.A[i][j][k] = 0.0;
@@ -1120,10 +1122,10 @@ void Euler2D_Solver_VanLeer::Compute_CRS_SolverBlockMatrix(int AddTime) {
     for (iNode = 0; iNode < mesh.nnodes; iNode++) {
         // Get the diagonal location
         idgn = SolverBlockMatrix.IAU[iNode];
-        for (j = 0; j < SolverBlockMatrix.BlockSize; j++) {
+        for (j = 0; j < SolverBlockMatrix.Block_nRow; j++) {
             SolverBlockMatrix.B[iNode][j] = -node[iNode].Resi[j];
             if (AddTime == 1) {
-                for (k = 0; k < SolverBlockMatrix.BlockSize; k++)
+                for (k = 0; k < SolverBlockMatrix.Block_nCol; k++)
                     if (k == j)
                         SolverBlockMatrix.A[idgn][j][k] = node[iNode].area/DeltaT[iNode];
             }
@@ -1550,7 +1552,7 @@ void Euler2D_Solver_VanLeer::Update_Solution() {
 
     // DelataQ = Q(n+1) - Q(n)
     for (i = 0; i < mesh.nnodes; i++) {
-        for (j = 0; j < SolverBlockMatrix.BlockSize; j++)
+        for (j = 0; j < SolverBlockMatrix.Block_nRow; j++)
             node[i].Q[j] += SolverBlockMatrix.X[i][j];
     }
 }

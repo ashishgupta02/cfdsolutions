@@ -44,9 +44,11 @@ void Euler2D_Design::Init() {
     dIdBeta                      = NULL;
     dIdQ_dQdBeta                 = NULL;
     dIdX_dXdBeta                 = NULL;
-    DesignBlockMatrix.VectorSize = 0;
-    DesignBlockMatrix.BlockSize  = 0;
-    DesignBlockMatrix.CRSSize    = 0;
+    DesignBlockMatrix.nROW       = 0;
+    DesignBlockMatrix.nCOL       = 0;
+    DesignBlockMatrix.Block_nRow = 0;
+    DesignBlockMatrix.Block_nCol = 0;
+    DesignBlockMatrix.DIM        = 0;
     DesignBlockMatrix.A          = NULL;
     DesignBlockMatrix.B          = NULL;
     DesignBlockMatrix.IA         = NULL;
@@ -76,9 +78,9 @@ Euler2D_Design::~Euler2D_Design() {
     int i, j;
 
     if (DesignBlockMatrix.A != NULL) {
-        for (i = 0; i < DesignBlockMatrix.CRSSize; i++) {
+        for (i = 0; i < DesignBlockMatrix.DIM; i++) {
             if (DesignBlockMatrix.A[i] != NULL) {
-                for (j = 0; j < DesignBlockMatrix.BlockSize; j++) {
+                for (j = 0; j < DesignBlockMatrix.Block_nRow; j++) {
                     if (DesignBlockMatrix.A[i][j] != NULL)
                         free(DesignBlockMatrix.A[i][j]);
                 }
@@ -88,14 +90,14 @@ Euler2D_Design::~Euler2D_Design() {
         free(DesignBlockMatrix.A);
     }
     if (DesignBlockMatrix.B != NULL) {
-        for (i = 0; i < DesignBlockMatrix.VectorSize ; i++) {
+        for (i = 0; i < DesignBlockMatrix.nROW ; i++) {
             if (DesignBlockMatrix.B[i] != NULL)
                 free(DesignBlockMatrix.B[i]);
         }
         free(DesignBlockMatrix.B);
     }
     if (DesignBlockMatrix.X != NULL) {
-        for (i = 0; i < DesignBlockMatrix.VectorSize ; i++) {
+        for (i = 0; i < DesignBlockMatrix.nROW ; i++) {
             if (DesignBlockMatrix.X[i] != NULL)
                 free(DesignBlockMatrix.X[i]);
         }
@@ -373,7 +375,7 @@ void Euler2D_Design::Initialize_Design(int InputBlockSize, int InputVectorSize) 
     // Read the Design File
     Read_DesignFile("Design.data");
     
-    // Allocate Mememory to store design Sensitivities
+    // Allocate Memory to store design Sensitivities
     if (NDesignVariable <= 0)
         error("Initialize_Design: No of Design Variable %d", NDesignVariable);
     dIdQ_dQdBeta = new double[NDesignVariable];
@@ -390,9 +392,11 @@ void Euler2D_Design::Create_CRS_DesignBlockMatrix(MC_CRS *Object) {
     int i, j, k;
 
     // Get the value from Solver Block Matrix
-    DesignBlockMatrix.VectorSize = Object->VectorSize;
-    DesignBlockMatrix.BlockSize  = Object->BlockSize;
-    DesignBlockMatrix.CRSSize    = Object->CRSSize;
+    DesignBlockMatrix.nROW       = Object->nROW;
+    DesignBlockMatrix.nCOL       = Object->nCOL;
+    DesignBlockMatrix.Block_nRow = Object->Block_nRow;
+    DesignBlockMatrix.Block_nCol = Object->Block_nCol;
+    DesignBlockMatrix.DIM        = Object->DIM;
     // Share the memory with Solver Block Matrix
     DesignBlockMatrix.IA         = Object->IA;
     DesignBlockMatrix.IAU        = Object->IAU;
@@ -401,63 +405,63 @@ void Euler2D_Design::Create_CRS_DesignBlockMatrix(MC_CRS *Object) {
     // Allocate Memory for Design Specific Computations
     // Allocate Memory for CRS Matrix
     DesignBlockMatrix.A = NULL;
-    DesignBlockMatrix.A = (double ***) malloc (DesignBlockMatrix.CRSSize*sizeof(double**));
+    DesignBlockMatrix.A = (double ***) malloc (DesignBlockMatrix.DIM*sizeof(double**));
 #ifdef DEBUG
     if (DesignBlockMatrix.A == NULL)
         error("Create_CRS_DesignBlockMatrix: %s\n", "Error Allocating Memory 1");
 #endif
-    for (i = 0; i < DesignBlockMatrix.CRSSize; i++) {
+    for (i = 0; i < DesignBlockMatrix.DIM; i++) {
         DesignBlockMatrix.A[i] = NULL;
-        DesignBlockMatrix.A[i] = (double **) malloc (DesignBlockMatrix.BlockSize*sizeof(double*));
+        DesignBlockMatrix.A[i] = (double **) malloc (DesignBlockMatrix.Block_nRow*sizeof(double*));
 #ifdef DEBUG
         if (DesignBlockMatrix.A[i] == NULL)
             error("Create_CRS_DesignBlockMatrix: %s\n", "Error Allocating Memory 2");
 #endif
-        for (j = 0; j < DesignBlockMatrix.BlockSize; j++) {
+        for (j = 0; j < DesignBlockMatrix.Block_nRow; j++) {
             DesignBlockMatrix.A[i][j] = NULL;
-            DesignBlockMatrix.A[i][j] = (double *) malloc (DesignBlockMatrix.BlockSize*sizeof(double));
+            DesignBlockMatrix.A[i][j] = (double *) malloc (DesignBlockMatrix.Block_nCol*sizeof(double));
 #ifdef DEBUG
             if (DesignBlockMatrix.A[i] == NULL)
                 error("Create_CRS_DesignBlockMatrix: %s\n", "Error Allocating Memory 3");
 #endif
-            for (k = 0; k < DesignBlockMatrix.BlockSize; k++)
+            for (k = 0; k < DesignBlockMatrix.Block_nCol; k++)
                 DesignBlockMatrix.A[i][j][k] = 0.0;
         }
     }
 
     // Allocate Memory of RHS
     DesignBlockMatrix.B = NULL;
-    DesignBlockMatrix.B = (double **) malloc (DesignBlockMatrix.VectorSize*sizeof(double*));
+    DesignBlockMatrix.B = (double **) malloc (DesignBlockMatrix.nROW*sizeof(double*));
 #ifdef DEBUG
     if (DesignBlockMatrix.B == NULL)
         error("Create_CRS_DesignBlockMatrix: %s\n", "Error Allocating Memory 4");
 #endif
-    for (i = 0; i < DesignBlockMatrix.VectorSize; i++) {
+    for (i = 0; i < DesignBlockMatrix.nROW; i++) {
         DesignBlockMatrix.B[i] = NULL;
-        DesignBlockMatrix.B[i] = (double *) malloc (DesignBlockMatrix.BlockSize*sizeof(double));
+        DesignBlockMatrix.B[i] = (double *) malloc (DesignBlockMatrix.Block_nRow*sizeof(double));
 #ifdef DEBUG
         if (DesignBlockMatrix.B[i] == NULL)
             error("Create_CRS_DesignBlockMatrix: %s\n", "Error Allocating Memory 5");
 #endif
-        for (j = 0; j < DesignBlockMatrix.BlockSize; j++)
+        for (j = 0; j < DesignBlockMatrix.Block_nRow; j++)
             DesignBlockMatrix.B[i][j] = 0.0;
     }
 
     // Allocate Memory for X
     DesignBlockMatrix.X = NULL;
-    DesignBlockMatrix.X = (double **) malloc (DesignBlockMatrix.VectorSize*sizeof(double*));
+    DesignBlockMatrix.X = (double **) malloc (DesignBlockMatrix.nROW*sizeof(double*));
 #ifdef DEBUG
     if (DesignBlockMatrix.X == NULL)
         error("Create_CRS_DesignBlockMatrix: %s\n", "Error Allocating Memory 6");
 #endif
-    for (i = 0; i < DesignBlockMatrix.VectorSize; i++) {
+    for (i = 0; i < DesignBlockMatrix.nROW; i++) {
         DesignBlockMatrix.X[i] = NULL;
-        DesignBlockMatrix.X[i] = (double *) malloc (DesignBlockMatrix.BlockSize*sizeof(double));
+        DesignBlockMatrix.X[i] = (double *) malloc (DesignBlockMatrix.Block_nRow*sizeof(double));
 #ifdef DEBUG
         if (DesignBlockMatrix.X[i] == NULL)
             error("Create_CRS_DesignBlockMatrix: %s\n", "Error Allocating Memory 7");
 #endif
-        for (j = 0; j < DesignBlockMatrix.BlockSize; j++)
+        for (j = 0; j < DesignBlockMatrix.Block_nRow; j++)
             DesignBlockMatrix.X[i][j] = 0.0;
     }
 }
