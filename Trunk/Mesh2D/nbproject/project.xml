@@ -10,6 +10,7 @@
             <header-extensions>h</header-extensions>
             <sourceEncoding>UTF-8</sourceEncoding>
             <make-dep-projects>
+                <make-dep-project>../MATH</make-dep-project>
                 <make-dep-project>../UTILS</make-dep-project>
             </make-dep-projects>
             <sourceRootList>

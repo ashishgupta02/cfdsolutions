@@ -35,7 +35,6 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/main.o \
-	${OBJECTDIR}/GEOMETRY/src/Vector2D.o \
 	${OBJECTDIR}/MESHIO/src/TriangleMeshDB.o \
 	${OBJECTDIR}/MESHER/src/TriangleMeshSLK.o \
 	${OBJECTDIR}/ADAPTREFINE/src/Edge2D.o \
@@ -47,7 +46,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/ADAPTREFINE/src/TriangleAdaptiveRefinement.o \
 	${OBJECTDIR}/MESHER/src/TriangleMesher2D.o \
 	${OBJECTDIR}/MESHER/src/Grid_Utils.o \
-	${OBJECTDIR}/GEOMETRY/src/Point2D.o \
 	${OBJECTDIR}/OPTIMESH/src/TriangleMeshOptimizer.o
 
 
@@ -65,13 +63,15 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-lm -Wl,-rpath ../UTILS/dist/Debug/GNU-Linux-x86 -L../UTILS/dist/Debug/GNU-Linux-x86 -lUTILS
+LDLIBSOPTIONS=-lm -Wl,-rpath ../UTILS/dist/Debug/GNU-Linux-x86 -L../UTILS/dist/Debug/GNU-Linux-x86 -lUTILS -Wl,-rpath ../MATH/dist/Debug/GNU-Linux-x86 -L../MATH/dist/Debug/GNU-Linux-x86 -lMATH
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
 	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/mesh2d
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/mesh2d: ../UTILS/dist/Debug/GNU-Linux-x86/libUTILS.so
+
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/mesh2d: ../MATH/dist/Debug/GNU-Linux-x86/libMATH.so
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/mesh2d: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
@@ -80,82 +80,72 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/mesh2d: ${OBJECTFILES}
 ${OBJECTDIR}/main.o: main.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I../UTILS/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -IGEOMETRY/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
-
-${OBJECTDIR}/GEOMETRY/src/Vector2D.o: GEOMETRY/src/Vector2D.cpp 
-	${MKDIR} -p ${OBJECTDIR}/GEOMETRY/src
-	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I../UTILS/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -IGEOMETRY/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/GEOMETRY/src/Vector2D.o GEOMETRY/src/Vector2D.cpp
+	$(COMPILE.cc) -g -Wall -I../UTILS/include -I../MATH/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
 
 ${OBJECTDIR}/MESHIO/src/TriangleMeshDB.o: MESHIO/src/TriangleMeshDB.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MESHIO/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I../UTILS/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -IGEOMETRY/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/TriangleMeshDB.o MESHIO/src/TriangleMeshDB.cpp
+	$(COMPILE.cc) -g -Wall -I../UTILS/include -I../MATH/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/TriangleMeshDB.o MESHIO/src/TriangleMeshDB.cpp
 
 ${OBJECTDIR}/MESHER/src/TriangleMeshSLK.o: MESHER/src/TriangleMeshSLK.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MESHER/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I../UTILS/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -IGEOMETRY/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHER/src/TriangleMeshSLK.o MESHER/src/TriangleMeshSLK.cpp
+	$(COMPILE.cc) -g -Wall -I../UTILS/include -I../MATH/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHER/src/TriangleMeshSLK.o MESHER/src/TriangleMeshSLK.cpp
 
 ${OBJECTDIR}/ADAPTREFINE/src/Edge2D.o: ADAPTREFINE/src/Edge2D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/ADAPTREFINE/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I../UTILS/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -IGEOMETRY/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/ADAPTREFINE/src/Edge2D.o ADAPTREFINE/src/Edge2D.cpp
+	$(COMPILE.cc) -g -Wall -I../UTILS/include -I../MATH/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/ADAPTREFINE/src/Edge2D.o ADAPTREFINE/src/Edge2D.cpp
 
 ${OBJECTDIR}/MESHER/src/Bowyer_Watson.o: MESHER/src/Bowyer_Watson.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MESHER/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I../UTILS/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -IGEOMETRY/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHER/src/Bowyer_Watson.o MESHER/src/Bowyer_Watson.cpp
+	$(COMPILE.cc) -g -Wall -I../UTILS/include -I../MATH/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHER/src/Bowyer_Watson.o MESHER/src/Bowyer_Watson.cpp
 
 ${OBJECTDIR}/WINSLOW/src/TriangleWinslowSmoother.o: WINSLOW/src/TriangleWinslowSmoother.cpp 
 	${MKDIR} -p ${OBJECTDIR}/WINSLOW/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I../UTILS/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -IGEOMETRY/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/WINSLOW/src/TriangleWinslowSmoother.o WINSLOW/src/TriangleWinslowSmoother.cpp
+	$(COMPILE.cc) -g -Wall -I../UTILS/include -I../MATH/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/WINSLOW/src/TriangleWinslowSmoother.o WINSLOW/src/TriangleWinslowSmoother.cpp
 
 ${OBJECTDIR}/WINSLOWVV/src/TriangleWinslowVirtualVolumeSmoother.o: WINSLOWVV/src/TriangleWinslowVirtualVolumeSmoother.cpp 
 	${MKDIR} -p ${OBJECTDIR}/WINSLOWVV/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I../UTILS/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -IGEOMETRY/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/WINSLOWVV/src/TriangleWinslowVirtualVolumeSmoother.o WINSLOWVV/src/TriangleWinslowVirtualVolumeSmoother.cpp
+	$(COMPILE.cc) -g -Wall -I../UTILS/include -I../MATH/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/WINSLOWVV/src/TriangleWinslowVirtualVolumeSmoother.o WINSLOWVV/src/TriangleWinslowVirtualVolumeSmoother.cpp
 
 ${OBJECTDIR}/LESMOOTH/src/TriangleLinearElasticSmoother.o: LESMOOTH/src/TriangleLinearElasticSmoother.cpp 
 	${MKDIR} -p ${OBJECTDIR}/LESMOOTH/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I../UTILS/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -IGEOMETRY/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/LESMOOTH/src/TriangleLinearElasticSmoother.o LESMOOTH/src/TriangleLinearElasticSmoother.cpp
+	$(COMPILE.cc) -g -Wall -I../UTILS/include -I../MATH/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/LESMOOTH/src/TriangleLinearElasticSmoother.o LESMOOTH/src/TriangleLinearElasticSmoother.cpp
 
 ${OBJECTDIR}/MESHER/src/TriangleMesh.o: MESHER/src/TriangleMesh.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MESHER/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I../UTILS/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -IGEOMETRY/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHER/src/TriangleMesh.o MESHER/src/TriangleMesh.cpp
+	$(COMPILE.cc) -g -Wall -I../UTILS/include -I../MATH/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHER/src/TriangleMesh.o MESHER/src/TriangleMesh.cpp
 
 ${OBJECTDIR}/ADAPTREFINE/src/TriangleAdaptiveRefinement.o: ADAPTREFINE/src/TriangleAdaptiveRefinement.cpp 
 	${MKDIR} -p ${OBJECTDIR}/ADAPTREFINE/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I../UTILS/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -IGEOMETRY/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/ADAPTREFINE/src/TriangleAdaptiveRefinement.o ADAPTREFINE/src/TriangleAdaptiveRefinement.cpp
+	$(COMPILE.cc) -g -Wall -I../UTILS/include -I../MATH/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/ADAPTREFINE/src/TriangleAdaptiveRefinement.o ADAPTREFINE/src/TriangleAdaptiveRefinement.cpp
 
 ${OBJECTDIR}/MESHER/src/TriangleMesher2D.o: MESHER/src/TriangleMesher2D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MESHER/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I../UTILS/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -IGEOMETRY/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHER/src/TriangleMesher2D.o MESHER/src/TriangleMesher2D.cpp
+	$(COMPILE.cc) -g -Wall -I../UTILS/include -I../MATH/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHER/src/TriangleMesher2D.o MESHER/src/TriangleMesher2D.cpp
 
 ${OBJECTDIR}/MESHER/src/Grid_Utils.o: MESHER/src/Grid_Utils.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MESHER/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I../UTILS/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -IGEOMETRY/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHER/src/Grid_Utils.o MESHER/src/Grid_Utils.cpp
-
-${OBJECTDIR}/GEOMETRY/src/Point2D.o: GEOMETRY/src/Point2D.cpp 
-	${MKDIR} -p ${OBJECTDIR}/GEOMETRY/src
-	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I../UTILS/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -IGEOMETRY/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/GEOMETRY/src/Point2D.o GEOMETRY/src/Point2D.cpp
+	$(COMPILE.cc) -g -Wall -I../UTILS/include -I../MATH/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHER/src/Grid_Utils.o MESHER/src/Grid_Utils.cpp
 
 ${OBJECTDIR}/OPTIMESH/src/TriangleMeshOptimizer.o: OPTIMESH/src/TriangleMeshOptimizer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/OPTIMESH/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I../UTILS/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -IGEOMETRY/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/OPTIMESH/src/TriangleMeshOptimizer.o OPTIMESH/src/TriangleMeshOptimizer.cpp
+	$(COMPILE.cc) -g -Wall -I../UTILS/include -I../MATH/include -IMESHER/include -IOPTIMESH/include -IWINSLOW/include -ILESMOOTH/include -IWINSLOWVV/include -IADAPTREFINE/include -IMESHIO/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/OPTIMESH/src/TriangleMeshOptimizer.o OPTIMESH/src/TriangleMeshOptimizer.cpp
 
 # Subprojects
 .build-subprojects:
 	cd ../UTILS && ${MAKE}  -f Makefile CONF=Debug
-	cd ../UTILS && ${MAKE}  -f Makefile CONF=Debug
+	cd ../MATH && ${MAKE}  -f Makefile CONF=Debug
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
@@ -165,7 +155,7 @@ ${OBJECTDIR}/OPTIMESH/src/TriangleMeshOptimizer.o: OPTIMESH/src/TriangleMeshOpti
 # Subprojects
 .clean-subprojects:
 	cd ../UTILS && ${MAKE}  -f Makefile CONF=Debug clean
-	cd ../UTILS && ${MAKE}  -f Makefile CONF=Debug clean
+	cd ../MATH && ${MAKE}  -f Makefile CONF=Debug clean
 
 # Enable dependency checking
 .dep.inc: .depcheck-impl
