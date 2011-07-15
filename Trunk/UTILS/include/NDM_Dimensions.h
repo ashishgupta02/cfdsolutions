@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _NDM_DIMENSIONS_H
 #define _NDM_DIMENSIONS_H
 

@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _OUTPUT_LEVEL_H
 #define _OUTPUT_LEVEL_H
 

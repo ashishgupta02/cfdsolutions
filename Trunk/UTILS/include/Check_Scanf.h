@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _CHECK_SCANF_H
 #define _CHECK_SCANF_H
 

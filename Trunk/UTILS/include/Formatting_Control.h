@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _FORMATTING_CONTROL_H
 #define _FORMATTING_CONTROL_H
 

@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _STOPWATCH_H
 #define _STOPWATCH_H
 

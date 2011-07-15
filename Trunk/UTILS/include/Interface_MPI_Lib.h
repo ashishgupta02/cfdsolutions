@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _INTERFACE_MPI_LIB_H
 #define _INTERFACE_MPI_LIB_H
 

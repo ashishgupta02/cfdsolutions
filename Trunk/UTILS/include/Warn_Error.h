@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _WARN_ERROR_H
 #define _WARN_ERROR_H
 

@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #include <math.h>
 #include <stdio.h>
 #include <stdarg.h>
