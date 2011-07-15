@@ -1,3 +1,11 @@
+/*******************************************************************************
+* File:        V_GaussIntegration.hpp
+* Author:      Ashish Gupta
+* Revision:    4
+******************************************************************************/
+
+#include "License.h"
+
 #ifndef GAUSS_INTEGRATION_HPP
 #define GAUSS_INTEGRATION_HPP
 

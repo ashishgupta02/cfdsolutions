@@ -1,3 +1,11 @@
+/*******************************************************************************
+* File:        V_HexMetric.cpp
+* Author:      Ashish Gupta
+* Revision:    4
+******************************************************************************/
+
+#include "License.h"
+
 #define VERDICT_EXPORTS
 
 #include "verdict.h"

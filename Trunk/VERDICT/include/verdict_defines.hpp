@@ -1,3 +1,11 @@
+/*******************************************************************************
+* File:        verdict_defines.hpp
+* Author:      Ashish Gupta
+* Revision:    4
+******************************************************************************/
+
+#include "License.h"
+
 #ifndef VERDICT_DEFINES
 #define VERDICT_DEFINES
 
