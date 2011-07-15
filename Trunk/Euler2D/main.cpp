@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #else
@@ -20,7 +22,7 @@
 /* Define to the version of this package. */
 #define PACKAGE_VERSION ""
 /* Version number of package */
-#define VERSION "1.1"
+#define VERSION "2.0"
 #endif
 
 #include <stdio.h>
@@ -86,7 +88,7 @@ static int arguments(int argc, char **argv) {
             exit(0);
         } else if(argv[1][1] == options[8]) {
             printf("%s Utility, Version %s \n", PACKAGE, VERSION);
-            printf("Copyright (C) 2010 Ashish Gupta. All rights reserved.\n");
+            printf("Copyright (C) 2010-11 Ashish Gupta. All rights reserved.\n");
             printf("Contact for Help or Bugs %s \n", PACKAGE_BUGREPORT);
             exit(0);
         } else if (argc < 3) {

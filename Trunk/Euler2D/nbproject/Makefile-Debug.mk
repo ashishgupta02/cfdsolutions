@@ -79,62 +79,62 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler2d: ${OBJECTFILES}
 ${OBJECTDIR}/SOLVER/src/Euler2D_Solver_VanLeer.o: SOLVER/src/Euler2D_Solver_VanLeer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/SOLVER/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -DVERBOSE -DDEBUG -I../UTILS/include -I../MATH/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/SOLVER/src/Euler2D_Solver_VanLeer.o SOLVER/src/Euler2D_Solver_VanLeer.cpp
+	$(COMPILE.cc) -g -Wall -DVERBOSE -DDEBUG -I.. -I../UTILS/include -I../MATH/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/SOLVER/src/Euler2D_Solver_VanLeer.o SOLVER/src/Euler2D_Solver_VanLeer.cpp
 
 ${OBJECTDIR}/main.o: main.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -DVERBOSE -DDEBUG -I../UTILS/include -I../MATH/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
+	$(COMPILE.cc) -g -Wall -DVERBOSE -DDEBUG -I.. -I../UTILS/include -I../MATH/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
 
 ${OBJECTDIR}/MESH/src/Euler2D_Mesh_LinearElasticSmoother.o: MESH/src/Euler2D_Mesh_LinearElasticSmoother.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MESH/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -DVERBOSE -DDEBUG -I../UTILS/include -I../MATH/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESH/src/Euler2D_Mesh_LinearElasticSmoother.o MESH/src/Euler2D_Mesh_LinearElasticSmoother.cpp
+	$(COMPILE.cc) -g -Wall -DVERBOSE -DDEBUG -I.. -I../UTILS/include -I../MATH/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESH/src/Euler2D_Mesh_LinearElasticSmoother.o MESH/src/Euler2D_Mesh_LinearElasticSmoother.cpp
 
 ${OBJECTDIR}/DESIGN/src/Euler2D_Design.o: DESIGN/src/Euler2D_Design.cpp 
 	${MKDIR} -p ${OBJECTDIR}/DESIGN/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -DVERBOSE -DDEBUG -I../UTILS/include -I../MATH/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/DESIGN/src/Euler2D_Design.o DESIGN/src/Euler2D_Design.cpp
+	$(COMPILE.cc) -g -Wall -DVERBOSE -DDEBUG -I.. -I../UTILS/include -I../MATH/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/DESIGN/src/Euler2D_Design.o DESIGN/src/Euler2D_Design.cpp
 
 ${OBJECTDIR}/DESIGN/src/Euler2D_Design_VanLeer.o: DESIGN/src/Euler2D_Design_VanLeer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/DESIGN/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -DVERBOSE -DDEBUG -I../UTILS/include -I../MATH/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/DESIGN/src/Euler2D_Design_VanLeer.o DESIGN/src/Euler2D_Design_VanLeer.cpp
+	$(COMPILE.cc) -g -Wall -DVERBOSE -DDEBUG -I.. -I../UTILS/include -I../MATH/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/DESIGN/src/Euler2D_Design_VanLeer.o DESIGN/src/Euler2D_Design_VanLeer.cpp
 
 ${OBJECTDIR}/SOLVER/src/Euler2D_Solver.o: SOLVER/src/Euler2D_Solver.cpp 
 	${MKDIR} -p ${OBJECTDIR}/SOLVER/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -DVERBOSE -DDEBUG -I../UTILS/include -I../MATH/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/SOLVER/src/Euler2D_Solver.o SOLVER/src/Euler2D_Solver.cpp
+	$(COMPILE.cc) -g -Wall -DVERBOSE -DDEBUG -I.. -I../UTILS/include -I../MATH/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/SOLVER/src/Euler2D_Solver.o SOLVER/src/Euler2D_Solver.cpp
 
 ${OBJECTDIR}/SOLVER/src/Euler2D_Solver_StegerWarming.o: SOLVER/src/Euler2D_Solver_StegerWarming.cpp 
 	${MKDIR} -p ${OBJECTDIR}/SOLVER/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -DVERBOSE -DDEBUG -I../UTILS/include -I../MATH/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/SOLVER/src/Euler2D_Solver_StegerWarming.o SOLVER/src/Euler2D_Solver_StegerWarming.cpp
+	$(COMPILE.cc) -g -Wall -DVERBOSE -DDEBUG -I.. -I../UTILS/include -I../MATH/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/SOLVER/src/Euler2D_Solver_StegerWarming.o SOLVER/src/Euler2D_Solver_StegerWarming.cpp
 
 ${OBJECTDIR}/SOLVER/src/Euler2D_Solver_Roe.o: SOLVER/src/Euler2D_Solver_Roe.cpp 
 	${MKDIR} -p ${OBJECTDIR}/SOLVER/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -DVERBOSE -DDEBUG -I../UTILS/include -I../MATH/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/SOLVER/src/Euler2D_Solver_Roe.o SOLVER/src/Euler2D_Solver_Roe.cpp
+	$(COMPILE.cc) -g -Wall -DVERBOSE -DDEBUG -I.. -I../UTILS/include -I../MATH/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/SOLVER/src/Euler2D_Solver_Roe.o SOLVER/src/Euler2D_Solver_Roe.cpp
 
 ${OBJECTDIR}/MESH/src/Euler2D_Mesh.o: MESH/src/Euler2D_Mesh.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MESH/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -DVERBOSE -DDEBUG -I../UTILS/include -I../MATH/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESH/src/Euler2D_Mesh.o MESH/src/Euler2D_Mesh.cpp
+	$(COMPILE.cc) -g -Wall -DVERBOSE -DDEBUG -I.. -I../UTILS/include -I../MATH/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESH/src/Euler2D_Mesh.o MESH/src/Euler2D_Mesh.cpp
 
 ${OBJECTDIR}/SOLVER/src/Euler2D_Solver_Osher.o: SOLVER/src/Euler2D_Solver_Osher.cpp 
 	${MKDIR} -p ${OBJECTDIR}/SOLVER/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -DVERBOSE -DDEBUG -I../UTILS/include -I../MATH/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/SOLVER/src/Euler2D_Solver_Osher.o SOLVER/src/Euler2D_Solver_Osher.cpp
+	$(COMPILE.cc) -g -Wall -DVERBOSE -DDEBUG -I.. -I../UTILS/include -I../MATH/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/SOLVER/src/Euler2D_Solver_Osher.o SOLVER/src/Euler2D_Solver_Osher.cpp
 
 ${OBJECTDIR}/SOLVER/src/Euler2D_Solver_AUSM.o: SOLVER/src/Euler2D_Solver_AUSM.cpp 
 	${MKDIR} -p ${OBJECTDIR}/SOLVER/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -DVERBOSE -DDEBUG -I../UTILS/include -I../MATH/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/SOLVER/src/Euler2D_Solver_AUSM.o SOLVER/src/Euler2D_Solver_AUSM.cpp
+	$(COMPILE.cc) -g -Wall -DVERBOSE -DDEBUG -I.. -I../UTILS/include -I../MATH/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/SOLVER/src/Euler2D_Solver_AUSM.o SOLVER/src/Euler2D_Solver_AUSM.cpp
 
 ${OBJECTDIR}/SOLVER/src/Euler2D_Solver_LDFSS.o: SOLVER/src/Euler2D_Solver_LDFSS.cpp 
 	${MKDIR} -p ${OBJECTDIR}/SOLVER/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -DVERBOSE -DDEBUG -I../UTILS/include -I../MATH/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/SOLVER/src/Euler2D_Solver_LDFSS.o SOLVER/src/Euler2D_Solver_LDFSS.cpp
+	$(COMPILE.cc) -g -Wall -DVERBOSE -DDEBUG -I.. -I../UTILS/include -I../MATH/include -IMESH/include -ISOLVER/include -IDESIGN/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/SOLVER/src/Euler2D_Solver_LDFSS.o SOLVER/src/Euler2D_Solver_LDFSS.cpp
 
 # Subprojects
 .build-subprojects:

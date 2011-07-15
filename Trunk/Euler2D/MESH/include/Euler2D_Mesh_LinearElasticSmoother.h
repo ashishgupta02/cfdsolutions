@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _EULER2D_MESH_LINEARELASTICSMOOTHER_H
 #define	_EULER2D_MESH_LINEARELASTICSMOOTHER_H
 

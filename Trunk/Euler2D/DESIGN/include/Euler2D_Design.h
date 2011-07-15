@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _EULER2D_DESIGN_H
 #define	_EULER2D_DESIGN_H
 
