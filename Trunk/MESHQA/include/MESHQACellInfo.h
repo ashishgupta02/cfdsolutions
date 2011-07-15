@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _MESHQACELLINFO_H
 #define	_MESHQACELLINFO_H
 

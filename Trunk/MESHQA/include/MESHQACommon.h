@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _MESHQACOMMON_H
 #define	_MESHQACOMMON_H
 
