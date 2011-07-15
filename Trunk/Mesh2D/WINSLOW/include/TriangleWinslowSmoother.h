@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _TRIANGLEWINSLOWSMOOTHER_H
 #define	_TRIANGLEWINSLOWSMOOTHER_H
 

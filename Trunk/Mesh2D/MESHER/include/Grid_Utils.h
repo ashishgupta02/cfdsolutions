@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _GRID_UTILS_H
 #define	_GRID_UTILS_H
 

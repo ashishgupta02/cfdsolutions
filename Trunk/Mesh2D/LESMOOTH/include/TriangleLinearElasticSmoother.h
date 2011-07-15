@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _TRIANGLELINEARELASTICSMOOTHER_H
 #define	_TRIANGLELINEARELASTICSMOOTHER_H
 

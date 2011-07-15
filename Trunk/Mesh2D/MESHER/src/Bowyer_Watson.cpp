@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #include "Grid_Utils.h"
 #include "Bowyer_Watson.h"
 

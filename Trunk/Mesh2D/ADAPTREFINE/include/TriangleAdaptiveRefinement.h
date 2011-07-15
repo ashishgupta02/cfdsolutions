@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _TRIANGLEADAPTIVEREFINEMENT_H
 #define	_TRIANGLEADAPTIVEREFINEMENT_H
 

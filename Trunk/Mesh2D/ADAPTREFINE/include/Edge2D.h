@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _EDGE2D_H
 #define	_EDGE2D_H
 

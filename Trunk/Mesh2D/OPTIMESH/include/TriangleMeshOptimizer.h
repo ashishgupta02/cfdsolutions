@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _TRIANGLEMESHOPTIMIZER_H
 #define	_TRIANGLEMESHOPTIMIZER_H
 

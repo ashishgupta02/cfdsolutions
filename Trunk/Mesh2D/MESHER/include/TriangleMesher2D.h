@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _TRIANGLEMESHER2D_H
 #define	_TRIANGLEMESHER2D_H
 

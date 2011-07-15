@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 // For Double Min-Max
 #include <float.h>
 // For Int Min-Max

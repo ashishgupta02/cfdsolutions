@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _BOWYER_WATSON_H
 #define	_BOWYER_WATSON_H
 
