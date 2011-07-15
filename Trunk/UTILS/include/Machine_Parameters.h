@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _MACHINE_PARAMETERS_H
 #define _MACHINE_PARAMETERS_H
 

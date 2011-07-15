@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _TRIM_UTILS_H
 #define	_TRIM_UTILS_H
 

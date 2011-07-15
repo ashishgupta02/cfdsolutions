@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _DOUBLELIST_H
 #define	_DOUBLELIST_H
 

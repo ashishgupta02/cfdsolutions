@@ -4,6 +4,8 @@
 * Revision:    4
 ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _CHECK_MALLOC_H
 #define _CHECK_MALLOC_H
 

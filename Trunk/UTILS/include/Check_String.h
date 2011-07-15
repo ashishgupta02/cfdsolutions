@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _CHECK_STRING_H
 #define _CHECK_STRING_H
 

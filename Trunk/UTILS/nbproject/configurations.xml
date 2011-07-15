@@ -76,12 +76,14 @@
       <compileType>
         <cTool>
           <incDir>
+            <pElem>..</pElem>
             <pElem>include</pElem>
           </incDir>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
           <incDir>
+            <pElem>..</pElem>
             <pElem>include</pElem>
           </incDir>
           <commandLine>-Wno-write-strings</commandLine>
@@ -104,6 +106,7 @@
         <cTool>
           <developmentMode>5</developmentMode>
           <incDir>
+            <pElem>..</pElem>
             <pElem>include</pElem>
           </incDir>
           <warningLevel>2</warningLevel>
@@ -111,6 +114,7 @@
         <ccTool>
           <developmentMode>5</developmentMode>
           <incDir>
+            <pElem>..</pElem>
             <pElem>include</pElem>
           </incDir>
           <commandLine>-Wno-write-strings</commandLine>

@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #include <sys/time.h>
 
 #include "Stopwatch.h"

@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _NDM_TYPEDEFS_H
 #define	_NDM_TYPEDEFS_H
 

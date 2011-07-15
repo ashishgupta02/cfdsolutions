@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _COMMAND_LINE_H
 #define _COMMAND_LINE_H
 
