@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _DBNETCDF_H
 #define	_DBNETCDF_H
 

@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #include <cstring>
 #include <malloc.h>
 #include "Utils.h"

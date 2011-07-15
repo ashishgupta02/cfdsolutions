@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _NETCDFIO_H
 #define	_NETCDFIO_H
 

@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _CORESTRUCT_H
 #define	_CORESTRUCT_H
 

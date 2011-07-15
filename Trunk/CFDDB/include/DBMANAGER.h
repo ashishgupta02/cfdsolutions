@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _DBMANAGER_H
 #define	_DBMANAGER_H
 
