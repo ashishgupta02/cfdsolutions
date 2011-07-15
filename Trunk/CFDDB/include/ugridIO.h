@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _UGRIDIO_H
 #define	_UGRIDIO_H
 

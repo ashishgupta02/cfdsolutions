@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _DBCGNS_H
 #define	_DBCGNS_H
 

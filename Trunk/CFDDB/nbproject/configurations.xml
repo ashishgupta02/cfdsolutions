@@ -51,6 +51,7 @@
         <cTool>
           <incDir>
             <pElem>include</pElem>
+            <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../../../../00-Applications/HPC_LIBS/include</pElem>
           </incDir>
@@ -58,6 +59,7 @@
         </cTool>
         <ccTool>
           <incDir>
+            <pElem>..</pElem>
             <pElem>include</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../../../../00-Applications/HPC_LIBS/include</pElem>
@@ -115,6 +117,7 @@
           <developmentMode>5</developmentMode>
           <incDir>
             <pElem>include</pElem>
+            <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../../../../00-Applications/HPC_LIBS/include</pElem>
           </incDir>
@@ -123,6 +126,7 @@
         <ccTool>
           <developmentMode>5</developmentMode>
           <incDir>
+            <pElem>..</pElem>
             <pElem>include</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../../../../00-Applications/HPC_LIBS/include</pElem>

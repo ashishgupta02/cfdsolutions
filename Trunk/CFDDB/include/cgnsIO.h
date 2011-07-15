@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _CGNSIO_H
 #define	_CGNSIO_H
 

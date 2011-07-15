@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,7 +19,7 @@
 static FILE *ugridfn      = NULL;
 
 /*---------- UGRIDIO_INIT ----------------------------------------------
- * Initialise the UGRID Data Structure
+ * Initialize the UGRID Data Structure
  *---------------------------------------------------------------------*/
 void UGRIDIO_INIT(void) {
     ugridfn = NULL;
