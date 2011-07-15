@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #include "DBCGNS.h"
 #include "DBNETCDF.h"
 #include "DBUGRID.h"
@@ -25,7 +27,7 @@ Mesh3D_IO::Mesh3D_IO() {
 }
 
 //------------------------------------------------------------------------------
-//! Distructor
+//! Destructor
 //------------------------------------------------------------------------------
 Mesh3D_IO::~Mesh3D_IO() {
     // Reset the Pointer of CoreDB

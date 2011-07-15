@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _GHOST3D_H
 #define	_GHOST3D_H
 

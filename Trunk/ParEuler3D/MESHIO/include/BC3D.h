@@ -4,8 +4,10 @@
  * Revision:    4
  ******************************************************************************/
 
-#ifndef BC3D_H
-#define	BC3D_H
+#include "License.h"
+
+#ifndef _BC3D_H
+#define	_BC3D_H
 
 #include <vector>
 #include <set>
@@ -24,5 +26,5 @@ public:
     ~BC3D();
 };
 
-#endif	/* BC3D_H */
+#endif	/* _BC3D_H */
 

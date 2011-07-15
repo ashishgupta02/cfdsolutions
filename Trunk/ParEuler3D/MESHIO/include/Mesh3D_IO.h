@@ -4,6 +4,7 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
 
 #ifndef _MESH3D_IO_H
 #define	_MESH3D_IO_H
