@@ -1,11 +1,13 @@
 /*******************************************************************************
  * File:        Solver.h
  * Author:      Ashish Gupta
- * Revision:    3
+ * Revision:    4
  ******************************************************************************/
 
-#ifndef SOLVER_H
-#define	SOLVER_H
+#include "License.h"
+
+#ifndef _SOLVER_H
+#define	_SOLVER_H
 
 // Boundary Conditions Type
 #define BC_NONE                -1
@@ -184,5 +186,5 @@ void Compute_SecondOrderReconstructQ(int node_L, int node_R, double *Q_L, double
 // Entropy Fix
 void Roe_EntropyFix(double ubar_L, double c_L, double ubar_R, double c_R, double ubar, double c, double **Eigen);
 
-#endif	/* SOLVER_H */
+#endif	/* _SOLVER_H */
 

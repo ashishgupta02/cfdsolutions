@@ -61,6 +61,7 @@
           <developmentMode>5</developmentMode>
           <commandlineTool>gcc</commandlineTool>
           <incDir>
+            <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
             <pElem>include</pElem>
@@ -71,6 +72,7 @@
           <developmentMode>5</developmentMode>
           <commandlineTool>g++</commandlineTool>
           <incDir>
+            <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
             <pElem>include</pElem>
@@ -127,6 +129,7 @@
         <cTool>
           <commandlineTool>gcc</commandlineTool>
           <incDir>
+            <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
             <pElem>include</pElem>
@@ -136,6 +139,7 @@
         <ccTool>
           <commandlineTool>g++</commandlineTool>
           <incDir>
+            <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
             <pElem>include</pElem>
@@ -190,6 +194,7 @@
         <cTool>
           <developmentMode>5</developmentMode>
           <incDir>
+            <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
             <pElem>include</pElem>
@@ -199,6 +204,7 @@
         <ccTool>
           <developmentMode>5</developmentMode>
           <incDir>
+            <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
             <pElem>include</pElem>
@@ -252,6 +258,7 @@
       <compileType>
         <cTool>
           <incDir>
+            <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
             <pElem>include</pElem>
@@ -260,6 +267,7 @@
         </cTool>
         <ccTool>
           <incDir>
+            <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
             <pElem>include</pElem>
