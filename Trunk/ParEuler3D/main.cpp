@@ -4,11 +4,13 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #else
 /* Name of package */
-#define PACKAGE "EULER3D"
+#define PACKAGE "PAREULER3D"
 /* Define to the address where bug reports for this package should be sent. */
 #define PACKAGE_BUGREPORT "ashish-gupta@utc.edu"
 /* Define to the full name of this package. */
@@ -20,7 +22,7 @@
 /* Define to the version of this package. */
 #define PACKAGE_VERSION ""
 /* Version number of package */
-#define VERSION "0.1"
+#define VERSION "2.0"
 #endif
 
 #include <stdio.h>
@@ -38,7 +40,7 @@
 static char options[] = "abcdefhv";
 
 static char *usgmsg[] = {
-    "usage: euler3d [OPTIONS]... [FILE]",
+    "usage: pareuler3d [OPTIONS]... [FILE]",
     "options:",
     " -a = Van Leer Flux Vector Splitting",
     " -b = Steger Warming Flux Vector Splitting",
@@ -82,7 +84,7 @@ static int arguments(int argc, char **argv) {
             exit(0);
         } else if(argv[1][1] == options[7]) {
             printf("%s Utility, Version %s \n", PACKAGE, VERSION);
-            printf("Copyright (C) 2010 Ashish Gupta. All rights reserved.\n");
+            printf("Copyright (C) 2010-11 Ashish Gupta. All rights reserved.\n");
             printf("Contact for Help or Bugs %s \n", PACKAGE_BUGREPORT);
             exit(0);
         } else if (argc < 3) {
@@ -111,7 +113,7 @@ int main(int argc, char *argv[]) {
     // Initialize Commons
     Commons_Init();
     
-    // Intialize MPI
+    // Initialize MPI
     CommMPI_Initialize(argc, argv);
     
     // Get the argument options
@@ -152,7 +154,7 @@ int main(int argc, char *argv[]) {
             break;
     }
 
-    // Syncronize the processors
+    // Synchronize the processors
     MPI_Barrier(MPI_COMM_WORLD);
 
     // Finalize MPI

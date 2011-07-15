@@ -73,6 +73,7 @@
         <cTool>
           <commandlineTool>mpicc</commandlineTool>
           <incDir>
+            <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
             <pElem>../CFDDB/include</pElem>
@@ -87,6 +88,7 @@
         <ccTool>
           <commandlineTool>mpic++</commandlineTool>
           <incDir>
+            <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
             <pElem>../CFDDB/include</pElem>
@@ -164,6 +166,7 @@
           <developmentMode>5</developmentMode>
           <commandlineTool>mpicc</commandlineTool>
           <incDir>
+            <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
             <pElem>../CFDDB/include</pElem>
@@ -179,6 +182,7 @@
           <developmentMode>5</developmentMode>
           <commandlineTool>mpic++</commandlineTool>
           <incDir>
+            <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
             <pElem>../CFDDB/include</pElem>

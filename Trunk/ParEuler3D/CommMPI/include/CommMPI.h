@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _COMMMPI_H
 #define	_COMMMPI_H
 

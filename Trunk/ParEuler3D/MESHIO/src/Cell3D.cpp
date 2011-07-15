@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #include "Utils.h"
 #include "Node3D.h"
 #include "Face3D.h"

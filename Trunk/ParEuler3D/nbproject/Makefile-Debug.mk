@@ -79,52 +79,52 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/pareuler3d: ${OBJECTFILES}
 ${OBJECTDIR}/MESHIO/src/Mesh3D_IO.o: nbproject/Makefile-${CND_CONF}.mk MESHIO/src/Mesh3D_IO.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MESHIO/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I../UTILS/include -I../MATH/include -I../CFDDB/include -I. -ICommMPI/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/Mesh3D_IO.o MESHIO/src/Mesh3D_IO.cpp
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../CFDDB/include -I. -ICommMPI/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/Mesh3D_IO.o MESHIO/src/Mesh3D_IO.cpp
 
 ${OBJECTDIR}/MESHIO/src/Node3D.o: nbproject/Makefile-${CND_CONF}.mk MESHIO/src/Node3D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MESHIO/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I../UTILS/include -I../MATH/include -I../CFDDB/include -I. -ICommMPI/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/Node3D.o MESHIO/src/Node3D.cpp
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../CFDDB/include -I. -ICommMPI/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/Node3D.o MESHIO/src/Node3D.cpp
 
 ${OBJECTDIR}/main.o: nbproject/Makefile-${CND_CONF}.mk main.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I../UTILS/include -I../MATH/include -I../CFDDB/include -I. -ICommMPI/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../CFDDB/include -I. -ICommMPI/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
 
 ${OBJECTDIR}/MESHIO/src/Cell3D.o: nbproject/Makefile-${CND_CONF}.mk MESHIO/src/Cell3D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MESHIO/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I../UTILS/include -I../MATH/include -I../CFDDB/include -I. -ICommMPI/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/Cell3D.o MESHIO/src/Cell3D.cpp
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../CFDDB/include -I. -ICommMPI/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/Cell3D.o MESHIO/src/Cell3D.cpp
 
 ${OBJECTDIR}/CommMPI/src/CommMPI.o: nbproject/Makefile-${CND_CONF}.mk CommMPI/src/CommMPI.cpp 
 	${MKDIR} -p ${OBJECTDIR}/CommMPI/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I../UTILS/include -I../MATH/include -I../CFDDB/include -I. -ICommMPI/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/CommMPI/src/CommMPI.o CommMPI/src/CommMPI.cpp
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../CFDDB/include -I. -ICommMPI/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/CommMPI/src/CommMPI.o CommMPI/src/CommMPI.cpp
 
 ${OBJECTDIR}/MESHIO/src/BC3D.o: nbproject/Makefile-${CND_CONF}.mk MESHIO/src/BC3D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MESHIO/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I../UTILS/include -I../MATH/include -I../CFDDB/include -I. -ICommMPI/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/BC3D.o MESHIO/src/BC3D.cpp
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../CFDDB/include -I. -ICommMPI/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/BC3D.o MESHIO/src/BC3D.cpp
 
 ${OBJECTDIR}/MESHIO/src/Ghost3D.o: nbproject/Makefile-${CND_CONF}.mk MESHIO/src/Ghost3D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MESHIO/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I../UTILS/include -I../MATH/include -I../CFDDB/include -I. -ICommMPI/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/Ghost3D.o MESHIO/src/Ghost3D.cpp
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../CFDDB/include -I. -ICommMPI/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/Ghost3D.o MESHIO/src/Ghost3D.cpp
 
 ${OBJECTDIR}/MESHIO/src/Grid3D.o: nbproject/Makefile-${CND_CONF}.mk MESHIO/src/Grid3D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MESHIO/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I../UTILS/include -I../MATH/include -I../CFDDB/include -I. -ICommMPI/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/Grid3D.o MESHIO/src/Grid3D.cpp
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../CFDDB/include -I. -ICommMPI/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/Grid3D.o MESHIO/src/Grid3D.cpp
 
 ${OBJECTDIR}/MESHIO/src/Face3D.o: nbproject/Makefile-${CND_CONF}.mk MESHIO/src/Face3D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/MESHIO/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I../UTILS/include -I../MATH/include -I../CFDDB/include -I. -ICommMPI/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/Face3D.o MESHIO/src/Face3D.cpp
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../CFDDB/include -I. -ICommMPI/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/MESHIO/src/Face3D.o MESHIO/src/Face3D.cpp
 
 ${OBJECTDIR}/Commons.o: nbproject/Makefile-${CND_CONF}.mk Commons.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I../UTILS/include -I../MATH/include -I../CFDDB/include -I. -ICommMPI/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/Commons.o Commons.cpp
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../CFDDB/include -I. -ICommMPI/include -IMESHIO/include -ISOLVER/include -I../../../../00-Applications/HPC_LIBS/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/Commons.o Commons.cpp
 
 # Subprojects
 .build-subprojects:
