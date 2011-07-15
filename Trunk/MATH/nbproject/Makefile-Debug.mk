@@ -37,7 +37,9 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Point3D.o \
 	${OBJECTDIR}/src/Vector2D.o \
 	${OBJECTDIR}/src/MC_Iterative_Jacobi.o \
+	${OBJECTDIR}/src/ParallelLinearAlgebra.o \
 	${OBJECTDIR}/src/Vector3D.o \
+	${OBJECTDIR}/src/LinearAlgebra.o \
 	${OBJECTDIR}/src/Point2D.o
 
 
@@ -55,11 +57,13 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=
+LDLIBSOPTIONS=-Wl,-rpath ../UTILS/dist/Debug/GNU-Linux-x86 -L../UTILS/dist/Debug/GNU-Linux-x86 -lUTILS
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
 	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.so
+
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.so: ../UTILS/dist/Debug/GNU-Linux-x86/libUTILS.so
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.so: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
@@ -68,30 +72,41 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.so: ${OBJECTFILES}
 ${OBJECTDIR}/src/Point3D.o: src/Point3D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Point3D.o src/Point3D.cpp
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Point3D.o src/Point3D.cpp
 
 ${OBJECTDIR}/src/Vector2D.o: src/Vector2D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Vector2D.o src/Vector2D.cpp
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Vector2D.o src/Vector2D.cpp
 
 ${OBJECTDIR}/src/MC_Iterative_Jacobi.o: src/MC_Iterative_Jacobi.c 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.c) -g -Wall -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MC_Iterative_Jacobi.o src/MC_Iterative_Jacobi.c
+	$(COMPILE.c) -g -Wall -I.. -I../UTILS/include -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MC_Iterative_Jacobi.o src/MC_Iterative_Jacobi.c
+
+${OBJECTDIR}/src/ParallelLinearAlgebra.o: src/ParallelLinearAlgebra.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/ParallelLinearAlgebra.o src/ParallelLinearAlgebra.cpp
 
 ${OBJECTDIR}/src/Vector3D.o: src/Vector3D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Vector3D.o src/Vector3D.cpp
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Vector3D.o src/Vector3D.cpp
+
+${OBJECTDIR}/src/LinearAlgebra.o: src/LinearAlgebra.c 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.c) -g -Wall -I.. -I../UTILS/include -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/LinearAlgebra.o src/LinearAlgebra.c
 
 ${OBJECTDIR}/src/Point2D.o: src/Point2D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Point2D.o src/Point2D.cpp
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Point2D.o src/Point2D.cpp
 
 # Subprojects
 .build-subprojects:
+	cd ../UTILS && ${MAKE}  -f Makefile CONF=Debug
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
@@ -100,6 +115,7 @@ ${OBJECTDIR}/src/Point2D.o: src/Point2D.cpp
 
 # Subprojects
 .clean-subprojects:
+	cd ../UTILS && ${MAKE}  -f Makefile CONF=Debug clean
 
 # Enable dependency checking
 .dep.inc: .depcheck-impl

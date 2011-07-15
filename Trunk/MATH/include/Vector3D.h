@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _VECTOR3D_H
 #define	_VECTOR3D_H
 
