@@ -5,7 +5,10 @@
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>include/Complex.h</itemPath>
+      <itemPath>include/LinearAlgebra.h</itemPath>
       <itemPath>include/MC.h</itemPath>
+      <itemPath>include/MatrixBlock.h</itemPath>
+      <itemPath>include/ParallelLinearAlgebra.h</itemPath>
       <itemPath>include/Point2D.h</itemPath>
       <itemPath>include/Point3D.h</itemPath>
       <itemPath>include/Vector2D.h</itemPath>
@@ -18,7 +21,9 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <itemPath>src/LinearAlgebra.c</itemPath>
       <itemPath>src/MC_Iterative_Jacobi.c</itemPath>
+      <itemPath>src/ParallelLinearAlgebra.cpp</itemPath>
       <itemPath>src/Point2D.cpp</itemPath>
       <itemPath>src/Point3D.cpp</itemPath>
       <itemPath>src/Vector2D.cpp</itemPath>
@@ -46,12 +51,16 @@
       <compileType>
         <cTool>
           <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
             <pElem>include</pElem>
           </incDir>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
           <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
             <pElem>include</pElem>
           </incDir>
           <warningLevel>2</warningLevel>
@@ -62,6 +71,22 @@
         <asmTool>
           <warningLevel>2</warningLevel>
         </asmTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Debug"
+                            AC="true"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Debug"
+                            CC="${MAKE}  -f Makefile CONF=Debug clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
+        </linkerTool>
       </compileType>
     </conf>
     <conf name="Release" type="2">
@@ -73,6 +98,8 @@
         <cTool>
           <developmentMode>5</developmentMode>
           <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
             <pElem>include</pElem>
           </incDir>
           <warningLevel>2</warningLevel>
@@ -80,6 +107,8 @@
         <ccTool>
           <developmentMode>5</developmentMode>
           <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
             <pElem>include</pElem>
           </incDir>
           <warningLevel>2</warningLevel>
@@ -92,6 +121,22 @@
           <developmentMode>5</developmentMode>
           <warningLevel>2</warningLevel>
         </asmTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Release"
+                            AC="false"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Release"
+                            CC="${MAKE}  -f Makefile CONF=Release clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
+        </linkerTool>
       </compileType>
     </conf>
   </confs>
