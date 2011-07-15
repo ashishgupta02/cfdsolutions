@@ -78,6 +78,7 @@
         <cTool>
           <commandlineTool>gcc</commandlineTool>
           <incDir>
+            <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
             <pElem>MESH/include</pElem>
@@ -93,6 +94,7 @@
         <ccTool>
           <commandlineTool>g++</commandlineTool>
           <incDir>
+            <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
             <pElem>MESH/include</pElem>
@@ -153,6 +155,7 @@
         <cTool>
           <developmentMode>5</developmentMode>
           <incDir>
+            <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
             <pElem>MESH/include</pElem>
@@ -164,6 +167,7 @@
         <ccTool>
           <developmentMode>5</developmentMode>
           <incDir>
+            <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
             <pElem>MESH/include</pElem>
