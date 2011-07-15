@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _MESHQAQUALITYMETRICS_H
 #define	_MESHQAQUALITYMETRICS_H
 

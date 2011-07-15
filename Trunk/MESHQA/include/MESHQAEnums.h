@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _MESHQAENUMS_H
 #define	_MESHQAENUMS_H
 

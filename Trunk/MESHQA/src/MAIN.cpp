@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef MESHQA_SHARED_LIB
 
 /* Name of package */
@@ -19,7 +21,7 @@
 /* Define to the version of this package. */
 #define PACKAGE_VERSION ""
 /* Version number of package */
-#define VERSION "1.0"
+#define VERSION "2.0"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -73,7 +75,7 @@ static int arguments(int argc, char **argv) {
             exit(0);
         } else if(argv[1][1] == options[5]) {
             printf("%s Utility, Version %s \n", PACKAGE, VERSION);
-            printf("Copyright (C) 2010 Ashish Gupta. All rights reserved.\n");
+            printf("Copyright (C) 2010-11 Ashish Gupta. All rights reserved.\n");
             printf("Contact for Help or Bugs %s \n", PACKAGE_BUGREPORT);
             exit(0);
         } else if (argc < 3) {
@@ -182,5 +184,5 @@ int main(int argc, char** argv) {
 }
 
 #else
-#define MESHQA_VERSION 1.0
+#define MESHQA_VERSION 2.0
 #endif

@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _MESHQAELEMSET_H
 #define	_MESHQAELEMSET_H
 

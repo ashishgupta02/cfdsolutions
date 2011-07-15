@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _MESHQACELLQUALITYVECTOR_H
 #define	_MESHQACELLQUALITYVECTOR_H
 

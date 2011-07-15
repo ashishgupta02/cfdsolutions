@@ -55,10 +55,11 @@
       <compileType>
         <cTool>
           <incDir>
-            <pElem>include</pElem>
+            <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../CFDDB/include</pElem>
             <pElem>../VERDICT/include</pElem>
+            <pElem>include</pElem>
           </incDir>
           <preprocessorList>
             <Elem>LINUX_AMD64</Elem>
@@ -68,10 +69,11 @@
         </cTool>
         <ccTool>
           <incDir>
-            <pElem>include</pElem>
+            <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../CFDDB/include</pElem>
             <pElem>../VERDICT/include</pElem>
+            <pElem>include</pElem>
           </incDir>
           <preprocessorList>
             <Elem>LINUX_AMD64</Elem>
@@ -125,10 +127,11 @@
         <cTool>
           <developmentMode>5</developmentMode>
           <incDir>
-            <pElem>include</pElem>
+            <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../CFDDB/include</pElem>
             <pElem>../VERDICT/include</pElem>
+            <pElem>include</pElem>
           </incDir>
           <preprocessorList>
             <Elem>LINUX_AMD64</Elem>
@@ -139,10 +142,11 @@
         <ccTool>
           <developmentMode>5</developmentMode>
           <incDir>
-            <pElem>include</pElem>
+            <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../CFDDB/include</pElem>
             <pElem>../VERDICT/include</pElem>
+            <pElem>include</pElem>
           </incDir>
           <preprocessorList>
             <Elem>LINUX_AMD64</Elem>

@@ -76,57 +76,57 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMESHQA.so: ${OBJECTFILES}
 ${OBJECTDIR}/src/MAIN.o: src/MAIN.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DLINUX_AMD64 -DMESHQA_SHARED_LIB -Iinclude -I../UTILS/include -I../CFDDB/include -I../VERDICT/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MAIN.o src/MAIN.cpp
+	$(COMPILE.cc) -O2 -Wall -DLINUX_AMD64 -DMESHQA_SHARED_LIB -I.. -I../UTILS/include -I../CFDDB/include -I../VERDICT/include -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MAIN.o src/MAIN.cpp
 
 ${OBJECTDIR}/src/MESHQAElemset.o: src/MESHQAElemset.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DLINUX_AMD64 -DMESHQA_SHARED_LIB -Iinclude -I../UTILS/include -I../CFDDB/include -I../VERDICT/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MESHQAElemset.o src/MESHQAElemset.cpp
+	$(COMPILE.cc) -O2 -Wall -DLINUX_AMD64 -DMESHQA_SHARED_LIB -I.. -I../UTILS/include -I../CFDDB/include -I../VERDICT/include -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MESHQAElemset.o src/MESHQAElemset.cpp
 
 ${OBJECTDIR}/src/MESHQACFDDB.o: src/MESHQACFDDB.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DLINUX_AMD64 -DMESHQA_SHARED_LIB -Iinclude -I../UTILS/include -I../CFDDB/include -I../VERDICT/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MESHQACFDDB.o src/MESHQACFDDB.cpp
+	$(COMPILE.cc) -O2 -Wall -DLINUX_AMD64 -DMESHQA_SHARED_LIB -I.. -I../UTILS/include -I../CFDDB/include -I../VERDICT/include -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MESHQACFDDB.o src/MESHQACFDDB.cpp
 
 ${OBJECTDIR}/src/MESHQAZone.o: src/MESHQAZone.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DLINUX_AMD64 -DMESHQA_SHARED_LIB -Iinclude -I../UTILS/include -I../CFDDB/include -I../VERDICT/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MESHQAZone.o src/MESHQAZone.cpp
+	$(COMPILE.cc) -O2 -Wall -DLINUX_AMD64 -DMESHQA_SHARED_LIB -I.. -I../UTILS/include -I../CFDDB/include -I../VERDICT/include -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MESHQAZone.o src/MESHQAZone.cpp
 
 ${OBJECTDIR}/src/MESHQAEnums.o: src/MESHQAEnums.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DLINUX_AMD64 -DMESHQA_SHARED_LIB -Iinclude -I../UTILS/include -I../CFDDB/include -I../VERDICT/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MESHQAEnums.o src/MESHQAEnums.cpp
+	$(COMPILE.cc) -O2 -Wall -DLINUX_AMD64 -DMESHQA_SHARED_LIB -I.. -I../UTILS/include -I../CFDDB/include -I../VERDICT/include -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MESHQAEnums.o src/MESHQAEnums.cpp
 
 ${OBJECTDIR}/src/MESHQAQualityMetrics.o: src/MESHQAQualityMetrics.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DLINUX_AMD64 -DMESHQA_SHARED_LIB -Iinclude -I../UTILS/include -I../CFDDB/include -I../VERDICT/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MESHQAQualityMetrics.o src/MESHQAQualityMetrics.cpp
+	$(COMPILE.cc) -O2 -Wall -DLINUX_AMD64 -DMESHQA_SHARED_LIB -I.. -I../UTILS/include -I../CFDDB/include -I../VERDICT/include -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MESHQAQualityMetrics.o src/MESHQAQualityMetrics.cpp
 
 ${OBJECTDIR}/src/MESHQACellObject.o: src/MESHQACellObject.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DLINUX_AMD64 -DMESHQA_SHARED_LIB -Iinclude -I../UTILS/include -I../CFDDB/include -I../VERDICT/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MESHQACellObject.o src/MESHQACellObject.cpp
+	$(COMPILE.cc) -O2 -Wall -DLINUX_AMD64 -DMESHQA_SHARED_LIB -I.. -I../UTILS/include -I../CFDDB/include -I../VERDICT/include -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MESHQACellObject.o src/MESHQACellObject.cpp
 
 ${OBJECTDIR}/src/MESHQACellQualityVector.o: src/MESHQACellQualityVector.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DLINUX_AMD64 -DMESHQA_SHARED_LIB -Iinclude -I../UTILS/include -I../CFDDB/include -I../VERDICT/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MESHQACellQualityVector.o src/MESHQACellQualityVector.cpp
+	$(COMPILE.cc) -O2 -Wall -DLINUX_AMD64 -DMESHQA_SHARED_LIB -I.. -I../UTILS/include -I../CFDDB/include -I../VERDICT/include -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MESHQACellQualityVector.o src/MESHQACellQualityVector.cpp
 
 ${OBJECTDIR}/src/MESHQABase.o: src/MESHQABase.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DLINUX_AMD64 -DMESHQA_SHARED_LIB -Iinclude -I../UTILS/include -I../CFDDB/include -I../VERDICT/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MESHQABase.o src/MESHQABase.cpp
+	$(COMPILE.cc) -O2 -Wall -DLINUX_AMD64 -DMESHQA_SHARED_LIB -I.. -I../UTILS/include -I../CFDDB/include -I../VERDICT/include -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MESHQABase.o src/MESHQABase.cpp
 
 ${OBJECTDIR}/src/MESHQARoot.o: src/MESHQARoot.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DLINUX_AMD64 -DMESHQA_SHARED_LIB -Iinclude -I../UTILS/include -I../CFDDB/include -I../VERDICT/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MESHQARoot.o src/MESHQARoot.cpp
+	$(COMPILE.cc) -O2 -Wall -DLINUX_AMD64 -DMESHQA_SHARED_LIB -I.. -I../UTILS/include -I../CFDDB/include -I../VERDICT/include -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MESHQARoot.o src/MESHQARoot.cpp
 
 ${OBJECTDIR}/src/MESHQACellInfo.o: src/MESHQACellInfo.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DLINUX_AMD64 -DMESHQA_SHARED_LIB -Iinclude -I../UTILS/include -I../CFDDB/include -I../VERDICT/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MESHQACellInfo.o src/MESHQACellInfo.cpp
+	$(COMPILE.cc) -O2 -Wall -DLINUX_AMD64 -DMESHQA_SHARED_LIB -I.. -I../UTILS/include -I../CFDDB/include -I../VERDICT/include -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MESHQACellInfo.o src/MESHQACellInfo.cpp
 
 # Subprojects
 .build-subprojects:
