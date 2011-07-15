@@ -1,11 +1,13 @@
 /*******************************************************************************
  * File:        Gradient.h
  * Author:      Ashish Gupta
- * Revision:    3
+ * Revision:    4
  ******************************************************************************/
 
-#ifndef GRADIENT_H
-#define	GRADIENT_H
+#include "License.h"
+
+#ifndef _GRADIENT_H
+#define	_GRADIENT_H
 
 typedef struct _GradientData {
     double r11;
@@ -39,5 +41,5 @@ int Gradient_Add_Function(double *NewFunction, double *NewGradientX,
 // WeightType: 0 => Unweighted 1 => Inverse Distance
 void Compute_Least_Square_Gradient(int WeightType);
 
-#endif	/* GRADIENT_H */
+#endif	/* _GRADIENT_H */
 

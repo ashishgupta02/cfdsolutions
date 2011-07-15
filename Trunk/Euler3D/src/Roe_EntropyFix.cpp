@@ -1,8 +1,10 @@
 /*******************************************************************************
  * File:        Roe_EntropyFix.cpp
  * Author:      Ashish Gupta
- * Revision:    3
+ * Revision:    4
  ******************************************************************************/
+
+#include "License.h"
 
 // Custom header files
 #include "Trim_Utils.h"

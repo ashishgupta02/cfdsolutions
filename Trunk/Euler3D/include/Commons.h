@@ -1,11 +1,13 @@
 /*******************************************************************************
  * File:        Commons.h
  * Author:      Ashish Gupta
- * Revision:    3
+ * Revision:    4
  ******************************************************************************/
 
-#ifndef COMMONS_H
-#define	COMMONS_H
+#include "License.h"
+
+#ifndef _COMMONS_H
+#define	_COMMONS_H
 
 #include <math.h>
 #include "List.h"
@@ -119,5 +121,5 @@ void Cuthill_Mckee_Reorder(void);
 // Calculate Areas and Control Volume
 void Calculate_Area_Volume(void);
 
-#endif	/* COMMONS_H */
+#endif	/* _COMMONS_H */
 

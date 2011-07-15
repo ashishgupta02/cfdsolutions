@@ -1,8 +1,10 @@
 /*******************************************************************************
  * File:        main.cpp
  * Author:      Ashish Gupta
- * Revision:    3
+ * Revision:    4
  ******************************************************************************/
+
+#include "License.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -20,7 +22,7 @@
 /* Define to the version of this package. */
 #define PACKAGE_VERSION ""
 /* Version number of package */
-#define VERSION "1.0"
+#define VERSION "2.0"
 #endif
 
 #include <stdio.h>

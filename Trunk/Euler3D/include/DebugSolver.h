@@ -1,13 +1,15 @@
 /*******************************************************************************
  * File:        DebugSolver.h
  * Author:      Ashish Gupta
- * Revision:    3
+ * Revision:    4
  ******************************************************************************/
 
-#ifndef DEBUGSOLVER_H
-#define	DEBUGSOLVER_H
+#include "License.h"
+
+#ifndef _DEBUGSOLVER_H
+#define	_DEBUGSOLVER_H
 
 void DebugNAN(void);
 
-#endif	/* DEBUGSOLVER_H */
+#endif	/* _DEBUGSOLVER_H */
 
