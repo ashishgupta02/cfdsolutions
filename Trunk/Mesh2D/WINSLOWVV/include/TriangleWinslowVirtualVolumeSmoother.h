@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _TRIANGLEWINSLOWVIRTUALVOLUMESMOOTHER_H
 #define	_TRIANGLEWINSLOWVIRTUALVOLUMESMOOTHER_H
 

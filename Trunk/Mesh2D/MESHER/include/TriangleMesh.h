@@ -4,6 +4,8 @@
  * Revision:    4
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _TRIANGLEMESH_H
 #define	_TRIANGLEMESH_H
 
