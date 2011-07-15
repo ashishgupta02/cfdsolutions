@@ -1,3 +1,11 @@
+/*******************************************************************************
+* File:        VerdictVector.hpp
+* Author:      Ashish Gupta
+* Revision:    4
+******************************************************************************/
+
+#include "License.h"
+
 #ifndef VERDICTVECTOR_HPP
 #define VERDICTVECTOR_HPP
 

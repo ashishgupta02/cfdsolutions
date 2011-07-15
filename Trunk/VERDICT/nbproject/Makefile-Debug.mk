@@ -73,52 +73,52 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libVERDICT.so: ${OBJECTFILES}
 ${OBJECTDIR}/src/V_WedgeMetric.o: src/V_WedgeMetric.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_WedgeMetric.o src/V_WedgeMetric.cpp
+	$(COMPILE.cc) -g -Wall -DBUILD_SHARED_LIBS -I.. -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_WedgeMetric.o src/V_WedgeMetric.cpp
 
 ${OBJECTDIR}/src/V_PyramidMetric.o: src/V_PyramidMetric.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_PyramidMetric.o src/V_PyramidMetric.cpp
+	$(COMPILE.cc) -g -Wall -DBUILD_SHARED_LIBS -I.. -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_PyramidMetric.o src/V_PyramidMetric.cpp
 
 ${OBJECTDIR}/src/VerdictVector.o: src/VerdictVector.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/VerdictVector.o src/VerdictVector.cpp
+	$(COMPILE.cc) -g -Wall -DBUILD_SHARED_LIBS -I.. -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/VerdictVector.o src/VerdictVector.cpp
 
 ${OBJECTDIR}/src/V_TriMetric.o: src/V_TriMetric.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_TriMetric.o src/V_TriMetric.cpp
+	$(COMPILE.cc) -g -Wall -DBUILD_SHARED_LIBS -I.. -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_TriMetric.o src/V_TriMetric.cpp
 
 ${OBJECTDIR}/src/V_QuadMetric.o: src/V_QuadMetric.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_QuadMetric.o src/V_QuadMetric.cpp
+	$(COMPILE.cc) -g -Wall -DBUILD_SHARED_LIBS -I.. -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_QuadMetric.o src/V_QuadMetric.cpp
 
 ${OBJECTDIR}/src/V_GaussIntegration.o: src/V_GaussIntegration.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_GaussIntegration.o src/V_GaussIntegration.cpp
+	$(COMPILE.cc) -g -Wall -DBUILD_SHARED_LIBS -I.. -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_GaussIntegration.o src/V_GaussIntegration.cpp
 
 ${OBJECTDIR}/src/V_EdgeMetric.o: src/V_EdgeMetric.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_EdgeMetric.o src/V_EdgeMetric.cpp
+	$(COMPILE.cc) -g -Wall -DBUILD_SHARED_LIBS -I.. -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_EdgeMetric.o src/V_EdgeMetric.cpp
 
 ${OBJECTDIR}/src/V_HexMetric.o: src/V_HexMetric.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_HexMetric.o src/V_HexMetric.cpp
+	$(COMPILE.cc) -g -Wall -DBUILD_SHARED_LIBS -I.. -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_HexMetric.o src/V_HexMetric.cpp
 
 ${OBJECTDIR}/src/V_KnifeMetric.o: src/V_KnifeMetric.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_KnifeMetric.o src/V_KnifeMetric.cpp
+	$(COMPILE.cc) -g -Wall -DBUILD_SHARED_LIBS -I.. -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_KnifeMetric.o src/V_KnifeMetric.cpp
 
 ${OBJECTDIR}/src/V_TetMetric.o: src/V_TetMetric.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -DBUILD_SHARED_LIBS -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_TetMetric.o src/V_TetMetric.cpp
+	$(COMPILE.cc) -g -Wall -DBUILD_SHARED_LIBS -I.. -Iinclude -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/V_TetMetric.o src/V_TetMetric.cpp
 
 # Subprojects
 .build-subprojects:

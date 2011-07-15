@@ -45,6 +45,7 @@
       <compileType>
         <cTool>
           <incDir>
+            <pElem>..</pElem>
             <pElem>include</pElem>
           </incDir>
           <preprocessorList>
@@ -54,6 +55,7 @@
         </cTool>
         <ccTool>
           <incDir>
+            <pElem>..</pElem>
             <pElem>include</pElem>
           </incDir>
           <preprocessorList>
@@ -79,6 +81,7 @@
         <cTool>
           <developmentMode>5</developmentMode>
           <incDir>
+            <pElem>..</pElem>
             <pElem>include</pElem>
           </incDir>
           <preprocessorList>
@@ -89,6 +92,7 @@
         <ccTool>
           <developmentMode>5</developmentMode>
           <incDir>
+            <pElem>..</pElem>
             <pElem>include</pElem>
           </incDir>
           <preprocessorList>

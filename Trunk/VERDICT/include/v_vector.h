@@ -1,3 +1,11 @@
+/*******************************************************************************
+* File:        v_vector.h
+* Author:      Ashish Gupta
+* Revision:    4
+******************************************************************************/
+
+#include "License.h"
+
 #ifndef VERDICT_VECTOR
 #define VERDICT_VECTOR
 
