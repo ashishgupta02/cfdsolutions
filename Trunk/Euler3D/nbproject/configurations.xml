@@ -28,11 +28,14 @@
       <itemPath>src/DebugSolver.cpp</itemPath>
       <itemPath>src/Gradient.cpp</itemPath>
       <itemPath>src/HigherOrderReconstructQ.cpp</itemPath>
+      <itemPath>src/Jacobian.cpp</itemPath>
       <itemPath>src/Limiters.cpp</itemPath>
       <itemPath>src/MeshIO.cpp</itemPath>
+      <itemPath>src/Residual.cpp</itemPath>
       <itemPath>src/RestartIO.cpp</itemPath>
       <itemPath>src/Roe_EntropyFix.cpp</itemPath>
       <itemPath>src/Roe_Fluxes.cpp</itemPath>
+      <itemPath>src/Roe_Jacobian.cpp</itemPath>
       <itemPath>src/Solver.cpp</itemPath>
       <itemPath>src/Time_Step.cpp</itemPath>
       <itemPath>main.cpp</itemPath>
@@ -51,7 +54,7 @@
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
-    <conf name="Release_GNU" type="1">
+    <conf name="Release" type="1">
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
@@ -120,7 +123,7 @@
         </linkerTool>
       </compileType>
     </conf>
-    <conf name="Debug_GNU" type="1">
+    <conf name="Debug" type="1">
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
@@ -182,132 +185,6 @@
             </linkerLibProjectItem>
           </linkerLibItems>
           <commandLine>-lstdc++ -lm</commandLine>
-        </linkerTool>
-      </compileType>
-    </conf>
-    <conf name="Release_Intel64" type="1">
-      <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
-        <compilerSet>Intel64|GNU</compilerSet>
-      </toolsSet>
-      <compileType>
-        <cTool>
-          <developmentMode>5</developmentMode>
-          <incDir>
-            <pElem>..</pElem>
-            <pElem>../UTILS/include</pElem>
-            <pElem>../MATH/include</pElem>
-            <pElem>include</pElem>
-          </incDir>
-          <warningLevel>2</warningLevel>
-        </cTool>
-        <ccTool>
-          <developmentMode>5</developmentMode>
-          <incDir>
-            <pElem>..</pElem>
-            <pElem>../UTILS/include</pElem>
-            <pElem>../MATH/include</pElem>
-            <pElem>include</pElem>
-          </incDir>
-          <warningLevel>2</warningLevel>
-        </ccTool>
-        <fortranCompilerTool>
-          <developmentMode>5</developmentMode>
-          <warningLevel>2</warningLevel>
-        </fortranCompilerTool>
-        <asmTool>
-          <developmentMode>5</developmentMode>
-          <warningLevel>2</warningLevel>
-        </asmTool>
-        <linkerTool>
-          <linkerLibItems>
-            <linkerLibProjectItem>
-              <makeArtifact PL="../UTILS"
-                            CT="2"
-                            CN="Release"
-                            AC="false"
-                            BL="true"
-                            WD="../UTILS"
-                            BC="${MAKE}  -f Makefile CONF=Release"
-                            CC="${MAKE}  -f Makefile CONF=Release clean"
-                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
-              </makeArtifact>
-            </linkerLibProjectItem>
-            <linkerLibProjectItem>
-              <makeArtifact PL="../MATH"
-                            CT="2"
-                            CN="Release"
-                            AC="false"
-                            BL="true"
-                            WD="../MATH"
-                            BC="${MAKE}  -f Makefile CONF=Release"
-                            CC="${MAKE}  -f Makefile CONF=Release clean"
-                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.so">
-              </makeArtifact>
-            </linkerLibProjectItem>
-          </linkerLibItems>
-          <commandLine>-lstdc++</commandLine>
-        </linkerTool>
-      </compileType>
-    </conf>
-    <conf name="Debug_Intel64" type="1">
-      <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
-        <compilerSet>Intel64|GNU</compilerSet>
-      </toolsSet>
-      <compileType>
-        <cTool>
-          <incDir>
-            <pElem>..</pElem>
-            <pElem>../UTILS/include</pElem>
-            <pElem>../MATH/include</pElem>
-            <pElem>include</pElem>
-          </incDir>
-          <warningLevel>2</warningLevel>
-        </cTool>
-        <ccTool>
-          <incDir>
-            <pElem>..</pElem>
-            <pElem>../UTILS/include</pElem>
-            <pElem>../MATH/include</pElem>
-            <pElem>include</pElem>
-          </incDir>
-          <warningLevel>2</warningLevel>
-        </ccTool>
-        <fortranCompilerTool>
-          <warningLevel>2</warningLevel>
-        </fortranCompilerTool>
-        <asmTool>
-          <warningLevel>2</warningLevel>
-        </asmTool>
-        <linkerTool>
-          <linkerLibItems>
-            <linkerLibProjectItem>
-              <makeArtifact PL="../UTILS"
-                            CT="2"
-                            CN="Debug"
-                            AC="true"
-                            BL="true"
-                            WD="../UTILS"
-                            BC="${MAKE}  -f Makefile CONF=Debug"
-                            CC="${MAKE}  -f Makefile CONF=Debug clean"
-                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
-              </makeArtifact>
-            </linkerLibProjectItem>
-            <linkerLibProjectItem>
-              <makeArtifact PL="../MATH"
-                            CT="2"
-                            CN="Debug"
-                            AC="true"
-                            BL="true"
-                            WD="../MATH"
-                            BC="${MAKE}  -f Makefile CONF=Debug"
-                            CC="${MAKE}  -f Makefile CONF=Debug clean"
-                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.so">
-              </makeArtifact>
-            </linkerLibProjectItem>
-          </linkerLibItems>
-          <commandLine>-lstdc++</commandLine>
         </linkerTool>
       </compileType>
     </conf>

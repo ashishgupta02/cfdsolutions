@@ -67,7 +67,7 @@ void Compute_Limiter(void) {
     }
 
     // Apply Roe Pressure Correction to Limiters
-    if (SolverScheme == SOLVER_ROE) {
+    if ((SolverScheme == SOLVER_SCHEME_ROE) || (SolverScheme == SOLVER_SCHEME_LMROE)) {
         double Phi_N[5];
         
         for (iNode = 0; iNode < nNode; iNode++) {

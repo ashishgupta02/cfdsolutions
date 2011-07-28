@@ -120,7 +120,7 @@ int main(int argc, char *argv[]) {
     UGrid_Reader(argv[2]);
 
     // Create All Connectivity Maps
-    int reorder = 0;
+    int reorder = 1;
     Create_Connectivity_Maps(reorder);
     
     // Calculate Areas and Control Volumes

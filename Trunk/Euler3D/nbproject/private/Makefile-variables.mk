@@ -3,7 +3,5 @@
 #
 # NOCDDL
 #
-# Release_GNU configuration
-# Debug_GNU configuration
-# Release_Intel64 configuration
-# Debug_Intel64 configuration
+# Release configuration
+# Debug configuration

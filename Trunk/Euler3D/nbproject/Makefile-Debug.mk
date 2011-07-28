@@ -14,15 +14,15 @@ GREP=grep
 NM=nm
 CCADMIN=CCadmin
 RANLIB=ranlib
-CC=icc
-CCC=icc
-CXX=icc
-FC=ifort
+CC=gcc
+CCC=g++
+CXX=g++
+FC=gfortran
 AS=as
 
 # Macros
-CND_PLATFORM=Intel64-Linux-x86
-CND_CONF=Debug_Intel64
+CND_PLATFORM=GNU-Linux-x86
+CND_CONF=Debug
 CND_DISTDIR=dist
 CND_BUILDDIR=build
 
@@ -40,16 +40,19 @@ OBJECTFILES= \
 	${OBJECTDIR}/main.o \
 	${OBJECTDIR}/src/RestartIO.o \
 	${OBJECTDIR}/src/BC.o \
+	${OBJECTDIR}/src/Jacobian.o \
 	${OBJECTDIR}/src/Time_Step.o \
 	${OBJECTDIR}/src/Roe_EntropyFix.o \
 	${OBJECTDIR}/src/Gradient.o \
 	${OBJECTDIR}/src/CompressibleUtils.o \
 	${OBJECTDIR}/src/Area_Volume.o \
 	${OBJECTDIR}/src/HigherOrderReconstructQ.o \
-	${OBJECTDIR}/src/Roe_Fluxes.o \
+	${OBJECTDIR}/src/Roe_Jacobian.o \
 	${OBJECTDIR}/src/MeshIO.o \
+	${OBJECTDIR}/src/Roe_Fluxes.o \
 	${OBJECTDIR}/src/Solver.o \
 	${OBJECTDIR}/src/Connectivity_Maps.o \
+	${OBJECTDIR}/src/Residual.o \
 	${OBJECTDIR}/src/DebugSolver.o
 
 
@@ -57,8 +60,8 @@ OBJECTFILES= \
 CFLAGS=
 
 # CC Compiler Flags
-CCFLAGS=
-CXXFLAGS=
+CCFLAGS=-Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer
+CXXFLAGS=-Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -79,7 +82,7 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d: ../MATH/dist/Debug/GNU-Linux
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.cc} -lstdc++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d ${OBJECTFILES} ${LDLIBSOPTIONS} 
+	g++ -lstdc++ -lm -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
 ${OBJECTDIR}/src/Limiters.o: src/Limiters.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -111,6 +114,11 @@ ${OBJECTDIR}/src/BC.o: src/BC.cpp
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/BC.o src/BC.cpp
 
+${OBJECTDIR}/src/Jacobian.o: src/Jacobian.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Jacobian.o src/Jacobian.cpp
+
 ${OBJECTDIR}/src/Time_Step.o: src/Time_Step.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
@@ -141,15 +149,20 @@ ${OBJECTDIR}/src/HigherOrderReconstructQ.o: src/HigherOrderReconstructQ.cpp
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/HigherOrderReconstructQ.o src/HigherOrderReconstructQ.cpp
 
-${OBJECTDIR}/src/Roe_Fluxes.o: src/Roe_Fluxes.cpp 
+${OBJECTDIR}/src/Roe_Jacobian.o: src/Roe_Jacobian.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Roe_Fluxes.o src/Roe_Fluxes.cpp
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Roe_Jacobian.o src/Roe_Jacobian.cpp
 
 ${OBJECTDIR}/src/MeshIO.o: src/MeshIO.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MeshIO.o src/MeshIO.cpp
+
+${OBJECTDIR}/src/Roe_Fluxes.o: src/Roe_Fluxes.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Roe_Fluxes.o src/Roe_Fluxes.cpp
 
 ${OBJECTDIR}/src/Solver.o: src/Solver.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -160,6 +173,11 @@ ${OBJECTDIR}/src/Connectivity_Maps.o: src/Connectivity_Maps.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Connectivity_Maps.o src/Connectivity_Maps.cpp
+
+${OBJECTDIR}/src/Residual.o: src/Residual.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Residual.o src/Residual.cpp
 
 ${OBJECTDIR}/src/DebugSolver.o: src/DebugSolver.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
