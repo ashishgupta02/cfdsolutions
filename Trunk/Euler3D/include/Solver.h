@@ -9,6 +9,8 @@
 #ifndef _SOLVER_H
 #define	_SOLVER_H
 
+#include "MC.h"
+
 // Boundary Conditions Type
 #define BC_NONE                -1
 #define BC_SOLID_WALL           0
@@ -18,10 +20,29 @@
 #define BC_SUPERSONIC_INFLOW    4
 #define BC_SUPERSONIC_OUTFLOW   5
 
-// Solver Type
-#define SOLVER_NONE             0
-#define SOLVER_ROE              1
-#define SOLVER_LMROE            2
+// Solver Method
+#define SOLVER_METHOD_NONE      0
+#define SOLVER_METHOD_EXPLICIT  1
+#define SOLVER_METHOD_IMPLICIT  2
+
+// Solver Scheme
+#define SOLVER_SCHEME_NONE      0
+#define SOLVER_SCHEME_ROE       1
+#define SOLVER_SCHEME_LMROE     2
+
+// Solver Boundary Condition Scheme
+#define SOLVER_BC_SCHEME_NONE           0
+#define SOLVER_BC_SCHEME_CHARCTERISTIC  1
+#define SOLVER_BC_SCHEME_PRESSURE       2
+
+// Solver Jacobian Computation Method
+#define SOLVER_JACOBIAN_NONE           -1
+#define SOLVER_JACOBIAN_CENTRAL         0
+#define SOLVER_JACOBIAN_FORWARD         1
+#define SOLVER_JACOBIAN_BACKWARD        2
+#define SOLVER_JACOBIAN_ALTERNATE       3
+#define SOLVER_JACOBIAN_APPROX          4
+#define SOLVER_JACOBIAN_EXACT           5
 
 // Variable Type
 #define VARIABLE_NONE           0
@@ -34,9 +55,13 @@
 #define NEQUATIONS              5
 
 // Linear Solver Parameters
-extern int    SolverScheme;
-extern int    TimeAccuracy;
-extern int    TimeStepScheme;
+extern int    SolverMethod;   /* Explicit, Implicit */
+extern int    SolverScheme;   /* Roe, LMRoe */
+extern int    TimeAccuracy;   /* Global Time, Local Time */
+extern int    TimeStepScheme; /* Euler, Runge-Kutta 4 */
+extern int    SolverBCScheme; /* Characteristic, Pressure */
+extern int    JacobianMethod; /* Central, Forward, Backward, Approx, Exact */
+extern int    JacobianUpdate;
 extern int    Order;
 extern int    NIteration;
 extern int    InnerNIteration;
@@ -148,6 +173,9 @@ extern double *Limiter_Phi5;
 extern double RMS[5];
 extern double RMS_Res;
 
+// MC CRS Matrix
+extern MC_CRS SolverBlockMatrix;
+
 // Compute Free Stream Condition with Mach Ramping
 void ComputeFreeStreamCondition(int Iteration);
 
@@ -159,19 +187,39 @@ void Solver_Finalize(void);
 void Solver_Read_Params(const char *paramfile);
 void Solver_Set_Initial_Conditions(void);
 int  Solve(void);
+int  Solve_Explicit(void);
+void Compute_Residual(void);
 
+// Implicit Method Routines
+void Create_CRS_SolverBlockMatrix(void);
+void Delete_CRS_SolverBlockMatrix(void);
+int  Solve_Implicit(void);
+void Compute_Jacobian(int AddTime, int Iteration);
+
+// Boundary Conditions
 void Initialize_Boundary_Condition(void);
+void Compute_Characteristic_BoundaryCondition(int BEdgeID, int Iteration);
+int  Compute_Characteristic_BoundaryCondition_New(double Q_L[NEQUATIONS], double Q_R[NEQUATIONS], Vector3D AreaVec, int BCType, int Iteration, double Q_B[NEQUATIONS]);
+void Compute_Pressure_BoundaryCondition(int BEdgeID, int Iteration);
+void Apply_Characteristic_Boundary_Condition(int Iteration);
+void Apply_Pressure_Boundary_Condition(int Iteration);
 void Apply_Boundary_Condition(int Iteration);
+
+// Time Stepping
 void Compute_DeltaT(int Iteration);
 
 // Roe Scheme Functions
 void Roe_Init(void);
 void Roe_Finalize(void);
 void Roe_Reset(void);
-void Compute_EulerFlux(double *Q_Node, Vector3D areavec, double *Flux_Euler);
 void Compute_RoeVariables(double *Q_L, double *Q_R, double *Q_Roe);
+void Compute_RoeAJacobian(double *Q_L, double *Q_R, Vector3D areavec, double **AJacobian_Roe);
 void Compute_RoeFlux(int node_L, int node_R, Vector3D areavec, double *Flux_Roe);
 void Compute_Residual_Roe(void);
+void Compute_Jacobian_Exact_Roe(int AddTime, int Iteration);
+void Compute_Jacobian_Approximate_Roe(int AddTime, int Iteration);
+void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration);
+void Compute_Jacobian_Roe(int AddTime, int Iteration);
 
 // Limiter
 void Compute_Limiter(void);

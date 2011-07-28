@@ -18,7 +18,6 @@
 #include "MC.h"
 #include "Commons.h"
 #include "Solver.h"
-#include "Vector3D.h"
 
 // Static Variable for Speed Up
 static int Roe_DB               = 0;
@@ -141,44 +140,223 @@ void Roe_Reset(void) {
 }
 
 //------------------------------------------------------------------------------
-//! Compute Euler Flux
+//! Compute Roe Flux Jacobian A
+//! Note this function should not be called from Compute_RoeFlux
 //------------------------------------------------------------------------------
-void Compute_EulerFlux(double *Q_Node, Vector3D areavec, double *Flux_Euler) {
-    double nx, ny, nz;
-    double rho, u, v, w, rhoet, p, ht, ubar;
+void Compute_RoeAJacobian(double *Q_L, double *Q_R, Vector3D areavec, double **AJacobian_Roe) {
+    double rho_L, u_L, v_L, w_L, rhoet_L, p_L, c_L, ht_L, ubar_L;
+    double rho_R, u_R, v_R, w_R, rhoet_R, p_R, c_R, ht_R, ubar_R;
+    double rho, u, v, w, ht, c, phi, ubar;
+    double sigma, area, nx, ny, nz;
     
+    // Initialization
+    Roe_Reset();
+    
+    // Get area vector
+    area = areavec.magnitude();
     areavec.normalize();
     nx = areavec.vec[0];
     ny = areavec.vec[1];
     nz = areavec.vec[2];
-    
-    rho   = Q_Node[0];
-    u     = Q_Node[1] / rho;
-    v     = Q_Node[2] / rho;
-    w     = Q_Node[3] / rho;
-    rhoet = Q_Node[4];
-    p     = (Gamma - 1.0)*(rhoet - 0.5*rho*(u*u + v*v + w*w));
-    ht    = (rhoet + p)/rho;
+
+    // Left Node
+    rho_L   = Q_L[0];
+    u_L     = Q_L[1] / rho_L;
+    v_L     = Q_L[2] / rho_L;
+    w_L     = Q_L[3] / rho_L;
+    rhoet_L = Q_L[4];
+    p_L     = (Gamma - 1.0)*(rhoet_L - 0.5*rho_L*(u_L*u_L + v_L*v_L + w_L*w_L));
+    ht_L    = (rhoet_L + p_L)/rho_L;
+    c_L     = sqrt((Gamma * p_L) / rho_L);
+    ubar_L  = u_L*nx + v_L*ny + w_L*nz;
+
+    // Right Node
+    rho_R   = Q_R[0];
+    u_R     = Q_R[1] / rho_R;
+    v_R     = Q_R[2] / rho_R;
+    w_R     = Q_R[3] / rho_R;
+    rhoet_R = Q_R[4];
+    p_R     = (Gamma - 1.0)*(rhoet_R - 0.5*rho_R*(u_R*u_R + v_R*v_R + w_R*w_R));
+    ht_R    = (rhoet_R + p_R)/rho_R;
+    c_R     = sqrt((Gamma * p_R) / rho_R);
+    ubar_R  = u_R*nx + v_R*ny + w_R*nz;
+
+    // ROE AVERAGE VARIABLES
+    rho   = sqrt(rho_R * rho_L);
+    sigma = rho/(rho_L + rho);
+    u     = u_L  + sigma*(u_R  - u_L);
+    v     = v_L  + sigma*(v_R  - v_L);
+    w     = w_L  + sigma*(w_R  - w_L);
+    ht    = ht_L + sigma*(ht_R - ht_L);
+    phi   = 0.5*(Gamma - 1.0)*(u*u + v*v + w*w);
+    c     = (Gamma - 1.0)*ht - phi;
+    c     = sqrt(c);
     ubar  = u*nx + v*ny + w*nz;
-    
-    // Compute Flux
-    Flux_Euler[0] = rho*ubar;
-    Flux_Euler[1] =   u*Flux_Euler[0] + p*nx;
-    Flux_Euler[2] =   v*Flux_Euler[0] + p*ny;
-    Flux_Euler[3] =   w*Flux_Euler[0] + p*nz;
-    Flux_Euler[4] =  ht*Flux_Euler[0];
+
+    // M
+    Roe_M[0][0] = 1.0;
+    Roe_M[0][1] = 0.0;
+    Roe_M[0][2] = 0.0;
+    Roe_M[0][3] = 0.0;
+    Roe_M[0][4] = 0.0;
+
+    Roe_M[1][0] = u;
+    Roe_M[1][1] = rho;
+    Roe_M[1][2] = 0.0;
+    Roe_M[1][3] = 0.0;
+    Roe_M[1][4] = 0.0;
+
+    Roe_M[2][0] = v;
+    Roe_M[2][1] = 0.0;
+    Roe_M[2][2] = rho;
+    Roe_M[2][3] = 0.0;
+    Roe_M[2][4] = 0.0;
+
+    Roe_M[3][0] = w;
+    Roe_M[3][1] = 0.0;
+    Roe_M[3][2] = 0.0;
+    Roe_M[3][3] = rho;
+    Roe_M[3][4] = 0.0;
+
+    Roe_M[4][0] = phi/(Gamma - 1.0);
+    Roe_M[4][1] = rho * u;
+    Roe_M[4][2] = rho * v;
+    Roe_M[4][3] = rho * w;
+    Roe_M[4][4] = 1.0/(Gamma - 1.0);
+
+    // Minv
+    Roe_Minv[0][0] = 1.0;
+    Roe_Minv[0][1] = 0.0;
+    Roe_Minv[0][2] = 0.0;
+    Roe_Minv[0][3] = 0.0;
+    Roe_Minv[0][4] = 0.0;
+
+    Roe_Minv[1][0] = -u/rho;
+    Roe_Minv[1][1] = 1.0/rho;
+    Roe_Minv[1][2] = 0.0;
+    Roe_Minv[1][3] = 0.0;
+    Roe_Minv[1][4] = 0.0;
+
+    Roe_Minv[2][0] = -v/rho;
+    Roe_Minv[2][1] = 0.0;
+    Roe_Minv[2][2] = 1.0/rho;
+    Roe_Minv[2][3] = 0.0;
+    Roe_Minv[2][4] = 0.0;
+
+    Roe_Minv[3][0] = -w/rho;
+    Roe_Minv[3][1] = 0.0;
+    Roe_Minv[3][2] = 0.0;
+    Roe_Minv[3][3] = 1.0/rho;
+    Roe_Minv[3][4] = 0.0;
+
+    Roe_Minv[4][0] = phi;
+    Roe_Minv[4][1] = -u * (Gamma - 1.0);
+    Roe_Minv[4][2] = -v * (Gamma - 1.0);
+    Roe_Minv[4][3] = -w * (Gamma - 1.0);
+    Roe_Minv[4][4] = (Gamma - 1.0);
+
+    // P
+    Roe_P[0][0] = nx;
+    Roe_P[0][1] = ny;
+    Roe_P[0][2] = nz;
+    Roe_P[0][3] = rho/c;
+    Roe_P[0][4] = rho/c;
+
+    Roe_P[1][0] = 0.0;
+    Roe_P[1][1] = -nz;
+    Roe_P[1][2] = ny;
+    Roe_P[1][3] = nx;
+    Roe_P[1][4] = -nx;
+
+    Roe_P[2][0] = nz;
+    Roe_P[2][1] = 0.0;
+    Roe_P[2][2] = -nx;
+    Roe_P[2][3] = ny;
+    Roe_P[2][4] = -ny;
+
+    Roe_P[3][0] = -ny;
+    Roe_P[3][1] = nx;
+    Roe_P[3][2] = 0.0;
+    Roe_P[3][3] = nz;
+    Roe_P[3][4] = -nz;
+
+    Roe_P[4][0] = 0.0;
+    Roe_P[4][1] = 0.0;
+    Roe_P[4][2] = 0.0;
+    Roe_P[4][3] = rho * c;
+    Roe_P[4][4] = rho * c;
+
+    // Pinv
+    Roe_Pinv[0][0] = nx;
+    Roe_Pinv[0][1] = 0.0;
+    Roe_Pinv[0][2] = nz;
+    Roe_Pinv[0][3] = -ny;
+    Roe_Pinv[0][4] = -nx/(c * c);
+
+    Roe_Pinv[1][0] = ny;
+    Roe_Pinv[1][1] = -nz;
+    Roe_Pinv[1][2] = 0.0;
+    Roe_Pinv[1][3] = nx;
+    Roe_Pinv[1][4] = -ny/(c * c);
+
+    Roe_Pinv[2][0] = nz;
+    Roe_Pinv[2][1] = ny;
+    Roe_Pinv[2][2] = -nx;
+    Roe_Pinv[2][3] = 0.0;
+    Roe_Pinv[2][4] = -nz/(c * c);
+
+    Roe_Pinv[3][0] = 0.0;
+    Roe_Pinv[3][1] = 0.5 * nx;
+    Roe_Pinv[3][2] = 0.5 * ny;
+    Roe_Pinv[3][3] = 0.5 * nz;
+    Roe_Pinv[3][4] = 1.0/(2.0 * rho * c);
+
+    Roe_Pinv[4][0] = 0.0;
+    Roe_Pinv[4][1] = -0.5 * nx;
+    Roe_Pinv[4][2] = -0.5 * ny;
+    Roe_Pinv[4][3] = -0.5 * nz;
+    Roe_Pinv[4][4] = 1.0/(2.0 * rho * c);
+
+    // START: Computing 
+    // Roe: A = M*P*|Lambda|*Pinv*Minv
+
+    // Calculate T = M*P
+    MC_Matrix_Mul_Matrix(5, 5, Roe_M, Roe_P, Roe_T);
+
+    // Calculate EigenMatrix |Lambda|
+    // Apply Entropy Fix
+    if (EntropyFix != 0) {
+        Roe_EntropyFix(ubar_L, c_L, ubar_R, c_R, ubar, c, Roe_Eigen);
+    } else {
+        Roe_Eigen[0][0] = fabs(ubar);
+        Roe_Eigen[1][1] = Roe_Eigen[0][0];
+        Roe_Eigen[2][2] = Roe_Eigen[0][0];
+        Roe_Eigen[3][3] = fabs(ubar + c);
+        Roe_Eigen[4][4] = fabs(ubar - c);
+    }
+
+    // Calculate Tinv = Pinv*Minv
+    MC_Matrix_Mul_Matrix(5, 5, Roe_Pinv, Roe_Minv, Roe_Tinv);
+
+    // EigenMatrix*Tinv = |Lambda|*Pinv*Minv
+    MC_Matrix_Mul_Matrix(5, 5, Roe_Eigen, Roe_Tinv, Roe_A);
+
+    // Get Matrix A = M*P*|Lambda|*Pinv*Minv
+    MC_Matrix_Mul_Matrix(5, 5, Roe_T, Roe_A, AJacobian_Roe);
+    // END: Computing A = M*P*|Lambda|*Pinv*Minv
 }
+
 
 //------------------------------------------------------------------------------
 //! Compute Roe Flux
 //------------------------------------------------------------------------------
 void Compute_RoeFlux(int node_L, int node_R, Vector3D areavec, double *Flux_Roe) {
-    int i, j, k;
+    int i, j, k, maxcount;
     double rho_L, u_L, v_L, w_L, rhoet_L, p_L, c_L, ht_L, ubar_L;
     double rho_R, u_R, v_R, w_R, rhoet_R, p_R, c_R, ht_R, ubar_R;
     double rho, u, v, w, ht, c, phi, ubar, ubar1, ubar2;
-    double Mach, Vmag, fix, sigma;
-    Vector3D V, Vn1, Vn2;
+    double Mach, nmax, fix, sigma;
+    Vector3D Vn1, Vn2;
     
     double area;
     double nx, ny, nz;
@@ -282,20 +460,42 @@ void Compute_RoeFlux(int node_L, int node_R, Vector3D areavec, double *Flux_Roe)
 
         // Do if Low Mach Number Fix is Requested
         if (LMRoeFix == 1) {
-            // Compute the Normal to Normal of Area vector using Velocity
-            V.vec[0] = u;
-            V.vec[1] = v;
-            V.vec[2] = w;
-            Vmag = V.magnitude();
-            V.normalize();
-            
-            Vn1 = V%areavec;
+            // Compute the point on the plane using normal
+            // Get the max of nx, ny, nz
+            nmax = fabs(nx);
+            maxcount = 1;
+            if (nmax < fabs(ny)) {
+                nmax = fabs(ny);
+                maxcount = 2;
+            }
+            if (nmax < fabs(nz)) {
+                nmax = fabs(nz);
+                maxcount = 3;
+            }
+
+            // Compute the vector in the plane
+            if ((maxcount == 1) && (nmax > DBL_TOLERANCE)) {
+                Vn1.vec[0] = -(ny + nz)/nx;
+                Vn1.vec[1] = 1.0;
+                Vn1.vec[2] = 1.0;
+            } else if ((maxcount == 2) && (nmax > DBL_TOLERANCE)) {
+                Vn1.vec[0] = 1.0;
+                Vn1.vec[1] = -(nx + nz)/ny;
+                Vn1.vec[2] = 1.0;
+            } else if ((maxcount == 3) && (nmax > DBL_TOLERANCE)) {
+                Vn1.vec[0] = 1.0;
+                Vn1.vec[1] = 1.0;
+                Vn1.vec[2] = -(nx + ny)/nz;
+            } else {
+                error("Compute_RoeFlux: Unable to compute point on the plane (nx, ny, nz): (%lf, %lf, %lf)", nx, ny, nz);
+            }
             Vn1.normalize();
-            ubar1 = Vmag*(Vn1*V);
-            
+            ubar1 = u*Vn1.vec[0] +  v*Vn1.vec[1] +  w*Vn1.vec[2];
+
+            // Compute the Second vector in the plain
             Vn2 = Vn1%areavec;
             Vn2.normalize();
-            ubar2 = Vmag*(Vn2*V);
+            ubar2 = u*Vn2.vec[0] +  v*Vn2.vec[1] +  w*Vn2.vec[2];
             
             // Compute Local Mach Scaling Fix
             Mach = fabs(ubar) + fabs(ubar1) + fabs(ubar2);
@@ -437,10 +637,6 @@ void Compute_RoeFlux(int node_L, int node_R, Vector3D areavec, double *Flux_Roe)
         // Calculate T = M*P
         MC_Matrix_Mul_Matrix(5, 5, Roe_M, Roe_P, Roe_T);
         
-        // ROE: Calculate Tinv = Pinv*Minv
-        if (LMRoeFix != 1)
-            MC_Matrix_Mul_Matrix(5, 5, Roe_Pinv, Roe_Minv, Roe_Tinv);
-        
         // Calculate EigenMatrix |Lambda|
         for (j = 0; j < 5; j++)
             for (k = 0; k < 5; k++)
@@ -476,6 +672,9 @@ void Compute_RoeFlux(int node_L, int node_R, Vector3D areavec, double *Flux_Roe)
             MC_Matrix_Mul_Vector(5, 5, Roe_A, Roe_dw, Roe_fluxA);
             // END: Computing A*dw = M*P*|Lambda|*Pinv*dw
         } else { // ROE
+            // Calculate Tinv = Pinv*Minv
+            MC_Matrix_Mul_Matrix(5, 5, Roe_Pinv, Roe_Minv, Roe_Tinv);
+            
             // EigenMatrix*Tinv = |Lambda|*Pinv*Minv
             MC_Matrix_Mul_Matrix(5, 5, Roe_Eigen, Roe_Tinv, Roe_A);
 

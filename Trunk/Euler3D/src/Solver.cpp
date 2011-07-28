@@ -12,13 +12,18 @@
 #include "MeshIO.h"
 #include "Commons.h"
 #include "Solver.h"
+#include "MC.h"
 #include "Gradient.h"
 #include "DebugSolver.h"
 
-// Linear Solver Params
+// Linear Solver Parameters
+int    SolverMethod;
 int    SolverScheme;
 int    TimeAccuracy;
 int    TimeStepScheme;
+int    SolverBCScheme;
+int    JacobianMethod;
+int    JacobianUpdate;
 int    Order;
 int    NIteration;
 int    InnerNIteration;
@@ -130,14 +135,21 @@ double *Limiter_Phi5;
 double RMS[5];
 double RMS_Res;
 
+// MC CRS Matrix
+MC_CRS SolverBlockMatrix;
+
 //------------------------------------------------------------------------------
 //!
 //------------------------------------------------------------------------------
 void Solver_Init(void) {
     // Linear Solver Parameters
-    SolverScheme    = SOLVER_NONE;
+    SolverMethod    = SOLVER_METHOD_NONE;
+    SolverScheme    = SOLVER_SCHEME_NONE;
     TimeAccuracy    = 0;
     TimeStepScheme  = 0;
+    SolverBCScheme  = SOLVER_BC_SCHEME_NONE;
+    JacobianMethod  = SOLVER_JACOBIAN_NONE;
+    JacobianUpdate  = 0;
     Order           = 0;
     NIteration      = 0;
     InnerNIteration = 0;
@@ -251,6 +263,19 @@ void Solver_Init(void) {
     RMS[3]          = 0.0;
     RMS[4]          = 0.0;
     RMS_Res         = 0.0;
+    
+    // MC CRS Matrix
+    SolverBlockMatrix.Block_nRow = 0;
+    SolverBlockMatrix.Block_nCol = 0;
+    SolverBlockMatrix.nROW       = 0;
+    SolverBlockMatrix.nCOL       = 0;
+    SolverBlockMatrix.DIM        = 0;
+    SolverBlockMatrix.A          = NULL;
+    SolverBlockMatrix.B          = NULL;
+    SolverBlockMatrix.X          = NULL;
+    SolverBlockMatrix.IA         = NULL;
+    SolverBlockMatrix.IAU        = NULL;
+    SolverBlockMatrix.JA         = NULL;
 }
 
 //------------------------------------------------------------------------------
@@ -368,6 +393,10 @@ void Solver_Finalize(void) {
     if (Order == 2)
         Gradient_Finalize();
     
+    // Check if Implicit Method
+    if (SolverMethod == SOLVER_METHOD_IMPLICIT)
+        Delete_CRS_SolverBlockMatrix();
+    
     printf("=============================================================================\n");
 }
 
@@ -401,139 +430,159 @@ void Solver_Read_Params(const char *filename) {
     // 1) Get the Solver Scheme
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
+    sscanf(buff, "%d", &SolverMethod);
+    
+    // 2) Get the Solver Scheme
+    dummy = fgets(buff, bdim, fp);
+    dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &SolverScheme);
 
-    // 2) Get the Time Accuracy
+    // 3) Get the Time Accuracy
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &TimeAccuracy);
 
-    // 3) Get the Time Stepping Scheme
+    // 4) Get the Time Stepping Scheme
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &TimeStepScheme);
     
-    // 4) Get the Order
+    // 5) Get the Solver Scheme
+    dummy = fgets(buff, bdim, fp);
+    dummy = fgets(buff, bdim, fp);
+    sscanf(buff, "%d", &SolverBCScheme);
+    
+    // 6) Get the Jacobian Method
+    dummy = fgets(buff, bdim, fp);
+    dummy = fgets(buff, bdim, fp);
+    sscanf(buff, "%d", &JacobianMethod);
+    
+    // 7) Get the Jacobian Update Frequency
+    dummy = fgets(buff, bdim, fp);
+    dummy = fgets(buff, bdim, fp);
+    sscanf(buff, "%d", &JacobianUpdate);
+    
+    // 8) Get the Order
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &Order);
     
-    // 5) Get Number of Outer Iterations
+    // 9) Get Number of Outer Iterations
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &NIteration);
 
-    // 6) Get Number of Inner Iterations
+    // 10) Get Number of Inner Iterations
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &InnerNIteration);
 
-    // 7) Get Number of First Order Iterations
+    // 11) Get Number of First Order Iterations
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &FirstOrderNIteration);
     
-    // 8) Get the Relaxation Factor
+    // 12) Get the Relaxation Factor
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%lf", &Relaxation);
 
-    // 9) Get the Flux Limiter
+    // 13) Get the Flux Limiter
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &Limiter);
 
-    // 10) Get the Flux Limiter Smooth
+    // 14) Get the Flux Limiter Smooth
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &LimiterSmooth);
 
-    // 11) Get the Flux Limiter Order
+    // 15) Get the Flux Limiter Order
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &LimiterOrder);
     
-    // 12) Get the Start Limiter Iterations
+    // 16) Get the Start Limiter Iterations
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &StartLimiterNIteration);
 
-    // 13) Get the End Limiter Iterations
+    // 17) Get the End Limiter Iterations
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &EndLimiterNIteration);
 
-    // 14) Read Ventakakrishanan K Threshold
+    // 18) Read Ventakakrishanan K Threshold
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%lf", &Venkat_KThreshold);
 
-    // 15) Read Entropy Fix
+    // 19) Read Entropy Fix
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &EntropyFix);
     
-    // 16) Read Gamma
+    // 20) Read Gamma
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%lf", &Gamma);
 
-    // 17) Read Reference Density
+    // 21) Read Reference Density
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%lf", &Ref_Rho);
 
-    // 18) Read Reference Mach
+    // 22) Read Reference Mach
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%lf", &Ref_Mach);
 
-    // 19) Read Reference Pressure
+    // 23) Read Reference Pressure
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%lf", &Ref_Pressure);
 
-    // 20) Read Alpha
+    // 24) Read Alpha
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%lf", &Ref_Alpha);
 
-    // 21) Read CFL Ramp
+    // 25) Read CFL Ramp
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &CFL_Ramp);
 
-    // 22) Read CFL MIN
+    // 26) Read CFL MIN
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%lf", &CFL_MIN);
 
-    // 23) Read CFL MAX
+    // 27) Read CFL MAX
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%lf", &CFL_MAX);
 
-    // 24) Read Mach Ramp
+    // 28) Read Mach Ramp
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &Mach_Ramp);
 
-    // 25) Read Mach MIN
+    // 29) Read Mach MIN
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%lf", &Mach_MIN);
 
-    // 26) Read Mach MAX
+    // 30) Read Mach MAX
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%lf", &Mach_MAX);
 
-    // 27) Read No of Zero Pressure Gradient ZPG Iterations
+    // 31) Read No of Zero Pressure Gradient ZPG Iterations
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &ZPGIteration);
 
-    // 28) Read Restart Solution
+    // 32) Read Restart Solution
     dummy = fgets(buff, bdim, fp);
     dummy = fgets(buff, bdim, fp);
     sscanf(buff, "%d", &RestartInput);
@@ -562,9 +611,13 @@ void Solver_Read_Params(const char *filename) {
     printf("=============================================================================\n");
     info("Input Solver Parameters");
     printf("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-\n");
+    info("Solver Method ------------------------: %d",  SolverMethod);
     info("Solver Scheme ------------------------: %d",  SolverScheme);
     info("Time Accuracy ------------------------: %d",  TimeAccuracy);
     info("Time Stepping Scheme -----------------: %d",  TimeStepScheme);
+    info("Solver Boundary Condition Scheme -----: %d",  SolverBCScheme);
+    info("Solver Jacobian Method ---------------: %d",  JacobianMethod);
+    info("Solver Jacobian Update Frequency -----: %d",  JacobianUpdate);
     info("Order --------------------------------: %d",  Order);
     info("No of Iterations ---------------------: %d",  NIteration);
     info("No of Inner Iterations ---------------: %d",  InnerNIteration);
@@ -682,12 +735,16 @@ void Solver_Set_Initial_Conditions(void) {
     
     // Set Boundary Conditions
     Initialize_Boundary_Condition();
+    
+    // Check if Implicit Method
+    if (SolverMethod == SOLVER_METHOD_IMPLICIT)
+        Create_CRS_SolverBlockMatrix();
 }
 
 //------------------------------------------------------------------------------
-//! 
+//! Solver in Explicit Mode
 //------------------------------------------------------------------------------
-int Solve(void) {
+int Solve_Explicit(void) {
     int CheckNAN  = 0;
     int SaveOrder = 0;
     int SaveLimiter = 0;
@@ -713,23 +770,6 @@ int Solve(void) {
         W44 = new double[nNode];
         W45 = new double[nNode];
     }
-    
-    // Initialize the Solver Scheme Data Structure
-    switch (SolverScheme) {
-        case SOLVER_ROE: // Roe
-            Roe_Init();
-            break;
-        case SOLVER_LMROE: // LMRoe
-            Roe_Init();
-            break;
-        default:
-            error("Solve: Invalid Solver Scheme - %d", SolverScheme);
-            break;
-    }
-        
-    // Check if Solution Restart is Requested
-    if (RestartInput)
-        Restart_Reader(RestartInputFilename);
 
     // Save Solver Parameters
     SaveOrder   = Order;
@@ -750,6 +790,9 @@ int Solve(void) {
             DeltaT[i] = 0.0;
         }
 
+        // Compute Free Stream Conditions with Mach Ramping
+        ComputeFreeStreamCondition(iter);
+        
         // Check if First Order Iterations are Required
         Order = SaveOrder;
         if (FirstOrderNIteration > iter)
@@ -773,18 +816,7 @@ int Solve(void) {
         Apply_Boundary_Condition(iter);
 
         // Compute Residuals
-        switch (SolverScheme) {
-            case SOLVER_ROE: // Roe
-                Compute_Residual_Roe();
-                break;
-            case SOLVER_LMROE: // LMRoe
-                LMRoeFix = 1;
-                Compute_Residual_Roe();
-                break;
-            default:
-                error("Solve: Invalid Solver Scheme - %d", SolverScheme);
-                break;
-        }
+        Compute_Residual();
         
         // Compute Local Time Stepping
         Compute_DeltaT(iter);
@@ -875,18 +907,7 @@ int Solve(void) {
             Apply_Boundary_Condition(iter);
 
             // Compute Residuals
-            switch (SolverScheme) {
-                case SOLVER_ROE: // Roe
-                    Compute_Residual_Roe();
-                    break;
-                case SOLVER_LMROE: // LMRoe
-                    LMRoeFix = 1;
-                    Compute_Residual_Roe();
-                    break;
-                default:
-                    error("Solve: Invalid Solver Scheme - %d", SolverScheme);
-                    break;
-            }
+            Compute_Residual();
             
             for (int i = 0; i < nNode; i++) {
                 // W2 = W0 - (dT/2)*RES1
@@ -925,18 +946,7 @@ int Solve(void) {
             Apply_Boundary_Condition(iter);
 
             // Compute Residuals
-            switch (SolverScheme) {
-                case SOLVER_ROE: // Roe
-                    Compute_Residual_Roe();
-                    break;
-                case SOLVER_LMROE: // LMRoe
-                    LMRoeFix = 1;
-                    Compute_Residual_Roe();
-                    break;
-                default:
-                    error("Solve: Invalid Solver Scheme - %d", SolverScheme);
-                    break;
-            }
+            Compute_Residual();
 
             for (int i = 0; i < nNode; i++) {
                 // W3 = W0 - dT*RES2
@@ -975,18 +985,7 @@ int Solve(void) {
             Apply_Boundary_Condition(iter);
 
             // Compute Residuals
-            switch (SolverScheme) {
-                case SOLVER_ROE: // Roe
-                    Compute_Residual_Roe();
-                    break;
-                case SOLVER_LMROE: // LMRoe
-                    LMRoeFix = 1;
-                    Compute_Residual_Roe();
-                    break;
-                default:
-                    error("Solve: Invalid Solver Scheme - %d", SolverScheme);
-                    break;
-            }
+            Compute_Residual();
 
             for (int i = 0; i < nNode; i++) {
                 // W4 = W0 - (dT/6)*RES0 - (dT/3)*RES1 - (dT/3)*RES2 - (dT/6)*RES3
@@ -1046,12 +1045,187 @@ int Solve(void) {
         W41 = W42 = W43 = W44 = W45 = NULL;
     }
     
+    // Return Solver State
+    if (CheckNAN)
+        return EXIT_FAILURE;
+    else
+        return EXIT_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
+//! 
+//------------------------------------------------------------------------------
+int Solve_Implicit(void) {
+    int AddTime   = 0;
+    int CheckNAN  = 0;
+    int SaveOrder = 0;
+    int SaveLimiter = 0;
+    double lrms;
+    
+    // Save Solver Parameters
+    SaveOrder   = Order;
+    SaveLimiter = Limiter;
+
+    printf("=============================================================================\n");
+    printf("-----------------------------------------------------------------------------\n");
+    printf(" Iter        RMS_RHO    RMS_RHOU    RMS_RHOV    RMS_RHOW    RMS_E     RMS_RES\n");
+    printf("-----------------------------------------------------------------------------\n");
+    for (int iter = RestartIteration; iter < NIteration; iter++) {
+        // Reset Residuals and DeltaT
+        for (int i = 0; i < nNode; i++) {
+            Res1[i]   = 0.0;
+            Res2[i]   = 0.0;
+            Res3[i]   = 0.0;
+            Res4[i]   = 0.0;
+            Res5[i]   = 0.0;
+            DeltaT[i] = 0.0;
+        }
+
+        // Compute Free Stream Conditions with Mach Ramping
+        ComputeFreeStreamCondition(iter);
+    
+        // Check if First Order Iterations are Required
+        Order = SaveOrder;
+        if (FirstOrderNIteration > iter)
+            Order = 1;
+
+        // Set the Start and End of Limiter Iterations
+        Limiter = 0;
+        if (StartLimiterNIteration < EndLimiterNIteration) {
+            if ((StartLimiterNIteration <= iter+1) && (EndLimiterNIteration > iter))
+                Limiter = SaveLimiter;
+        }
+
+        // Compute Least Square Gradient -- Unweighted
+        if (Order == 2) {
+            Compute_Least_Square_Gradient(0);
+            if (Limiter > 0)
+                Compute_Limiter();
+        }
+        
+        // Apply boundary conditions
+        Apply_Boundary_Condition(iter);
+
+        // Compute Residuals
+        Compute_Residual();
+        
+        // Compute Local Time Stepping
+        Compute_DeltaT(iter);
+
+        // Compute RMS
+        RMS[0] = RMS[1] = RMS[2] = RMS[3] = RMS[4] = 0.0;
+        for (int i = 0; i < nNode; i++) {
+            RMS[0] += Res1[i]*Res1[i];
+            RMS[1] += Res2[i]*Res2[i];
+            RMS[2] += Res3[i]*Res3[i];
+            RMS[3] += Res4[i]*Res4[i];
+            RMS[4] += Res5[i]*Res5[i];
+        }
+        RMS_Res = RMS[0] + RMS[1] + RMS[2] + RMS[3] + RMS[4];
+        RMS_Res = sqrt(RMS_Res/(5.0 * (double)nNode));
+        RMS[0] = sqrt(RMS[0]/(double)nNode);
+        RMS[1] = sqrt(RMS[1]/(double)nNode);
+        RMS[2] = sqrt(RMS[2]/(double)nNode);
+        RMS[3] = sqrt(RMS[3]/(double)nNode);
+        RMS[4] = sqrt(RMS[4]/(double)nNode);
+
+        printf("%5d %10.5e %10.5e %10.5e %10.5e %10.5e %10.5e\n",
+                iter+1, RMS[0], RMS[1], RMS[2], RMS[3], RMS[4], RMS_Res);
+
+        if (isnan(RMS_Res)) {
+            info("Solve: NAN Encountered ! - Abort");
+            iter = NIteration + 1;
+            CheckNAN = 1;
+            VTK_Writer("SolutionBeforeNAN.vtk", 1);;
+        }
+
+        // Compute Jacobian and Fill CRS Matrix
+        AddTime = 1;
+        Compute_Jacobian(AddTime, iter);
+        
+        // Solve for Solution
+        lrms = MC_Iterative_Block_LU_Jacobi_CRS(InnerNIteration, 0, SolverBlockMatrix);
+        
+        if (isnan(lrms)) {
+            info("Solve: Liner Solver Iteration: NAN Encountered ! - Abort");
+            iter = NIteration + 1;
+        }
+        
+        // Update Conservative Variables
+        for (int i = 0; i < nNode; i++) {
+            Q1[i] += Relaxation*SolverBlockMatrix.X[i][0];
+            Q2[i] += Relaxation*SolverBlockMatrix.X[i][1];
+            Q3[i] += Relaxation*SolverBlockMatrix.X[i][2];
+            Q4[i] += Relaxation*SolverBlockMatrix.X[i][3];
+            Q5[i] += Relaxation*SolverBlockMatrix.X[i][4];
+        }
+
+        // Check Cyclic Restart is Requested
+        RestartIteration = iter+1;
+        Check_Restart(iter);
+        
+        if ((RMS_Res < (DBL_EPSILON*10.0))|| ((iter+1) == NIteration)) {
+            iter = NIteration + 1;
+        }
+    }
+
+    // Check if Solution Restart is Requested
+    if (RestartOutput && CheckNAN != 1)
+        Restart_Writer(RestartOutputFilename, 1);
+
+    // Debug the NAN
+    if (CheckNAN)
+        DebugNAN();
+    
+    // Return Solver State
+    if (CheckNAN)
+        return EXIT_FAILURE;
+    else
+        return EXIT_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
+//! 
+//------------------------------------------------------------------------------
+int Solve(void) {
+    int rvalue = EXIT_FAILURE;
+    
+    // Initialize the Solver Scheme Data Structure
+    switch (SolverScheme) {
+        case SOLVER_SCHEME_ROE: // Roe
+            Roe_Init();
+            break;
+        case SOLVER_SCHEME_LMROE: // LMRoe
+            Roe_Init();
+            break;
+        default:
+            error("Solve: Invalid Solver Scheme - %d", SolverScheme);
+            break;
+    }
+    
+    // Check if Solution Restart is Requested
+    if (RestartInput)
+        Restart_Reader(RestartInputFilename);
+    
+    // Select the Solver Method Type
+    switch (SolverMethod) {
+        case SOLVER_METHOD_EXPLICIT:
+            rvalue = Solve_Explicit();
+            break;
+        case SOLVER_METHOD_IMPLICIT:
+            rvalue = Solve_Implicit();
+            break;
+        default:
+            error("Solve: Invalid Solver Method - %d", SolverMethod);
+            break;
+    }
+    
     // Finalize the Solver Scheme Data Structure
     switch (SolverScheme) {
-        case SOLVER_ROE: // Roe
+        case SOLVER_SCHEME_ROE: // Roe
             Roe_Finalize();
             break;
-        case SOLVER_LMROE: // LMRoe
+        case SOLVER_SCHEME_LMROE: // LMRoe
             Roe_Finalize();
             break;
         default:
@@ -1059,10 +1233,173 @@ int Solve(void) {
             break;
     }
     
-    // Return Solver State
-    if (CheckNAN)
-        return EXIT_FAILURE;
-    else
-        return EXIT_SUCCESS;
+    return rvalue;
+}
+
+//------------------------------------------------------------------------------
+//! Compute Free Stream Condition with Mach Ramping
+//------------------------------------------------------------------------------
+void ComputeFreeStreamCondition(int Iteration) {
+    double tmpMach = 0.0;
+
+    // Compute the Free Stream Condition Ramping
+    if ((Mach_Ramp > 1) && (Mach_MAX > Mach_MIN)) {
+        if (Iteration < Mach_Ramp)
+            tmpMach = Mach_MIN + (Mach_MAX - Mach_MIN)*(((double)Iteration)/((double)(Mach_Ramp-1)));
+        else
+            tmpMach = Mach_MAX;
+    } else
+        tmpMach = Mach_MAX;
+
+    // Set the Free Stream Conditions
+    Inf_Mach     = tmpMach;
+    Inf_Rho      = Ref_Rho;
+    Inf_Pressure = Ref_Pressure;
+    Inf_U        = Inf_Mach*cos(Ref_Alpha);
+    Inf_V        = Inf_Mach*sin(Ref_Alpha);
+    Inf_W        = 0.0;
+    Inf_Et       = Inf_Pressure/((Gamma - 1.0)*Inf_Rho) + 0.5 *(Inf_U*Inf_U + Inf_V*Inf_V + Inf_W*Inf_W);
+}
+
+//------------------------------------------------------------------------------
+//! 
+//------------------------------------------------------------------------------
+void Create_CRS_SolverBlockMatrix(void) {
+    int i, j, jstart, jend, k, ksave;
+    int degree, index, min, minsave;
+    
+    SolverBlockMatrix.nROW       = nNode;
+    SolverBlockMatrix.nCOL       = nNode;
+    SolverBlockMatrix.Block_nRow = NEQUATIONS;
+    SolverBlockMatrix.Block_nCol = NEQUATIONS;
+    
+    // Allocate Memory of IA Array to Store Start and End Location of Row
+    SolverBlockMatrix.IA = new int[nNode+1];
+    
+    // Start Filling the Row Location and
+    // Get the No of Non Zero Entries for SolverBlockMatrix
+    SolverBlockMatrix.DIM = 0;
+    SolverBlockMatrix.IA[0] = 0;
+    for (i = 0; i < nNode; i++) {
+        degree = crs_IA_Node2Node[i+1] - crs_IA_Node2Node[i];
+        SolverBlockMatrix.DIM += degree + 1;
+        SolverBlockMatrix.IA[i+1] = SolverBlockMatrix.IA[i] + degree + 1;
+    }
+    
+    // Allocate Memory to IAU Array to store Diagonal Location
+    SolverBlockMatrix.IAU = new int[nNode];
+    
+    // Allocate Memory to JA Array to store location of Non Zero Entries
+    SolverBlockMatrix.JA = new int[SolverBlockMatrix.DIM];
+    // Get the values for JA
+    for (i = 0; i < nNode; i++) {
+        // Make the first start entry as main node id
+        index = SolverBlockMatrix.IA[i];
+        SolverBlockMatrix.JA[index] = i;
+        
+        // Now add the nodes connected to main node
+        for (j = crs_IA_Node2Node[i]; j < crs_IA_Node2Node[i+1]; j++) {
+            index++;
+            SolverBlockMatrix.JA[index] = crs_JA_Node2Node[j];
+        }
+    }
+    
+    /* Now Sort JA and Find IAU */
+    // This step is necessary for computation of Transpose in Design Code - Adjoint
+    for (i = 0; i < nNode; i++) {
+        jstart = SolverBlockMatrix.IA[i];
+        jend   = SolverBlockMatrix.IA[i + 1];
+        for (j = jstart; j < jend; j++) {
+            min = SolverBlockMatrix.JA[j];
+            minsave = SolverBlockMatrix.JA[j];
+            ksave = j;
+            for (k = j + 1; k < jend; k++) {
+                if (SolverBlockMatrix.JA[k] < min) {
+                    min = SolverBlockMatrix.JA[k];
+                    ksave = k;
+                }
+            }
+            SolverBlockMatrix.JA[j] = min;
+            SolverBlockMatrix.JA[ksave] = minsave;
+            if (SolverBlockMatrix.JA[j] == i)
+                SolverBlockMatrix.IAU[i] = j;
+        }
+    }
+    
+    // Allocate Memory for CRS Matrix
+    SolverBlockMatrix.A = (double ***) malloc (SolverBlockMatrix.DIM*sizeof(double**));
+    for (i = 0; i < SolverBlockMatrix.DIM; i++) {
+        SolverBlockMatrix.A[i] = NULL;
+        SolverBlockMatrix.A[i] = (double **) malloc (SolverBlockMatrix.Block_nRow*sizeof(double*));
+        for (j = 0; j < SolverBlockMatrix.Block_nRow; j++) {
+            SolverBlockMatrix.A[i][j] = NULL;
+            SolverBlockMatrix.A[i][j] = (double *) malloc (SolverBlockMatrix.Block_nCol*sizeof(double));
+            for (k = 0; k < SolverBlockMatrix.Block_nCol; k++)
+                SolverBlockMatrix.A[i][j][k] = 0.0;
+        }
+    }
+    
+    // Allocate Memory of RHS
+    SolverBlockMatrix.B = (double **) malloc (SolverBlockMatrix.nROW*sizeof(double*));
+    for (i = 0; i < SolverBlockMatrix.nROW; i++) {
+        SolverBlockMatrix.B[i] = NULL;
+        SolverBlockMatrix.B[i] = (double *) malloc (SolverBlockMatrix.Block_nRow*sizeof(double));
+        for (j = 0; j < SolverBlockMatrix.Block_nRow; j++)
+            SolverBlockMatrix.B[i][j] = 0.0;
+    }
+
+    // Allocate Memory for X
+    SolverBlockMatrix.X = (double **) malloc (SolverBlockMatrix.nROW*sizeof(double*));
+    for (i = 0; i < SolverBlockMatrix.nROW; i++) {
+        SolverBlockMatrix.X[i] = NULL;
+        SolverBlockMatrix.X[i] = (double *) malloc (SolverBlockMatrix.Block_nRow*sizeof(double));
+        for (j = 0; j < SolverBlockMatrix.Block_nRow; j++)
+            SolverBlockMatrix.X[i][j] = 0.0;
+    }
+}
+
+//------------------------------------------------------------------------------
+//! 
+//------------------------------------------------------------------------------
+void Delete_CRS_SolverBlockMatrix(void) {
+    int i, j;
+    
+    if (SolverBlockMatrix.A != NULL) {
+        for (i = 0; i < SolverBlockMatrix.DIM; i++) {
+            if (SolverBlockMatrix.A[i] != NULL) {
+                for (j = 0; j < SolverBlockMatrix.Block_nRow; j++) {
+                    if (SolverBlockMatrix.A[i][j] != NULL)
+                        free(SolverBlockMatrix.A[i][j]);
+                }
+                free(SolverBlockMatrix.A[i]);
+            }
+        }
+        free(SolverBlockMatrix.A);
+    }
+    
+    if (SolverBlockMatrix.B != NULL) {
+        for (i = 0; i < SolverBlockMatrix.nROW; i++) {
+            if (SolverBlockMatrix.B[i] != NULL)
+                free(SolverBlockMatrix.B[i]);
+        }
+        free(SolverBlockMatrix.B);
+    }
+    
+    if (SolverBlockMatrix.X != NULL) {
+        for (i = 0; i < SolverBlockMatrix.nROW; i++) {
+            if (SolverBlockMatrix.X[i] != NULL)
+                free(SolverBlockMatrix.X[i]);
+        }
+        free(SolverBlockMatrix.X);
+    }
+    
+    if (SolverBlockMatrix.IA != NULL)
+        delete[] SolverBlockMatrix.IA;
+    
+    if (SolverBlockMatrix.IAU != NULL)
+        delete[] SolverBlockMatrix.IAU;
+    
+    if (SolverBlockMatrix.JA != NULL)
+        delete[] SolverBlockMatrix.JA;
 }
 

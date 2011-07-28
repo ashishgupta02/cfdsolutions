@@ -16,19 +16,11 @@
             <sourceRootList/>
             <confList>
                 <confElem>
-                    <name>Release_GNU</name>
+                    <name>Release</name>
                     <type>1</type>
                 </confElem>
                 <confElem>
-                    <name>Debug_GNU</name>
-                    <type>1</type>
-                </confElem>
-                <confElem>
-                    <name>Release_Intel64</name>
-                    <type>1</type>
-                </confElem>
-                <confElem>
-                    <name>Debug_Intel64</name>
+                    <name>Debug</name>
                     <type>1</type>
                 </confElem>
             </confList>
