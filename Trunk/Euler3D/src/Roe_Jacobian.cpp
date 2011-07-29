@@ -24,7 +24,6 @@ void Compute_Jacobian_Exact_Roe(int AddTime, int Iteration) {
 //------------------------------------------------------------------------------
 //! Computes the Jacobian for all Edges Internal and Boundary
 //! Note: Jacobian is computed using first order Q's
-//! Note: This Routine Does not Work
 //------------------------------------------------------------------------------
 void Compute_Jacobian_Approximate_Roe(int AddTime, int Iteration) {
     int i, j, k, iNode, iEdge, ibEdge;
@@ -143,8 +142,8 @@ void Compute_Jacobian_Approximate_Roe(int AddTime, int Iteration) {
         // Finally Compute the dFlux/dQ_L and dFlux/dQ_R
         for (i = 0; i < NEQUATIONS; i++) {
             for (j = 0; j < NEQUATIONS; j++) {
-                dFdL[i][j] = 0.5*(dFdL[i][j] - ARoe[i][j])*area;
-                dFdR[i][j] = 0.5*(dFdR[i][j] + ARoe[i][j])*area;
+                dFdL[i][j] = 0.5*(dFdL[i][j] + ARoe[i][j])*area;
+                dFdR[i][j] = 0.5*(dFdR[i][j] - ARoe[i][j])*area;
             }
         }
         
@@ -206,7 +205,7 @@ void Compute_Jacobian_Approximate_Roe(int AddTime, int Iteration) {
         // Finally Compute the dFlux/dQ_L
         for (i = 0; i < NEQUATIONS; i++) {
             for (j = 0; j < NEQUATIONS; j++)
-                dFdL[i][j] = 0.5*(dFdL[i][j] - ARoe[i][j])*area;
+                dFdL[i][j] = 0.5*(dFdL[i][j] + ARoe[i][j])*area;
         }
         
         // Update the Diagonal Term of Physical Node Only

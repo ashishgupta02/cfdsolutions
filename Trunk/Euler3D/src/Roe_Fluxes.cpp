@@ -355,7 +355,7 @@ void Compute_RoeFlux(int node_L, int node_R, Vector3D areavec, double *Flux_Roe)
     double rho_L, u_L, v_L, w_L, rhoet_L, p_L, c_L, ht_L, ubar_L;
     double rho_R, u_R, v_R, w_R, rhoet_R, p_R, c_R, ht_R, ubar_R;
     double rho, u, v, w, ht, c, phi, ubar, ubar1, ubar2;
-    double Mach, nmax, fix, sigma;
+    double Mach, nmax, fix, fixUn, sigma;
     Vector3D Vn1, Vn2;
     
     double area;
@@ -617,15 +617,15 @@ void Compute_RoeFlux(int node_L, int node_R, Vector3D areavec, double *Flux_Roe)
         Roe_Pinv[2][4] = -nz/(c * c);
 
         Roe_Pinv[3][0] = 0.0;
-        Roe_Pinv[3][1] = 0.5 * nx * fix;
-        Roe_Pinv[3][2] = 0.5 * ny * fix;
-        Roe_Pinv[3][3] = 0.5 * nz * fix;
+        Roe_Pinv[3][1] = 0.5 * nx;
+        Roe_Pinv[3][2] = 0.5 * ny;
+        Roe_Pinv[3][3] = 0.5 * nz;
         Roe_Pinv[3][4] = 1.0/(2.0 * rho * c);
 
         Roe_Pinv[4][0] = 0.0;
-        Roe_Pinv[4][1] = -0.5 * nx * fix;
-        Roe_Pinv[4][2] = -0.5 * ny * fix;
-        Roe_Pinv[4][3] = -0.5 * nz * fix;
+        Roe_Pinv[4][1] = -0.5 * nx;
+        Roe_Pinv[4][2] = -0.5 * ny;
+        Roe_Pinv[4][3] = -0.5 * nz;
         Roe_Pinv[4][4] = 1.0/(2.0 * rho * c);
 
         // START: Computing 
@@ -661,15 +661,30 @@ void Compute_RoeFlux(int node_L, int node_R, Vector3D areavec, double *Flux_Roe)
             // Get Matrix A = M*P*|Lambda|*Pinv
             MC_Matrix_Mul_Matrix(5, 5, Roe_T, Roe_Tinv, Roe_A);
 
-            // Compute dw
-            Roe_dw[0] = rho_R - rho_L;
-            Roe_dw[1] = u_R   - u_L;
-            Roe_dw[2] = v_R   - v_L;
-            Roe_dw[3] = w_R   - w_L;
-            Roe_dw[4] = p_R   - p_L;
+            // Compute dQ1
+            Roe_dQ[0] = rho_R - rho_L;
+            Roe_dQ[1] = 0.0;
+            Roe_dQ[2] = 0.0;
+            Roe_dQ[3] = 0.0;
+            Roe_dQ[4] = p_R - p_L;
+            // Compute |A|*dQ1
+            MC_Matrix_Mul_Vector(5, 5, Roe_A, Roe_dQ, Roe_fluxA);
+            
+            fixUn = fix*((u_R - u_L)*nx + (v_R - v_L)*ny + (w_R - w_L)*nz);
+            
+            // Compute dQ3
+            Roe_dw[0] = (0.5*rho*fixUn*(fabs(ubar + c) - fabs(ubar - c)))/c;
+            Roe_dw[1] = fabs(ubar)*((u_R - u_L) - fixUn*nx) + 0.5*nx*fixUn*(fabs(ubar + c) + fabs(ubar - c));
+            Roe_dw[2] = fabs(ubar)*((v_R - v_L) - fixUn*ny) + 0.5*ny*fixUn*(fabs(ubar + c) + fabs(ubar - c));
+            Roe_dw[3] = fabs(ubar)*((w_R - w_L) - fixUn*nz) + 0.5*nz*fixUn*(fabs(ubar + c) + fabs(ubar - c));
+            Roe_dw[4] = 0.5*rho*c*fixUn*(fabs(ubar + c) - fabs(ubar - c));
 
-            // Compute |A|*dw
-            MC_Matrix_Mul_Vector(5, 5, Roe_A, Roe_dw, Roe_fluxA);
+            // Compute M*dQ3
+            MC_Matrix_Mul_Vector(5, 5, Roe_M, Roe_dw, Roe_dQ);
+            
+            // Finally Compute A*dw = M*dQ3 + M*P*|Lambda|*Pinv*dQ1 =  M*P*|Lambda|*Pinv*dw
+            for (i = 0; i < NEQUATIONS; i++)
+                Roe_fluxA[i] += Roe_dQ[i];
             // END: Computing A*dw = M*P*|Lambda|*Pinv*dw
         } else { // ROE
             // Calculate Tinv = Pinv*Minv
