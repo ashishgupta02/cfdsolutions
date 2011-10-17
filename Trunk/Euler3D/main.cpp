@@ -28,7 +28,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <string>
 
 /* Custom header files */
 #include "Trim_Utils.h"
@@ -116,19 +115,27 @@ int main(int argc, char *argv[]) {
     // Initialize the Common Data
     Commons_Init();
 
+    // Initialize the Solver Parameters Data
+    Solver_Parameters_Init();
+    
+    // Read the Solver Parameters
+    Solver_Parameters_Read(argv[2]);
+    
     // Read input Grid File
-    UGrid_Reader(argv[2]);
+    UGrid_Reader(MeshInputFilename);
 
     // Create All Connectivity Maps
-    int reorder = 1;
-    Create_Connectivity_Maps(reorder);
+    Create_Connectivity_Maps(MeshReorder);
     
     // Calculate Areas and Control Volumes
     Calculate_Area_Volume();
 
     // Free Excess Memory Used for Connectivity Creation
     Trim_Connectivity_Memory();
-
+    
+    // Read Boundary Conditions
+    Solver_BC_Parameters_Read(BCInputFilename);
+    
     // Initialize the Solver Data
     Solver_Init();
 
@@ -156,18 +163,9 @@ int main(int argc, char *argv[]) {
             break;
         case 5:
             // -f = Roe Flux Splitting
-            Solver_Read_Params(argv[3]);
             Solver_Set_Initial_Conditions();
-            if (Solve() == EXIT_SUCCESS) {
-                int pos;
-                std::string solfile;
-                solfile.append(argv[2]);
-                pos = solfile.find(".");
-                if ((pos == -1) || (pos == 0 && solfile.length() != 0))
-                    pos = solfile.length();
-                solfile.replace(pos, solfile.length(), ".vtk");
-                VTK_Writer(solfile.c_str(), 1);
-            }
+            if (Solve() == EXIT_SUCCESS)
+                VTK_Writer(SolutionOutputFilename, 1);
             break;
     }
     

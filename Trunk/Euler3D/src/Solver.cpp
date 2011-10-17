@@ -1,5 +1,5 @@
 /*******************************************************************************
- * File:        Solver.h
+ * File:        Solver.cpp
  * Author:      Ashish Gupta
  * Revision:    4
  ******************************************************************************/
@@ -14,77 +14,8 @@
 #include "Solver.h"
 #include "MC.h"
 #include "Gradient.h"
+#include "CompressibleUtils.h"
 #include "DebugSolver.h"
-
-// Linear Solver Parameters
-int    SolverMethod;
-int    SolverScheme;
-int    TimeAccuracy;
-int    TimeStepScheme;
-int    SolverBCScheme;
-int    JacobianMethod;
-int    JacobianUpdate;
-int    Order;
-int    NIteration;
-int    InnerNIteration;
-int    FirstOrderNIteration;
-double Relaxation;
-
-// Flux Limiter
-int    Limiter;
-int    LimiterSmooth;
-int    LimiterOrder;
-int    StartLimiterNIteration;
-int    EndLimiterNIteration;
-double Venkat_KThreshold;
-
-// Entropy Fix
-int EntropyFix;
-
-// Low Mach Fix
-int LMRoeFix;
-
-// Restart Parameters
-int  RestartInput;
-int  RestartOutput;
-int  RestartIteration;
-int  RestartCycle;
-char RestartInputFilename[256];
-char RestartOutputFilename[256];
-
-// Reference Conditions
-double Ref_Rho;
-double Ref_Mach;
-double Ref_Alpha;
-double Ref_Pressure;
-double Ref_Temperature;
-
-// Free Stream Conditions
-double Inf_Rho;
-double Inf_U;
-double Inf_V;
-double Inf_W;
-double Inf_Et;
-double Inf_Pressure;
-double Inf_Mach;
-
-// Constants
-double Gamma;
-
-// Solver Tuning Parameters
-// CFL Conditions
-int    CFL_Ramp;
-double CFL_MAX;
-double CFL_MIN;
-double CFL;
-
-// Mach Ramping
-int    Mach_Ramp;
-double Mach_MAX;
-double Mach_MIN;
-
-// Zero Pressure Gradient No of Iterations
-int    ZPGIteration;
 
 // Local Time
 double *DeltaT;
@@ -117,12 +48,18 @@ double *Q5x;
 double *Q5y;
 double *Q5z;
 
-// Residuals
+// Residuals (Convective and Dissipative)
 double *Res1;
 double *Res2;
 double *Res3;
 double *Res4;
 double *Res5;
+
+double *Res1_Diss;
+double *Res2_Diss;
+double *Res3_Diss;
+double *Res4_Diss;
+double *Res5_Diss;
 
 // Limiters
 double *Limiter_Phi1;
@@ -142,75 +79,6 @@ MC_CRS SolverBlockMatrix;
 //!
 //------------------------------------------------------------------------------
 void Solver_Init(void) {
-    // Linear Solver Parameters
-    SolverMethod    = SOLVER_METHOD_NONE;
-    SolverScheme    = SOLVER_SCHEME_NONE;
-    TimeAccuracy    = 0;
-    TimeStepScheme  = 0;
-    SolverBCScheme  = SOLVER_BC_SCHEME_NONE;
-    JacobianMethod  = SOLVER_JACOBIAN_NONE;
-    JacobianUpdate  = 0;
-    Order           = 0;
-    NIteration      = 0;
-    InnerNIteration = 0;
-    FirstOrderNIteration    = 0;
-    Relaxation      = 0.0;
-
-    // Flux Limiter
-    Limiter         = 0;
-    LimiterSmooth   = 0;
-    LimiterOrder    = 0;
-    StartLimiterNIteration  = 0;
-    EndLimiterNIteration    = 0;
-    Venkat_KThreshold       = 0.0;
-
-    // Entropy Fix
-    EntropyFix      = 0;
-    
-    // Low Mach Fix
-    LMRoeFix        = 0;
-    
-    // Restart Parameters
-    RestartInput    = 0;
-    RestartOutput   = 0;
-    RestartIteration= 0;
-    RestartCycle    = 0;
-    str_blank(RestartInputFilename);
-    str_blank(RestartOutputFilename);
-
-    // Reference Conditions
-    Ref_Rho         = 0.0;
-    Ref_Mach        = 0.0;
-    Ref_Alpha       = 0.0;
-    Ref_Pressure    = 0.0;
-    Ref_Temperature = 0.0;
-
-    // Free Stream Conditions
-    Inf_Rho         = 0.0;
-    Inf_U           = 0.0;
-    Inf_V           = 0.0;
-    Inf_W           = 0.0;
-    Inf_Et          = 0.0;
-    Inf_Pressure    = 0.0;
-    Inf_Mach        = 0.0;
-    
-    // Constants
-    Gamma           = 0.0;
-
-    // CFL Conditions
-    CFL_Ramp        = 0;
-    CFL_MAX         = 0.0;
-    CFL_MIN         = 0.0;
-    CFL             = 0.0;
-
-    // Mach Ramping
-    Mach_Ramp       = 0;
-    Mach_MAX        = 0.0;
-    Mach_MIN        = 0.0;
-
-    // Zero Pressure Gradient No of Iterations
-    ZPGIteration    = 0;
-    
     // Local Time
     DeltaT          = NULL;
 
@@ -242,13 +110,19 @@ void Solver_Init(void) {
     Q5y             = NULL;
     Q5z             = NULL;
     
-    // Residuals
+    // Residuals (Convective and Dissipative)
     Res1            = NULL;
     Res2            = NULL;
     Res3            = NULL;
     Res4            = NULL;
     Res5            = NULL;
 
+    Res1_Diss       = NULL;
+    Res2_Diss       = NULL;
+    Res3_Diss       = NULL;
+    Res4_Diss       = NULL;
+    Res5_Diss       = NULL;
+    
     // Limiters
     Limiter_Phi1    = NULL;
     Limiter_Phi2    = NULL;
@@ -367,7 +241,7 @@ void Solver_Finalize(void) {
     Limiter_Phi4 = NULL;
     Limiter_Phi5 = NULL;
     
-    // Residuals
+    // Residuals (Convective and Dissipative)
     if (Res1 != NULL)
         delete[] Res1;
     if (Res2 != NULL)
@@ -384,6 +258,22 @@ void Solver_Finalize(void) {
     Res4 = NULL;
     Res5 = NULL;
 
+    if (Res1_Diss != NULL)
+        delete[] Res1_Diss;
+    if (Res2_Diss != NULL)
+        delete[] Res2_Diss;
+    if (Res3_Diss != NULL)
+        delete[] Res3_Diss;
+    if (Res4_Diss != NULL)
+        delete[] Res4_Diss;
+    if (Res5_Diss != NULL)
+        delete[] Res5_Diss;
+    Res1_Diss = NULL;
+    Res2_Diss = NULL;
+    Res3_Diss = NULL;
+    Res4_Diss = NULL;
+    Res5_Diss = NULL;
+    
     // Local Time
     if (DeltaT != NULL)
         delete[] DeltaT;
@@ -398,255 +288,6 @@ void Solver_Finalize(void) {
         Delete_CRS_SolverBlockMatrix();
     
     printf("=============================================================================\n");
-}
-
-//------------------------------------------------------------------------------
-//!
-//------------------------------------------------------------------------------
-void Solver_Read_Params(const char *filename) {
-    FILE *fp;
-    int bdim = 256;
-    char buff[256];
-    char *dummy;
-
-    if ((fp = fopen(filename, "r")) == NULL)
-        error("Solver_Read_Params: Unable to Read Parameter File - %s", filename);
-    
-    // Number of Boundaries
-    int nb;
-    // Read Number of Boundaries
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%d", &nb);
-
-    // Allocate memory to store boundary type and read
-    bndType = new int[nBC];
-    for (int i = 0; i < nb; i++) {
-        dummy = fgets(buff, bdim, fp);
-        dummy = fgets(buff, bdim, fp);
-        sscanf(buff, "%d", &bndType[i]);
-    }
-
-    // 1) Get the Solver Scheme
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%d", &SolverMethod);
-    
-    // 2) Get the Solver Scheme
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%d", &SolverScheme);
-
-    // 3) Get the Time Accuracy
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%d", &TimeAccuracy);
-
-    // 4) Get the Time Stepping Scheme
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%d", &TimeStepScheme);
-    
-    // 5) Get the Solver Scheme
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%d", &SolverBCScheme);
-    
-    // 6) Get the Jacobian Method
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%d", &JacobianMethod);
-    
-    // 7) Get the Jacobian Update Frequency
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%d", &JacobianUpdate);
-    
-    // 8) Get the Order
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%d", &Order);
-    
-    // 9) Get Number of Outer Iterations
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%d", &NIteration);
-
-    // 10) Get Number of Inner Iterations
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%d", &InnerNIteration);
-
-    // 11) Get Number of First Order Iterations
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%d", &FirstOrderNIteration);
-    
-    // 12) Get the Relaxation Factor
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%lf", &Relaxation);
-
-    // 13) Get the Flux Limiter
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%d", &Limiter);
-
-    // 14) Get the Flux Limiter Smooth
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%d", &LimiterSmooth);
-
-    // 15) Get the Flux Limiter Order
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%d", &LimiterOrder);
-    
-    // 16) Get the Start Limiter Iterations
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%d", &StartLimiterNIteration);
-
-    // 17) Get the End Limiter Iterations
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%d", &EndLimiterNIteration);
-
-    // 18) Read Ventakakrishanan K Threshold
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%lf", &Venkat_KThreshold);
-
-    // 19) Read Entropy Fix
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%d", &EntropyFix);
-    
-    // 20) Read Gamma
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%lf", &Gamma);
-
-    // 21) Read Reference Density
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%lf", &Ref_Rho);
-
-    // 22) Read Reference Mach
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%lf", &Ref_Mach);
-
-    // 23) Read Reference Pressure
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%lf", &Ref_Pressure);
-
-    // 24) Read Alpha
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%lf", &Ref_Alpha);
-
-    // 25) Read CFL Ramp
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%d", &CFL_Ramp);
-
-    // 26) Read CFL MIN
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%lf", &CFL_MIN);
-
-    // 27) Read CFL MAX
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%lf", &CFL_MAX);
-
-    // 28) Read Mach Ramp
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%d", &Mach_Ramp);
-
-    // 29) Read Mach MIN
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%lf", &Mach_MIN);
-
-    // 30) Read Mach MAX
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%lf", &Mach_MAX);
-
-    // 31) Read No of Zero Pressure Gradient ZPG Iterations
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%d", &ZPGIteration);
-
-    // 32) Read Restart Solution
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%d", &RestartInput);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%d", &RestartOutput);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%d", &RestartCycle);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%s", RestartInputFilename);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%s", RestartOutputFilename);
-    
-    CFL             = CFL_MIN;
-    Ref_Alpha       = Ref_Alpha * M_PI / 180.0;
-    Ref_Temperature = Gamma*Ref_Pressure/Ref_Rho;
-    
-    // Avoid Invalid Mach
-    if (Ref_Mach < Mach_MAX)
-        Mach_MAX = Ref_Mach;
-    if (Mach_MIN == 0.0)
-        Mach_MIN = Ref_Mach;
-    
-    // Close file
-    fclose(fp);
-
-    printf("=============================================================================\n");
-    info("Input Solver Parameters");
-    printf("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-\n");
-    info("Solver Method ------------------------: %d",  SolverMethod);
-    info("Solver Scheme ------------------------: %d",  SolverScheme);
-    info("Time Accuracy ------------------------: %d",  TimeAccuracy);
-    info("Time Stepping Scheme -----------------: %d",  TimeStepScheme);
-    info("Solver Boundary Condition Scheme -----: %d",  SolverBCScheme);
-    info("Solver Jacobian Method ---------------: %d",  JacobianMethod);
-    info("Solver Jacobian Update Frequency -----: %d",  JacobianUpdate);
-    info("Order --------------------------------: %d",  Order);
-    info("No of Iterations ---------------------: %d",  NIteration);
-    info("No of Inner Iterations ---------------: %d",  InnerNIteration);
-    info("No of First Order Iterations ---------: %d",  FirstOrderNIteration);
-    info("Relaxation Factor --------------------: %lf", Relaxation);
-    info("Limiter Type -------------------------: %d",  Limiter);
-    info("Limiter Smooth -----------------------: %d",  LimiterSmooth);
-    info("Limiter Order ------------------------: %d",  LimiterOrder);
-    info("Limiter Start Iteration --------------: %d",  StartLimiterNIteration);
-    info("Limiter End Iteration ----------------: %d",  EndLimiterNIteration);
-    info("Venkatakrishan Limiter Threshold -----: %lf", Venkat_KThreshold);
-    info("Entropy Fix --------------------------: %d",  EntropyFix);
-    info("Gamma --------------------------------: %lf", Gamma);
-    info("Reference Density --------------------: %lf", Ref_Rho);
-    info("Reference Mach Number ----------------: %lf", Ref_Mach);
-    info("Reference Pressure -------------------: %lf", Ref_Pressure);
-    info("Reference Alpha ----------------------: %lf", Ref_Alpha);
-    info("CFL Ramp -----------------------------: %d",  CFL_Ramp);
-    info("CFL_Min ------------------------------: %lf", CFL_MIN);
-    info("CFL_Max ------------------------------: %lf", CFL_MAX);
-    info("Mach Ramp ----------------------------: %d",  Mach_Ramp);
-    info("Mach_Min -----------------------------: %lf", Mach_MIN);
-    info("Mach_Max -----------------------------: %lf", Mach_MAX);
-    info("No of ZPG Iterations -----------------: %d",  ZPGIteration);
-    info("Restart Input ------------------------: %d",  RestartInput);
-    info("Restart Input Filename ---------------: %s",  RestartInputFilename);
-    info("Restart Output -----------------------: %d",  RestartOutput);
-    info("Restart Output Filename --------------: %s",  RestartOutputFilename);
-    info("Restart Cycle ------------------------: %d",  RestartCycle);
 }
 
 //------------------------------------------------------------------------------
@@ -713,7 +354,7 @@ void Solver_Set_Initial_Conditions(void) {
         }
     }
     
-    // Allocate  Memory to Store Residuals
+    // Allocate  Memory to Store Residuals (Convective and Dissipative)
     Res1 = new double[nNode];
     Res2 = new double[nNode];
     Res3 = new double[nNode];
@@ -725,6 +366,19 @@ void Solver_Set_Initial_Conditions(void) {
         Res3[i] = 0.0;
         Res4[i] = 0.0;
         Res5[i] = 0.0;
+    }
+    
+    Res1_Diss = new double[nNode];
+    Res2_Diss = new double[nNode];
+    Res3_Diss = new double[nNode];
+    Res4_Diss = new double[nNode];
+    Res5_Diss = new double[nNode];
+    for (int i = 0; i < nNode; i++) {
+        Res1_Diss[i] = 0.0;
+        Res2_Diss[i] = 0.0;
+        Res3_Diss[i] = 0.0;
+        Res4_Diss[i] = 0.0;
+        Res5_Diss[i] = 0.0;
     }
     
     // Allocate Memory to Store Time Step
@@ -782,12 +436,17 @@ int Solve_Explicit(void) {
     for (int iter = RestartIteration; iter < NIteration; iter++) {
         // Reset Residuals and DeltaT
         for (int i = 0; i < nNode; i++) {
-            Res1[i]   = 0.0;
-            Res2[i]   = 0.0;
-            Res3[i]   = 0.0;
-            Res4[i]   = 0.0;
-            Res5[i]   = 0.0;
-            DeltaT[i] = 0.0;
+            Res1[i]      = 0.0;
+            Res2[i]      = 0.0;
+            Res3[i]      = 0.0;
+            Res4[i]      = 0.0;
+            Res5[i]      = 0.0;
+            Res1_Diss[i] = 0.0;
+            Res2_Diss[i] = 0.0;
+            Res3_Diss[i] = 0.0;
+            Res4_Diss[i] = 0.0;
+            Res5_Diss[i] = 0.0;
+            DeltaT[i]    = 0.0;
         }
 
         // Compute Free Stream Conditions with Mach Ramping
@@ -852,12 +511,71 @@ int Solve_Explicit(void) {
         if (TimeStepScheme == 1) {
             // Update Conservative Variables
             for (int i = 0; i < nNode; i++) {
-                dtmp = DeltaT[i]/cVolume[i];
-                Q1[i] -= dtmp * Res1[i];
-                Q2[i] -= dtmp * Res2[i];
-                Q3[i] -= dtmp * Res3[i];
-                Q4[i] -= dtmp * Res4[i];
-                Q5[i] -= dtmp * Res5[i];
+                // Compute Weiss Smith Precondition Variables
+                if (PrecondMethod == SOLVER_PRECOND_ROE_WS) {
+                    double rho, u, v, w, ht, rhoet, p, c, Ur, eps, mach, Cp, Theta, drhodt;
+                    double lres1, lres2, lres3, lres4, lres5;
+                    double Qc[5], Qp[5];
+                    rho   = Q1[i];
+                    u     = Q2[i]/rho;
+                    v     = Q3[i]/rho;
+                    w     = Q4[i]/rho;
+                    rhoet = Q5[i];
+                    p     = (Gamma - 1.0)*(rhoet - 0.5*rho*(u*u + v*v + w*w)) + Gauge_Pressure;
+                    ht    = (rhoet + p)/rho;
+                    c     = sqrt((Gamma * p) / rho);
+                    
+                    mach = sqrt(u*u + v*v + w*w)/c;
+                    eps  = MIN(1.0, MAX(1e-10, mach*mach));
+                    
+                    // Compute Ur for Ideal Gas
+                    dtmp = sqrt(u*u + v*v + w*w);
+                    if (dtmp < eps*c)
+                        Ur = eps*c;
+                    else if ((eps*c < dtmp) && (dtmp < c))
+                        Ur = dtmp;
+                    else
+                        Ur = c;
+                    
+                    Theta  = (1.0/(Ur*Ur) + (Gamma - 1.0)/(c*c));
+                    Cp     = 1/(Gamma - 1.0);
+                    drhodt = -(rho*rho)/(Gamma*p);
+                    
+                    dtmp = DeltaT[i]/cVolume[i];
+                    lres1 = ht*Res1[i] - Res5[i] + u*Res2[i] - u*u*Res1[i] + v*Res3[i] - v*v*Res1[i] + w*Res4[i] - w*w*Res1[i];
+                    lres1 = dtmp*(drhodt*lres1 + Cp*rho*Res1[i])/(drhodt + Cp*Theta*rho);
+                    lres2 = dtmp*(Res2[i] - u*Res1[i])/rho;
+                    lres3 = dtmp*(Res3[i] - v*Res1[i])/rho;
+                    lres4 = dtmp*(Res4[i] - w*Res1[i])/rho;
+                    lres5 = Theta*(Res5[i] - u*Res2[i] - v*Res3[i] - w*Res4[i]) + Res1[i]*(1.0 + Theta*(u*u + v*v + w*w - ht));
+                    lres5 = dtmp*lres5/(drhodt + Cp*Theta*rho);
+                    
+                    // Convert Conservative to Primitive
+                    Qc[0] = Q1[i];
+                    Qc[1] = Q2[i];
+                    Qc[2] = Q3[i];
+                    Qc[3] = Q4[i];
+                    Qc[4] = Q5[i];
+                    ConservativeToPressureVelocityTemperature(Qc, Qp, Gamma, Gauge_Pressure);
+                    Qp[0] -= lres1;
+                    Qp[1] -= lres2;
+                    Qp[2] -= lres3;
+                    Qp[3] -= lres4;
+                    Qp[4] -= lres5;
+                    PressureVelocityTemperatureToConservative(Qp, Qc, Gamma, Gauge_Pressure);
+                    Q1[i] = Qc[0];
+                    Q2[i] = Qc[1];
+                    Q3[i] = Qc[2];
+                    Q4[i] = Qc[3];
+                    Q5[i] = Qc[4];
+                } else {
+                    dtmp = DeltaT[i]/cVolume[i];
+                    Q1[i] -= dtmp * Res1[i];
+                    Q2[i] -= dtmp * Res2[i];
+                    Q3[i] -= dtmp * Res3[i];
+                    Q4[i] -= dtmp * Res4[i];
+                    Q5[i] -= dtmp * Res5[i];
+                }
             }
         }
 
@@ -1073,12 +791,17 @@ int Solve_Implicit(void) {
     for (int iter = RestartIteration; iter < NIteration; iter++) {
         // Reset Residuals and DeltaT
         for (int i = 0; i < nNode; i++) {
-            Res1[i]   = 0.0;
-            Res2[i]   = 0.0;
-            Res3[i]   = 0.0;
-            Res4[i]   = 0.0;
-            Res5[i]   = 0.0;
-            DeltaT[i] = 0.0;
+            Res1[i]      = 0.0;
+            Res2[i]      = 0.0;
+            Res3[i]      = 0.0;
+            Res4[i]      = 0.0;
+            Res5[i]      = 0.0;
+            Res1_Diss[i] = 0.0;
+            Res2_Diss[i] = 0.0;
+            Res3_Diss[i] = 0.0;
+            Res4_Diss[i] = 0.0;
+            Res5_Diss[i] = 0.0;
+            DeltaT[i]    = 0.0;
         }
 
         // Compute Free Stream Conditions with Mach Ramping
@@ -1198,6 +921,12 @@ int Solve(void) {
         case SOLVER_SCHEME_LMROE: // LMRoe
             Roe_Init();
             break;
+        case SOLVER_SCHEME_ROE_WS: // Roe Weiss Smith Precondition
+            Roe_Init();
+            break;
+        case SOLVER_SCHEME_ROE_CV: // Roe Cecile Voizat Precondition
+            Roe_Init();
+            break;
         default:
             error("Solve: Invalid Solver Scheme - %d", SolverScheme);
             break;
@@ -1228,6 +957,12 @@ int Solve(void) {
         case SOLVER_SCHEME_LMROE: // LMRoe
             Roe_Finalize();
             break;
+        case SOLVER_SCHEME_ROE_WS: // Roe Weiss Smith Precondition
+            Roe_Finalize();
+            break;
+        case SOLVER_SCHEME_ROE_CV: // Roe Cecile Voizat Precondition
+            Roe_Finalize();
+            break;
         default:
             error("Solve: Invalid Solver Scheme - %d", SolverScheme);
             break;
@@ -1254,11 +989,11 @@ void ComputeFreeStreamCondition(int Iteration) {
     // Set the Free Stream Conditions
     Inf_Mach     = tmpMach;
     Inf_Rho      = Ref_Rho;
-    Inf_Pressure = Ref_Pressure;
-    Inf_U        = Inf_Mach*cos(Ref_Alpha);
-    Inf_V        = Inf_Mach*sin(Ref_Alpha);
-    Inf_W        = 0.0;
-    Inf_Et       = Inf_Pressure/((Gamma - 1.0)*Inf_Rho) + 0.5 *(Inf_U*Inf_U + Inf_V*Inf_V + Inf_W*Inf_W);
+    Inf_Pressure = Ref_Pressure - Gauge_Pressure;
+    Inf_U        = Inf_Mach*cos(Ref_Alpha)*cos(Ref_Beta);
+    Inf_V        = Inf_Mach*sin(Ref_Beta);
+    Inf_W        = Inf_Mach*sin(Ref_Alpha)*cos(Ref_Beta);
+    Inf_Et       = (Ref_Pressure - Gauge_Pressure)/((Gamma - 1.0)*Inf_Rho) + 0.5 *(Inf_U*Inf_U + Inf_V*Inf_V + Inf_W*Inf_W);
 }
 
 //------------------------------------------------------------------------------

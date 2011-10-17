@@ -131,10 +131,10 @@ void Compute_Jacobian_Approximate_Roe(int AddTime, int Iteration) {
         }
         
         // Compute dFdL
-        ConservativeEulerFluxJacobian(Q_L, areavec, dFdL, Gamma);
+        ConservativeEulerFluxJacobian(Q_L, areavec, dFdL, Gamma, Gauge_Pressure);
         
         // Compute dFdR
-        ConservativeEulerFluxJacobian(Q_R, areavec, dFdR, Gamma);
+        ConservativeEulerFluxJacobian(Q_R, areavec, dFdR, Gamma, Gauge_Pressure);
         
         // Compute Roe Jacobian
         Compute_RoeAJacobian(Q_L, Q_R, areavec, ARoe);
@@ -197,7 +197,7 @@ void Compute_Jacobian_Approximate_Roe(int AddTime, int Iteration) {
         }
         
         // Compute dFdL
-        ConservativeEulerFluxJacobian(Q_L, areavec, dFdL, Gamma);
+        ConservativeEulerFluxJacobian(Q_L, areavec, dFdL, Gamma, Gauge_Pressure);
         
         // Compute Roe Jacobian
         Compute_RoeAJacobian(Q_L, Q_R, areavec, ARoe);

@@ -11,6 +11,7 @@
       <itemPath>include/MeshIO.h</itemPath>
       <itemPath>include/RestartIO.h</itemPath>
       <itemPath>include/Solver.h</itemPath>
+      <itemPath>include/SolverParameters.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -37,6 +38,7 @@
       <itemPath>src/Roe_Fluxes.cpp</itemPath>
       <itemPath>src/Roe_Jacobian.cpp</itemPath>
       <itemPath>src/Solver.cpp</itemPath>
+      <itemPath>src/SolverParameters.cpp</itemPath>
       <itemPath>src/Time_Step.cpp</itemPath>
       <itemPath>main.cpp</itemPath>
     </logicalFolder>
