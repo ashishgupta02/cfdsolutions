@@ -24,6 +24,12 @@ void Compute_Residual(void) {
             LMRoeFix = 1;
             Compute_Residual_Roe();
             break;
+        case SOLVER_SCHEME_ROE_WS: // Roe Weiss Smith Precondition
+            Compute_Residual_Roe();
+            break;
+        case SOLVER_SCHEME_ROE_CV: // Roe Cecile Voizat Precondition
+            Compute_Residual_Roe();
+            break;
         default:
             error("Compute_Residual: Invalid Solver Scheme - %d", SolverScheme);
             break;

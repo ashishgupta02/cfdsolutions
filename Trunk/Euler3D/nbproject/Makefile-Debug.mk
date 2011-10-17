@@ -41,6 +41,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/RestartIO.o \
 	${OBJECTDIR}/src/BC.o \
 	${OBJECTDIR}/src/Jacobian.o \
+	${OBJECTDIR}/src/SolverParameters.o \
 	${OBJECTDIR}/src/Time_Step.o \
 	${OBJECTDIR}/src/Roe_EntropyFix.o \
 	${OBJECTDIR}/src/Gradient.o \
@@ -118,6 +119,11 @@ ${OBJECTDIR}/src/Jacobian.o: src/Jacobian.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Jacobian.o src/Jacobian.cpp
+
+${OBJECTDIR}/src/SolverParameters.o: src/SolverParameters.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -Iinclude -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/SolverParameters.o src/SolverParameters.cpp
 
 ${OBJECTDIR}/src/Time_Step.o: src/Time_Step.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

@@ -336,7 +336,7 @@ void VTK_Writer(const char* filename, int verbose) {
         v   = Q3[i] / rho;
         w   = Q4[i] / rho;
         et  = Q5[i] / rho;
-        p   = (Gamma - 1.0) * rho * (et - 0.5 * (u * u + v * v + w * w));
+        p   = (Gamma - 1.0) * rho * (et - 0.5 * (u * u + v * v + w * w)) + Gauge_Pressure;
 
         fprintf(fp, "%22.15e\n", p);
     }
