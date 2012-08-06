@@ -12,30 +12,30 @@
 
 //------------------------------------------------------------------------------
 //! Qc : Conservative Variable [Rho, RhoU, RhoV, RhoEt]
-//! Note: Only Conservative Variable are Gauge Pressure Adjusted 
-//!       not Premitive Variables
+//! Note: Only Primitive Variable are Gauge Pressure and Temperature Adjusted 
+//!       not Conservative Variables
 //------------------------------------------------------------------------------
 double ConservativeGetPressure(double *Qc, double gamma, double gauge_pressure) {
     // Pressure = (gamma - 1)*(Rho*Et - 0.5*Rho*(U*U + V*V + W*W))
-    return (gamma - 1.0)*(Qc[4] - (0.5/Qc[0])*(Qc[1]*Qc[1] + Qc[2]*Qc[2] + Qc[3]*Qc[3])) + gauge_pressure;
+    return (gamma - 1.0)*(Qc[4] - (0.5/Qc[0])*(Qc[1]*Qc[1] + Qc[2]*Qc[2] + Qc[3]*Qc[3])) - gauge_pressure;
 }
 
 //------------------------------------------------------------------------------
 //! Qc : Conservative Variable [Rho, RhoU, RhoV, RhoEt]
-//! Note: Only Conservative Variable are Gauge Pressure Adjusted
-//!       not Premitive Variables
+//! Note: Only Primitive Variable are Gauge Pressure and Temperature Adjusted 
+//!       not Conservative Variables
 //------------------------------------------------------------------------------
-double ConservativeGetTemperature(double *Qc, double gamma, double gauge_pressure) {
+double ConservativeGetTemperature(double *Qc, double gamma, double gauge_temperature) {
     // Pressure = (gamma - 1)*(Rho*Et - 0.5*Rho*(U*U + V*V + W*W))
     // Temperature = gamma*Pressure/Rho
-    return gamma*((gamma - 1.0)*(Qc[4] - (0.5/Qc[0])*(Qc[1]*Qc[1] + Qc[2]*Qc[2] + Qc[3]*Qc[3])) + gauge_pressure)/Qc[0];
+    return gamma*(gamma - 1.0)*(Qc[4] - (0.5/Qc[0])*(Qc[1]*Qc[1] + Qc[2]*Qc[2] + Qc[3]*Qc[3]))/Qc[0] - gauge_temperature;
 }
 
 //------------------------------------------------------------------------------
 //! Qc : Conservative Variable [Rho, RhoU, RhoV, RhoEt]
 //! Qp : Primitive Variable [Rho, U, V, W, P]
-//! Note: Only Conservative Variable are Gauge Pressure Adjusted
-//!       not Premitive Variables
+//! Note: Only Primitive Variable are Gauge Pressure and Temperature Adjusted 
+//!       not Conservative Variables
 //------------------------------------------------------------------------------
 void ConservativeToRhoVelocityPressure(double *Qc, double *Qp, double gamma, double gauge_pressure) {
     // Rho
@@ -47,16 +47,16 @@ void ConservativeToRhoVelocityPressure(double *Qc, double *Qp, double gamma, dou
     // W - Velocity
     Qp[3] = Qc[3]/Qc[0];
     // Pressure = (gamma - 1)*(Rho*Et - 0.5*Rho*(U*U + V*V + W*W))
-    Qp[4] = (gamma - 1.0)*(Qc[4] - 0.5*Qp[0]*(Qp[1]*Qp[1] + Qp[2]*Qp[2] + Qp[3]*Qp[3])) + gauge_pressure;
+    Qp[4] = (gamma - 1.0)*(Qc[4] - 0.5*Qp[0]*(Qp[1]*Qp[1] + Qp[2]*Qp[2] + Qp[3]*Qp[3])) - gauge_pressure;
 }
 
 //------------------------------------------------------------------------------
 //! Qc : Conservative Variable [Rho, RhoU, RhoV, RhoEt]
 //! Qp : Primitive Variable [P, U, V, W, T]
-//! Note: Only Conservative Variable are Gauge Pressure Adjusted
-//!       not Premitive Variables
+//! Note: Only Primitive Variable are Gauge Pressure and Temperature Adjusted 
+//!       not Conservative Variables
 //------------------------------------------------------------------------------
-void ConservativeToPressureVelocityTemperature(double *Qc, double *Qp, double gamma, double gauge_pressure) {
+void ConservativeToPressureVelocityTemperature(double *Qc, double *Qp, double gamma, double gauge_pressure, double gauge_temperature) {
     // U - Velocity
     Qp[1] = Qc[1]/Qc[0];
     // V - Velocity
@@ -64,18 +64,19 @@ void ConservativeToPressureVelocityTemperature(double *Qc, double *Qp, double ga
     // W - Velocity
     Qp[3] = Qc[3]/Qc[0];
     // Pressure = (gamma - 1)*(Rho*Et - 0.5*Rho*(U*U + V*V + W*W))
-    Qp[0] = (gamma - 1.0)*(Qc[4] - 0.5*Qc[0]*(Qp[1]*Qp[1] + Qp[2]*Qp[2] + Qp[3]*Qp[3])) +  gauge_pressure;
+    Qp[0] = (gamma - 1.0)*(Qc[4] - 0.5*Qc[0]*(Qp[1]*Qp[1] + Qp[2]*Qp[2] + Qp[3]*Qp[3]));
     // Temperature = gamma*Pressure/Rho
-    Qp[4] = gamma*Qp[0]/Qc[0];
+    Qp[4] = gamma*Qp[0]/Qc[0] - gauge_temperature;
+    Qp[0] = Qp[0] - gauge_pressure;
 }
 
 //------------------------------------------------------------------------------
 //! Qc : Conservative Variable [Rho, RhoU, RhoV, RhoEt]
 //! Qp : Primitive Variable [Rho, U, V, W, T]
-//! Note: Only Conservative Variable are Gauge Pressure Adjusted
-//!       not Premitive Variables
+//! Note: Only Primitive Variable are Gauge Pressure and Temperature Adjusted 
+//!       not Conservative Variables
 //------------------------------------------------------------------------------
-void ConservativeToRhoVelocityTemperature(double *Qc, double *Qp, double gamma, double gauge_pressure) {
+void ConservativeToRhoVelocityTemperature(double *Qc, double *Qp, double gamma, double gauge_temperature) {
     // Rho
     Qp[0] = Qc[0];
     // U - Velocity
@@ -85,16 +86,16 @@ void ConservativeToRhoVelocityTemperature(double *Qc, double *Qp, double gamma, 
     // W - Velocity
     Qp[3] = Qc[3]/Qc[0];
     // Pressure = (gamma - 1)*(Rho*Et - 0.5*Rho*(U*U + V*V + W*W))
-    Qp[4] = (gamma - 1.0)*(Qc[4] - 0.5*Qp[0]*(Qp[1]*Qp[1] + Qp[2]*Qp[2] + Qp[3]*Qp[3])) + gauge_pressure;
+    Qp[4] = (gamma - 1.0)*(Qc[4] - 0.5*Qp[0]*(Qp[1]*Qp[1] + Qp[2]*Qp[2] + Qp[3]*Qp[3]));
     // Temperature = gamma*Pressure/Rho
-    Qp[4] = gamma*Qp[4]/Qc[0];
+    Qp[4] = gamma*Qp[4]/Qc[0] - gauge_temperature;
 }
 
 //------------------------------------------------------------------------------
 //! Qc : Conservative Variable [Rho, RhoU, RhoV, RhoEt]
 //! Qp : Primitive Variable [Rho, U, V, W, P]
-//! Note: Only Conservative Variable are Gauge Pressure Adjusted
-//!       not Premitive Variables
+//! Note: Only Primitive Variable are Gauge Pressure and Temperature Adjusted 
+//!       not Conservative Variables
 //------------------------------------------------------------------------------
 void RhoVelocityPressureToConservative(double *Qp, double *Qc, double gamma, double gauge_pressure) {
     // Rho
@@ -106,18 +107,18 @@ void RhoVelocityPressureToConservative(double *Qp, double *Qc, double gamma, dou
     // Rho*W
     Qc[3] = Qp[0]*Qp[3];
     // Rho*Et = Pressure/(gamma - 1) + 0.5*Rho*(U*U + V*V + W*W)
-    Qc[4] = (Qp[4] - gauge_pressure)/(gamma - 1.0) + 0.5*Qp[0]*(Qp[1]*Qp[1] + Qp[2]*Qp[2] + Qp[3]*Qp[3]);
+    Qc[4] = (Qp[4] + gauge_pressure)/(gamma - 1.0) + 0.5*Qp[0]*(Qp[1]*Qp[1] + Qp[2]*Qp[2] + Qp[3]*Qp[3]);
 }
 
 //------------------------------------------------------------------------------
 //! Qc : Conservative Variable [Rho, RhoU, RhoV, RhoEt]
 //! Qp : Primitive Variable [P, U, V, W, T]
-//! Note: Only Conservative Variable are Gauge Pressure Adjusted
-//!       not Premitive Variables
+//! Note: Only Primitive Variable are Gauge Pressure and Temperature Adjusted 
+//!       not Conservative Variables
 //------------------------------------------------------------------------------
-void PressureVelocityTemperatureToConservative(double *Qp, double *Qc, double gamma, double gauge_pressure) {
+void PressureVelocityTemperatureToConservative(double *Qp, double *Qc, double gamma, double gauge_pressure, double gauge_temperature) {
     // Rho = gamma*Pressure/Temperature
-    Qc[0] = gamma*Qp[0]/Qp[4];
+    Qc[0] = gamma*(Qp[0] + gauge_pressure)/(Qp[4] + gauge_temperature);
     // Rho*U
     Qc[1] = Qc[0]*Qp[1];
     // Rho*V
@@ -125,16 +126,16 @@ void PressureVelocityTemperatureToConservative(double *Qp, double *Qc, double ga
     // Rho*W
     Qc[3] = Qc[0]*Qp[3];
     // Rho*Et = Pressure/(gamma - 1) + 0.5*Rho*(U*U + V*V + W*W)
-    Qc[4] = (Qp[0] - gauge_pressure)/(gamma - 1.0) + 0.5*Qc[0]*(Qp[1]*Qp[1] + Qp[2]*Qp[2] + Qp[3]*Qp[3]);
+    Qc[4] = (Qp[0] + gauge_pressure)/(gamma - 1.0) + 0.5*Qc[0]*(Qp[1]*Qp[1] + Qp[2]*Qp[2] + Qp[3]*Qp[3]);
 }
 
 //------------------------------------------------------------------------------
 //! Qc : Conservative Variable [Rho, RhoU, RhoV, RhoEt]
 //! Qp : Primitive Variable [Rho, U, V, W, T]
-//! Note: Only Conservative Variable are Gauge Pressure Adjusted
-//!       not Premitive Variables
+//! Note: Only Primitive Variable are Gauge Pressure and Temperature Adjusted 
+//!       not Conservative Variables
 //------------------------------------------------------------------------------
-void RhoVelocityTemperatureToConservative(double *Qp, double *Qc, double gamma, double gauge_pressure){
+void RhoVelocityTemperatureToConservative(double *Qp, double *Qc, double gamma, double gauge_temperature){
     // Rho
     Qc[0] = Qp[0];
     // Rho*U
@@ -144,18 +145,18 @@ void RhoVelocityTemperatureToConservative(double *Qp, double *Qc, double gamma, 
     // Rho*W
     Qc[3] = Qp[0]*Qp[3];
     // Pressure = Rho*Temperature/gamma
-    Qc[4] = Qp[0]*Qp[4]/gamma;
+    Qc[4] = Qp[0]*(Qp[4] + gauge_temperature)/gamma;
     // Rho*Et = Pressure/(gamma - 1) + 0.5*Rho*(U*U + V*V + W*W)
-    Qc[4] = (Qc[4] - gauge_pressure)/(gamma - 1.0) + 0.5*Qp[0]*(Qp[1]*Qp[1] + Qp[2]*Qp[2] + Qp[3]*Qp[3]);
+    Qc[4] = Qc[4]/(gamma - 1.0) + 0.5*Qp[0]*(Qp[1]*Qp[1] + Qp[2]*Qp[2] + Qp[3]*Qp[3]);
 }
 
 //------------------------------------------------------------------------------
 //! Compute Euler Flux using conservative variable
 //! Qc : Conservative Variable [Rho, RhoU, RhoV, RhoEt]
-//! Note: Only Conservative Variable are Gauge Pressure Adjusted
-//!       not Premitive Variables
+//! Note: Only Primitive Variable are Gauge Pressure and Temperature Adjusted 
+//!       not Conservative Variables
 //------------------------------------------------------------------------------
-void ConservativeEulerFlux(double *Qc, Vector3D areavec, double *Flux, double gamma, double gauge_pressure) {
+void ConservativeEulerFlux(double *Qc, Vector3D areavec, double *Flux, double gamma) {
     double nx, ny, nz;
     double rho, u, v, w, rhoet, p, ht, ubar;
     
@@ -169,7 +170,7 @@ void ConservativeEulerFlux(double *Qc, Vector3D areavec, double *Flux, double ga
     v     = Qc[2] / rho;
     w     = Qc[3] / rho;
     rhoet = Qc[4];
-    p     = (gamma - 1.0)*(rhoet - 0.5*rho*(u*u + v*v + w*w)) + gauge_pressure;
+    p     = (gamma - 1.0)*(rhoet - 0.5*rho*(u*u + v*v + w*w));
     ht    = (rhoet + p)/rho;
     ubar  = u*nx + v*ny + w*nz;
     
@@ -184,11 +185,11 @@ void ConservativeEulerFlux(double *Qc, Vector3D areavec, double *Flux, double ga
 //------------------------------------------------------------------------------
 //! Compute Euler Flux Jacobian using conservative variable
 //! Qc : Conservative Variable [Rho, RhoU, RhoV, RhoEt]
-//! Note: Only Conservative Variable are Gauge Pressure Adjusted
-//!       not Premitive Variables
+//! Note: Only Primitive Variable are Gauge Pressure and Temperature Adjusted 
+//!       not Conservative Variables
 //! AIAA 2001-2609
 //------------------------------------------------------------------------------
-void ConservativeEulerFluxJacobian(double *Qc, Vector3D areavec, double **Jacobian, double gamma, double gauge_pressure) {
+void ConservativeEulerFluxJacobian(double *Qc, Vector3D areavec, double **Jacobian, double gamma) {
     double nx, ny, nz;
     double rho, u, v, w, rhoet, p, ht, ubar;
     double ek;
@@ -204,7 +205,7 @@ void ConservativeEulerFluxJacobian(double *Qc, Vector3D areavec, double **Jacobi
     w     = Qc[3] / rho;
     rhoet = Qc[4];
     ek    = 0.5*(u*u + v*v + w*w);
-    p     = (gamma - 1.0)*(rhoet - rho*ek) + gauge_pressure;
+    p     = (gamma - 1.0)*(rhoet - rho*ek);
     ht    = (rhoet + p)/rho;
     ubar  = u*nx + v*ny + w*nz;
     

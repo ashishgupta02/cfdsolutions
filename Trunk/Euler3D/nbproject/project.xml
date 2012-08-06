@@ -23,6 +23,22 @@
                     <name>Debug</name>
                     <type>1</type>
                 </confElem>
+                <confElem>
+                    <name>Release_Cygwin</name>
+                    <type>1</type>
+                </confElem>
+                <confElem>
+                    <name>Debug_Cygwin</name>
+                    <type>1</type>
+                </confElem>
+                <confElem>
+                    <name>Release_Intel</name>
+                    <type>1</type>
+                </confElem>
+                <confElem>
+                    <name>Debug_Intel</name>
+                    <type>1</type>
+                </confElem>
             </confList>
         </data>
     </configuration>

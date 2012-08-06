@@ -27,7 +27,7 @@ void Compute_SecondOrderReconstructQ(int node_L, int node_R, double *Q_L, double
     frac = 0.0;
     if (LimiterOrder == 2)
         frac = 0.5;
-
+    
     // Check if Limiting is applied
     if (Limiter > 0) {
         // Left

@@ -17,10 +17,12 @@
 #include "Vector3D.h"
 #include "MC.h"
 #include "Commons.h"
+#include "Material.h"
 #include "Solver.h"
+#include "Residual_Smoothing.h"
 
 // Static Variable for Speed Up
-static int Roe_DB               = 0;
+static int     Roe_DB           = 0;
 static double *Roe_fluxA        = NULL;
 static double *Roe_flux_L       = NULL;
 static double *Roe_flux_R       = NULL;
@@ -106,6 +108,7 @@ void Roe_Finalize(void) {
     free(Roe_Pinv);
     free(Roe_T);
     free(Roe_Tinv);
+    Roe_DB = 0;
 }
 
 //------------------------------------------------------------------------------
@@ -144,43 +147,24 @@ void Roe_Reset(void) {
 //! Note this function should not be called from Compute_RoeFlux
 //------------------------------------------------------------------------------
 void Compute_RoeAJacobian(double *Q_L, double *Q_R, Vector3D areavec, double **AJacobian_Roe) {
-    double rho_L, u_L, v_L, w_L, rhoet_L, p_L, c_L, ht_L, ubar_L;
-    double rho_R, u_R, v_R, w_R, rhoet_R, p_R, c_R, ht_R, ubar_R;
+    double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
+    double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
     double rho, u, v, w, ht, c, phi, ubar;
-    double sigma, area, nx, ny, nz;
+    double sigma, nx, ny, nz;
     
     // Initialization
     Roe_Reset();
     
     // Get area vector
-    area = areavec.magnitude();
     areavec.normalize();
     nx = areavec.vec[0];
     ny = areavec.vec[1];
     nz = areavec.vec[2];
-
-    // Left Node
-    rho_L   = Q_L[0];
-    u_L     = Q_L[1] / rho_L;
-    v_L     = Q_L[2] / rho_L;
-    w_L     = Q_L[3] / rho_L;
-    rhoet_L = Q_L[4];
-    p_L     = (Gamma - 1.0)*(rhoet_L - 0.5*rho_L*(u_L*u_L + v_L*v_L + w_L*w_L)) + Gauge_Pressure;
-    ht_L    = (rhoet_L + p_L)/rho_L;
-    c_L     = sqrt((Gamma * p_L) / rho_L);
-    ubar_L  = u_L*nx + v_L*ny + w_L*nz;
-
-    // Right Node
-    rho_R   = Q_R[0];
-    u_R     = Q_R[1] / rho_R;
-    v_R     = Q_R[2] / rho_R;
-    w_R     = Q_R[3] / rho_R;
-    rhoet_R = Q_R[4];
-    p_R     = (Gamma - 1.0)*(rhoet_R - 0.5*rho_R*(u_R*u_R + v_R*v_R + w_R*w_R)) + Gauge_Pressure;
-    ht_R    = (rhoet_R + p_R)/rho_R;
-    c_R     = sqrt((Gamma * p_R) / rho_R);
-    ubar_R  = u_R*nx + v_R*ny + w_R*nz;
-
+    
+    // Compute Equation of State
+    Compute_EOS_Variables_Face(Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
+    Compute_EOS_Variables_Face(Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+    
     // ROE AVERAGE VARIABLES
     rho   = sqrt(rho_R * rho_L);
     sigma = rho/(rho_L + rho);
@@ -189,10 +173,26 @@ void Compute_RoeAJacobian(double *Q_L, double *Q_R, Vector3D areavec, double **A
     w     = w_L  + sigma*(w_R  - w_L);
     ht    = ht_L + sigma*(ht_R - ht_L);
     phi   = 0.5*(Gamma - 1.0)*(u*u + v*v + w*w);
-    c     = (Gamma - 1.0)*ht - phi;
-    c     = sqrt(c);
+    c     = 0.0;
+    switch (NonDimensional_Type) {
+        case NONDIMENSIONAL_GENERIC:
+            c = (Gamma - 1.0)*ht - phi;
+            c = sqrt(c);
+            break;
+        case NONDIMENSIONAL_BTW:
+            c = ht/(Ref_Mach*Ref_Mach) - phi;
+            c = sqrt(c);
+            break;
+        case NONDIMENSIONAL_LMROE:
+            c = (Gamma - 1.0)*ht - phi;
+            c = sqrt(c);
+            break;
+        default:
+            error("Compute_RoeAJacobian: Undefined Non-Dimensional Type - %d", NonDimensional_Type);
+            break;
+    }
     ubar  = u*nx + v*ny + w*nz;
-
+    
     // M
     Roe_M[0][0] = 1.0;
     Roe_M[0][1] = 0.0;
@@ -218,12 +218,33 @@ void Compute_RoeAJacobian(double *Q_L, double *Q_R, Vector3D areavec, double **A
     Roe_M[3][3] = rho;
     Roe_M[3][4] = 0.0;
 
-    Roe_M[4][0] = phi/(Gamma - 1.0);
-    Roe_M[4][1] = rho * u;
-    Roe_M[4][2] = rho * v;
-    Roe_M[4][3] = rho * w;
-    Roe_M[4][4] = 1.0/(Gamma - 1.0);
-
+    switch (NonDimensional_Type) {
+        case NONDIMENSIONAL_GENERIC:
+            Roe_M[4][0] = phi/(Gamma - 1.0);
+            Roe_M[4][1] = rho * u;
+            Roe_M[4][2] = rho * v;
+            Roe_M[4][3] = rho * w;
+            Roe_M[4][4] = 1.0/(Gamma - 1.0);
+            break;
+        case NONDIMENSIONAL_BTW:
+            Roe_M[4][0] = phi * Ref_Mach * Ref_Mach;
+            Roe_M[4][1] = (Gamma - 1.0) * rho * u * Ref_Mach * Ref_Mach;
+            Roe_M[4][2] = (Gamma - 1.0) * rho * v * Ref_Mach * Ref_Mach;
+            Roe_M[4][3] = (Gamma - 1.0) * rho * w * Ref_Mach * Ref_Mach;
+            Roe_M[4][4] = Ref_Mach * Ref_Mach;
+            break;
+        case NONDIMENSIONAL_LMROE:
+            Roe_M[4][0] = phi/(Gamma - 1.0);
+            Roe_M[4][1] = rho * u;
+            Roe_M[4][2] = rho * v;
+            Roe_M[4][3] = rho * w;
+            Roe_M[4][4] = 1.0/(Gamma - 1.0);
+            break;
+        default:
+            error("Compute_RoeAJacobian: Undefined Non-Dimensional Type - %d", NonDimensional_Type);
+            break;
+    }
+    
     // Minv
     Roe_Minv[0][0] = 1.0;
     Roe_Minv[0][1] = 0.0;
@@ -249,11 +270,32 @@ void Compute_RoeAJacobian(double *Q_L, double *Q_R, Vector3D areavec, double **A
     Roe_Minv[3][3] = 1.0/rho;
     Roe_Minv[3][4] = 0.0;
 
-    Roe_Minv[4][0] = phi;
-    Roe_Minv[4][1] = -u * (Gamma - 1.0);
-    Roe_Minv[4][2] = -v * (Gamma - 1.0);
-    Roe_Minv[4][3] = -w * (Gamma - 1.0);
-    Roe_Minv[4][4] = (Gamma - 1.0);
+    switch (NonDimensional_Type) {
+        case NONDIMENSIONAL_GENERIC:
+            Roe_Minv[4][0] = phi;
+            Roe_Minv[4][1] = -u * (Gamma - 1.0);
+            Roe_Minv[4][2] = -v * (Gamma - 1.0);
+            Roe_Minv[4][3] = -w * (Gamma - 1.0);
+            Roe_Minv[4][4] = (Gamma - 1.0);
+            break;
+        case NONDIMENSIONAL_BTW:
+            Roe_Minv[4][0] = phi;
+            Roe_Minv[4][1] = -u * (Gamma - 1.0);
+            Roe_Minv[4][2] = -v * (Gamma - 1.0);
+            Roe_Minv[4][3] = -w * (Gamma - 1.0);
+            Roe_Minv[4][4] = 1.0/(Ref_Mach * Ref_Mach);
+            break;
+        case NONDIMENSIONAL_LMROE:
+            Roe_Minv[4][0] = phi;
+            Roe_Minv[4][1] = -u * (Gamma - 1.0);
+            Roe_Minv[4][2] = -v * (Gamma - 1.0);
+            Roe_Minv[4][3] = -w * (Gamma - 1.0);
+            Roe_Minv[4][4] = (Gamma - 1.0);
+            break;
+        default:
+            error("Compute_RoeAJacobian: Undefined Non-Dimensional Type - %d", NonDimensional_Type);
+            break;
+    }
 
     // P
     Roe_P[0][0] = nx;
@@ -334,7 +376,7 @@ void Compute_RoeAJacobian(double *Q_L, double *Q_R, Vector3D areavec, double **A
         Roe_Eigen[3][3] = fabs(ubar + c);
         Roe_Eigen[4][4] = fabs(ubar - c);
     }
-
+    
     // Calculate Tinv = Pinv*Minv
     MC_Matrix_Mul_Matrix(5, 5, Roe_Pinv, Roe_Minv, Roe_Tinv);
 
@@ -346,24 +388,26 @@ void Compute_RoeAJacobian(double *Q_L, double *Q_R, Vector3D areavec, double **A
     // END: Computing A = M*P*|Lambda|*Pinv*Minv
 }
 
-
 //------------------------------------------------------------------------------
-//! Compute Roe Flux
+//! Compute Roe Flux Optimized
 //------------------------------------------------------------------------------
-void Compute_RoeFlux(int node_L, int node_R, Vector3D areavec, double *Flux_Roe) {
-    int i, j, k, maxcount;
-    double rho_L, u_L, v_L, w_L, rhoet_L, p_L, c_L, ht_L, ubar_L;
-    double rho_R, u_R, v_R, w_R, rhoet_R, p_R, c_R, ht_R, ubar_R;
-    double rho, u, v, w, ht, c, phi, ubar, ubar1, ubar2;
-    double Mach, nmax, fix, fixUn, sigma;
-    Vector3D Vn1, Vn2;
+void Compute_RoeFlux_Optimized(int node_L, int node_R, Vector3D areavec, double *Flux_Roe_Conv, double *Flux_Roe_Diss, int AddTime) {
+    int i;
+    double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
+    double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
+    double rho, u, v, w, ht, c, phi, ubar, q2, cinv, gm1oc;
+    double l1, l2, l3, l4, l5;
+    double r1, r2, r3, r4, r5;
+    double sigma, alpha, maxlambda;
     
     double area;
     double nx, ny, nz;
     
     // Initialization
-    for (i = 0; i < NEQUATIONS; i++)
-        Flux_Roe[i] = 0.0;
+    for (i = 0; i < NEQUATIONS; i++) {
+        Flux_Roe_Conv[i] = 0.0;
+        Flux_Roe_Diss[i] = 0.0;
+    }
     Roe_Reset();
     
     // Only for Physical Nodes
@@ -378,7 +422,7 @@ void Compute_RoeFlux(int node_L, int node_R, Vector3D areavec, double *Flux_Roe)
         // Internal Nodes
         if (node_R < nNode) {
             // Make Solution Second Order
-            if (Order == 2) {
+            if (Order == SOLVER_ORDER_SECOND) {
                 Compute_SecondOrderReconstructQ(node_L, node_R, Roe_Q_L, Roe_Q_R);
             } else {
                 Roe_Q_L[0] = Q1[node_L];
@@ -410,34 +454,287 @@ void Compute_RoeFlux(int node_L, int node_R, Vector3D areavec, double *Flux_Roe)
             Roe_Q_R[4] = Q5[node_R];
         }
         
-        // Left Node
-        rho_L   = Roe_Q_L[0];
-        u_L     = Roe_Q_L[1] / rho_L;
-        v_L     = Roe_Q_L[2] / rho_L;
-        w_L     = Roe_Q_L[3] / rho_L;
-        rhoet_L = Roe_Q_L[4];
-        p_L     = (Gamma - 1.0)*(rhoet_L - 0.5*rho_L*(u_L*u_L + v_L*v_L + w_L*w_L)) + Gauge_Pressure;
-        ht_L    = (rhoet_L + p_L)/rho_L;
-        c_L     = sqrt((Gamma * p_L) / rho_L);
-        ubar_L  = u_L*nx + v_L*ny + w_L*nz;
+        // Compute Equation of State
+        Compute_EOS_Variables_Face(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
+        Compute_EOS_Variables_Face(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+        
+        // ROE AVERAGE VARIABLES
+        rho   = sqrt(rho_R * rho_L);
+        sigma = rho/(rho_L + rho);
+        u     = u_L  + sigma*(u_R  - u_L);
+        v     = v_L  + sigma*(v_R  - v_L);
+        w     = w_L  + sigma*(w_R  - w_L);
+        ht    = ht_L + sigma*(ht_R - ht_L);
+        q2    = u*u + v*v + w*w;
+        phi   = 0.5*(Gamma - 1.0)*q2;
+        c     = (Gamma - 1.0)*ht - phi;
+        c     = sqrt(c);
+        ubar  = u*nx + v*ny + w*nz;
+        cinv  = 1.0/c;
+        gm1oc = (Gamma - 1.0)*cinv;
+        
+        // Add to Time only if Required
+        if (AddTime == TRUE) {
+            // Min and Max EigenValue Value
+            MinEigenLamda1 = MIN(MinEigenLamda1, fabs(ubar));
+            MaxEigenLamda1 = MAX(MaxEigenLamda1, fabs(ubar));
+            MinEigenLamda4 = MIN(MinEigenLamda4, fabs(ubar + c));
+            MaxEigenLamda4 = MAX(MaxEigenLamda4, fabs(ubar + c));
+            MinEigenLamda5 = MIN(MinEigenLamda5, fabs(ubar - c));
+            MaxEigenLamda5 = MAX(MaxEigenLamda5, fabs(ubar - c));
 
+            // Time Computation : Add Max Eigenvalue
+            maxlambda = MAX(fabs(ubar), MAX(fabs(ubar + c), fabs(ubar - c)));
+            DeltaT[node_L] += area*maxlambda;
+            if (node_R < nNode)
+                DeltaT[node_R] += area*maxlambda;
+        }
+        
+        // Computations for Variable Relaxation Residual Smoothing
+        if (ResidualSmoothType == RESIDUAL_SMOOTH_IMPLICIT) {
+            maxlambda = MAX(Roe_Eigen[0][0], MAX(Roe_Eigen[3][3], Roe_Eigen[4][4]));
+            for (i = crs_IA_Node2Node[node_L]; i < crs_IA_Node2Node[node_L + 1]; i++) {
+                // Get the Node ID and Match with node_R
+                if (crs_JA_Node2Node[i] == node_R) {
+                    RM_MaxEigenValue[i] = maxlambda*area;
+                    break;
+                }
+            }
+            RM_SumMaxEigenValue[node_L] += maxlambda*area;
+            // Only Physical Nodes
+            if (node_R < nNode) {
+                for (i = crs_IA_Node2Node[node_R]; i < crs_IA_Node2Node[node_R + 1]; i++) {
+                    // Get the Node ID and Match with node_L
+                    if (crs_JA_Node2Node[i] == node_L) {
+                        RM_MaxEigenValue[i] = maxlambda*area;
+                        break;
+                    }
+                }
+                RM_SumMaxEigenValue[node_R] += maxlambda*area;
+            }
+        }
+        
+        // Wave Traveling From Left to Right
+        if (ubar > 0.0) {
+            // Compute Convective Flux: flux_L 
+            Flux_Roe_Conv[0] = rho_L*ubar_L;
+            Flux_Roe_Conv[1] =   u_L*Flux_Roe_Conv[0] + p_L*nx;
+            Flux_Roe_Conv[2] =   v_L*Flux_Roe_Conv[0] + p_L*ny;
+            Flux_Roe_Conv[3] =   w_L*Flux_Roe_Conv[0] + p_L*nz;
+            Flux_Roe_Conv[4] =  ht_L*Flux_Roe_Conv[0];
+            
+            // Compute the Dissipation Flux
+            // Subsonic
+            if (ubar < c) {
+                // Eigenvalues 1, 2, 3, 4 are positive, 5 is negative
+                // So, compute form the left with the one eigenvector that comes into play
+                
+                // Compute dQ
+                // Conservative Variable Formulation
+                if (Variable_Type == VARIABLE_CONSERVATIVE) {
+                    Roe_dQ[0] = Roe_Q_R[0] - Roe_Q_L[0];
+                    Roe_dQ[1] = Roe_Q_R[1] - Roe_Q_L[1];
+                    Roe_dQ[2] = Roe_Q_R[2] - Roe_Q_L[2];
+                    Roe_dQ[3] = Roe_Q_R[3] - Roe_Q_L[3];
+                    Roe_dQ[4] = Roe_Q_R[4] - Roe_Q_L[4];
+                }
+                // Primitive Variable Formulation
+                if ((Variable_Type == VARIABLE_PRIMITIVE_PUT) || (Variable_Type == VARIABLE_PRIMITIVE_RUP)) {
+                    Roe_dQ[0] = rho_R      - rho_L;
+                    Roe_dQ[1] = rho_R*u_R  - rho_L*u_L;
+                    Roe_dQ[2] = rho_R*v_R  - rho_L*v_L;
+                    Roe_dQ[3] = rho_R*w_R  - rho_L*w_L;
+                    Roe_dQ[4] = rho_R*et_R - rho_L*et_L;
+                }
+                
+                // Eigenvalues
+                // Apply Entropy Fix
+                if (EntropyFix != 0) {
+                    Roe_EntropyFix(ubar_L, c_L, ubar_R, c_R, ubar, c, Roe_Eigen);
+                } else {
+                    Roe_Eigen[0][0] = fabs(ubar);
+                    Roe_Eigen[1][1] = Roe_Eigen[0][0];
+                    Roe_Eigen[2][2] = Roe_Eigen[0][0];
+                    Roe_Eigen[3][3] = fabs(ubar + c);
+                    Roe_Eigen[4][4] = fabs(ubar - c);
+                }
+                Roe_Eigen[4][4] = ISIGN(ubar - c)*Roe_Eigen[4][4];
+        
+                l1 = ubar + 0.5*gm1oc*q2;
+                l2 = -nx - gm1oc*u;
+                l3 = -ny - gm1oc*v;
+                l4 = -nz - gm1oc*w;
+                l5 = gm1oc;
+                
+                // multiplicative factor: 0.5/rho (left eigenvectors)
+                //                        rho     (right eigenvectors)
+                //                        eig5    (eigenvalue scaling)
+                alpha = 0.5*(Roe_dQ[0]*l1 + Roe_dQ[1]*l2 + Roe_dQ[2]*l3 + Roe_dQ[3]*l4 + Roe_dQ[4]*l5)*Roe_Eigen[4][4];
+                
+                r1 = cinv;
+                r2 = u*cinv - nx;
+                r3 = v*cinv - ny;
+                r4 = w*cinv - nz;
+                r5 = 0.5*q2*cinv - ubar + 1.0/gm1oc;
+
+                Flux_Roe_Diss[0] = alpha*r1;
+                Flux_Roe_Diss[1] = alpha*r2;
+                Flux_Roe_Diss[2] = alpha*r3;
+                Flux_Roe_Diss[3] = alpha*r4;
+                Flux_Roe_Diss[4] = alpha*r5;
+            }
+        } else { // Wave Traveling From Right to Left
+            // Compute Convective Flux: flux_R
+            Flux_Roe_Conv[0] = rho_R*ubar_R;
+            Flux_Roe_Conv[1] =   u_R*Flux_Roe_Conv[0] + p_R*nx;
+            Flux_Roe_Conv[2] =   v_R*Flux_Roe_Conv[0] + p_R*ny;
+            Flux_Roe_Conv[3] =   w_R*Flux_Roe_Conv[0] + p_R*nz;
+            Flux_Roe_Conv[4] =  ht_R*Flux_Roe_Conv[0];
+            
+            // Compute the Dissipation Flux
+            // Subsonic
+            if (ubar > -c) {
+                // Eigenvalues 4 is positive, 1, 2, 3, 5 are negative
+                // So, compute form the right with the one eigenvector that comes into play
+                
+                // Compute dQ
+                // Conservative Variable Formulation
+                if (Variable_Type == VARIABLE_CONSERVATIVE) {
+                    Roe_dQ[0] = Roe_Q_R[0] - Roe_Q_L[0];
+                    Roe_dQ[1] = Roe_Q_R[1] - Roe_Q_L[1];
+                    Roe_dQ[2] = Roe_Q_R[2] - Roe_Q_L[2];
+                    Roe_dQ[3] = Roe_Q_R[3] - Roe_Q_L[3];
+                    Roe_dQ[4] = Roe_Q_R[4] - Roe_Q_L[4];
+                }
+                // Primitive Variable Formulation
+                if ((Variable_Type == VARIABLE_PRIMITIVE_PUT) || (Variable_Type == VARIABLE_PRIMITIVE_RUP)) {
+                    Roe_dQ[0] = rho_R      - rho_L;
+                    Roe_dQ[1] = rho_R*u_R  - rho_L*u_L;
+                    Roe_dQ[2] = rho_R*v_R  - rho_L*v_L;
+                    Roe_dQ[3] = rho_R*w_R  - rho_L*w_L;
+                    Roe_dQ[4] = rho_R*et_R - rho_L*et_L;
+                }
+                
+                // Eigenvalues
+                // Apply Entropy Fix
+                if (EntropyFix != 0) {
+                    Roe_EntropyFix(ubar_L, c_L, ubar_R, c_R, ubar, c, Roe_Eigen);
+                } else {
+                    Roe_Eigen[0][0] = fabs(ubar);
+                    Roe_Eigen[1][1] = Roe_Eigen[0][0];
+                    Roe_Eigen[2][2] = Roe_Eigen[0][0];
+                    Roe_Eigen[3][3] = fabs(ubar + c);
+                    Roe_Eigen[4][4] = fabs(ubar - c);
+                }
+                Roe_Eigen[3][3] = ISIGN(ubar + c)*Roe_Eigen[3][3];
+                
+                l1 = -ubar + 0.5*gm1oc*q2;
+                l2 = nx - gm1oc*u;
+                l3 = ny - gm1oc*v;
+                l4 = nz - gm1oc*w;
+                l5 = gm1oc;
+                
+                // multiplicative factor: 0.5/rho (left eigenvectors)
+                //                        rho     (right eigenvectors)
+                //                        eig4    (eigenvalue scaling)
+                alpha = 0.5*(Roe_dQ[0]*l1 + Roe_dQ[1]*l2 + Roe_dQ[2]*l3 + Roe_dQ[3]*l4 + Roe_dQ[4]*l5)*Roe_Eigen[3][3];
+                
+                r1 = cinv;
+                r2 = u*cinv + nx;
+                r3 = v*cinv + ny;
+                r4 = w*cinv + nz;
+                r5 = 0.5*q2*cinv + ubar + 1.0/gm1oc;
+
+                Flux_Roe_Diss[0] = - alpha*r1;
+                Flux_Roe_Diss[1] = - alpha*r2;
+                Flux_Roe_Diss[2] = - alpha*r3;
+                Flux_Roe_Diss[3] = - alpha*r4;
+                Flux_Roe_Diss[4] = - alpha*r5;
+            }
+        }
+        
+        // Multiply the Roe Flux with Area
+        for (i = 0; i < NEQUATIONS; i++) {
+            Flux_Roe_Conv[i] *= area;
+            Flux_Roe_Diss[i] *= area;
+        }
+    } else
+        error("Compute_RoeFlux_Optimized: Invalid Node - %d", node_L);
+}
+
+//------------------------------------------------------------------------------
+//! Compute Roe Flux
+//------------------------------------------------------------------------------
+void Compute_RoeFlux(int node_L, int node_R, Vector3D areavec, double *Flux_Roe_Conv, double *Flux_Roe_Diss, int AddTime) {
+    int i, j, k, maxcount;
+    double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
+    double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
+    double rho, u, v, w, ht, c, phi, ubar, ubar1, ubar2;
+    double Mach, nmax, fix, fixUn, sigma, maxlambda;
+    Vector3D Vn1, Vn2;
+    
+    double area;
+    double nx, ny, nz;
+    
+    // Initialization
+    for (i = 0; i < NEQUATIONS; i++)
+        Flux_Roe_Conv[i] = Flux_Roe_Diss[i] = 0.0;
+    Roe_Reset();
+    
+    // Only for Physical Nodes
+    if (node_L < nNode) {
+        // Get area vector
+        area = areavec.magnitude();
+        areavec.normalize();
+        nx = areavec.vec[0];
+        ny = areavec.vec[1];
+        nz = areavec.vec[2];
+        
+        // Internal Nodes
+        if (node_R < nNode) {
+            // Make Solution Second Order
+            if (Order == SOLVER_ORDER_SECOND) {
+                Compute_SecondOrderReconstructQ(node_L, node_R, Roe_Q_L, Roe_Q_R);
+            } else {
+                Roe_Q_L[0] = Q1[node_L];
+                Roe_Q_L[1] = Q2[node_L];
+                Roe_Q_L[2] = Q3[node_L];
+                Roe_Q_L[3] = Q4[node_L];
+                Roe_Q_L[4] = Q5[node_L];
+                Roe_Q_R[0] = Q1[node_R];
+                Roe_Q_R[1] = Q2[node_R];
+                Roe_Q_R[2] = Q3[node_R];
+                Roe_Q_R[3] = Q4[node_R];
+                Roe_Q_R[4] = Q5[node_R];
+            }
+        } else { // Boundary and Ghost Node
+            // Make Solution Second Order
+            // Note: Boundary Residual cannot be made second order
+            // because node_R is ghost node with no physical coordinates value
+            // Hence boundary residual always remains first order
+            // Ghost Edge always remains first order
+            Roe_Q_L[0] = Q1[node_L];
+            Roe_Q_L[1] = Q2[node_L];
+            Roe_Q_L[2] = Q3[node_L];
+            Roe_Q_L[3] = Q4[node_L];
+            Roe_Q_L[4] = Q5[node_L];
+            Roe_Q_R[0] = Q1[node_R];
+            Roe_Q_R[1] = Q2[node_R];
+            Roe_Q_R[2] = Q3[node_R];
+            Roe_Q_R[3] = Q4[node_R];
+            Roe_Q_R[4] = Q5[node_R];
+        }
+        
+        // Compute Equation of State
+        Compute_EOS_Variables_Face(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
+        Compute_EOS_Variables_Face(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+        
         // Compute flux_L
         Roe_flux_L[0] = rho_L*ubar_L;
         Roe_flux_L[1] =   u_L*Roe_flux_L[0] + p_L*nx;
         Roe_flux_L[2] =   v_L*Roe_flux_L[0] + p_L*ny;
         Roe_flux_L[3] =   w_L*Roe_flux_L[0] + p_L*nz;
         Roe_flux_L[4] =  ht_L*Roe_flux_L[0];
-        
-        // Right Node
-        rho_R   = Roe_Q_R[0];
-        u_R     = Roe_Q_R[1] / rho_R;
-        v_R     = Roe_Q_R[2] / rho_R;
-        w_R     = Roe_Q_R[3] / rho_R;
-        rhoet_R = Roe_Q_R[4];
-        p_R     = (Gamma - 1.0)*(rhoet_R - 0.5*rho_R*(u_R*u_R + v_R*v_R + w_R*w_R)) + Gauge_Pressure;
-        ht_R    = (rhoet_R + p_R)/rho_R;
-        c_R     = sqrt((Gamma * p_R) / rho_R);
-        ubar_R  = u_R*nx + v_R*ny + w_R*nz;
         
         // Compute flux_R
         Roe_flux_R[0] = rho_R*ubar_R;
@@ -454,12 +751,28 @@ void Compute_RoeFlux(int node_L, int node_R, Vector3D areavec, double *Flux_Roe)
         w     = w_L  + sigma*(w_R  - w_L);
         ht    = ht_L + sigma*(ht_R - ht_L);
         phi   = 0.5*(Gamma - 1.0)*(u*u + v*v + w*w);
-        c     = (Gamma - 1.0)*ht - phi;
-        c     = sqrt(c);
+        c     = 0.0;
+        switch (NonDimensional_Type) {
+            case NONDIMENSIONAL_GENERIC:
+                c = (Gamma - 1.0)*ht - phi;
+                c = sqrt(c);
+                break;
+            case NONDIMENSIONAL_BTW:
+                c = ht/(Ref_Mach*Ref_Mach) - phi;
+                c = sqrt(c);
+                break;
+            case NONDIMENSIONAL_LMROE:
+                c = (Gamma - 1.0)*ht - phi;
+                c = sqrt(c);
+                break;
+            default:
+                error("Compute_RoeFlux: Undefined Non-Dimensional Type - %d", NonDimensional_Type);
+                break;
+        }
         ubar  = u*nx + v*ny + w*nz;
 
         // Do if Low Mach Number Fix is Requested
-        if (LMRoeFix == 1) {
+        if (PrecondMethod == SOLVER_PRECOND_ROE_LMFIX) {
             // Compute the point on the plane using normal
             // Get the max of nx, ny, nz
             nmax = fabs(nx);
@@ -503,7 +816,7 @@ void Compute_RoeFlux(int node_L, int node_R, Vector3D areavec, double *Flux_Roe)
             fix = MIN(Mach, 1.0);
         } else // ROE
             fix = 1.0;
-        
+              
         // M
         Roe_M[0][0] = 1.0;
         Roe_M[0][1] = 0.0;
@@ -529,11 +842,32 @@ void Compute_RoeFlux(int node_L, int node_R, Vector3D areavec, double *Flux_Roe)
         Roe_M[3][3] = rho;
         Roe_M[3][4] = 0.0;
 
-        Roe_M[4][0] = phi/(Gamma - 1.0);
-        Roe_M[4][1] = rho * u;
-        Roe_M[4][2] = rho * v;
-        Roe_M[4][3] = rho * w;
-        Roe_M[4][4] = 1.0/(Gamma - 1.0);
+        switch (NonDimensional_Type) {
+            case NONDIMENSIONAL_GENERIC:
+                Roe_M[4][0] = phi/(Gamma - 1.0);
+                Roe_M[4][1] = rho * u;
+                Roe_M[4][2] = rho * v;
+                Roe_M[4][3] = rho * w;
+                Roe_M[4][4] = 1.0/(Gamma - 1.0);
+                break;
+            case NONDIMENSIONAL_BTW:
+                Roe_M[4][0] = phi * Ref_Mach * Ref_Mach;
+                Roe_M[4][1] = (Gamma - 1.0) * rho * u * Ref_Mach * Ref_Mach;
+                Roe_M[4][2] = (Gamma - 1.0) * rho * v * Ref_Mach * Ref_Mach;
+                Roe_M[4][3] = (Gamma - 1.0) * rho * w * Ref_Mach * Ref_Mach;
+                Roe_M[4][4] = Ref_Mach * Ref_Mach;
+                break;
+            case NONDIMENSIONAL_LMROE:
+                Roe_M[4][0] = phi/(Gamma - 1.0);
+                Roe_M[4][1] = rho * u;
+                Roe_M[4][2] = rho * v;
+                Roe_M[4][3] = rho * w;
+                Roe_M[4][4] = 1.0/(Gamma - 1.0);
+                break;
+            default:
+                error("Compute_RoeFlux: Undefined Non-Dimensional Type - %d", NonDimensional_Type);
+                break;
+        }
 
         // Minv
         Roe_Minv[0][0] = 1.0;
@@ -560,12 +894,33 @@ void Compute_RoeFlux(int node_L, int node_R, Vector3D areavec, double *Flux_Roe)
         Roe_Minv[3][3] = 1.0/rho;
         Roe_Minv[3][4] = 0.0;
 
-        Roe_Minv[4][0] = phi;
-        Roe_Minv[4][1] = -u * (Gamma - 1.0);
-        Roe_Minv[4][2] = -v * (Gamma - 1.0);
-        Roe_Minv[4][3] = -w * (Gamma - 1.0);
-        Roe_Minv[4][4] = (Gamma - 1.0);
-
+        switch (NonDimensional_Type) {
+            case NONDIMENSIONAL_GENERIC:
+                Roe_Minv[4][0] = phi;
+                Roe_Minv[4][1] = -u * (Gamma - 1.0);
+                Roe_Minv[4][2] = -v * (Gamma - 1.0);
+                Roe_Minv[4][3] = -w * (Gamma - 1.0);
+                Roe_Minv[4][4] = (Gamma - 1.0);
+                break;
+            case NONDIMENSIONAL_BTW:
+                Roe_Minv[4][0] = phi;
+                Roe_Minv[4][1] = -u * (Gamma - 1.0);
+                Roe_Minv[4][2] = -v * (Gamma - 1.0);
+                Roe_Minv[4][3] = -w * (Gamma - 1.0);
+                Roe_Minv[4][4] = 1.0/(Ref_Mach * Ref_Mach);
+                break;
+            case NONDIMENSIONAL_LMROE:
+                Roe_Minv[4][0] = phi;
+                Roe_Minv[4][1] = -u * (Gamma - 1.0);
+                Roe_Minv[4][2] = -v * (Gamma - 1.0);
+                Roe_Minv[4][3] = -w * (Gamma - 1.0);
+                Roe_Minv[4][4] = (Gamma - 1.0);
+                break;
+            default:
+                error("Compute_RoeFlux: Undefined Non-Dimensional Type - %d", NonDimensional_Type);
+                break;
+        }
+        
         // P
         Roe_P[0][0] = nx;
         Roe_P[0][1] = ny;
@@ -653,8 +1008,49 @@ void Compute_RoeFlux(int node_L, int node_R, Vector3D areavec, double *Flux_Roe)
             Roe_Eigen[4][4] = fabs(ubar - c);
         }
         
+        // Add to Time only if Required
+        if (AddTime == TRUE) {
+            // Min and Max EigenValue Value
+            MinEigenLamda1 = MIN(MinEigenLamda1, Roe_Eigen[0][0]);
+            MaxEigenLamda1 = MAX(MaxEigenLamda1, Roe_Eigen[0][0]);
+            MinEigenLamda4 = MIN(MinEigenLamda4, Roe_Eigen[3][3]);
+            MaxEigenLamda4 = MAX(MaxEigenLamda4, Roe_Eigen[3][3]);
+            MinEigenLamda5 = MIN(MinEigenLamda5, Roe_Eigen[4][4]);
+            MaxEigenLamda5 = MAX(MaxEigenLamda5, Roe_Eigen[4][4]);
+
+            // Time Computation : Add Max Eigenvalue
+            maxlambda = MAX(Roe_Eigen[0][0], MAX(Roe_Eigen[3][3], Roe_Eigen[4][4]));
+            DeltaT[node_L] += area*maxlambda;
+            if (node_R < nNode)
+                DeltaT[node_R] += area*maxlambda;
+        }
+        
+        // Computations for Variable Relaxation Residual Smoothing
+        if (ResidualSmoothType == RESIDUAL_SMOOTH_IMPLICIT) {
+            maxlambda = MAX(Roe_Eigen[0][0], MAX(Roe_Eigen[3][3], Roe_Eigen[4][4]));
+            for (i = crs_IA_Node2Node[node_L]; i < crs_IA_Node2Node[node_L + 1]; i++) {
+                // Get the Node ID and Match with node_R
+                if (crs_JA_Node2Node[i] == node_R) {
+                    RM_MaxEigenValue[i] = maxlambda*area;
+                    break;
+                }
+            }
+            RM_SumMaxEigenValue[node_L] += maxlambda*area;
+            // Only Physical Nodes
+            if (node_R < nNode) {
+                for (i = crs_IA_Node2Node[node_R]; i < crs_IA_Node2Node[node_R + 1]; i++) {
+                    // Get the Node ID and Match with node_L
+                    if (crs_JA_Node2Node[i] == node_L) {
+                        RM_MaxEigenValue[i] = maxlambda*area;
+                        break;
+                    }
+                }
+                RM_SumMaxEigenValue[node_R] += maxlambda*area;
+            }
+        }
+        
         // Apply Low Mach Fix if Requested
-        if (LMRoeFix == 1) {
+        if (PrecondMethod == SOLVER_PRECOND_ROE_LMFIX) {
             // Temporary = Tinv = EigenMatrix*Pinv
             MC_Matrix_Mul_Matrix(5, 5, Roe_Eigen, Roe_Pinv, Roe_Tinv);
 
@@ -706,11 +1102,22 @@ void Compute_RoeFlux(int node_L, int node_R, Vector3D areavec, double *Flux_Roe)
 
             // Set up matrix vector multiplication
             // Compute dQ
-            Roe_dQ[0] = Roe_Q_R[0] - Roe_Q_L[0];
-            Roe_dQ[1] = Roe_Q_R[1] - Roe_Q_L[1];
-            Roe_dQ[2] = Roe_Q_R[2] - Roe_Q_L[2];
-            Roe_dQ[3] = Roe_Q_R[3] - Roe_Q_L[3];
-            Roe_dQ[4] = Roe_Q_R[4] - Roe_Q_L[4];
+            // Conservative Variable Formulation
+            if (Variable_Type == VARIABLE_CONSERVATIVE) {
+                Roe_dQ[0] = Roe_Q_R[0] - Roe_Q_L[0];
+                Roe_dQ[1] = Roe_Q_R[1] - Roe_Q_L[1];
+                Roe_dQ[2] = Roe_Q_R[2] - Roe_Q_L[2];
+                Roe_dQ[3] = Roe_Q_R[3] - Roe_Q_L[3];
+                Roe_dQ[4] = Roe_Q_R[4] - Roe_Q_L[4];
+            }
+            // Primitive Variable Formulation
+            if ((Variable_Type == VARIABLE_PRIMITIVE_PUT) || (Variable_Type == VARIABLE_PRIMITIVE_RUP)) {
+                Roe_dQ[0] = rho_R      - rho_L;
+                Roe_dQ[1] = rho_R*u_R  - rho_L*u_L;
+                Roe_dQ[2] = rho_R*v_R  - rho_L*v_L;
+                Roe_dQ[3] = rho_R*w_R  - rho_L*w_L;
+                Roe_dQ[4] = rho_R*et_R - rho_L*et_L;
+            }
 
             // Compute |A|*dQ
             MC_Matrix_Mul_Vector(5, 5, Roe_A, Roe_dQ, Roe_fluxA);
@@ -718,11 +1125,10 @@ void Compute_RoeFlux(int node_L, int node_R, Vector3D areavec, double *Flux_Roe)
         }
         
         // Compute the Roe Flux
-        Flux_Roe[0] = 0.5 * (Roe_flux_L[0] + Roe_flux_R[0] - Roe_fluxA[0]) * area;
-        Flux_Roe[1] = 0.5 * (Roe_flux_L[1] + Roe_flux_R[1] - Roe_fluxA[1]) * area;
-        Flux_Roe[2] = 0.5 * (Roe_flux_L[2] + Roe_flux_R[2] - Roe_fluxA[2]) * area;
-        Flux_Roe[3] = 0.5 * (Roe_flux_L[3] + Roe_flux_R[3] - Roe_fluxA[3]) * area;
-        Flux_Roe[4] = 0.5 * (Roe_flux_L[4] + Roe_flux_R[4] - Roe_fluxA[4]) * area;
+        for (i = 0; i < NEQUATIONS; i++) {
+            Flux_Roe_Conv[i] = 0.5*(Roe_flux_L[i] + Roe_flux_R[i])*area;
+            Flux_Roe_Diss[i] = -0.5*Roe_fluxA[i]*area;
+        }
     } else
         error("Compute_RoeFlux: Invalid Node - %d", node_L);
 }
@@ -730,22 +1136,20 @@ void Compute_RoeFlux(int node_L, int node_R, Vector3D areavec, double *Flux_Roe)
 //------------------------------------------------------------------------------
 //! Compute Roe Flux with Weiss and Smith Pre-Conditioner 
 //------------------------------------------------------------------------------
-void Compute_RoeFlux_WeissSmith_Old(int node_L, int node_R, Vector3D areavec, double *Flux_Roe) {
+void Compute_RoeFlux_WeissSmith_Old(int node_L, int node_R, Vector3D areavec, double *Flux_Roe_Conv, double *Flux_Roe_Diss, int AddTime) {
     int i;
-    double rho_L, u_L, v_L, w_L, rhoet_L, p_L, c_L, ht_L, ubar_L;
-    double rho_R, u_R, v_R, w_R, rhoet_R, p_R, c_R, ht_R, ubar_R;
+    double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
+    double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
     double rho, u, v, w, ht, c, phi, ubar;
-    double sigma;
+    double sigma, area, nx, ny, nz;
     
-    double area;
-    double nx, ny, nz;
     double eps, alpha, beta, pubar, pc, Ur, Mstar, Cstar, deltaUbar;
     double deltaU, deltaP, mach;
     double dtmp;
     
     // Initialization
     for (i = 0; i < NEQUATIONS; i++)
-        Flux_Roe[i] = 0.0;
+        Flux_Roe_Conv[i] = Flux_Roe_Diss[i] = 0.0;
     Roe_Reset();
     
     // Only for Physical Nodes
@@ -760,7 +1164,7 @@ void Compute_RoeFlux_WeissSmith_Old(int node_L, int node_R, Vector3D areavec, do
         // Internal Nodes
         if (node_R < nNode) {
             // Make Solution Second Order
-            if (Order == 2) {
+            if (Order == SOLVER_ORDER_SECOND) {
                 Compute_SecondOrderReconstructQ(node_L, node_R, Roe_Q_L, Roe_Q_R);
             } else {
                 Roe_Q_L[0] = Q1[node_L];
@@ -792,34 +1196,16 @@ void Compute_RoeFlux_WeissSmith_Old(int node_L, int node_R, Vector3D areavec, do
             Roe_Q_R[4] = Q5[node_R];
         }
         
-        // Left Node
-        rho_L   = Roe_Q_L[0];
-        u_L     = Roe_Q_L[1] / rho_L;
-        v_L     = Roe_Q_L[2] / rho_L;
-        w_L     = Roe_Q_L[3] / rho_L;
-        rhoet_L = Roe_Q_L[4];
-        p_L     = (Gamma - 1.0)*(rhoet_L - 0.5*rho_L*(u_L*u_L + v_L*v_L + w_L*w_L)) + Gauge_Pressure;
-        ht_L    = (rhoet_L + p_L)/rho_L;
-        c_L     = sqrt((Gamma * p_L) / rho_L);
-        ubar_L  = u_L*nx + v_L*ny + w_L*nz;
-
+        // Compute Equation of State
+        Compute_EOS_Variables_Face(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
+        Compute_EOS_Variables_Face(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+        
         // Compute flux_L
         Roe_flux_L[0] = rho_L*ubar_L;
         Roe_flux_L[1] =   u_L*Roe_flux_L[0] + p_L*nx;
         Roe_flux_L[2] =   v_L*Roe_flux_L[0] + p_L*ny;
         Roe_flux_L[3] =   w_L*Roe_flux_L[0] + p_L*nz;
         Roe_flux_L[4] =  ht_L*Roe_flux_L[0];
-        
-        // Right Node
-        rho_R   = Roe_Q_R[0];
-        u_R     = Roe_Q_R[1] / rho_R;
-        v_R     = Roe_Q_R[2] / rho_R;
-        w_R     = Roe_Q_R[3] / rho_R;
-        rhoet_R = Roe_Q_R[4];
-        p_R     = (Gamma - 1.0)*(rhoet_R - 0.5*rho_R*(u_R*u_R + v_R*v_R + w_R*w_R)) + Gauge_Pressure;
-        ht_R    = (rhoet_R + p_R)/rho_R;
-        c_R     = sqrt((Gamma * p_R) / rho_R);
-        ubar_R  = u_R*nx + v_R*ny + w_R*nz;
         
         // Compute flux_R
         Roe_flux_R[0] = rho_R*ubar_R;
@@ -876,8 +1262,19 @@ void Compute_RoeFlux_WeissSmith_Old(int node_L, int node_R, Vector3D areavec, do
         
         // Compute |Ubar|*(Q_R - Q_L)*(n.n)
         dtmp = fabs(ubar)*(nx*nx + ny*ny + nz*nz);
-        for (i = 0; i < NEQUATIONS; i++)
-            Roe_fluxA[i] = dtmp*(Roe_Q_R[i] - Roe_Q_L[i]);
+        // Conservative Variable Formulation
+        if (Variable_Type == VARIABLE_CONSERVATIVE) {
+            for (i = 0; i < NEQUATIONS; i++)
+                Roe_fluxA[i] = dtmp*(Roe_Q_R[i] - Roe_Q_L[i]);
+        }
+        // Primitive Variable Formulation
+        if ((Variable_Type == VARIABLE_PRIMITIVE_PUT) || (Variable_Type == VARIABLE_PRIMITIVE_RUP)) {
+            Roe_fluxA[0] = dtmp*(rho_R      - rho_L);
+            Roe_fluxA[1] = dtmp*(rho_R*u_R  - rho_L*u_L);
+            Roe_fluxA[2] = dtmp*(rho_R*v_R  - rho_L*v_L);
+            Roe_fluxA[3] = dtmp*(rho_R*w_R  - rho_L*w_L);
+            Roe_fluxA[4] = dtmp*(rho_R*et_R - rho_L*et_L);
+        }
         
         // Compute deltaU*Q_Roe
         dtmp = deltaU*rho*(nx*nx + ny*ny + nz*nz);
@@ -895,8 +1292,10 @@ void Compute_RoeFlux_WeissSmith_Old(int node_L, int node_R, Vector3D areavec, do
         Roe_fluxA[4] += deltaP*ubar;
         
         // Compute the Roe Flux
-        for (i = 0; i < NEQUATIONS; i++)
-            Flux_Roe[i] = 0.5 * (Roe_flux_L[i] + Roe_flux_R[i] - Roe_fluxA[i]) * area;
+        for (i = 0; i < NEQUATIONS; i++) {
+            Flux_Roe_Conv[i] = 0.5*(Roe_flux_L[i] + Roe_flux_R[i])*area;
+            Flux_Roe_Diss[i] = -0.5*Roe_fluxA[i]*area;
+        }
     } else
         error("Compute_RoeFlux: Invalid Node - %d", node_L);
 }
@@ -904,17 +1303,17 @@ void Compute_RoeFlux_WeissSmith_Old(int node_L, int node_R, Vector3D areavec, do
 //------------------------------------------------------------------------------
 //! Compute Roe Flux with Weiss and Smith Pre-Conditioner 
 //------------------------------------------------------------------------------
-void Compute_RoeFlux_WeissSmith(int node_L, int node_R, Vector3D areavec, double *Flux_Roe) {
+void Compute_RoeFlux_WeissSmith(int node_L, int node_R, Vector3D areavec, double *Flux_Roe_Conv, double *Flux_Roe_Diss, int AddTime) {
     int i;
-    double rho_L, u_L, v_L, w_L, rhoet_L, p_L, c_L, ht_L, ubar_L;
-    double rho_R, u_R, v_R, w_R, rhoet_R, p_R, c_R, ht_R, ubar_R;
+    double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
+    double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
     double rho, u, v, w, ht, c, phi, ubar;
     double sigma, area, nx, ny, nz;
-    double lambda1, lambda2, lambda3, lambda4, lambda5;
+    double lambda1, lambda2, lambda3, lambda4, lambda5, maxlambda;
     
     // Initialization
     for (i = 0; i < NEQUATIONS; i++)
-        Flux_Roe[i] = 0.0;
+        Flux_Roe_Conv[i] = Flux_Roe_Diss[i] = 0.0;
     Roe_Reset();
     
     // Only for Physical Nodes
@@ -929,7 +1328,7 @@ void Compute_RoeFlux_WeissSmith(int node_L, int node_R, Vector3D areavec, double
         // Internal Nodes
         if (node_R < nNode) {
             // Make Solution Second Order
-            if (Order == 2) {
+            if (Order == SOLVER_ORDER_SECOND) {
                 Compute_SecondOrderReconstructQ(node_L, node_R, Roe_Q_L, Roe_Q_R);
             } else {
                 Roe_Q_L[0] = Q1[node_L];
@@ -961,34 +1360,16 @@ void Compute_RoeFlux_WeissSmith(int node_L, int node_R, Vector3D areavec, double
             Roe_Q_R[4] = Q5[node_R];
         }
         
-        // Left Node
-        rho_L   = Roe_Q_L[0];
-        u_L     = Roe_Q_L[1] / rho_L;
-        v_L     = Roe_Q_L[2] / rho_L;
-        w_L     = Roe_Q_L[3] / rho_L;
-        rhoet_L = Roe_Q_L[4];
-        p_L     = (Gamma - 1.0)*(rhoet_L - 0.5*rho_L*(u_L*u_L + v_L*v_L + w_L*w_L)) + Gauge_Pressure;
-        ht_L    = (rhoet_L + p_L)/rho_L;
-        c_L     = sqrt((Gamma * p_L) / rho_L);
-        ubar_L  = u_L*nx + v_L*ny + w_L*nz;
-
+        // Compute Equation of State
+        Compute_EOS_Variables_Face(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
+        Compute_EOS_Variables_Face(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+        
         // Compute flux_L
         Roe_flux_L[0] = rho_L*ubar_L;
         Roe_flux_L[1] =   u_L*Roe_flux_L[0] + p_L*nx;
         Roe_flux_L[2] =   v_L*Roe_flux_L[0] + p_L*ny;
         Roe_flux_L[3] =   w_L*Roe_flux_L[0] + p_L*nz;
         Roe_flux_L[4] =  ht_L*Roe_flux_L[0];
-        
-        // Right Node
-        rho_R   = Roe_Q_R[0];
-        u_R     = Roe_Q_R[1] / rho_R;
-        v_R     = Roe_Q_R[2] / rho_R;
-        w_R     = Roe_Q_R[3] / rho_R;
-        rhoet_R = Roe_Q_R[4];
-        p_R     = (Gamma - 1.0)*(rhoet_R - 0.5*rho_R*(u_R*u_R + v_R*v_R + w_R*w_R)) + Gauge_Pressure;
-        ht_R    = (rhoet_R + p_R)/rho_R;
-        c_R     = sqrt((Gamma * p_R) / rho_R);
-        ubar_R  = u_R*nx + v_R*ny + w_R*nz;
         
         // Compute flux_R
         Roe_flux_R[0] = rho_R*ubar_R;
@@ -1010,12 +1391,23 @@ void Compute_RoeFlux_WeissSmith(int node_L, int node_R, Vector3D areavec, double
         ubar = u*nx + v*ny + w*nz;
         
         // Compute dQ
-        Roe_dQ[0] = Roe_Q_R[0] - Roe_Q_L[0];
-        Roe_dQ[1] = Roe_Q_R[1] - Roe_Q_L[1];
-        Roe_dQ[2] = Roe_Q_R[2] - Roe_Q_L[2];
-        Roe_dQ[3] = Roe_Q_R[3] - Roe_Q_L[3];
-        Roe_dQ[4] = Roe_Q_R[4] - Roe_Q_L[4];
-            
+        // Conservative Variable Formulation
+        if (Variable_Type == VARIABLE_CONSERVATIVE) {
+            Roe_dQ[0] = Roe_Q_R[0] - Roe_Q_L[0];
+            Roe_dQ[1] = Roe_Q_R[1] - Roe_Q_L[1];
+            Roe_dQ[2] = Roe_Q_R[2] - Roe_Q_L[2];
+            Roe_dQ[3] = Roe_Q_R[3] - Roe_Q_L[3];
+            Roe_dQ[4] = Roe_Q_R[4] - Roe_Q_L[4];
+        }
+        // Primitive Variable Formulation
+        if ((Variable_Type == VARIABLE_PRIMITIVE_PUT) || (Variable_Type == VARIABLE_PRIMITIVE_RUP)) {
+            Roe_dQ[0] = rho_R      - rho_L;
+            Roe_dQ[1] = rho_R*u_R  - rho_L*u_L;
+            Roe_dQ[2] = rho_R*v_R  - rho_L*v_L;
+            Roe_dQ[3] = rho_R*w_R  - rho_L*w_L;
+            Roe_dQ[4] = rho_R*et_R - rho_L*et_L;
+        }
+
         double beta, alpha, alpha1, alpha2, alpha3, alpha4, alpha5, A, B, r, s, t;
         double dtmp;
         
@@ -1028,6 +1420,15 @@ void Compute_RoeFlux_WeissSmith(int node_L, int node_R, Vector3D areavec, double
         dtmp = (1.0 - beta*beta)*(1.0 - beta*beta)*ubar*ubar + 4.0*beta*beta*c*c;
         lambda4 = 0.5*((1.0 + beta*beta)*ubar + sqrt(dtmp));
         lambda5 = 0.5*((1.0 + beta*beta)*ubar - sqrt(dtmp));
+        
+        // Add to Time only if Required
+        if (AddTime == TRUE) {
+            // Time Computation : Add Max Eigenvalue
+            maxlambda = MAX(lambda1, MAX(lambda4, lambda5));
+            DeltaT[node_L] += area*maxlambda;
+            if (node_R < nNode)
+                DeltaT[node_R] += area*maxlambda;
+        }
         
         // Compute Precondition variables
         A      = p_R - p_L;
@@ -1051,22 +1452,834 @@ void Compute_RoeFlux_WeissSmith(int node_L, int node_R, Vector3D areavec, double
                         + fabs(lambda4)*alpha4*(rho*ht + r*lambda1) + fabs(lambda5)*alpha5*(rho*ht + s*lambda1);
         
         // Compute the Roe Flux
-        for (i = 0; i < NEQUATIONS; i++)
-            Flux_Roe[i] = 0.5 * (Roe_flux_L[i] + Roe_flux_R[i] - Roe_fluxA[i]) * area;
+        for (i = 0; i < NEQUATIONS; i++) {
+            Flux_Roe_Conv[i] = 0.5*(Roe_flux_L[i] + Roe_flux_R[i])*area;
+            Flux_Roe_Diss[i] = -0.5*Roe_fluxA[i]*area;
+        }
     } else
         error("Compute_RoeFlux: Invalid Node - %d", node_L);
 }
 
 //------------------------------------------------------------------------------
-//! Compute Roe Flux with Cecile Voizat Pre-Conditioner
-//! This doesnot work because of preconditioner is not multiplied
+//! Compute Preconditioned Roe Residual with Weiss Smith Pre-Conditioner
 //------------------------------------------------------------------------------
-void Compute_RoeFlux_CecileVoizat_Old(int node_L, int node_R, Vector3D areavec, double *Flux_Roe_Conv, double *Flux_Roe_Diss) {
+void Compute_Precondition_Residual_Roe_WeissSmith(void) {
+    double rho, u, v, w, ht, et, p, T, c, q2, mach;
+    double Ur, eps, Cp, Theta, drhodt;
+    double Q[5];
+    double flux_roe[5];
+    double flux_roe_diss[5];
+    double dtmp;
+    
+    // Multiply by Precondition Matrix and Construct the Flux
+    for (int i = 0; i < nNode; i++) {
+        // Get the Variables
+        Q[0] = Q1[i];
+        Q[1] = Q2[i];
+        Q[2] = Q3[i];
+        Q[3] = Q4[i];
+        Q[4] = Q5[i];
+        
+        // Compute Equation of State
+        Compute_EOS_Variables_ControlVolume(Q, rho, p, T, u, v, w, q2, c, mach, et, ht);
+        
+        // Compute the EPS
+        eps  = MIN(1.0, MAX(1e-10, mach*mach));
+
+        // Compute Ur for Ideal Gas
+        dtmp = sqrt(q2);
+        if (dtmp < eps*c)
+            Ur = eps*c;
+        else if ((eps*c < dtmp) && (dtmp < c))
+            Ur = dtmp;
+        else
+            Ur = c;
+
+        Theta  = (1.0/(Ur*Ur) + (Gamma - 1.0)/(c*c));
+        Cp     = 1/(Gamma - 1.0);
+        drhodt = -(rho*rho)/(Gamma*(p + Gauge_Pressure));
+
+        // Get the Convective Flux
+        flux_roe_diss[0] = Res1[i];
+        flux_roe_diss[1] = Res2[i];
+        flux_roe_diss[2] = Res3[i];
+        flux_roe_diss[3] = Res4[i];
+        flux_roe_diss[4] = Res5[i];
+        
+        // Finally Compute precondition residual
+        flux_roe[0] = 0.0;
+        flux_roe[1] = 0.0;
+        flux_roe[2] = 0.0;
+        flux_roe[3] = 0.0;
+        flux_roe[4] = 0.0;
+        // Manual Matrix Vector Multiplication
+        flux_roe[0] = ht*flux_roe_diss[0] - flux_roe_diss[4] + u*flux_roe_diss[1] - u*u*flux_roe_diss[0] 
+                        + v*flux_roe_diss[2] - v*v*flux_roe_diss[0] + w*flux_roe_diss[3] - w*w*flux_roe_diss[0];
+        flux_roe[0] = (drhodt*flux_roe[0] + Cp*rho*flux_roe_diss[0])/(drhodt + Cp*Theta*rho);
+        flux_roe[1] = (flux_roe_diss[1] - u*flux_roe_diss[0])/rho;
+        flux_roe[2] = (flux_roe_diss[2] - v*flux_roe_diss[0])/rho;
+        flux_roe[3] = (flux_roe_diss[3] - w*flux_roe_diss[0])/rho;
+        flux_roe[4] = Theta*(flux_roe_diss[4] - u*flux_roe_diss[1] - v*flux_roe_diss[2] - w*flux_roe_diss[3]) 
+                        + flux_roe_diss[0]*(1.0 + Theta*(u*u + v*v + w*w - ht));
+        flux_roe[4] = flux_roe[4]/(drhodt + Cp*Theta*rho);
+
+        // Compute the Preconditioned Roe Flux Residual
+        Res1[i] = flux_roe[0] + Res1_Diss[i];
+        Res2[i] = flux_roe[1] + Res2_Diss[i];
+        Res3[i] = flux_roe[2] + Res3_Diss[i];
+        Res4[i] = flux_roe[3] + Res4_Diss[i];
+        Res5[i] = flux_roe[4] + Res5_Diss[i];
+        
+        // Transform the Residual in Conservative form
+        // Primitive Variable Formulation
+        if (Variable_Type == VARIABLE_CONSERVATIVE) {
+            q2 = 0.5*(Gamma - 1.0)*q2;
+            
+            // Compute the Transformation Matrix
+            Roe_P[0][0] = Gamma/T;
+            Roe_P[0][1] = 0.0;
+            Roe_P[0][2] = 0.0;
+            Roe_P[0][3] = 0.0;
+            Roe_P[0][4] = -rho/T;
+
+            Roe_P[1][0] = Gamma*u/T;
+            Roe_P[1][1] = rho;
+            Roe_P[1][2] = 0.0;
+            Roe_P[1][3] = 0.0;
+            Roe_P[1][4] = -u*rho/T;
+
+            Roe_P[2][0] = Gamma*v/T;
+            Roe_P[2][1] = 0.0;
+            Roe_P[2][2] = rho;
+            Roe_P[2][3] = 0.0;
+            Roe_P[2][4] = -v*rho/T;
+
+            Roe_P[3][0] = Gamma*w/T;
+            Roe_P[3][1] = 0.0;
+            Roe_P[3][2] = 0.0;
+            Roe_P[3][3] = rho;
+            Roe_P[3][4] = -w*rho/T;
+
+            Roe_P[4][0] = (1.0 + Gamma*q2/T)/(Gamma - 1.0);
+            Roe_P[4][1] = rho*u;
+            Roe_P[4][2] = rho*v;
+            Roe_P[4][3] = rho*v;
+            Roe_P[4][4] = -q2*rho/((Gamma - 1.0)*T);
+            
+            // Get the Conservative Residual
+            flux_roe[0] = Res1[i];
+            flux_roe[1] = Res2[i];
+            flux_roe[2] = Res3[i];
+            flux_roe[3] = Res4[i];
+            flux_roe[4] = Res5[i];
+            MC_Matrix_Mul_Vector(5, 5, Roe_P, flux_roe, flux_roe_diss);
+            
+            // Update the Residual in Primitive Form
+            Res1[i] = flux_roe_diss[0];
+            Res2[i] = flux_roe_diss[1];
+            Res3[i] = flux_roe_diss[2];
+            Res4[i] = flux_roe_diss[3];
+            Res5[i] = flux_roe_diss[4];
+        }
+    }
+}
+
+//------------------------------------------------------------------------------
+//! Compute Preconditioned Roe Residual with Cecile Voizat Pre-Conditioner
+//------------------------------------------------------------------------------
+void Compute_Precondition_Residual_Roe_CecileVoizat(void) {
+    int i, j, nid;
+    double Q[5], lQ[5];
+    double flux_roe[5];
+    double flux_roe_diss[5];
+    double rho, u, v, w, p, T, c, ht, et, q2, mach, phi, sigma, reta;
+    double lrho, lu, lv, lw, lp, lT, lc, lht, let, lq2, lmach;
+    double dp_max, mach_max;
+    
+    // Multiply by Precondition Matrix and Construct the Flux
+    for (i = 0; i < nNode; i++) {
+        // Get the Variables
+        Q[0] = Q1[i];
+        Q[1] = Q2[i];
+        Q[2] = Q3[i];
+        Q[3] = Q4[i];
+        Q[4] = Q5[i];
+        
+        // Compute Equation of State
+        Compute_EOS_Variables_ControlVolume(Q, rho, p, T, u, v, w, q2, c, mach, et, ht);
+        phi = 0.5*(Gamma - 1.0)*q2;
+        
+        //======================================================================
+        // Compute Precondition of Convective Flux and Assemble Total Flux
+        //======================================================================
+        // STEP - 1:
+        // Compute the Local Max Mach and Max Change in Pressure around a node
+        dp_max   = 0.0;
+        mach_max = 0.0;
+        // Check if Local Precondition is Required
+        if (PrecondType == PRECOND_TYPE_LOCAL) {
+            // Check if Precondition Smoother is Requested
+            if (PrecondSmooth != 0) {
+                for (j = crs_IA_Node2Node[i]; j < crs_IA_Node2Node[i+1]; j++) {
+                    nid   = crs_JA_Node2Node[j];
+                    // Get the local Q's
+                    lQ[0] = Q1[nid];
+                    lQ[1] = Q2[nid];
+                    lQ[2] = Q3[nid];
+                    lQ[3] = Q4[nid];
+                    lQ[4] = Q5[nid];
+                    // Compute Local Equation of State
+                    Compute_EOS_Variables_ControlVolume(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
+
+                    // Compute Smoothing Parameters
+                    mach_max = MAX(mach_max, lmach);
+                    dp_max   = MAX(dp_max, fabs(p - lp));
+                }
+            }
+        }
+        
+        // STEP 2:
+        // Compute the required parameters
+        sigma = 1.0; // Corresponds to no pre-conditioning
+        if (PrecondType == PRECOND_TYPE_LOCAL) {
+            sigma = MAX(mach, mach_max);
+            if (sigma < Ref_Mach)
+                sigma = sqrt(Ref_Mach*sigma);
+            sigma = MIN(1.0, sigma);
+//            //if (Inf_Mach < 0.5) {
+//                sigma = MIN(sqrt(1.0e-8/sqrt(q2)), Inf_Mach);
+//                // Check if Precondition Smoother is Requested
+//                if (PrecondSmooth != 0)
+//                    sigma = MIN(1.0, MAX(MAX(MAX(sigma, mach), mach_max), 2.0*dp_max/(rho*c*c)));
+//                else
+//                    sigma = MIN(1.0, MAX(sigma, mach));
+//            //sigma = MAX(mach, dp_max/(rho*c*c));
+//            //sigma = MAX(1.0e-6, MIN(mach_max, dp_max/(Inf_Mach*Inf_Mach*rho*c*c)));
+//                if (sigma > Inf_Mach)
+//                    sigma  = Inf_Mach;
+//            //}
+        }
+        if (PrecondType == PRECOND_TYPE_GLOBAL)
+            sigma = MIN(1.0, Ref_Mach);
+        
+        // Min and Max Precondition Variable
+        MinPrecondSigma = MIN(MinPrecondSigma, sigma);
+        MaxPrecondSigma = MAX(MaxPrecondSigma, sigma);
+        
+        // Compute the Precondition in Conservative form
+        reta = (Gamma - 1.0)*(sigma*sigma - 1.0)/(c*c);
+
+        // STEP 3:
+        Roe_P[0][0] = 1.0 + 0.5*q2*reta;
+        Roe_P[0][1] = -u*reta;
+        Roe_P[0][2] = -v*reta;
+        Roe_P[0][3] = -w*reta;
+        Roe_P[0][4] = reta;
+
+        Roe_P[1][0] = 0.5*u*q2*reta;
+        Roe_P[1][1] = 1.0 - u*u*reta;
+        Roe_P[1][2] = -u*v*reta;
+        Roe_P[1][3] = -u*w*reta;
+        Roe_P[1][4] = u*reta;
+
+        Roe_P[2][0] = 0.5*v*q2*reta;
+        Roe_P[2][1] = -u*v*reta;
+        Roe_P[2][2] = 1.0 - v*v*reta;
+        Roe_P[2][3] = -v*w*reta;
+        Roe_P[2][4] = v*reta;
+
+        Roe_P[3][0] = 0.5*w*q2*reta;
+        Roe_P[3][1] = -u*w*reta;
+        Roe_P[3][2] = -v*w*reta;
+        Roe_P[3][3] = 1.0 - w*w*reta;
+        Roe_P[3][4] = w*reta;
+
+        Roe_P[4][0] = 0.5*q2*ht*reta;
+        Roe_P[4][1] = -u*ht*reta;
+        Roe_P[4][2] = -v*ht*reta;
+        Roe_P[4][3] = -w*ht*reta;
+        Roe_P[4][4] = 1.0 + ht*reta;
+        
+        // STEP 4:
+        // Compute Preconditioned Convective Flux
+        // Get the Convective Flux
+        flux_roe_diss[0] = Res1[i];
+        flux_roe_diss[1] = Res2[i];
+        flux_roe_diss[2] = Res3[i];
+        flux_roe_diss[3] = Res4[i];
+        flux_roe_diss[4] = Res5[i];
+        if (PrecondMethod == SOLVER_PRECOND_ROE_CV_ORIGINAL) {
+            flux_roe_diss[0] += Res1_Diss[i];
+            flux_roe_diss[1] += Res2_Diss[i];
+            flux_roe_diss[2] += Res3_Diss[i];
+            flux_roe_diss[3] += Res4_Diss[i];
+            flux_roe_diss[4] += Res5_Diss[i];
+        }
+
+        // Finally Compute precondition residual
+        flux_roe[0] = 0.0;
+        flux_roe[1] = 0.0;
+        flux_roe[2] = 0.0;
+        flux_roe[3] = 0.0;
+        flux_roe[4] = 0.0;
+        MC_Matrix_Mul_Vector(5, 5, Roe_P, flux_roe_diss, flux_roe);
+
+        // STEP 5:
+        // Compute the Preconditioned Roe Flux Residual
+        Res1[i] = flux_roe[0];
+        Res2[i] = flux_roe[1];
+        Res3[i] = flux_roe[2];
+        Res4[i] = flux_roe[3];
+        Res5[i] = flux_roe[4];
+        // Marco Modification
+        if (PrecondMethod == SOLVER_PRECOND_ROE_CV) {
+            Res1[i] += Res1_Diss[i];
+            Res2[i] += Res2_Diss[i];
+            Res3[i] += Res3_Diss[i];
+            Res4[i] += Res4_Diss[i];
+            Res5[i] += Res5_Diss[i];
+        }
+        
+        // Transform the Residual in Primitive form
+        // Primitive Variable Formulation
+        if (Variable_Type == VARIABLE_PRIMITIVE_PUT) {
+            q2 = 0.5*(Gamma - 1.0)*q2;
+            
+            // Compute the Transformation Matrix
+            Roe_P[0][0] = q2;
+            Roe_P[0][1] = (1.0 - Gamma)*u;
+            Roe_P[0][2] = (1.0 - Gamma)*v;
+            Roe_P[0][3] = (1.0 - Gamma)*w;
+            Roe_P[0][4] = (Gamma - 1.0);
+
+            Roe_P[1][0] = -u/rho;
+            Roe_P[1][1] = 1.0/rho;
+            Roe_P[1][2] = 0.0;
+            Roe_P[1][3] = 0.0;
+            Roe_P[1][4] = 0.0;
+
+            Roe_P[2][0] = -v/rho;
+            Roe_P[2][1] = 0.0;
+            Roe_P[2][2] = 1.0/rho;
+            Roe_P[2][3] = 0.0;
+            Roe_P[2][4] = 0.0;
+
+            Roe_P[3][0] = -w/rho;
+            Roe_P[3][1] = 0.0;
+            Roe_P[3][2] = 0.0;
+            Roe_P[3][3] = 1.0/rho;
+            Roe_P[3][4] = 0.0;
+
+            Roe_P[4][0] = (q2*Gamma - T)/rho;
+            Roe_P[4][1] = (1.0 - Gamma)*Gamma*u/rho;
+            Roe_P[4][2] = (1.0 - Gamma)*Gamma*v/rho;
+            Roe_P[4][3] = (1.0 - Gamma)*Gamma*w/rho;
+            Roe_P[4][4] = (1.0 - Gamma)*Gamma/rho;
+            
+            // Get the Conservative Residual
+            flux_roe[0] = Res1[i];
+            flux_roe[1] = Res2[i];
+            flux_roe[2] = Res3[i];
+            flux_roe[3] = Res4[i];
+            flux_roe[4] = Res5[i];
+            MC_Matrix_Mul_Vector(5, 5, Roe_P, flux_roe, flux_roe_diss);
+            
+            // Update the Residual in Primitive Form
+            Res1[i] = flux_roe_diss[0];
+            Res2[i] = flux_roe_diss[1];
+            Res3[i] = flux_roe_diss[2];
+            Res4[i] = flux_roe_diss[3];
+            Res5[i] = flux_roe_diss[4];
+        }
+    }
+}
+
+//------------------------------------------------------------------------------
+//! Compute Preconditioned Roe Residual with Briley Taylor Whitfield Pre-Conditioner
+//! Note Variables are in Primitive Form: Density Velocity Pressure
+//------------------------------------------------------------------------------
+void Compute_Precondition_Residual_Roe_BTW(void) {
+    int i, j, nid;
+    double Q[5], lQ[5];
+    double flux_roe[5];
+    double flux_roe_conv[5];
+    double rho, u, v, w, p, T, c, ht, et, q2, mach, phi, beta;
+    double lrho, lu, lv, lw, lp, lT, lc, lht, let, lq2, lmach;
+    double dp_max, mach_max;
+    
+    // Multiply by Precondition Matrix and Construct the Flux
+    for (i = 0; i < nNode; i++) {
+        // Get the Variables
+        Q[0] = Q1[i];
+        Q[1] = Q2[i];
+        Q[2] = Q3[i];
+        Q[3] = Q4[i];
+        Q[4] = Q5[i];
+        
+        // Compute Equation of State
+        Compute_EOS_Variables_ControlVolume(Q, rho, p, T, u, v, w, q2, c, mach, et, ht);
+        phi = 0.5*(Gamma - 1.0)*q2;
+        
+        //======================================================================
+        // Compute Precondition of Convective Flux and Assemble Total Flux
+        //======================================================================
+        // STEP - 1:
+        // Compute the Local Max Mach and Max Change in Pressure around a node
+        dp_max   = 0.0;
+        mach_max = 0.0;
+        // Check if Local Precondition is Required
+        if (PrecondType == PRECOND_TYPE_LOCAL) {
+            // Check if Precondition Smoother is Requested
+            if (PrecondSmooth != 0) {
+                for (j = crs_IA_Node2Node[i]; j < crs_IA_Node2Node[i+1]; j++) {
+                    nid   = crs_JA_Node2Node[j];
+                    // Get the local Q's
+                    lQ[0] = Q1[nid];
+                    lQ[1] = Q2[nid];
+                    lQ[2] = Q3[nid];
+                    lQ[3] = Q4[nid];
+                    lQ[4] = Q5[nid];
+                    // Compute Local Equation of State
+                    Compute_EOS_Variables_ControlVolume(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
+
+                    // Compute Smoothing Parameters
+                    mach_max = MAX(mach_max, lmach);
+                    dp_max   = MAX(dp_max, fabs(p - lp));
+                }
+            }
+        }
+
+        // STEP 2:
+        // Compute the required parameters
+        beta = 1.0; // Corresponds to no pre-conditioning
+        if (PrecondType == PRECOND_TYPE_LOCAL) {
+            beta = MAX(mach, mach_max);
+            if (beta < Ref_Mach) {
+                beta = MAX(5.0e-5, MAX(sqrt(1.0e-11/sqrt(q2)), sqrt(Ref_Mach*beta)));
+                beta = MIN(beta, Ref_Mach);
+            }
+            beta = MIN(1.0, beta);
+//            beta = MAX(beta, sqrt(1.0e-12/sqrt(q2)));
+//            beta = MAX(beta, 2.0*dp_max/(rho*c*c));
+//            beta = MAX(MAX(beta, 1.0e-5), 0.01*Ref_Mach);
+//            beta = MIN(1.0, MIN(beta, Ref_Mach));
+//            if (beta > 0.7) {
+//                beta = 1.0;
+//            } else {
+//                beta = 2.0*beta*beta;
+//                beta = beta/(1.0 - beta);
+//                beta = sqrt(beta/(1 + (Gamma - 1.0)*beta));
+//            }
+        }
+        if (PrecondType == PRECOND_TYPE_GLOBAL)
+            beta = MIN(1.0, Ref_Mach);
+        
+        beta = beta*beta;
+        // Min and Max Precondition Variable
+        MinPrecondSigma = MIN(MinPrecondSigma, sqrt(beta));
+        MaxPrecondSigma = MAX(MaxPrecondSigma, sqrt(beta));
+        
+        
+        // STEP 3:
+        // Compute P*Minv
+        Roe_Minv[0][0] = 1.0;
+        Roe_Minv[0][1] = 0.0;
+        Roe_Minv[0][2] = 0.0;
+        Roe_Minv[0][3] = 0.0;
+        Roe_Minv[0][4] = 0.0;
+
+        Roe_Minv[1][0] = -u/rho;
+        Roe_Minv[1][1] = 1.0/rho;
+        Roe_Minv[1][2] = 0.0;
+        Roe_Minv[1][3] = 0.0;
+        Roe_Minv[1][4] = 0.0;
+
+        Roe_Minv[2][0] = -v/rho;
+        Roe_Minv[2][1] = 0.0;
+        Roe_Minv[2][2] = 1.0/rho;
+        Roe_Minv[2][3] = 0.0;
+        Roe_Minv[2][4] = 0.0;
+
+        Roe_Minv[3][0] = -w/rho;
+        Roe_Minv[3][1] = 0.0;
+        Roe_Minv[3][2] = 0.0;
+        Roe_Minv[3][3] = 1.0/rho;
+        Roe_Minv[3][4] = 0.0;
+
+        Roe_Minv[4][0] = beta*phi;
+        Roe_Minv[4][1] = -beta*u*(Gamma - 1.0);
+        Roe_Minv[4][2] = -beta*v*(Gamma - 1.0);
+        Roe_Minv[4][3] = -beta*w*(Gamma - 1.0);
+        switch (NonDimensional_Type) {
+            case NONDIMENSIONAL_GENERIC:
+                Roe_Minv[4][4] = beta*(Gamma - 1.0);
+                break;
+            case NONDIMENSIONAL_BTW:
+                Roe_Minv[4][4] = beta/(Ref_Mach*Ref_Mach);
+                break;
+            case NONDIMENSIONAL_LMROE:
+                Roe_Minv[4][4] = beta*(Gamma - 1.0);
+                break;
+            default:
+                error("Compute_Precondition_Residual_Roe_BTW: Undefined Non-Dimensional Type - %d", NonDimensional_Type);
+                break;
+        }
+        
+        // STEP 4:
+        // Compute Preconditioned Convective Flux
+        // Get the Convective Flux
+        flux_roe_conv[0] = Res1[i];
+        flux_roe_conv[1] = Res2[i];
+        flux_roe_conv[2] = Res3[i];
+        flux_roe_conv[3] = Res4[i];
+        flux_roe_conv[4] = Res5[i];
+        if (PrecondMethod == SOLVER_PRECOND_ROE_BTW_ORIGINAL) {
+            flux_roe_conv[0] += Res1_Diss[i];
+            flux_roe_conv[1] += Res2_Diss[i];
+            flux_roe_conv[2] += Res3_Diss[i];
+            flux_roe_conv[3] += Res4_Diss[i];
+            flux_roe_conv[4] += Res5_Diss[i];
+        }
+
+        // Finally Compute precondition residual
+        flux_roe[0] = 0.0;
+        flux_roe[1] = 0.0;
+        flux_roe[2] = 0.0;
+        flux_roe[3] = 0.0;
+        flux_roe[4] = 0.0;
+        MC_Matrix_Mul_Vector(5, 5, Roe_Minv, flux_roe_conv, flux_roe);
+        
+        // STEP 5:
+        // Compute the Preconditioned Roe Flux Residual
+        Res1[i] = flux_roe[0];
+        Res2[i] = flux_roe[1];
+        Res3[i] = flux_roe[2];
+        Res4[i] = flux_roe[3];
+        Res5[i] = flux_roe[4];
+        // Marco Modification
+        if (PrecondMethod == SOLVER_PRECOND_ROE_BTW) {
+            Res1[i] += Res1_Diss[i];
+            Res2[i] += Res2_Diss[i];
+            Res3[i] += Res3_Diss[i];
+            Res4[i] += Res4_Diss[i];
+            Res5[i] += Res5_Diss[i];
+        }
+    }
+}
+
+//------------------------------------------------------------------------------
+//! Compute Preconditioned Roe Residual with Eriksson Pre-Conditioner
+//! Note Variables are in Primitive Form: Density Velocity Pressure
+//------------------------------------------------------------------------------
+void Compute_Precondition_Residual_Roe_ERIKSSON(void) {
+    int i, j, nid;
+    double Q[5], lQ[5];
+    double flux_roe[5];
+    double flux_roe_conv[5];
+    double rho, u, v, w, p, T, c, ht, et, q2, mach, phi, beta;
+    double lrho, lu, lv, lw, lp, lT, lc, lht, let, lq2, lmach;
+    double dp_max, mach_max;
+    
+    // Multiply by Precondition Matrix and Construct the Flux
+    for (i = 0; i < nNode; i++) {
+        // Get the Variables
+        Q[0] = Q1[i];
+        Q[1] = Q2[i];
+        Q[2] = Q3[i];
+        Q[3] = Q4[i];
+        Q[4] = Q5[i];
+        
+        // Compute Equation of State
+        Compute_EOS_Variables_ControlVolume(Q, rho, p, T, u, v, w, q2, c, mach, et, ht);
+        phi = 0.5*(Gamma - 1.0)*q2;
+        
+        //======================================================================
+        // Compute Precondition of Convective Flux and Assemble Total Flux
+        //======================================================================
+        // STEP - 1:
+        // Compute the Local Max Mach and Max Change in Pressure around a node
+        dp_max   = 0.0;
+        mach_max = 0.0;
+        // Check if Local Precondition is Required
+        if (PrecondType == PRECOND_TYPE_LOCAL) {
+            // Check if Precondition Smoother is Requested
+            if (PrecondSmooth != 0) {
+                for (j = crs_IA_Node2Node[i]; j < crs_IA_Node2Node[i+1]; j++) {
+                    nid   = crs_JA_Node2Node[j];
+                    // Get the local Q's
+                    lQ[0] = Q1[nid];
+                    lQ[1] = Q2[nid];
+                    lQ[2] = Q3[nid];
+                    lQ[3] = Q4[nid];
+                    lQ[4] = Q5[nid];
+                    // Compute Local Equation of State
+                    Compute_EOS_Variables_ControlVolume(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
+
+                    // Compute Smoothing Parameters
+                    mach_max = MAX(mach_max, lmach);
+                    dp_max   = MAX(dp_max, fabs(p - lp));
+                }
+            }
+        }
+        
+        // STEP 2:
+        // Compute the required parameters
+        beta = 1.0; // Corresponds to no pre-conditioning
+        if (PrecondType == PRECOND_TYPE_LOCAL) {
+            beta = MAX(mach, mach_max);
+            if (beta < Ref_Mach)
+                beta = sqrt(Ref_Mach*beta);
+            beta = MIN(1.0, beta);
+//            beta = MAX(beta, sqrt(1.0e-12/sqrt(q2)));
+//            beta = MAX(beta, 2.0*dp_max/(rho*c*c));
+//            beta = MAX(MAX(beta, 1.0e-5), 0.01*Ref_Mach);
+//            beta = MIN(1.0, MIN(beta, Ref_Mach));
+//            if (beta > 0.7) {
+//                beta = 1.0;
+//            } else {
+//                beta = 2.0*beta*beta;
+//                beta = beta/(1.0 - beta);
+//                beta = sqrt(beta/(1 + (Gamma - 1.0)*beta));
+//            }
+        }
+        if (PrecondType == PRECOND_TYPE_GLOBAL)
+            beta = MIN(1.0, Ref_Mach);
+        
+        beta = beta*beta;
+        // Min and Max Precondition Variable
+        MinPrecondSigma = MIN(MinPrecondSigma, sqrt(beta));
+        MaxPrecondSigma = MAX(MaxPrecondSigma, sqrt(beta));
+        
+        
+        // STEP 3:
+        // Compute P*Minv
+        Roe_Minv[0][0] =  1.0 + (beta - 1.0)*(Gamma - 1.0)*q2/(2.0*c*c);
+        Roe_Minv[0][1] = -(beta - 1.0)*(Gamma - 1.0)*u/(c*c);
+        Roe_Minv[0][2] = -(beta - 1.0)*(Gamma - 1.0)*v/(c*c);
+        Roe_Minv[0][3] = -(beta - 1.0)*(Gamma - 1.0)*w/(c*c);
+        switch (NonDimensional_Type) {
+            case NONDIMENSIONAL_GENERIC:
+                Roe_Minv[0][4] = (beta - 1.0)*(Gamma - 1.0)/(c*c);
+                break;
+            case NONDIMENSIONAL_BTW:
+                Roe_Minv[0][4] = (beta - 1.0)/(c*c*Ref_Mach*Ref_Mach);
+                break;
+            case NONDIMENSIONAL_LMROE:
+                Roe_Minv[0][4] = (beta - 1.0)*(Gamma - 1.0)/(c*c);
+                break;
+            default:
+                error("Compute_Precondition_Residual_Roe_ERIKSSON: Undefined Non-Dimensional Type - %d", NonDimensional_Type);
+                break;
+        }
+
+        Roe_Minv[1][0] = -u/rho;
+        Roe_Minv[1][1] = 1.0/rho;
+        Roe_Minv[1][2] = 0.0;
+        Roe_Minv[1][3] = 0.0;
+        Roe_Minv[1][4] = 0.0;
+
+        Roe_Minv[2][0] = -v/rho;
+        Roe_Minv[2][1] = 0.0;
+        Roe_Minv[2][2] = 1.0/rho;
+        Roe_Minv[2][3] = 0.0;
+        Roe_Minv[2][4] = 0.0;
+
+        Roe_Minv[3][0] = -w/rho;
+        Roe_Minv[3][1] = 0.0;
+        Roe_Minv[3][2] = 0.0;
+        Roe_Minv[3][3] = 1.0/rho;
+        Roe_Minv[3][4] = 0.0;
+
+        Roe_Minv[4][0] =  beta*phi;
+        Roe_Minv[4][1] = -beta*u*(Gamma - 1.0);
+        Roe_Minv[4][2] = -beta*v*(Gamma - 1.0);
+        Roe_Minv[4][3] = -beta*w*(Gamma - 1.0);
+        switch (NonDimensional_Type) {
+            case NONDIMENSIONAL_GENERIC:
+                Roe_Minv[4][4] =  beta*(Gamma - 1.0);
+                break;
+            case NONDIMENSIONAL_BTW:
+                Roe_Minv[4][4] =  beta/(Ref_Mach*Ref_Mach);
+                break;
+            case NONDIMENSIONAL_LMROE:
+                Roe_Minv[4][4] =  beta*(Gamma - 1.0);
+                break;
+            default:
+                error("Compute_Precondition_Residual_Roe_ERIKSSON: Undefined Non-Dimensional Type - %d", NonDimensional_Type);
+                break;
+        }
+        
+        // STEP 4:
+        // Compute Preconditioned Convective Flux
+        // Get the Convective Flux
+        flux_roe_conv[0] = Res1[i];
+        flux_roe_conv[1] = Res2[i];
+        flux_roe_conv[2] = Res3[i];
+        flux_roe_conv[3] = Res4[i];
+        flux_roe_conv[4] = Res5[i];
+        if (PrecondMethod == SOLVER_PRECOND_ROE_ERIKSSON_ORIGINAL) {
+            flux_roe_conv[0] += Res1_Diss[i];
+            flux_roe_conv[1] += Res2_Diss[i];
+            flux_roe_conv[2] += Res3_Diss[i];
+            flux_roe_conv[3] += Res4_Diss[i];
+            flux_roe_conv[4] += Res5_Diss[i];
+        }
+
+        // Finally Compute precondition residual
+        flux_roe[0] = 0.0;
+        flux_roe[1] = 0.0;
+        flux_roe[2] = 0.0;
+        flux_roe[3] = 0.0;
+        flux_roe[4] = 0.0;
+        MC_Matrix_Mul_Vector(5, 5, Roe_Minv, flux_roe_conv, flux_roe);
+        
+        // STEP 5:
+        // Compute the Preconditioned Roe Flux Residual
+        Res1[i] = flux_roe[0];
+        Res2[i] = flux_roe[1];
+        Res3[i] = flux_roe[2];
+        Res4[i] = flux_roe[3];
+        Res5[i] = flux_roe[4];
+        // Marco Modification
+        if (PrecondMethod == SOLVER_PRECOND_ROE_ERIKSSON) {
+            Res1[i] += Res1_Diss[i];
+            Res2[i] += Res2_Diss[i];
+            Res3[i] += Res3_Diss[i];
+            Res4[i] += Res4_Diss[i];
+            Res5[i] += Res5_Diss[i];
+        }
+    }
+}
+
+//------------------------------------------------------------------------------
+//! Compute Transformed Roe Residual in Conservative to Primitive Form
+//------------------------------------------------------------------------------
+void Compute_Transform_Residual_Roe_ConservativeToPrimitive(void) {
     int i;
-    double rho_L, u_L, v_L, w_L, rhoet_L, p_L, c_L, ht_L, ubar_L;
-    double rho_R, u_R, v_R, w_R, rhoet_R, p_R, c_R, ht_R, ubar_R;
-    double rho, u, v, w, ht, c, phi, ubar;
-    double sigma, area, nx, ny, nz;
+    double Q[5];
+    double flux_roe[5];
+    double flux_roe_diss[5];
+    double rho, u, v, w, p, T, c, ht, et, q2, mach;
+    double dtmp;
+    
+    // Transform the Residual in Conservative Form to Primitive Form
+    // Primitive Variable Formulation
+    if (Variable_Type == VARIABLE_PRIMITIVE_PUT) {
+        for (i = 0; i < nNode; i++) {
+            // Get the Variables
+            Q[0] = Q1[i];
+            Q[1] = Q2[i];
+            Q[2] = Q3[i];
+            Q[3] = Q4[i];
+            Q[4] = Q5[i];
+
+            // Compute Equation of State
+            Compute_EOS_Variables_ControlVolume(Q, rho, p, T, u, v, w, q2, c, mach, et, ht);
+            
+            // Compute the Transformation Matrix
+            dtmp = 0.5*(Gamma - 1.0)*q2;
+            Roe_P[0][0] = dtmp;
+            Roe_P[0][1] = (1.0 - Gamma)*u;
+            Roe_P[0][2] = (1.0 - Gamma)*v;
+            Roe_P[0][3] = (1.0 - Gamma)*w;
+            Roe_P[0][4] = (Gamma - 1.0);
+
+            Roe_P[1][0] = -u/rho;
+            Roe_P[1][1] = 1.0/rho;
+            Roe_P[1][2] = 0.0;
+            Roe_P[1][3] = 0.0;
+            Roe_P[1][4] = 0.0;
+
+            Roe_P[2][0] = -v/rho;
+            Roe_P[2][1] = 0.0;
+            Roe_P[2][2] = 1.0/rho;
+            Roe_P[2][3] = 0.0;
+            Roe_P[2][4] = 0.0;
+
+            Roe_P[3][0] = -w/rho;
+            Roe_P[3][1] = 0.0;
+            Roe_P[3][2] = 0.0;
+            Roe_P[3][3] = 1.0/rho;
+            Roe_P[3][4] = 0.0;
+
+            Roe_P[4][0] = (dtmp*Gamma - T)/rho;
+            Roe_P[4][1] = (1.0 - Gamma)*Gamma*u/rho;
+            Roe_P[4][2] = (1.0 - Gamma)*Gamma*v/rho;
+            Roe_P[4][3] = (1.0 - Gamma)*Gamma*w/rho;
+            Roe_P[4][4] = (Gamma - 1.0)*Gamma/rho;
+
+            // Get the Conservative Residual
+            flux_roe[0] = Res1[i];
+            flux_roe[1] = Res2[i];
+            flux_roe[2] = Res3[i];
+            flux_roe[3] = Res4[i];
+            flux_roe[4] = Res5[i];
+            MC_Matrix_Mul_Vector(5, 5, Roe_P, flux_roe, flux_roe_diss);
+
+            // Update the Residual in Primitive Form
+            Res1[i] = flux_roe_diss[0];
+            Res2[i] = flux_roe_diss[1];
+            Res3[i] = flux_roe_diss[2];
+            Res4[i] = flux_roe_diss[3];
+            Res5[i] = flux_roe_diss[4]; 
+        }
+    } else
+        error("Compute_Transform_Residual_Roe_ConservativeToPrimitive: Invalid Transformation - %d", Variable_Type);
+}
+
+//------------------------------------------------------------------------------
+//! Compute Precondition Residual and Transform the Residual Accordingly
+//------------------------------------------------------------------------------
+void Compute_Precondition_Residual_Roe(void) {
+    switch (PrecondMethod) {
+        case SOLVER_PRECOND_NONE: // Roe
+            // No Precondition but Transformation is needed for primitive variables
+            // Primitive Variable Formulation
+            if (Variable_Type == VARIABLE_PRIMITIVE_PUT)
+                Compute_Transform_Residual_Roe_ConservativeToPrimitive();
+            break;
+        case SOLVER_PRECOND_ROE_LMFIX: // LMRoe
+            // No Precondition but Transformation is needed for primitive variables
+            // Primitive Variable Formulation
+            if (Variable_Type == VARIABLE_PRIMITIVE_PUT)
+                Compute_Transform_Residual_Roe_ConservativeToPrimitive();
+            break;
+        case SOLVER_PRECOND_ROE_WS: // Roe Weiss Smith Pre-Conditioner and Transformation
+            Compute_Precondition_Residual_Roe_WeissSmith();
+            break;
+        case SOLVER_PRECOND_ROE_CV: // Roe Cecile Voizat Pre-Conditioner and Transformation
+            Compute_Precondition_Residual_Roe_CecileVoizat();
+            break;
+        case SOLVER_PRECOND_ROE_CV_ORIGINAL: // Roe Cecile Voizat Pre-Conditioner and Transformation
+            Compute_Precondition_Residual_Roe_CecileVoizat();
+            break;
+        case SOLVER_PRECOND_ROE_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner and Transformation
+            Compute_Precondition_Residual_Roe_BTW();
+            break;
+        case SOLVER_PRECOND_ROE_BTW_ORIGINAL: // Roe Briley Taylor Whitfield Pre-Conditioner and Transformation
+            Compute_Precondition_Residual_Roe_BTW();
+            break;
+        case SOLVER_PRECOND_ROE_ERIKSSON: // Roe Eriksson Pre-Conditioner and Transformation
+            Compute_Precondition_Residual_Roe_ERIKSSON();
+            break;
+        case SOLVER_PRECOND_ROE_ERIKSSON_ORIGINAL: // Roe Eriksson Pre-Conditioner and Transformation
+            Compute_Precondition_Residual_Roe_ERIKSSON();
+            break;
+        default:
+            error("Compute_Precondition_Residual_Roe: Invalid Solver Precondition Scheme - %d", PrecondMethod);
+            break;
+    }
+}
+
+//------------------------------------------------------------------------------
+//! Compute Roe Flux with Cecile Voizat Pre-Conditioner
+//------------------------------------------------------------------------------
+void Compute_RoeFlux_CecileVoizat(int node_L, int node_R, Vector3D areavec, double *Flux_Roe_Conv, double *Flux_Roe_Diss, int AddTime) {
+    int i, AvgType;
+    double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
+    double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
+    double rho, u, v, w, ht, c, phi, ubar, q2, mach;
+    double sigma, area, nx, ny, nz, maxlambda;
     
     // Initialization
     for (i = 0; i < NEQUATIONS; i++)
@@ -1085,7 +2298,7 @@ void Compute_RoeFlux_CecileVoizat_Old(int node_L, int node_R, Vector3D areavec, 
         // Internal Nodes
         if (node_R < nNode) {
             // Make Solution Second Order
-            if (Order == 2) {
+            if (Order == SOLVER_ORDER_SECOND) {
                 Compute_SecondOrderReconstructQ(node_L, node_R, Roe_Q_L, Roe_Q_R);
             } else {
                 Roe_Q_L[0] = Q1[node_L];
@@ -1117,34 +2330,16 @@ void Compute_RoeFlux_CecileVoizat_Old(int node_L, int node_R, Vector3D areavec, 
             Roe_Q_R[4] = Q5[node_R];
         }
         
-        // Left Node
-        rho_L   = Roe_Q_L[0];
-        u_L     = Roe_Q_L[1] / rho_L;
-        v_L     = Roe_Q_L[2] / rho_L;
-        w_L     = Roe_Q_L[3] / rho_L;
-        rhoet_L = Roe_Q_L[4];
-        p_L     = (Gamma - 1.0)*(rhoet_L - 0.5*rho_L*(u_L*u_L + v_L*v_L + w_L*w_L)) + Gauge_Pressure;
-        ht_L    = (rhoet_L + p_L)/rho_L;
-        c_L     = sqrt((Gamma * p_L) / rho_L);
-        ubar_L  = u_L*nx + v_L*ny + w_L*nz;
-
+        // Compute Equation of State
+        Compute_EOS_Variables_Face(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
+        Compute_EOS_Variables_Face(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+        
         // Compute flux_L
         Roe_flux_L[0] = rho_L*ubar_L;
         Roe_flux_L[1] =   u_L*Roe_flux_L[0] + p_L*nx;
         Roe_flux_L[2] =   v_L*Roe_flux_L[0] + p_L*ny;
         Roe_flux_L[3] =   w_L*Roe_flux_L[0] + p_L*nz;
         Roe_flux_L[4] =  ht_L*Roe_flux_L[0];
-        
-        // Right Node
-        rho_R   = Roe_Q_R[0];
-        u_R     = Roe_Q_R[1] / rho_R;
-        v_R     = Roe_Q_R[2] / rho_R;
-        w_R     = Roe_Q_R[3] / rho_R;
-        rhoet_R = Roe_Q_R[4];
-        p_R     = (Gamma - 1.0)*(rhoet_R - 0.5*rho_R*(u_R*u_R + v_R*v_R + w_R*w_R)) + Gauge_Pressure;
-        ht_R    = (rhoet_R + p_R)/rho_R;
-        c_R     = sqrt((Gamma * p_R) / rho_R);
-        ubar_R  = u_R*nx + v_R*ny + w_R*nz;
         
         // Compute flux_R
         Roe_flux_R[0] = rho_R*ubar_R;
@@ -1153,35 +2348,165 @@ void Compute_RoeFlux_CecileVoizat_Old(int node_L, int node_R, Vector3D areavec, 
         Roe_flux_R[3] =   w_R*Roe_flux_R[0] + p_R*nz;
         Roe_flux_R[4] =  ht_R*Roe_flux_R[0];
         
-        // ROE AVERAGE VARIABLES
-        rho   = sqrt(rho_R * rho_L);
-        sigma = rho/(rho_L + rho);
-        u     = u_L  + sigma*(u_R  - u_L);
-        v     = v_L  + sigma*(v_R  - v_L);
-        w     = w_L  + sigma*(w_R  - w_L);
-        ht    = ht_L + sigma*(ht_R - ht_L);
-        phi  = 0.5*(Gamma - 1.0)*(u*u + v*v + w*w);
-        c    = (Gamma - 1.0)*ht - phi;
-        c    = sqrt(c);
+        AvgType = 1;
+        if (AvgType == 1) {
+            // ROE AVERAGE VARIABLES
+            rho   = sqrt(rho_R * rho_L);
+            sigma = rho/(rho_L + rho);
+            u     = u_L  + sigma*(u_R  - u_L);
+            v     = v_L  + sigma*(v_R  - v_L);
+            w     = w_L  + sigma*(w_R  - w_L);
+            ht    = ht_L + sigma*(ht_R - ht_L);
+        } else {
+            // SIMPLE AVERAGE VARIABLES
+            rho   = 0.5*(rho_R + rho_L);
+            u     = 0.5*(u_R  + u_L);
+            v     = 0.5*(v_R  + v_L);
+            w     = 0.5*(w_R  + w_L);
+            ht    = 0.5*(ht_R + ht_L);
+        }
+        q2   = u*u + v*v + w*w;
+        phi  = 0.5*(Gamma - 1.0)*q2;
         ubar = u*nx + v*ny + w*nz;
+        c    = 0.0;
+        switch (NonDimensional_Type) {
+            case NONDIMENSIONAL_GENERIC:
+                c = (Gamma - 1.0)*ht - phi;
+                c = sqrt(c);
+                break;
+            case NONDIMENSIONAL_BTW:
+                c = ht/(Ref_Mach*Ref_Mach) - phi;
+                c = sqrt(c);
+                break;
+            case NONDIMENSIONAL_LMROE:
+                c = (Gamma - 1.0)*ht - phi;
+                c = sqrt(c);
+                break;
+            default:
+                error("Compute_RoeFlux_CecileVoizat: Undefined Non-Dimensional Type - %d", NonDimensional_Type);
+                break;
+        }
+        mach = sqrt(q2)/c;
+        
+        if (isnan(c))
+            printf("CV Hell %10.5e\n", ubar);
         
         // Compute dQ
-        Roe_dQ[0] = Roe_Q_R[0] - Roe_Q_L[0];
-        Roe_dQ[1] = Roe_Q_R[1] - Roe_Q_L[1];
-        Roe_dQ[2] = Roe_Q_R[2] - Roe_Q_L[2];
-        Roe_dQ[3] = Roe_Q_R[3] - Roe_Q_L[3];
-        Roe_dQ[4] = Roe_Q_R[4] - Roe_Q_L[4];
-            
-        double alpha, beta, zeta, q2;
+        // Conservative Variable Formulation
+        if (Variable_Type == VARIABLE_CONSERVATIVE) {
+            Roe_dQ[0] = Roe_Q_R[0] - Roe_Q_L[0];
+            Roe_dQ[1] = Roe_Q_R[1] - Roe_Q_L[1];
+            Roe_dQ[2] = Roe_Q_R[2] - Roe_Q_L[2];
+            Roe_dQ[3] = Roe_Q_R[3] - Roe_Q_L[3];
+            Roe_dQ[4] = Roe_Q_R[4] - Roe_Q_L[4];
+        }
+        // Primitive Variable Formulation
+        if ((Variable_Type == VARIABLE_PRIMITIVE_PUT) || (Variable_Type == VARIABLE_PRIMITIVE_RUP)) {
+            Roe_dQ[0] = rho_R      - rho_L;
+            Roe_dQ[1] = rho_R*u_R  - rho_L*u_L;
+            Roe_dQ[2] = rho_R*v_R  - rho_L*v_L;
+            Roe_dQ[3] = rho_R*w_R  - rho_L*w_L;
+            Roe_dQ[4] = rho_R*et_R - rho_L*et_L;
+        }
         
-        // Set the precondition parameters
-        q2    = u*u + v*v + w*w;
-        sigma = MIN(1.0, MAX(Inf_Mach, sqrt(u*u + v*v + w*w)/c));
+        int nid;
+        double lQ[NEQUATIONS];
+        double alpha, beta, zeta;
+        double lrho, lu, lv, lw, lp, lT, lc, lht, let, lq2, lmach;
+        double dp_L, dp_R, lmach_L, lmach_R;
+        double dp_max, mach_max;
+        
+        //======================================================================
+        // Compute Precondition Dissipation Flux
+        //======================================================================
+        // STEP - 1:
+        // Compute the Local Max Mach and Max Change in Pressure around a node L and R
+        // If node R is not ghost compute average
+        dp_L     = dp_R    = 0.0;
+        lmach_L  = lmach_R = 0.0;
+        dp_max   = 0.0;
+        mach_max = 0.0;
+        // Check if Local Precondition is Required
+        if (PrecondType == PRECOND_TYPE_LOCAL) {
+            // Check of Precondition Smooth is Required
+            if (PrecondSmooth != 0) {
+                for (i = crs_IA_Node2Node[node_L]; i < crs_IA_Node2Node[node_L+1]; i++) {
+                    nid   = crs_JA_Node2Node[i];
+                    // Get the local Q's
+                    lQ[0] = Q1[nid];
+                    lQ[1] = Q2[nid];
+                    lQ[2] = Q3[nid];
+                    lQ[3] = Q4[nid];
+                    lQ[4] = Q5[nid];
+                    // Compute Local Equation of State
+                    Compute_EOS_Variables_ControlVolume(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
+
+                    // Compute Smoothing Parameters
+                    lmach_L = MAX(lmach_L, lmach);
+                    dp_L    = MAX(dp_L, fabs(p_L - lp));
+                }
+                dp_max   = dp_L;
+                mach_max = lmach_L;
+                // Check if Right Node is not a Ghost Boundary Node
+                if (node_R < nNode) {
+                    for (i = crs_IA_Node2Node[node_R]; i < crs_IA_Node2Node[node_R+1]; i++) {
+                        nid  = crs_JA_Node2Node[i];
+                        // Get the local Q's
+                        lQ[0] = Q1[nid];
+                        lQ[1] = Q2[nid];
+                        lQ[2] = Q3[nid];
+                        lQ[3] = Q4[nid];
+                        lQ[4] = Q5[nid];
+                        // Compute Local Equation of State
+                        Compute_EOS_Variables_ControlVolume(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
+
+                        // Compute Smoothing Parameters
+                        lmach_R = MAX(lmach_R, lmach);
+                        dp_R    = MAX(dp_R, fabs(p_R - lp));
+                    }
+                    dp_max   = 0.5*(dp_L + dp_R);
+                    mach_max = 0.5*(lmach_L + lmach_R);
+                }
+            } else {
+                mach_max = MAX(mach_L, mach_R);
+                dp_max   = fabs(p_L - p_R);
+            }
+        }
+        
+        // STEP 2:
+        // Compute the required parameters
+        sigma = 1.0; // Corresponds to no pre-conditioning
+        if (PrecondType == PRECOND_TYPE_LOCAL) {
+            sigma = MAX(mach, mach_max);
+            if (sigma < Ref_Mach)
+                sigma = sqrt(Ref_Mach*sigma);
+            sigma = MIN(1.0, sigma);
+//            //if (Ref_Mach < 0.5) {
+//                sigma = MIN(sqrt(1.0e-8/fabs(ubar)), Ref_Mach);
+//                // Check if Precondition Smoother is Requested
+//                //if (PrecondSmooth != 0)
+//                    sigma = MIN(1.0, MAX(MAX(MAX(sigma, sqrt(q2)/c), mach_max), 2.0*dp_max/(rho*c*c)));
+//                //else
+//                //    sigma = MIN(1.0, MAX(sigma, sqrt(q2)/c));
+//            //sigma = MAX(sqrt(q2)/c, dp_max/(rho*c*c));
+//            //sigma = MAX(1.0e-6, MIN(mach_max, dp_max/(Inf_Mach*Inf_Mach*rho*c*c)));
+//                if (sigma > Ref_Mach)
+//                    sigma = Ref_Mach;
+//            //}
+            if (node_L < nNode && node_R < nNode) {
+                PrecondSigma[node_L] += sigma;
+                PrecondSigma[node_R] += sigma;
+            }
+        }
+        if (PrecondType == PRECOND_TYPE_GLOBAL)
+            sigma = MIN(1.0, Ref_Mach);
+        
         alpha = ubar*ubar*(sigma*sigma*sigma*sigma - 2.0*sigma*sigma + 1.0) + 4.0*c*c*sigma*sigma;
         alpha = sqrt(alpha);
         beta  = (sigma*sigma - 1.0)*ubar + alpha;
         zeta  = (1.0 - sigma*sigma)*ubar + alpha;
         
+        // STEP 3:
         // Compute the Eigenvalues of the Precondition Dissipation Term |Lambda|
         Roe_Eigen[0][0] = fabs(ubar);
         Roe_Eigen[1][1] = Roe_Eigen[0][0];
@@ -1189,55 +2514,139 @@ void Compute_RoeFlux_CecileVoizat_Old(int node_L, int node_R, Vector3D areavec, 
         Roe_Eigen[3][3] = fabs(0.5*(ubar + sigma*sigma*ubar + alpha));
         Roe_Eigen[4][4] = fabs(0.5*(ubar + sigma*sigma*ubar - alpha));
         
-        // Compute T
-        Roe_T[0][0] = -rho*nx/Gamma;
-        Roe_T[0][1] = -rho*ny/Gamma;
-        Roe_T[0][2] = -rho*nz/Gamma;
-        Roe_T[0][3] = 2.0*rho/zeta;
-        Roe_T[0][4] = 2.0*rho/beta;
+        // Add to Time only if Required
+        if (AddTime == TRUE) {
+            // Min and Max EigenValue Value
+            MinEigenLamda1 = MIN(MinEigenLamda1, Roe_Eigen[0][0]);
+            MaxEigenLamda1 = MAX(MaxEigenLamda1, Roe_Eigen[0][0]);
+            MinEigenLamda4 = MIN(MinEigenLamda4, Roe_Eigen[3][3]);
+            MaxEigenLamda4 = MAX(MaxEigenLamda4, Roe_Eigen[3][3]);
+            MinEigenLamda5 = MIN(MinEigenLamda5, Roe_Eigen[4][4]);
+            MaxEigenLamda5 = MAX(MaxEigenLamda5, Roe_Eigen[4][4]);
+
+            // Min and Max Precondition Variable
+            MinPrecondSigma = MIN(MinPrecondSigma, sigma);
+            MaxPrecondSigma = MAX(MaxPrecondSigma, sigma);
+
+            // Time Computation : Add Max Eigenvalue
+            maxlambda = MAX(Roe_Eigen[0][0], MAX(Roe_Eigen[3][3], Roe_Eigen[4][4]));
+            DeltaT[node_L] += area*maxlambda;
+            if (node_R < nNode)
+                DeltaT[node_R] += area*maxlambda;
+        }
         
-        Roe_T[1][0] = -u*rho*nx/Gamma;
-        Roe_T[1][1] = -rho*(u*ny + Gamma*nz)/Gamma;
-        Roe_T[1][2] = rho*(ny - u*nz/Gamma);
-        Roe_T[1][3] = rho*(nx + 2.0*u/zeta);
-        Roe_T[1][4] = rho*(-nx + 2.0*u/beta);
+        // Computations for Variable Relaxation Residual Smoothing
+        if (ResidualSmoothType == RESIDUAL_SMOOTH_IMPLICIT) {
+            maxlambda = MAX(Roe_Eigen[0][0], MAX(Roe_Eigen[3][3], Roe_Eigen[4][4]));
+            for (i = crs_IA_Node2Node[node_L]; i < crs_IA_Node2Node[node_L + 1]; i++) {
+                // Get the Node ID and Match with node_R
+                if (crs_JA_Node2Node[i] == node_R) {
+                    RM_MaxEigenValue[i] = maxlambda*area;
+                    break;
+                }
+            }
+            RM_SumMaxEigenValue[node_L] += maxlambda*area;
+            // Only Physical Nodes
+            if (node_R < nNode) {
+                for (i = crs_IA_Node2Node[node_R]; i < crs_IA_Node2Node[node_R + 1]; i++) {
+                    // Get the Node ID and Match with node_L
+                    if (crs_JA_Node2Node[i] == node_L) {
+                        RM_MaxEigenValue[i] = maxlambda*area;
+                        break;
+                    }
+                }
+                RM_SumMaxEigenValue[node_R] += maxlambda*area;
+            }
+        }
         
-        Roe_T[2][0] = rho*(-v*nx/Gamma + nz);
-        Roe_T[2][1] = -v*rho*ny/Gamma;
-        Roe_T[2][2] = -rho*(Gamma*nx + v*nz)/Gamma;
-        Roe_T[2][3] = rho*(ny + 2.0*v/zeta);
-        Roe_T[2][4] = rho*(-ny + 2.0*v/beta);
+        // STEP 4:
+        // Marco Modification
+        if (PrecondMethod == SOLVER_PRECOND_ROE_CV) {
+            // Compute Tmod_g = M3.P
+            Roe_T[0][0] = nx;
+            Roe_T[0][1] = ny;
+            Roe_T[0][2] = nz;
+            Roe_T[0][3] = 2.0*rho*sigma*sigma/zeta;
+            Roe_T[0][4] = 2.0*rho*sigma*sigma/beta;
+
+            Roe_T[1][0] = u*nx;
+            Roe_T[1][1] = u*ny - rho*nz;
+            Roe_T[1][2] = rho*ny + u*nz;
+            Roe_T[1][3] = rho*(nx + 2.0*u*sigma*sigma/zeta);
+            Roe_T[1][4] = rho*(-nx + 2.0*u*sigma*sigma/beta);
+
+            Roe_T[2][0] = v*nx + rho*nz;
+            Roe_T[2][1] = v*ny;
+            Roe_T[2][2] = -rho*nx + v*nz;
+            Roe_T[2][3] = rho*(ny + 2.0*v*sigma*sigma/zeta);
+            Roe_T[2][4] = rho*(-ny + 2.0*v*sigma*sigma/beta);
+
+            Roe_T[3][0] = w*nx - rho*ny;
+            Roe_T[3][1] = rho*nx + w*ny;
+            Roe_T[3][2] = w*nz;
+            Roe_T[3][3] = rho*(nz+ 2.0*w*sigma*sigma/zeta);
+            Roe_T[3][4] = rho*(-nz + 2.0*w*sigma*sigma/beta);
+
+            Roe_T[4][0] = -w*rho*ny + v*rho*nz + 0.5*nx*q2;
+            Roe_T[4][1] =  w*rho*nx - u*rho*nz + 0.5*ny*q2;
+            Roe_T[4][2] = -v*rho*nx + u*rho*ny + 0.5*nz*q2;
+            Roe_T[4][3] = rho*(ubar + sigma*sigma*(2.0*c*c + (Gamma - 1.0)*q2)/((Gamma - 1.0)*zeta));
+            Roe_T[4][4] = rho*(-ubar + sigma*sigma*(2.0*c*c + (Gamma - 1.0)*q2)/((Gamma - 1.0)*beta));
+        }
         
-        Roe_T[3][0] = -rho*(w*nx + Gamma*ny)/Gamma;
-        Roe_T[3][1] = rho*(nx - w*ny/Gamma);
-        Roe_T[3][2] = -w*rho*nz/Gamma;
-        Roe_T[3][3] = rho*(nz+ 2.0*w/zeta);
-        Roe_T[3][4] = rho*(-nz + 2.0*w/beta);
+        // Original 
+        if (PrecondMethod == SOLVER_PRECOND_ROE_CV_ORIGINAL) {
+            // Compute T_g = M3.Sinv.Pinv
+            Roe_T[0][0] = nx;
+            Roe_T[0][1] = ny;
+            Roe_T[0][2] = nz;
+            Roe_T[0][3] = 2.0*rho/zeta;
+            Roe_T[0][4] = 2.0*rho/beta;
+
+            Roe_T[1][0] = u*nx;
+            Roe_T[1][1] = u*ny - rho*nz;
+            Roe_T[1][2] = rho*ny + u*nz;
+            Roe_T[1][3] = rho*(nx + 2.0*u/zeta);
+            Roe_T[1][4] = rho*(-nx + 2.0*u/beta);
+
+            Roe_T[2][0] = v*nx + rho*nz;
+            Roe_T[2][1] = v*ny;
+            Roe_T[2][2] = -rho*nx + v*nz;
+            Roe_T[2][3] = rho*(ny + 2.0*v/zeta);
+            Roe_T[2][4] = rho*(-ny + 2.0*v/beta);
+
+            Roe_T[3][0] = w*nx - rho*ny;
+            Roe_T[3][1] = rho*nx + w*ny;
+            Roe_T[3][2] = w*nz;
+            Roe_T[3][3] = rho*(nz+ 2.0*w/zeta);
+            Roe_T[3][4] = rho*(-nz + 2.0*w/beta);
+
+            Roe_T[4][0] = -w*rho*ny + v*rho*nz + 0.5*nx*q2;
+            Roe_T[4][1] =  w*rho*nx - u*rho*nz + 0.5*ny*q2;
+            Roe_T[4][2] = -v*rho*nx + u*rho*ny + 0.5*nz*q2;
+            Roe_T[4][3] = rho*(ubar + (2.0*c*c + (Gamma - 1.0)*q2)/((Gamma - 1.0)*zeta));
+            Roe_T[4][4] = rho*(-ubar + (2.0*c*c + (Gamma - 1.0)*q2)/((Gamma - 1.0)*beta));
+        }
         
-        Roe_T[4][0] = -w*rho*ny + v*rho*nz - rho*nx*q2/(2.0*Gamma);
-        Roe_T[4][1] =  w*rho*nx - u*rho*nz - rho*ny*q2/(2.0*Gamma);
-        Roe_T[4][2] = -v*rho*nx + u*rho*ny - rho*nz*q2/(2.0*Gamma);
-        Roe_T[4][3] = rho*(ubar + (2.0*c*c + (Gamma - 1.0)*q2)/((Gamma - 1.0)*zeta));
-        Roe_T[4][4] = rho*(-ubar + (2.0*c*c + (Gamma - 1.0)*q2)/((Gamma - 1.0)*beta));
+        // STEP 5:
+        // Compute T_d = Pinv.M3inv
+        Roe_Tinv[0][0] = (w*ny - v*nz)/rho + (nx*(2.0*c*c - (Gamma - 1.0)*q2))/(2.0*c*c);
+        Roe_Tinv[0][1] = (u*(Gamma - 1.0)*nx)/(c*c);
+        Roe_Tinv[0][2] = (v*(Gamma - 1.0)*nx)/(c*c) + nz/rho;
+        Roe_Tinv[0][3] = (w*(Gamma - 1.0)*nx)/(c*c) - ny/rho;
+        Roe_Tinv[0][4] = -(Gamma - 1.0)*nx/(c*c);
         
-        // Compute Tinv
-        Roe_Tinv[0][0] = (2.0*c*c*(w*ny - v*nz) + Gamma*nx*(-2.0*c*c + (Gamma - 1.0)*q2))/(2.0*c*c*rho);
-        Roe_Tinv[0][1] = -(u*(Gamma - 1.0)*Gamma*nx)/(c*c*rho);
-        Roe_Tinv[0][2] = ((-v*(Gamma - 1.0)*Gamma*nx)/(c*c) + nz)/rho;
-        Roe_Tinv[0][3] = -((w*(Gamma - 1.0)*Gamma*nx)/(c*c) + ny)/rho;
-        Roe_Tinv[0][4] = (Gamma - 1.0)*Gamma*nx/(c*c*rho);
+        Roe_Tinv[1][0] = (u*nz - w*nx)/rho + (ny*(2.0*c*c - (Gamma - 1.0)*q2))/(2.0*c*c);
+        Roe_Tinv[1][1] = (u*(Gamma - 1.0)*ny)/(c*c) - nz/rho;
+        Roe_Tinv[1][2] = (v*(Gamma - 1.0)*ny)/(c*c);
+        Roe_Tinv[1][3] = (w*(Gamma - 1.0)*ny)/(c*c) + nx/rho;
+        Roe_Tinv[1][4] = -(Gamma - 1.0)*ny/(c*c);
         
-        Roe_Tinv[1][0] = (2.0*c*c*(u*nz - w*nx) + Gamma*ny*(-2.0*c*c + (Gamma - 1.0)*q2))/(2.0*c*c*rho);
-        Roe_Tinv[1][1] = -((u*(Gamma - 1.0)*Gamma*ny)/(c*c) + nz)/rho;
-        Roe_Tinv[1][2] = -(v*(Gamma - 1.0)*Gamma*ny)/(c*c*rho);
-        Roe_Tinv[1][3] = ((-w*(Gamma - 1.0)*Gamma*ny)/(c*c) + nx)/rho;
-        Roe_Tinv[1][4] = (Gamma - 1.0)*Gamma*ny/(c*c*rho);
-        
-        Roe_Tinv[2][0] = (2.0*c*c*(v*nx - u*ny) + Gamma*nz*(-2.0*c*c + (Gamma - 1.0)*q2))/(2.0*c*c*rho);
-        Roe_Tinv[2][1] = ((-u*(Gamma - 1.0)*Gamma*nz)/(c*c) + ny)/rho;
-        Roe_Tinv[2][2] = -((v*(Gamma - 1.0)*Gamma*nz)/(c*c) + nx)/rho;
-        Roe_Tinv[2][3] = -(w*(Gamma - 1.0)*Gamma*nz)/(c*c*rho);
-        Roe_Tinv[2][4] = (Gamma - 1.0)*Gamma*nz/(c*c*rho);
+        Roe_Tinv[2][0] = (v*nx - u*ny)/rho + (nz*(2.0*c*c - (Gamma - 1.0)*q2))/(2.0*c*c);
+        Roe_Tinv[2][1] = (u*(Gamma - 1.0)*nz)/(c*c) + ny/rho;
+        Roe_Tinv[2][2] = (v*(Gamma - 1.0)*nz)/(c*c) - nx/rho;
+        Roe_Tinv[2][3] = (w*(Gamma - 1.0)*nz)/(c*c);
+        Roe_Tinv[2][4] = -(Gamma - 1.0)*nz/(c*c);
         
         Roe_Tinv[3][0] = ((Gamma - 1.0)*q2 - ubar*zeta)/(2.0*rho*alpha);
         Roe_Tinv[3][1] = (-2.0*u*(Gamma - 1.0) + nx*zeta)/(2.0*rho*alpha);
@@ -1251,6 +2660,8 @@ void Compute_RoeFlux_CecileVoizat_Old(int node_L, int node_R, Vector3D areavec, 
         Roe_Tinv[4][3] = (-2.0*w*(Gamma - 1.0) - nz*beta)/(2.0*rho*alpha);
         Roe_Tinv[4][4] = (Gamma - 1.0)/(rho*alpha);
         
+        // STEP 6:
+        // Compute the Dissipation Flux
         // Tmp => P = |Lambda|*Tinv
         MC_Matrix_Mul_Matrix(5, 5, Roe_Eigen, Roe_Tinv, Roe_P);
 
@@ -1260,24 +2671,25 @@ void Compute_RoeFlux_CecileVoizat_Old(int node_L, int node_R, Vector3D areavec, 
         // Compute |A|*dQ
         MC_Matrix_Mul_Vector(5, 5, Roe_A, Roe_dQ, Roe_fluxA);
         
+        // STEP 7:
         // Compute the Flux_Roe_Conv and Flux_Roe_Diss
         for (i = 0; i < NEQUATIONS; i++) {
             Flux_Roe_Conv[i] = 0.5*(Roe_flux_L[i] + Roe_flux_R[i])*area;
-            Flux_Roe_Diss[i] = 0.5*Roe_fluxA[i]*area;
+            Flux_Roe_Diss[i] = -0.5*Roe_fluxA[i]*area;
         }
     } else
         error("Compute_RoeFlux_CecileVoizat: Invalid Node - %d", node_L);
 }
 
 //------------------------------------------------------------------------------
-//! Compute Roe Flux with Cecile Voizat Pre-Conditioner
+//! Compute Roe Flux with Briley Taylor Whitfield Pre-Conditioner
 //------------------------------------------------------------------------------
-void Compute_RoeFlux_CecileVoizat(int node_L, int node_R, Vector3D areavec, double *Flux_Roe_Conv, double *Flux_Roe_Diss) {
-    int i;
-    double rho_L, u_L, v_L, w_L, rhoet_L, p_L, c_L, ht_L, ubar_L;
-    double rho_R, u_R, v_R, w_R, rhoet_R, p_R, c_R, ht_R, ubar_R;
-    double rho, u, v, w, ht, c, phi, ubar;
-    double sigma, area, nx, ny, nz;
+void Compute_RoeFlux_Precondition_BTW(int node_L, int node_R, Vector3D areavec, double *Flux_Roe_Conv, double *Flux_Roe_Diss, int AddTime) {
+    int i, AvgType;
+    double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
+    double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
+    double rho, u, v, w, ht, c, phi, ubar, q2, mach;
+    double sigma, area, nx, ny, nz, maxlambda;
     
     // Initialization
     for (i = 0; i < NEQUATIONS; i++)
@@ -1296,7 +2708,7 @@ void Compute_RoeFlux_CecileVoizat(int node_L, int node_R, Vector3D areavec, doub
         // Internal Nodes
         if (node_R < nNode) {
             // Make Solution Second Order
-            if (Order == 2) {
+            if (Order == SOLVER_ORDER_SECOND) {
                 Compute_SecondOrderReconstructQ(node_L, node_R, Roe_Q_L, Roe_Q_R);
             } else {
                 Roe_Q_L[0] = Q1[node_L];
@@ -1328,34 +2740,16 @@ void Compute_RoeFlux_CecileVoizat(int node_L, int node_R, Vector3D areavec, doub
             Roe_Q_R[4] = Q5[node_R];
         }
         
-        // Left Node
-        rho_L   = Roe_Q_L[0];
-        u_L     = Roe_Q_L[1] / rho_L;
-        v_L     = Roe_Q_L[2] / rho_L;
-        w_L     = Roe_Q_L[3] / rho_L;
-        rhoet_L = Roe_Q_L[4];
-        p_L     = (Gamma - 1.0)*(rhoet_L - 0.5*rho_L*(u_L*u_L + v_L*v_L + w_L*w_L)) + Gauge_Pressure;
-        ht_L    = (rhoet_L + p_L)/rho_L;
-        c_L     = sqrt((Gamma * p_L) / rho_L);
-        ubar_L  = u_L*nx + v_L*ny + w_L*nz;
-
+        // Compute Equation of State
+        Compute_EOS_Variables_Face(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
+        Compute_EOS_Variables_Face(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+        
         // Compute flux_L
         Roe_flux_L[0] = rho_L*ubar_L;
         Roe_flux_L[1] =   u_L*Roe_flux_L[0] + p_L*nx;
         Roe_flux_L[2] =   v_L*Roe_flux_L[0] + p_L*ny;
         Roe_flux_L[3] =   w_L*Roe_flux_L[0] + p_L*nz;
         Roe_flux_L[4] =  ht_L*Roe_flux_L[0];
-        
-        // Right Node
-        rho_R   = Roe_Q_R[0];
-        u_R     = Roe_Q_R[1] / rho_R;
-        v_R     = Roe_Q_R[2] / rho_R;
-        w_R     = Roe_Q_R[3] / rho_R;
-        rhoet_R = Roe_Q_R[4];
-        p_R     = (Gamma - 1.0)*(rhoet_R - 0.5*rho_R*(u_R*u_R + v_R*v_R + w_R*w_R)) + Gauge_Pressure;
-        ht_R    = (rhoet_R + p_R)/rho_R;
-        c_R     = sqrt((Gamma * p_R) / rho_R);
-        ubar_R  = u_R*nx + v_R*ny + w_R*nz;
         
         // Compute flux_R
         Roe_flux_R[0] = rho_R*ubar_R;
@@ -1364,177 +2758,870 @@ void Compute_RoeFlux_CecileVoizat(int node_L, int node_R, Vector3D areavec, doub
         Roe_flux_R[3] =   w_R*Roe_flux_R[0] + p_R*nz;
         Roe_flux_R[4] =  ht_R*Roe_flux_R[0];
         
-        // ROE AVERAGE VARIABLES
-        rho   = sqrt(rho_R * rho_L);
-        sigma = rho/(rho_L + rho);
-        u     = u_L  + sigma*(u_R  - u_L);
-        v     = v_L  + sigma*(v_R  - v_L);
-        w     = w_L  + sigma*(w_R  - w_L);
-        ht    = ht_L + sigma*(ht_R - ht_L);
-        phi  = 0.5*(Gamma - 1.0)*(u*u + v*v + w*w);
-        c    = (Gamma - 1.0)*ht - phi;
-        c    = sqrt(c);
+        AvgType = 0;
+        if (AvgType == 1) {
+            // ROE AVERAGE VARIABLES
+            rho   = sqrt(rho_R * rho_L);
+            sigma = rho/(rho_L + rho);
+            u     = u_L  + sigma*(u_R  - u_L);
+            v     = v_L  + sigma*(v_R  - v_L);
+            w     = w_L  + sigma*(w_R  - w_L);
+            ht    = ht_L + sigma*(ht_R - ht_L);
+        } else {
+            // SIMPLE AVERAGE VARIABLES
+            rho   = 0.5*(rho_R + rho_L);
+            u     = 0.5*(u_R  + u_L);
+            v     = 0.5*(v_R  + v_L);
+            w     = 0.5*(w_R  + w_L);
+            ht    = 0.5*(ht_R + ht_L);
+        }
+        q2   = u*u + v*v + w*w;
+        phi  = 0.5*(Gamma - 1.0)*q2;
         ubar = u*nx + v*ny + w*nz;
+        c    = 0.0;
+        switch (NonDimensional_Type) {
+            case NONDIMENSIONAL_GENERIC:
+                c = (Gamma - 1.0)*ht - phi;
+                if (c < 0.0 && SolverIteration < 2000)
+                    c = fabs(c);
+                c = sqrt(c);
+                break;
+            case NONDIMENSIONAL_BTW:
+                c = ht/(Ref_Mach*Ref_Mach) - phi;
+                if (c < 0.0 && SolverIteration < 2000)
+                    c = fabs(c);
+                c = sqrt(c);
+                break;
+            case NONDIMENSIONAL_LMROE:
+                c = (Gamma - 1.0)*ht - phi;
+                c = sqrt(c);
+                break;
+            default:
+                error("Compute_RoeFlux_Precondition_BTW: Undefined Non-Dimensional Type - %d -1", NonDimensional_Type);
+                break;
+        }
+        mach = sqrt(q2)/c;
+        
+        if (isnan(c))
+            printf("Hell %10.5e\n", ubar);
         
         // Compute dQ
-        Roe_dQ[0] = Roe_Q_R[0] - Roe_Q_L[0];
-        Roe_dQ[1] = Roe_Q_R[1] - Roe_Q_L[1];
-        Roe_dQ[2] = Roe_Q_R[2] - Roe_Q_L[2];
-        Roe_dQ[3] = Roe_Q_R[3] - Roe_Q_L[3];
-        Roe_dQ[4] = Roe_Q_R[4] - Roe_Q_L[4];
+        // Conservative Variable Formulation
+        if (Variable_Type == VARIABLE_CONSERVATIVE) {
+            Roe_dQ[0] = Roe_Q_R[0] - Roe_Q_L[0];
+            Roe_dQ[1] = Roe_Q_R[1] - Roe_Q_L[1];
+            Roe_dQ[2] = Roe_Q_R[2] - Roe_Q_L[2];
+            Roe_dQ[3] = Roe_Q_R[3] - Roe_Q_L[3];
+            Roe_dQ[4] = Roe_Q_R[4] - Roe_Q_L[4];
+        }
+        // Primitive Variable Formulation
+        if (Variable_Type == VARIABLE_PRIMITIVE_PUT || Variable_Type == VARIABLE_PRIMITIVE_RUP) {
+            Roe_dQ[0] = rho_R      - rho_L;
+            Roe_dQ[1] = rho_R*u_R  - rho_L*u_L;
+            Roe_dQ[2] = rho_R*v_R  - rho_L*v_L;
+            Roe_dQ[3] = rho_R*w_R  - rho_L*w_L;
+            Roe_dQ[4] = rho_R*et_R - rho_L*et_L;
+        }
+        
+        // Compute dw
+        // Primitive Variable Formulation Pressure Velocity Temperature
+        if (Variable_Type == VARIABLE_PRIMITIVE_PUT) {
+            Roe_dw[0] = p_R - p_L;
+            Roe_dw[1] = u_R - u_L;
+            Roe_dw[2] = v_R - v_L;
+            Roe_dw[3] = w_R - w_L;
+            Roe_dw[4] = T_R - T_L;
+        }
+        // Primitive Variable Formulation Density Velocity Pressure
+        if (Variable_Type == VARIABLE_PRIMITIVE_RUP) {
+            Roe_dw[0] = rho_R - rho_L;
+            Roe_dw[1] = u_R   - u_L;
+            Roe_dw[2] = v_R   - v_L;
+            Roe_dw[3] = w_R   - w_L;
+            Roe_dw[4] = p_R   - p_L;
+        }
         
         int nid;
-        double alpha, beta, zeta, q2;
-        double lc, lp, dp_L, dp_R, dp, lmach_L, lmach_R, lmach;
+        double lQ[NEQUATIONS];
+        double tau, omega, beta, beta_m, beta_p;
+        double chi_m, chi_p, psi_m, psi_p;
+        double lrho, lu, lv, lw, lp, lT, lc, lht, let, lq2, lmach;
+        double dp_L, dp_R, lmach_L, lmach_R;
+        double dp_max, mach_max;
         
-        // Set the precondition parameters
-        q2   = u*u + v*v + w*w;
-        //sigma = MIN(1.0, MAX(Inf_Mach, sqrt(q2)/c));
-        dp_L = dp_R = 0.0;
-        lmach_L = lmach_R = 0.0;
-        for (i = crs_IA_Node2Node[node_L]; i < crs_IA_Node2Node[node_L+1]; i++) {
-            nid     = crs_JA_Node2Node[i];
-            lp      = (Gamma - 1.0)*(Q5[nid] - 0.5*(Q2[nid]*Q2[nid] + Q3[nid]*Q3[nid] + Q4[nid]*Q4[nid])/Q1[nid]) + Gauge_Pressure;
-            lc      = sqrt((Gamma * lp) / Q1[nid]);
-            lmach_L = MAX(lmach_L, sqrt((Q2[nid]*Q2[nid] + Q3[nid]*Q3[nid] + Q4[nid]*Q4[nid])/(Q1[nid]*Q1[nid]))/lc);
-            dp_L    = MAX(dp_L, fabs(p_L - lp));
-        }
-        dp    = dp_L;
-        lmach = lmach_L;
-        // Check if Right Node is not a Ghost Boundary Node
-        if (node_R < nNode) {
-            for (i = crs_IA_Node2Node[node_R]; i < crs_IA_Node2Node[node_R+1]; i++) {
-                nid  = crs_JA_Node2Node[i];
-                lp      = (Gamma - 1.0)*(Q5[nid] - 0.5*(Q2[nid]*Q2[nid] + Q3[nid]*Q3[nid] + Q4[nid]*Q4[nid])/Q1[nid]) + Gauge_Pressure;
-                lc      = sqrt((Gamma * lp) / Q1[nid]);
-                lmach_R = MAX(lmach_R, sqrt((Q2[nid]*Q2[nid] + Q3[nid]*Q3[nid] + Q4[nid]*Q4[nid])/(Q1[nid]*Q1[nid]))/lc);
-                dp_R    = MAX(dp_R, fabs(p_R - lp));
+        //======================================================================
+        // Compute Precondition Dissipation Flux
+        //======================================================================
+        // STEP - 1:
+        // Compute the Local Max Mach and Max Change in Pressure around a node L and R
+        // If node R is not ghost compute average
+        dp_L     = dp_R    = 0.0;
+        lmach_L  = lmach_R = 0.0;
+        dp_max   = 0.0;
+        mach_max = 0.0;
+        mach_max = 0.0;
+        // Check if Local Precondition is Required
+        if (PrecondType == PRECOND_TYPE_LOCAL) {
+            // Check of Precondition Smooth is Required
+            if (PrecondSmooth != 0) {
+                for (i = crs_IA_Node2Node[node_L]; i < crs_IA_Node2Node[node_L+1]; i++) {
+                    nid   = crs_JA_Node2Node[i];
+                    // Get the local Q's
+                    lQ[0] = Q1[nid];
+                    lQ[1] = Q2[nid];
+                    lQ[2] = Q3[nid];
+                    lQ[3] = Q4[nid];
+                    lQ[4] = Q5[nid];
+                    // Compute Local Equation of State
+                    Compute_EOS_Variables_ControlVolume(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
+
+                    // Compute Smoothing Parameters
+                    lmach_L = MAX(lmach_L, lmach);
+                    dp_L    = MAX(dp_L, fabs(p_L - lp));
+                }
+                dp_max   = dp_L;
+                mach_max = lmach_L;
+                // Check if Right Node is not a Ghost Boundary Node
+                if (node_R < nNode) {
+                    for (i = crs_IA_Node2Node[node_R]; i < crs_IA_Node2Node[node_R+1]; i++) {
+                        nid  = crs_JA_Node2Node[i];
+                        // Get the local Q's
+                        lQ[0] = Q1[nid];
+                        lQ[1] = Q2[nid];
+                        lQ[2] = Q3[nid];
+                        lQ[3] = Q4[nid];
+                        lQ[4] = Q5[nid];
+                        // Compute Local Equation of State
+                        Compute_EOS_Variables_ControlVolume(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
+
+                        // Compute Smoothing Parameters
+                        lmach_R = MAX(lmach_R, lmach);
+                        dp_R    = MAX(dp_R, fabs(p_R - lp));
+                    }
+                    dp_max   = 0.5*(dp_L + dp_R);
+                    mach_max = 0.5*(lmach_L + lmach_R);
+                }
+            } else {
+                mach_max = MAX(mach_L, mach_R);
+                dp_max   = fabs(p_L - p_R);
             }
-            dp    = 0.5*(dp_L + dp_R);
-            lmach = 0.5*(lmach_L + lmach_R);
         }
-        sigma = MIN(1.0, MAX(MAX(MAX(1.0e-5, sqrt(q2)/c), lmach), dp/(rho*c*c)));
-        if (sqrt(q2)/c > 0.3)
-            sigma = 1.0;
         
-        alpha = ubar*ubar*(sigma*sigma*sigma*sigma - 2.0*sigma*sigma + 1.0) + 4.0*c*c*sigma*sigma;
-        alpha = sqrt(alpha);
-        beta  = (sigma*sigma - 1.0)*ubar + alpha;
-        zeta  = (1.0 - sigma*sigma)*ubar + alpha;
+        // STEP 2:
+        // Compute the required parameters
+        beta = 1.0; // Corresponds to no pre-conditioning
+        if (PrecondType == PRECOND_TYPE_LOCAL) {
+            beta = MAX(mach, mach_max);
+            if (beta < Ref_Mach) {
+                beta = MAX(5.0e-5, MAX(sqrt(1.0e-11/sqrt(q2)), sqrt(Ref_Mach*beta)));
+                beta = MIN(beta, Ref_Mach);
+            }
+            beta = MIN(1.0, beta);
+//            beta = MAX(beta, sqrt(1.0e-12/sqrt(q2)));
+//            beta = MAX(beta, 2.0*dp_max/(rho*c*c));
+//            beta = MAX(MAX(beta, 1.0e-5), 0.01*Ref_Mach);
+//            beta = MIN(1.0, MIN(beta, Ref_Mach));
+//            if (beta > 0.7) {
+//                beta = 1.0;
+//            } else {
+//                beta = 2.0*beta*beta;
+//                beta = beta/(1.0 - beta);
+//                beta = sqrt(beta/(1 + (Gamma - 1.0)*beta));
+//            }
+            if (node_L < nNode && node_R < nNode) {
+                PrecondSigma[node_L] += beta;
+                PrecondSigma[node_R] += beta;
+            }
+        }
+        if (PrecondType == PRECOND_TYPE_GLOBAL)
+            beta = MIN(1.0, Ref_Mach);
         
+        beta   = beta*beta;
+        beta_m = 0.5*(1.0 - beta);
+        beta_p = 0.5*(1.0 + beta);
+        tau    = beta*c*c;
+        sigma  = sqrt(ubar*ubar*beta_m*beta_m + tau);
+        chi_m  = ubar*beta_m - sigma;
+        chi_p  = ubar*beta_m + sigma;
+        omega  = 2.0*ubar*rho*beta_m/tau;
+        psi_m  = 0.5*chi_m/sigma;
+        psi_p  = 0.5*chi_p/sigma;
+        
+        // STEP 3:
         // Compute the Eigenvalues of the Precondition Dissipation Term |Lambda|
         Roe_Eigen[0][0] = fabs(ubar);
         Roe_Eigen[1][1] = Roe_Eigen[0][0];
         Roe_Eigen[2][2] = Roe_Eigen[0][0];
-        Roe_Eigen[3][3] = fabs(0.5*(ubar + sigma*sigma*ubar + alpha));
-        Roe_Eigen[4][4] = fabs(0.5*(ubar + sigma*sigma*ubar - alpha));
+        Roe_Eigen[3][3] = fabs(ubar*beta_p + sigma);
+        Roe_Eigen[4][4] = fabs(ubar*beta_p - sigma);
         
-        // Compute T = M3.P
-        Roe_T[0][0] = -rho*nx/Gamma;
-        Roe_T[0][1] = -rho*ny/Gamma;
-        Roe_T[0][2] = -rho*nz/Gamma;
-        Roe_T[0][3] = 2.0*rho*sigma*sigma/zeta;
-        Roe_T[0][4] = 2.0*rho*sigma*sigma/beta;
+        // Add to Time only if Required
+        if (AddTime == TRUE) {
+            // Min and Max EigenValue Value
+            MinEigenLamda1 = MIN(MinEigenLamda1, Roe_Eigen[0][0]);
+            MaxEigenLamda1 = MAX(MaxEigenLamda1, Roe_Eigen[0][0]);
+            MinEigenLamda4 = MIN(MinEigenLamda4, Roe_Eigen[3][3]);
+            MaxEigenLamda4 = MAX(MaxEigenLamda4, Roe_Eigen[3][3]);
+            MinEigenLamda5 = MIN(MinEigenLamda5, Roe_Eigen[4][4]);
+            MaxEigenLamda5 = MAX(MaxEigenLamda5, Roe_Eigen[4][4]);
+
+            // Min and Max Precondition Variable
+            MinPrecondSigma = MIN(MinPrecondSigma, sqrt(beta));
+            MaxPrecondSigma = MAX(MaxPrecondSigma, sqrt(beta));
+
+            // Time Computation : Add Max Eigenvalue
+            maxlambda = MAX(Roe_Eigen[0][0], MAX(Roe_Eigen[3][3], Roe_Eigen[4][4]));
+            DeltaT[node_L] += area*maxlambda;
+            if (node_R < nNode)
+                DeltaT[node_R] += area*maxlambda;
+        }
         
-        Roe_T[1][0] = -u*rho*nx/Gamma;
-        Roe_T[1][1] = -rho*(u*ny + Gamma*nz)/Gamma;
-        Roe_T[1][2] = rho*(ny - u*nz/Gamma);
-        Roe_T[1][3] = rho*(nx + 2.0*u*sigma*sigma/zeta);
-        Roe_T[1][4] = rho*(-nx + 2.0*u*sigma*sigma/beta);
+        // Computations for Variable Relaxation Residual Smoothing
+        if (ResidualSmoothType == RESIDUAL_SMOOTH_IMPLICIT) {
+            maxlambda = MAX(Roe_Eigen[0][0], MAX(Roe_Eigen[3][3], Roe_Eigen[4][4]));
+            for (i = crs_IA_Node2Node[node_L]; i < crs_IA_Node2Node[node_L + 1]; i++) {
+                // Get the Node ID and Match with node_R
+                if (crs_JA_Node2Node[i] == node_R) {
+                    RM_MaxEigenValue[i] = maxlambda*area;
+                    break;
+                }
+            }
+            RM_SumMaxEigenValue[node_L] += maxlambda*area;
+            // Only Physical Nodes
+            if (node_R < nNode) {
+                for (i = crs_IA_Node2Node[node_R]; i < crs_IA_Node2Node[node_R + 1]; i++) {
+                    // Get the Node ID and Match with node_L
+                    if (crs_JA_Node2Node[i] == node_L) {
+                        RM_MaxEigenValue[i] = maxlambda*area;
+                        break;
+                    }
+                }
+                RM_SumMaxEigenValue[node_R] += maxlambda*area;
+            }
+        }
         
-        Roe_T[2][0] = rho*(-v*nx/Gamma + nz);
-        Roe_T[2][1] = -v*rho*ny/Gamma;
-        Roe_T[2][2] = -rho*(Gamma*nx + v*nz)/Gamma;
-        Roe_T[2][3] = rho*(ny + 2.0*v*sigma*sigma/zeta);
-        Roe_T[2][4] = rho*(-ny + 2.0*v*sigma*sigma/beta);
+        // STEP 4:
+        // Marco Modification
+        if (PrecondMethod == SOLVER_PRECOND_ROE_BTW) {
+            // Compute Tmod_g = R
+            Roe_T[0][0] =  nx;
+            Roe_T[0][1] =  ny;
+            Roe_T[0][2] =  nz;
+            Roe_T[0][3] =  (rho*chi_p)/tau;
+            Roe_T[0][4] = -(rho*chi_m)/tau;
+
+            Roe_T[1][0] =  0.0;
+            Roe_T[1][1] = -nz;
+            Roe_T[1][2] =  ny;
+            Roe_T[1][3] =  nx;
+            Roe_T[1][4] = -nx;
+
+            Roe_T[2][0] =  nz;
+            Roe_T[2][1] =  0.0;
+            Roe_T[2][2] = -nx;
+            Roe_T[2][3] =  ny;
+            Roe_T[2][4] = -ny;
+
+            Roe_T[3][0] = -ny;
+            Roe_T[3][1] =  nx;
+            Roe_T[3][2] =  0.0;
+            Roe_T[3][3] =  nz;
+            Roe_T[3][4] = -nz;
+
+            Roe_T[4][0] =  0.0;
+            Roe_T[4][1] =  0.0;
+            Roe_T[4][2] =  0.0;
+            Roe_T[4][3] = -rho*chi_m;
+            Roe_T[4][4] =  rho*chi_p;
+        }
         
-        Roe_T[3][0] = -rho*(w*nx + Gamma*ny)/Gamma;
-        Roe_T[3][1] = rho*(nx - w*ny/Gamma);
-        Roe_T[3][2] = -w*rho*nz/Gamma;
-        Roe_T[3][3] = rho*(nz+ 2.0*w*sigma*sigma/zeta);
-        Roe_T[3][4] = rho*(-nz + 2.0*w*sigma*sigma/beta);
+        // Original
+        if (PrecondMethod == SOLVER_PRECOND_ROE_BTW_ORIGINAL) {
+            // Compute T_g = M1.Sinv.R
+            Roe_T[0][0] =  nx;
+            Roe_T[0][1] =  ny;
+            Roe_T[0][2] =  nz;
+            Roe_T[0][3] =  (rho*chi_p)/tau;
+            Roe_T[0][4] = -(rho*chi_m)/tau;
+
+            Roe_T[1][0] =  u*nx;
+            Roe_T[1][1] =  u*ny - rho*nz;
+            Roe_T[1][2] =  rho*ny + u*nz;
+            Roe_T[1][3] =  rho*((u*chi_p)/tau + nx);
+            Roe_T[1][4] = -rho*((u*chi_m)/tau + nx);
+
+            Roe_T[2][0] =  v*nx + rho*nz;
+            Roe_T[2][1] =  v*ny;
+            Roe_T[2][2] = -rho*nx + v*nz;
+            Roe_T[2][3] =  rho*((v*chi_p)/tau + ny);
+            Roe_T[2][4] = -rho*((v*chi_m)/tau + ny);
+
+            Roe_T[3][0] =  w*nx - rho*ny;
+            Roe_T[3][1] =  rho*nx + w*ny;
+            Roe_T[3][2] =  w*nz;
+            Roe_T[3][3] =  rho*((w*chi_p)/tau + nz);
+            Roe_T[3][4] = -rho*((w*chi_m)/tau + nz);
+
+            switch (NonDimensional_Type) {
+                case NONDIMENSIONAL_GENERIC:
+                    Roe_T[4][0] = -w*rho*ny + v*rho*nz + 0.5*nx*q2;
+                    Roe_T[4][1] =  w*rho*nx - u*rho*nz + 0.5*ny*q2;
+                    Roe_T[4][2] = -v*rho*nx + u*rho*ny + 0.5*nz*q2;
+                    Roe_T[4][3] =  rho*(ubar + (0.5*q2*chi_p)/tau - chi_m/(beta*(Gamma - 1.0)));
+                    Roe_T[4][4] =  rho*(chi_p/(beta*(Gamma - 1.0)) - ubar - (0.5*q2*chi_m)/tau);
+                    break;
+                case NONDIMENSIONAL_BTW:
+                    Roe_T[4][0] =  0.5*(Gamma - 1.0)*Ref_Mach*Ref_Mach*(-2.0*w*rho*ny + 2.0*v*rho*nz + nx*q2);
+                    Roe_T[4][1] =  0.5*(Gamma - 1.0)*Ref_Mach*Ref_Mach*( 2.0*w*rho*nx - 2.0*u*rho*nz + ny*q2);
+                    Roe_T[4][2] =  0.5*(Gamma - 1.0)*Ref_Mach*Ref_Mach*(-2.0*v*rho*nx + 2.0*u*rho*ny + nz*q2);
+                    Roe_T[4][3] =  0.5*rho*Ref_Mach*Ref_Mach*((Gamma - 1.0)*(2.0*ubar + (q2*chi_p)/tau) - (2.0*chi_m)/beta);
+                    Roe_T[4][4] =  0.5*rho*Ref_Mach*Ref_Mach*((2.0*chi_p)/beta - (Gamma - 1.0)*(2.0*ubar + (q2*chi_m)/tau));
+                    break;
+                case NONDIMENSIONAL_LMROE:
+                    Roe_T[4][0] = -w*rho*ny + v*rho*nz + 0.5*nx*q2;
+                    Roe_T[4][1] =  w*rho*nx - u*rho*nz + 0.5*ny*q2;
+                    Roe_T[4][2] = -v*rho*nx + u*rho*ny + 0.5*nz*q2;
+                    Roe_T[4][3] =  rho*(ubar + (0.5*q2*chi_p)/tau - chi_m/(beta*(Gamma - 1.0)));
+                    Roe_T[4][4] =  rho*(chi_p/(beta*(Gamma - 1.0)) - ubar - (0.5*q2*chi_m)/tau);
+                    break;
+                default:
+                    error("Compute_RoeFlux_Precondition_BTW: Undefined Non-Dimensional Type - %d -2", NonDimensional_Type);
+                    break;
+            }
+        }
         
-        Roe_T[4][0] = -w*rho*ny + v*rho*nz - rho*nx*q2/(2.0*Gamma);
-        Roe_T[4][1] =  w*rho*nx - u*rho*nz - rho*ny*q2/(2.0*Gamma);
-        Roe_T[4][2] = -v*rho*nx + u*rho*ny - rho*nz*q2/(2.0*Gamma);
-        Roe_T[4][3] = rho*(ubar + sigma*sigma*(2.0*c*c + (Gamma - 1.0)*q2)/((Gamma - 1.0)*zeta));
-        Roe_T[4][4] = rho*(-ubar + sigma*sigma*(2.0*c*c + (Gamma - 1.0)*q2)/((Gamma - 1.0)*beta));
+        // STEP 5:
+        // Marco Modification or Original
+        if (PrecondMethod == SOLVER_PRECOND_ROE_BTW || PrecondMethod == SOLVER_PRECOND_ROE_BTW_ORIGINAL) {
+            // Compute T_d = Rinv
+            Roe_Tinv[0][0] =  nx;
+            Roe_Tinv[0][1] = -omega*nx*nx;
+            Roe_Tinv[0][2] = -omega*nx*ny + nz;
+            Roe_Tinv[0][3] = -omega*nx*nz - ny;
+            Roe_Tinv[0][4] = -nx/tau;
+
+            Roe_Tinv[1][0] =  ny;
+            Roe_Tinv[1][1] = -omega*ny*nx - nz;
+            Roe_Tinv[1][2] = -omega*ny*ny;
+            Roe_Tinv[1][3] = -omega*ny*nz + nx;
+            Roe_Tinv[1][4] = -ny/tau;
+
+            Roe_Tinv[2][0] =  nz;
+            Roe_Tinv[2][1] = -omega*nz*nx + ny;
+            Roe_Tinv[2][2] = -omega*nz*ny - nx;
+            Roe_Tinv[2][3] = -omega*nz*nz;
+            Roe_Tinv[2][4] = -nz/tau;
+
+            Roe_Tinv[3][0] = 0.0;
+            Roe_Tinv[3][1] = nx*psi_p;
+            Roe_Tinv[3][2] = ny*psi_p;
+            Roe_Tinv[3][3] = nz*psi_p;
+            Roe_Tinv[3][4] = 1.0/(2.0*rho*sigma);
+
+            Roe_Tinv[4][0] = 0.0;
+            Roe_Tinv[4][1] = nx*psi_m;
+            Roe_Tinv[4][2] = ny*psi_m;
+            Roe_Tinv[4][3] = nz*psi_m;
+            Roe_Tinv[4][4] = 1.0/(2.0*rho*sigma);
+        }
         
-        // Compute Tinv = Pinv.M3inv
-        Roe_Tinv[0][0] = (2.0*c*c*(w*ny - v*nz) + Gamma*nx*(-2.0*c*c + (Gamma - 1.0)*q2))/(2.0*c*c*rho);
-        Roe_Tinv[0][1] = -(u*(Gamma - 1.0)*Gamma*nx)/(c*c*rho);
-        Roe_Tinv[0][2] = ((-v*(Gamma - 1.0)*Gamma*nx)/(c*c) + nz)/rho;
-        Roe_Tinv[0][3] = -((w*(Gamma - 1.0)*Gamma*nx)/(c*c) + ny)/rho;
-        Roe_Tinv[0][4] = (Gamma - 1.0)*Gamma*nx/(c*c*rho);
-        
-        Roe_Tinv[1][0] = (2.0*c*c*(u*nz - w*nx) + Gamma*ny*(-2.0*c*c + (Gamma - 1.0)*q2))/(2.0*c*c*rho);
-        Roe_Tinv[1][1] = -((u*(Gamma - 1.0)*Gamma*ny)/(c*c) + nz)/rho;
-        Roe_Tinv[1][2] = -(v*(Gamma - 1.0)*Gamma*ny)/(c*c*rho);
-        Roe_Tinv[1][3] = ((-w*(Gamma - 1.0)*Gamma*ny)/(c*c) + nx)/rho;
-        Roe_Tinv[1][4] = (Gamma - 1.0)*Gamma*ny/(c*c*rho);
-        
-        Roe_Tinv[2][0] = (2.0*c*c*(v*nx - u*ny) + Gamma*nz*(-2.0*c*c + (Gamma - 1.0)*q2))/(2.0*c*c*rho);
-        Roe_Tinv[2][1] = ((-u*(Gamma - 1.0)*Gamma*nz)/(c*c) + ny)/rho;
-        Roe_Tinv[2][2] = -((v*(Gamma - 1.0)*Gamma*nz)/(c*c) + nx)/rho;
-        Roe_Tinv[2][3] = -(w*(Gamma - 1.0)*Gamma*nz)/(c*c*rho);
-        Roe_Tinv[2][4] = (Gamma - 1.0)*Gamma*nz/(c*c*rho);
-        
-        Roe_Tinv[3][0] = ((Gamma - 1.0)*q2 - ubar*zeta)/(2.0*rho*alpha);
-        Roe_Tinv[3][1] = (-2.0*u*(Gamma - 1.0) + nx*zeta)/(2.0*rho*alpha);
-        Roe_Tinv[3][2] = (-2.0*v*(Gamma - 1.0) + ny*zeta)/(2.0*rho*alpha);
-        Roe_Tinv[3][3] = (-2.0*w*(Gamma - 1.0) + nz*zeta)/(2.0*rho*alpha);
-        Roe_Tinv[3][4] = (Gamma - 1.0)/(rho*alpha);
-        
-        Roe_Tinv[4][0] = ((Gamma - 1.0)*q2 + ubar*beta)/(2.0*rho*alpha);
-        Roe_Tinv[4][1] = (-2.0*u*(Gamma - 1.0) - nx*beta)/(2.0*rho*alpha);
-        Roe_Tinv[4][2] = (-2.0*v*(Gamma - 1.0) - ny*beta)/(2.0*rho*alpha);
-        Roe_Tinv[4][3] = (-2.0*w*(Gamma - 1.0) - nz*beta)/(2.0*rho*alpha);
-        Roe_Tinv[4][4] = (Gamma - 1.0)/(rho*alpha);
-        
-        // Tmp => P = |Lambda|*Tinv
+        // STEP 6:
+        // Compute the Dissipation Flux
+        // Tmp => P = |Lambda|*Rinv
         MC_Matrix_Mul_Matrix(5, 5, Roe_Eigen, Roe_Tinv, Roe_P);
 
-        // Get Matrix |A| = T*|Lambda|*Tinv
+        // Compute |A| = R*|Lambda|*Rinv
         MC_Matrix_Mul_Matrix(5, 5, Roe_T, Roe_P, Roe_A);
 
-        // Compute |A|*dQ
-        MC_Matrix_Mul_Vector(5, 5, Roe_A, Roe_dQ, Roe_fluxA);
+        // Compute |A|*dw
+        MC_Matrix_Mul_Vector(5, 5, Roe_A, Roe_dw, Roe_fluxA);
         
-        // Compute the Flux_Roe_Conv and Flux_Roe_Diss
+        // STEP 7:
+        // Compute the Convective Flux and Dissipative Flux
         for (i = 0; i < NEQUATIONS; i++) {
             Flux_Roe_Conv[i] = 0.5*(Roe_flux_L[i] + Roe_flux_R[i])*area;
-            Flux_Roe_Diss[i] = 0.5*Roe_fluxA[i]*area;
+            Flux_Roe_Diss[i] = -0.5*Roe_fluxA[i]*area;
         }
     } else
-        error("Compute_RoeFlux_CecileVoizat: Invalid Node - %d", node_L);
+        error("Compute_RoeFlux_Precondition_BTW: Invalid Node - %d", node_L);
+}
+
+//------------------------------------------------------------------------------
+//! Compute Roe Flux with Eriksson Pre-Conditioner
+//------------------------------------------------------------------------------
+void Compute_RoeFlux_Precondition_ERIKSSON(int node_L, int node_R, Vector3D areavec, double *Flux_Roe_Conv, double *Flux_Roe_Diss, int AddTime) {
+    int i, AvgType;
+    double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
+    double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
+    double rho, u, v, w, ht, c, phi, ubar, q2, mach;
+    double sigma, area, nx, ny, nz, maxlambda;
+    
+    // Initialization
+    for (i = 0; i < NEQUATIONS; i++)
+        Flux_Roe_Conv[i] = Flux_Roe_Diss[i] = 0.0;
+    Roe_Reset();
+    
+    // Only for Physical Nodes
+    if (node_L < nNode) {
+        // Get area vector
+        area = areavec.magnitude();
+        areavec.normalize();
+        nx = areavec.vec[0];
+        ny = areavec.vec[1];
+        nz = areavec.vec[2];
+        
+        // Internal Nodes
+        if (node_R < nNode) {
+            // Make Solution Second Order
+            if (Order == SOLVER_ORDER_SECOND) {
+                Compute_SecondOrderReconstructQ(node_L, node_R, Roe_Q_L, Roe_Q_R);
+            } else {
+                Roe_Q_L[0] = Q1[node_L];
+                Roe_Q_L[1] = Q2[node_L];
+                Roe_Q_L[2] = Q3[node_L];
+                Roe_Q_L[3] = Q4[node_L];
+                Roe_Q_L[4] = Q5[node_L];
+                Roe_Q_R[0] = Q1[node_R];
+                Roe_Q_R[1] = Q2[node_R];
+                Roe_Q_R[2] = Q3[node_R];
+                Roe_Q_R[3] = Q4[node_R];
+                Roe_Q_R[4] = Q5[node_R];
+            }
+        } else { // Boundary and Ghost Node
+            // Make Solution Second Order
+            // Note: Boundary Residual cannot be made second order
+            // because node_R is ghost node with no physical coordinates value
+            // Hence boundary residual always remains first order
+            // Ghost Edge always remains first order
+            Roe_Q_L[0] = Q1[node_L];
+            Roe_Q_L[1] = Q2[node_L];
+            Roe_Q_L[2] = Q3[node_L];
+            Roe_Q_L[3] = Q4[node_L];
+            Roe_Q_L[4] = Q5[node_L];
+            Roe_Q_R[0] = Q1[node_R];
+            Roe_Q_R[1] = Q2[node_R];
+            Roe_Q_R[2] = Q3[node_R];
+            Roe_Q_R[3] = Q4[node_R];
+            Roe_Q_R[4] = Q5[node_R];
+        }
+        
+        // Compute Equation of State
+        Compute_EOS_Variables_Face(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
+        Compute_EOS_Variables_Face(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+        
+        // Compute flux_L
+        Roe_flux_L[0] = rho_L*ubar_L;
+        Roe_flux_L[1] =   u_L*Roe_flux_L[0] + p_L*nx;
+        Roe_flux_L[2] =   v_L*Roe_flux_L[0] + p_L*ny;
+        Roe_flux_L[3] =   w_L*Roe_flux_L[0] + p_L*nz;
+        Roe_flux_L[4] =  ht_L*Roe_flux_L[0];
+        
+        // Compute flux_R
+        Roe_flux_R[0] = rho_R*ubar_R;
+        Roe_flux_R[1] =   u_R*Roe_flux_R[0] + p_R*nx;
+        Roe_flux_R[2] =   v_R*Roe_flux_R[0] + p_R*ny;
+        Roe_flux_R[3] =   w_R*Roe_flux_R[0] + p_R*nz;
+        Roe_flux_R[4] =  ht_R*Roe_flux_R[0];
+        
+        AvgType = 1;
+        if (AvgType == 1) {
+            // ROE AVERAGE VARIABLES
+            rho   = sqrt(rho_R * rho_L);
+            sigma = rho/(rho_L + rho);
+            u     = u_L  + sigma*(u_R  - u_L);
+            v     = v_L  + sigma*(v_R  - v_L);
+            w     = w_L  + sigma*(w_R  - w_L);
+            ht    = ht_L + sigma*(ht_R - ht_L);
+        } else {
+            // SIMPLE AVERAGE VARIABLES
+            rho   = 0.5*(rho_R + rho_L);
+            u     = 0.5*(u_R  + u_L);
+            v     = 0.5*(v_R  + v_L);
+            w     = 0.5*(w_R  + w_L);
+            ht    = 0.5*(ht_R + ht_L);
+        }
+        q2   = u*u + v*v + w*w;
+        phi  = 0.5*(Gamma - 1.0)*q2;
+        ubar = u*nx + v*ny + w*nz;
+        c    = 0.0;
+        switch (NonDimensional_Type) {
+            case NONDIMENSIONAL_GENERIC:
+                c = (Gamma - 1.0)*ht - phi;
+                if (c < 0.0 && SolverIteration < 2000)
+                    c = fabs(c);
+                c = sqrt(c);
+                break;
+            case NONDIMENSIONAL_BTW:
+                c = ht/(Ref_Mach*Ref_Mach) - phi;
+                if (c < 0.0 && SolverIteration < 2000)
+                    c = fabs(c);
+                c = sqrt(c);
+                break;
+            case NONDIMENSIONAL_LMROE:
+                c = (Gamma - 1.0)*ht - phi;
+                c = sqrt(c);
+                break;
+            default:
+                error("Compute_RoeFlux_Precondition_ERIKSSON: Undefined Non-Dimensional Type - %d -1", NonDimensional_Type);
+                break;
+        }
+        mach = sqrt(q2)/c;
+        
+        if (isnan(c))
+            printf("Hell %10.5e\n", ubar);
+        
+        // Compute dQ
+        // Conservative Variable Formulation
+        if (Variable_Type == VARIABLE_CONSERVATIVE) {
+            Roe_dQ[0] = Roe_Q_R[0] - Roe_Q_L[0];
+            Roe_dQ[1] = Roe_Q_R[1] - Roe_Q_L[1];
+            Roe_dQ[2] = Roe_Q_R[2] - Roe_Q_L[2];
+            Roe_dQ[3] = Roe_Q_R[3] - Roe_Q_L[3];
+            Roe_dQ[4] = Roe_Q_R[4] - Roe_Q_L[4];
+        }
+        // Primitive Variable Formulation
+        if (Variable_Type == VARIABLE_PRIMITIVE_PUT || Variable_Type == VARIABLE_PRIMITIVE_RUP) {
+            Roe_dQ[0] = rho_R      - rho_L;
+            Roe_dQ[1] = rho_R*u_R  - rho_L*u_L;
+            Roe_dQ[2] = rho_R*v_R  - rho_L*v_L;
+            Roe_dQ[3] = rho_R*w_R  - rho_L*w_L;
+            Roe_dQ[4] = rho_R*et_R - rho_L*et_L;
+        }
+        
+        // Compute dw
+        // Primitive Variable Formulation Pressure Velocity Temperature
+        if (Variable_Type == VARIABLE_PRIMITIVE_PUT) {
+            Roe_dw[0] = p_R - p_L;
+            Roe_dw[1] = u_R - u_L;
+            Roe_dw[2] = v_R - v_L;
+            Roe_dw[3] = w_R - w_L;
+            Roe_dw[4] = T_R - T_L;
+        }
+        // Primitive Variable Formulation Density Velocity Pressure
+        if (Variable_Type == VARIABLE_PRIMITIVE_RUP) {
+            Roe_dw[0] = rho_R - rho_L;
+            Roe_dw[1] = u_R   - u_L;
+            Roe_dw[2] = v_R   - v_L;
+            Roe_dw[3] = w_R   - w_L;
+            Roe_dw[4] = p_R   - p_L;
+        }
+        
+        int nid;
+        double lQ[NEQUATIONS];
+        double tau, alpha, beta, beta_m, beta_p;
+        double chi_m, chi_p, psi_m, psi_p, omega_m, omega_p;
+        double lrho, lu, lv, lw, lp, lT, lc, lht, let, lq2, lmach;
+        double dp_L, dp_R, lmach_L, lmach_R;
+        double dp_max, mach_max;
+        
+        //======================================================================
+        // Compute Precondition Dissipation Flux
+        //======================================================================
+        // STEP - 1:
+        // Compute the Local Max Mach and Max Change in Pressure around a node L and R
+        // If node R is not ghost compute average
+        dp_L     = dp_R    = 0.0;
+        lmach_L  = lmach_R = 0.0;
+        dp_max   = 0.0;
+        mach_max = 0.0;
+        // Check if Local Precondition is Required
+        if (PrecondType == PRECOND_TYPE_LOCAL) {
+            // Check of Precondition Smooth is Required
+            if (PrecondSmooth != 0) {
+                for (i = crs_IA_Node2Node[node_L]; i < crs_IA_Node2Node[node_L+1]; i++) {
+                    nid   = crs_JA_Node2Node[i];
+                    // Get the local Q's
+                    lQ[0] = Q1[nid];
+                    lQ[1] = Q2[nid];
+                    lQ[2] = Q3[nid];
+                    lQ[3] = Q4[nid];
+                    lQ[4] = Q5[nid];
+                    // Compute Local Equation of State
+                    Compute_EOS_Variables_ControlVolume(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
+
+                    // Compute Smoothing Parameters
+                    lmach_L = MAX(lmach_L, lmach);
+                    dp_L    = MAX(dp_L, fabs(p_L - lp));
+                }
+                dp_max   = dp_L;
+                mach_max = lmach_L;
+                // Check if Right Node is not a Ghost Boundary Node
+                if (node_R < nNode) {
+                    for (i = crs_IA_Node2Node[node_R]; i < crs_IA_Node2Node[node_R+1]; i++) {
+                        nid  = crs_JA_Node2Node[i];
+                        // Get the local Q's
+                        lQ[0] = Q1[nid];
+                        lQ[1] = Q2[nid];
+                        lQ[2] = Q3[nid];
+                        lQ[3] = Q4[nid];
+                        lQ[4] = Q5[nid];
+                        // Compute Local Equation of State
+                        Compute_EOS_Variables_ControlVolume(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
+
+                        // Compute Smoothing Parameters
+                        lmach_R = MAX(lmach_R, lmach);
+                        dp_R    = MAX(dp_R, fabs(p_R - lp));
+                    }
+                    dp_max   = 0.5*(dp_L + dp_R);
+                    mach_max = 0.5*(lmach_L + lmach_R);
+                }
+            } else {
+                mach_max = MAX(mach_L, mach_R);
+                dp_max   = fabs(p_L - p_R);
+            }
+        }
+
+        
+        // STEP 2:
+        // Compute the required parameters
+        beta = 1.0; // Corresponds to no pre-conditioning
+        if (PrecondType == PRECOND_TYPE_LOCAL) {
+            beta = MAX(mach, mach_max);
+            if (beta < Ref_Mach)
+                beta = sqrt(Ref_Mach*beta);
+            beta = MIN(1.0, beta);
+//            beta = MAX(beta, sqrt(1.0e-12/sqrt(q2)));
+//            beta = MAX(beta, 2.0*dp_max/(rho*c*c));
+//            beta = MAX(MAX(beta, 1.0e-5), 0.01*Ref_Mach);
+//            beta = MIN(1.0, MIN(beta, Ref_Mach));
+//            if (beta > 0.7) {
+//                beta = 1.0;
+//            } else {
+//                beta = 2.0*beta*beta;
+//                beta = beta/(1.0 - beta);
+//                beta = sqrt(beta/(1 + (Gamma - 1.0)*beta));
+//            }
+            if (node_L < nNode && node_R < nNode) {
+                PrecondSigma[node_L] += beta;
+                PrecondSigma[node_R] += beta;
+            }
+        }
+        if (PrecondType == PRECOND_TYPE_GLOBAL)
+            beta = MIN(1.0, Ref_Mach);
+        
+        beta    = beta*beta;
+        beta_m  = 0.5*(1.0 - beta);
+        beta_p  = 0.5*(1.0 + beta);
+        tau     = 2.0*(c*c + 2.0*beta_m*phi)/(c*c*beta);
+        alpha   = 2.0*sqrt(ubar*ubar*beta_m*beta_m + c*c*beta);
+        chi_m   = ubar*beta_m - 0.5*alpha;
+        chi_p   = ubar*beta_m + 0.5*alpha;
+        psi_m   = (c*c*beta + 2.0*beta_m*ubar*chi_m)/(c*c*chi_m);
+        psi_p   = (c*c*beta + 2.0*beta_m*ubar*chi_p)/(c*c*chi_p);
+        omega_m = 2.0*beta_m*chi_m/(c*c*beta);
+        omega_p = 2.0*beta_m*chi_p/(c*c*beta);
+        
+        // STEP 3:
+        // Compute the Eigenvalues of the Precondition Dissipation Term |Lambda|
+        Roe_Eigen[0][0] = fabs(ubar);
+        Roe_Eigen[1][1] = Roe_Eigen[0][0];
+        Roe_Eigen[2][2] = Roe_Eigen[0][0];
+        Roe_Eigen[3][3] = fabs(ubar*beta_p + 0.5*alpha);
+        Roe_Eigen[4][4] = fabs(ubar*beta_p - 0.5*alpha);
+        
+        // Add to Time only if Required
+        if (AddTime == TRUE) {
+            // Min and Max EigenValue Value
+            MinEigenLamda1 = MIN(MinEigenLamda1, Roe_Eigen[0][0]);
+            MaxEigenLamda1 = MAX(MaxEigenLamda1, Roe_Eigen[0][0]);
+            MinEigenLamda4 = MIN(MinEigenLamda4, Roe_Eigen[3][3]);
+            MaxEigenLamda4 = MAX(MaxEigenLamda4, Roe_Eigen[3][3]);
+            MinEigenLamda5 = MIN(MinEigenLamda5, Roe_Eigen[4][4]);
+            MaxEigenLamda5 = MAX(MaxEigenLamda5, Roe_Eigen[4][4]);
+
+            // Min and Max Precondition Variable
+            MinPrecondSigma = MIN(MinPrecondSigma, sqrt(beta));
+            MaxPrecondSigma = MAX(MaxPrecondSigma, sqrt(beta));
+
+            // Time Computation : Add Max Eigenvalue
+            maxlambda = MAX(Roe_Eigen[0][0], MAX(Roe_Eigen[3][3], Roe_Eigen[4][4]));
+            DeltaT[node_L] += area*maxlambda;
+            if (node_R < nNode)
+                DeltaT[node_R] += area*maxlambda;
+        }
+        
+        // Computations for Variable Relaxation Residual Smoothing
+        if (ResidualSmoothType == RESIDUAL_SMOOTH_IMPLICIT) {
+            maxlambda = MAX(Roe_Eigen[0][0], MAX(Roe_Eigen[3][3], Roe_Eigen[4][4]));
+            for (i = crs_IA_Node2Node[node_L]; i < crs_IA_Node2Node[node_L + 1]; i++) {
+                // Get the Node ID and Match with node_R
+                if (crs_JA_Node2Node[i] == node_R) {
+                    RM_MaxEigenValue[i] = maxlambda*area;
+                    break;
+                }
+            }
+            RM_SumMaxEigenValue[node_L] += maxlambda*area;
+            // Only Physical Nodes
+            if (node_R < nNode) {
+                for (i = crs_IA_Node2Node[node_R]; i < crs_IA_Node2Node[node_R + 1]; i++) {
+                    // Get the Node ID and Match with node_L
+                    if (crs_JA_Node2Node[i] == node_L) {
+                        RM_MaxEigenValue[i] = maxlambda*area;
+                        break;
+                    }
+                }
+                RM_SumMaxEigenValue[node_R] += maxlambda*area;
+            }
+        }
+        
+        // STEP 4:
+        // Marco Modification (VariableType = RUP)
+        if (PrecondMethod == SOLVER_PRECOND_ROE_ERIKSSON) {
+            // Compute Tmod_g = R
+            Roe_T[0][0] =  nx;
+            Roe_T[0][1] =  ny;
+            Roe_T[0][2] =  nz;
+            Roe_T[0][3] = -rho*psi_m;
+            Roe_T[0][4] =  rho*psi_p;
+
+            Roe_T[1][0] =  0.0;
+            Roe_T[1][1] = -nz;
+            Roe_T[1][2] =  ny;
+            Roe_T[1][3] =  nx;
+            Roe_T[1][4] = -nx;
+
+            Roe_T[2][0] =  nz;
+            Roe_T[2][1] =  0.0;
+            Roe_T[2][2] = -nx;
+            Roe_T[2][3] =  ny;
+            Roe_T[2][4] = -ny;
+
+            Roe_T[3][0] = -ny;
+            Roe_T[3][1] =  nx;
+            Roe_T[3][2] =  0.0;
+            Roe_T[3][3] =  nz;
+            Roe_T[3][4] = -nz;
+
+            Roe_T[4][0] =  0.0;
+            Roe_T[4][1] =  0.0;
+            Roe_T[4][2] =  0.0;
+            Roe_T[4][3] = -rho*chi_m;
+            Roe_T[4][4] =  rho*chi_p;
+        }
+        
+        // Original (VariableType = RUP)
+        if (PrecondMethod == SOLVER_PRECOND_ROE_ERIKSSON_ORIGINAL) {
+            // Compute T_g = M1.Sinv.R
+            Roe_T[0][0] =  nx;
+            Roe_T[0][1] =  ny;
+            Roe_T[0][2] =  nz;
+            Roe_T[0][3] = -rho*(psi_m + omega_m);
+            Roe_T[0][4] =  rho*(psi_p + omega_p);
+
+            Roe_T[1][0] =  u*nx;
+            Roe_T[1][1] =  u*ny - rho*nz;
+            Roe_T[1][2] =  rho*ny + u*nz;
+            Roe_T[1][3] =  rho*( nx - u*(psi_m + omega_m));
+            Roe_T[1][4] =  rho*(-nx + u*(psi_p + omega_p));
+
+            Roe_T[2][0] =  v*nx + rho*nz;
+            Roe_T[2][1] =  v*ny;
+            Roe_T[2][2] = -rho*nx + v*nz;
+            Roe_T[2][3] =  rho*( ny - v*(psi_m + omega_m));
+            Roe_T[2][4] =  rho*(-ny + v*(psi_p + omega_p));
+
+            Roe_T[3][0] =  w*nx - rho*ny;
+            Roe_T[3][1] =  rho*nx + w*ny;
+            Roe_T[3][2] =  w*nz;
+            Roe_T[3][3] =  rho*( nz - w*(psi_m + omega_m));
+            Roe_T[3][4] =  rho*(-nz + w*(psi_p + omega_p));
+
+            switch (NonDimensional_Type) {
+                case NONDIMENSIONAL_GENERIC:
+                    Roe_T[4][0] = -w*rho*ny + v*rho*nz + 0.5*nx*q2;
+                    Roe_T[4][1] =  w*rho*nx - u*rho*nz + 0.5*ny*q2;
+                    Roe_T[4][2] = -v*rho*nx + u*rho*ny + 0.5*nz*q2;
+                    Roe_T[4][3] =  0.5*rho*( 2.0*ubar - (tau*chi_m)/(Gamma - 1.0) - q2*psi_m);
+                    Roe_T[4][4] =  0.5*rho*(-2.0*ubar + (tau*chi_p)/(Gamma - 1.0) + q2*psi_p);
+                    break;
+                case NONDIMENSIONAL_BTW:
+                    Roe_T[4][0] =  0.5*(Gamma - 1.0)*Ref_Mach*Ref_Mach*(-2.0*w*rho*ny + 2.0*v*rho*nz + nx*q2);
+                    Roe_T[4][1] =  0.5*(Gamma - 1.0)*Ref_Mach*Ref_Mach*( 2.0*w*rho*nx - 2.0*u*rho*nz + ny*q2);
+                    Roe_T[4][2] =  0.5*(Gamma - 1.0)*Ref_Mach*Ref_Mach*(-2.0*v*rho*nx + 2.0*u*rho*ny + nz*q2);
+                    Roe_T[4][3] =  0.5*rho*Ref_Mach*Ref_Mach*((Gamma - 1.0)*(2.0*ubar - q2*psi_m) - tau*chi_m);
+                    Roe_T[4][4] =  0.5*rho*Ref_Mach*Ref_Mach*(tau*chi_p - (Gamma - 1.0)*(2.0*ubar - q2*psi_p));
+                    break;
+                case NONDIMENSIONAL_LMROE:
+                    Roe_T[4][0] = -w*rho*ny + v*rho*nz + 0.5*nx*q2;
+                    Roe_T[4][1] =  w*rho*nx - u*rho*nz + 0.5*ny*q2;
+                    Roe_T[4][2] = -v*rho*nx + u*rho*ny + 0.5*nz*q2;
+                    Roe_T[4][3] =  0.5*rho*( 2.0*ubar - (tau*chi_m)/(Gamma - 1.0) - q2*psi_m);
+                    Roe_T[4][4] =  0.5*rho*(-2.0*ubar + (tau*chi_p)/(Gamma - 1.0) + q2*psi_p);
+                    break;
+                default:
+                    error("Compute_RoeFlux_Precondition_ERIKSSON: Undefined Non-Dimensional Type - %d -2", NonDimensional_Type);
+                    break;
+            }
+        }
+        
+        // STEP 5:
+        // Marco Modification or Original (VariableType = RUP)
+        if (PrecondMethod == SOLVER_PRECOND_ROE_ERIKSSON || PrecondMethod == SOLVER_PRECOND_ROE_ERIKSSON_ORIGINAL) {
+            // Compute T_d = Rinv
+            Roe_Tinv[0][0] =  nx;
+            Roe_Tinv[0][1] =  0.0;
+            Roe_Tinv[0][2] =  nz;
+            Roe_Tinv[0][3] = -ny;
+            Roe_Tinv[0][4] = -nx/(c*c);
+
+            Roe_Tinv[1][0] =  ny;
+            Roe_Tinv[1][1] = -nz;
+            Roe_Tinv[1][2] =  0.0;
+            Roe_Tinv[1][3] =  nx;
+            Roe_Tinv[1][4] = -ny/(c*c);
+
+            Roe_Tinv[2][0] =  nz;
+            Roe_Tinv[2][1] =  ny;
+            Roe_Tinv[2][2] = -nx;
+            Roe_Tinv[2][3] =  0.0;
+            Roe_Tinv[2][4] = -nz/(c*c);
+
+            Roe_Tinv[3][0] = 0.0;
+            Roe_Tinv[3][1] = nx*chi_p/alpha;
+            Roe_Tinv[3][2] = ny*chi_p/alpha;
+            Roe_Tinv[3][3] = nz*chi_p/alpha;
+            Roe_Tinv[3][4] = 1.0/(rho*alpha);
+
+            Roe_Tinv[4][0] = 0.0;
+            Roe_Tinv[4][1] = nx*chi_m/alpha;
+            Roe_Tinv[4][2] = ny*chi_m/alpha;
+            Roe_Tinv[4][3] = nz*chi_m/alpha;
+            Roe_Tinv[4][4] = 1.0/(rho*alpha);
+        }
+        
+        // STEP 6:
+        // Compute the Dissipation Flux
+        // Tmp => P = |Lambda|*Rinv
+        MC_Matrix_Mul_Matrix(5, 5, Roe_Eigen, Roe_Tinv, Roe_P);
+
+        // Compute |A| = R*|Lambda|*Rinv
+        MC_Matrix_Mul_Matrix(5, 5, Roe_T, Roe_P, Roe_A);
+
+        // Compute |A|*dw
+        MC_Matrix_Mul_Vector(5, 5, Roe_A, Roe_dw, Roe_fluxA);
+        
+        // STEP 7:
+        // Compute the Convective Flux and Dissipative Flux
+        for (i = 0; i < NEQUATIONS; i++) {
+            Flux_Roe_Conv[i] = 0.5*(Roe_flux_L[i] + Roe_flux_R[i])*area;
+            Flux_Roe_Diss[i] = -0.5*Roe_fluxA[i]*area;
+        }
+    } else
+        error("Compute_RoeFlux_Precondition_ERIKSSON: Invalid Node - %d", node_L);
 }
 
 //------------------------------------------------------------------------------
 //! Compute Roe Averaged Variables
 //------------------------------------------------------------------------------
 void Compute_RoeVariables(double *Q_L, double *Q_R, double *Q_Roe) {
-    double rho_L, u_L, v_L, w_L, rhoet_L, p_L, ht_L;
-    double rho_R, u_R, v_R, w_R, rhoet_R, p_R, ht_R;
+    double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, q2_L, T_L, mach_L;
+    double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, q2_R, T_R, mach_R;
     double rho, u, v, w, ht;
     double sigma;
 
-    // Left Node
-    rho_L   = Q_L[0];
-    u_L     = Q_L[1] / rho_L;
-    v_L     = Q_L[2] / rho_L;
-    w_L     = Q_L[3] / rho_L;
-    rhoet_L = Q_L[4];
-    p_L     = (Gamma - 1.0)*(rhoet_L - 0.5*rho_L*(u_L*u_L + v_L*v_L + w_L*w_L)) + Gauge_Pressure;
-    ht_L    = (rhoet_L + p_L)/rho_L;
-
-    // Right Node
-    rho_R   = Q_R[0];
-    u_R     = Q_R[1] / rho_R;
-    v_R     = Q_R[2] / rho_R;
-    w_R     = Q_R[3] / rho_R;
-    rhoet_R = Q_R[4];
-    p_R     = (Gamma - 1.0)*(rhoet_R - 0.5*rho_R*(u_R*u_R + v_R*v_R + w_R*w_R)) + Gauge_Pressure;
-    ht_R    = (rhoet_R + p_R)/rho_R;
+    // Compute Equation of State
+    Compute_EOS_Variables_ControlVolume(Q_L, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, et_L, ht_L);
+    Compute_EOS_Variables_ControlVolume(Q_R, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, et_R, ht_R);
     
     // ROE AVERAGE VARIABLES
     rho   = sqrt(rho_R * rho_L);
@@ -1549,12 +3636,13 @@ void Compute_RoeVariables(double *Q_L, double *Q_R, double *Q_Roe) {
     Q_Roe[2] = rho*v;
     Q_Roe[3] = rho*w;
     Q_Roe[4] = (rho/Gamma)*(ht + 0.5*(Gamma - 1.0)*(u*u + v*v + w*w));
+    // TODO: Get_TotalEnergy(rho, pressure, u, v, w);
 }
 
 //------------------------------------------------------------------------------
 //! Computes the Roe Flux Residual for all Edges Internal and Boundary
 //------------------------------------------------------------------------------
-void Compute_Residual_Roe(void) {
+void Compute_Residual_Roe(int AddTime) {
     int i;
     int node_L, node_R;
     Vector3D areavec;
@@ -1575,21 +3663,36 @@ void Compute_Residual_Roe(void) {
         areavec = intEdge[i].areav;
         
         // Compute the Roe Flux for this edge
-        switch (SolverScheme) {
-            case SOLVER_SCHEME_ROE: // Roe
-                Compute_RoeFlux(node_L, node_R, areavec, flux_roe);
+        switch (PrecondMethod) {
+            case SOLVER_PRECOND_NONE: // Roe
+                Compute_RoeFlux(node_L, node_R, areavec, flux_roe, flux_roe_diss, AddTime);
                 break;
-            case SOLVER_SCHEME_LMROE: // LMRoe
-                Compute_RoeFlux(node_L, node_R, areavec, flux_roe);
+            case SOLVER_PRECOND_ROE_LMFIX: // LMRoe
+                Compute_RoeFlux(node_L, node_R, areavec, flux_roe, flux_roe_diss, AddTime);
                 break;
-            case SOLVER_SCHEME_ROE_WS: // Roe Weiss Smith Precondition
-                Compute_RoeFlux_WeissSmith(node_L, node_R, areavec, flux_roe);
+            case SOLVER_PRECOND_ROE_WS: // Roe Weiss Smith Pre-Conditioner
+                Compute_RoeFlux_WeissSmith(node_L, node_R, areavec, flux_roe, flux_roe_diss, AddTime);
                 break;
-            case SOLVER_SCHEME_ROE_CV: // Roe Cecile Voizat Precondition
-                Compute_RoeFlux_CecileVoizat(node_L, node_R, areavec, flux_roe, flux_roe_diss);
+            case SOLVER_PRECOND_ROE_CV: // Roe Cecile Voizat Pre-Conditioner
+                Compute_RoeFlux_CecileVoizat(node_L, node_R, areavec, flux_roe, flux_roe_diss, AddTime);
+                break;
+            case SOLVER_PRECOND_ROE_CV_ORIGINAL: // Roe Cecile Voizat Pre-Conditioner
+                Compute_RoeFlux_CecileVoizat(node_L, node_R, areavec, flux_roe, flux_roe_diss, AddTime);
+                break;
+            case SOLVER_PRECOND_ROE_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
+                Compute_RoeFlux_Precondition_BTW(node_L, node_R, areavec, flux_roe, flux_roe_diss, AddTime);
+                break;
+            case SOLVER_PRECOND_ROE_BTW_ORIGINAL: // Roe Briley Taylor Whitfield Pre-Conditioner
+                Compute_RoeFlux_Precondition_BTW(node_L, node_R, areavec, flux_roe, flux_roe_diss, AddTime);
+                break;
+            case SOLVER_PRECOND_ROE_ERIKSSON: // Roe Eriksson Pre-Conditioner
+                Compute_RoeFlux_Precondition_ERIKSSON(node_L, node_R, areavec, flux_roe, flux_roe_diss, AddTime);
+                break;
+            case SOLVER_PRECOND_ROE_ERIKSSON_ORIGINAL: // Roe Eriksson Pre-Conditioner
+                Compute_RoeFlux_Precondition_ERIKSSON(node_L, node_R, areavec, flux_roe, flux_roe_diss, AddTime);
                 break;
             default:
-                error("Compute_Residual_Roe: Invalid Solver Scheme - %d -1", SolverScheme);
+                error("Compute_Residual_Roe: Invalid Solver Precondition Scheme - %d -1", PrecondMethod);
                 break;
         }
         
@@ -1607,19 +3710,22 @@ void Compute_Residual_Roe(void) {
         Res5[node_R] -= flux_roe[4];
         
         // Dissipation Term
-        if (SolverScheme == SOLVER_SCHEME_ROE_CV) {
+        if (PrecondMethod == SOLVER_PRECOND_NONE || PrecondMethod == SOLVER_PRECOND_ROE_LMFIX
+                || PrecondMethod == SOLVER_PRECOND_ROE_CV || PrecondMethod == SOLVER_PRECOND_ROE_CV_ORIGINAL 
+                || PrecondMethod == SOLVER_PRECOND_ROE_BTW || PrecondMethod == SOLVER_PRECOND_ROE_BTW_ORIGINAL 
+                || PrecondMethod == SOLVER_PRECOND_ROE_ERIKSSON || PrecondMethod == SOLVER_PRECOND_ROE_ERIKSSON_ORIGINAL) {
             // Compute for LHS
-            Res1_Diss[node_L] -= flux_roe_diss[0];
-            Res2_Diss[node_L] -= flux_roe_diss[1];
-            Res3_Diss[node_L] -= flux_roe_diss[2];
-            Res4_Diss[node_L] -= flux_roe_diss[3];
-            Res5_Diss[node_L] -= flux_roe_diss[4];
+            Res1_Diss[node_L] += flux_roe_diss[0];
+            Res2_Diss[node_L] += flux_roe_diss[1];
+            Res3_Diss[node_L] += flux_roe_diss[2];
+            Res4_Diss[node_L] += flux_roe_diss[3];
+            Res5_Diss[node_L] += flux_roe_diss[4];
 
-            Res1_Diss[node_R] += flux_roe_diss[0];
-            Res2_Diss[node_R] += flux_roe_diss[1];
-            Res3_Diss[node_R] += flux_roe_diss[2];
-            Res4_Diss[node_R] += flux_roe_diss[3];
-            Res5_Diss[node_R] += flux_roe_diss[4];
+            Res1_Diss[node_R] -= flux_roe_diss[0];
+            Res2_Diss[node_R] -= flux_roe_diss[1];
+            Res3_Diss[node_R] -= flux_roe_diss[2];
+            Res4_Diss[node_R] -= flux_roe_diss[3];
+            Res5_Diss[node_R] -= flux_roe_diss[4];
         }
     }
 
@@ -1637,21 +3743,36 @@ void Compute_Residual_Roe(void) {
         areavec = bndEdge[i].areav;
         
         // Compute the Roe Flux for this edge
-        switch (SolverScheme) {
-            case SOLVER_SCHEME_ROE: // Roe
-                Compute_RoeFlux(node_L, node_R, areavec, flux_roe);
+        switch (PrecondMethod) {
+            case SOLVER_PRECOND_NONE: // Roe
+                Compute_RoeFlux(node_L, node_R, areavec, flux_roe, flux_roe_diss, AddTime);
                 break;
-            case SOLVER_SCHEME_LMROE: // LMRoe
-                Compute_RoeFlux(node_L, node_R, areavec, flux_roe);
+            case SOLVER_PRECOND_ROE_LMFIX: // LMRoe
+                Compute_RoeFlux(node_L, node_R, areavec, flux_roe, flux_roe_diss, AddTime);
                 break;
-            case SOLVER_SCHEME_ROE_WS: // Roe Weiss Smith Precondition
-                Compute_RoeFlux_WeissSmith(node_L, node_R, areavec, flux_roe);
+            case SOLVER_PRECOND_ROE_WS: // Roe Weiss Smith Pre-Conditioner
+                Compute_RoeFlux_WeissSmith(node_L, node_R, areavec, flux_roe, flux_roe_diss, AddTime);
                 break;
-            case SOLVER_SCHEME_ROE_CV: // Roe Cecile Voizat Precondition
-                Compute_RoeFlux_CecileVoizat(node_L, node_R, areavec, flux_roe, flux_roe_diss);
+            case SOLVER_PRECOND_ROE_CV: // Roe Cecile Voizat Pre-Conditioner
+                Compute_RoeFlux_CecileVoizat(node_L, node_R, areavec, flux_roe, flux_roe_diss, AddTime);
+                break;
+            case SOLVER_PRECOND_ROE_CV_ORIGINAL: // Roe Cecile Voizat Pre-Conditioner
+                Compute_RoeFlux_CecileVoizat(node_L, node_R, areavec, flux_roe, flux_roe_diss, AddTime);
+                break;
+            case SOLVER_PRECOND_ROE_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
+                Compute_RoeFlux_Precondition_BTW(node_L, node_R, areavec, flux_roe, flux_roe_diss, AddTime);
+                break;
+            case SOLVER_PRECOND_ROE_BTW_ORIGINAL: // Roe Briley Taylor Whitfield Pre-Conditioner
+                Compute_RoeFlux_Precondition_BTW(node_L, node_R, areavec, flux_roe, flux_roe_diss, AddTime);
+                break;
+            case SOLVER_PRECOND_ROE_ERIKSSON: // Roe Eriksson Pre-Conditioner
+                Compute_RoeFlux_Precondition_ERIKSSON(node_L, node_R, areavec, flux_roe, flux_roe_diss, AddTime);
+                break;
+            case SOLVER_PRECOND_ROE_ERIKSSON_ORIGINAL: // Roe Eriksson Pre-Conditioner
+                Compute_RoeFlux_Precondition_ERIKSSON(node_L, node_R, areavec, flux_roe, flux_roe_diss, AddTime);
                 break;
             default:
-                error("Compute_Residual_Roe: Invalid Solver Scheme - %d -2", SolverScheme);
+                error("Compute_Residual_Roe: Invalid Solver Precondition Scheme - %d -2", PrecondMethod);
                 break;
         }
         
@@ -1663,102 +3784,28 @@ void Compute_Residual_Roe(void) {
         Res5[node_L] += flux_roe[4];
         
         // Dissipation Term
-        if (SolverScheme == SOLVER_SCHEME_ROE_CV) {
+        if (PrecondMethod == SOLVER_PRECOND_NONE || PrecondMethod == SOLVER_PRECOND_ROE_LMFIX
+                || PrecondMethod == SOLVER_PRECOND_ROE_CV || PrecondMethod == SOLVER_PRECOND_ROE_CV_ORIGINAL 
+                || PrecondMethod == SOLVER_PRECOND_ROE_BTW || PrecondMethod == SOLVER_PRECOND_ROE_BTW_ORIGINAL
+                || PrecondMethod == SOLVER_PRECOND_ROE_ERIKSSON || PrecondMethod == SOLVER_PRECOND_ROE_ERIKSSON_ORIGINAL) {
             // Compute for LHS
-            Res1_Diss[node_L] -= flux_roe_diss[0];
-            Res2_Diss[node_L] -= flux_roe_diss[1];
-            Res3_Diss[node_L] -= flux_roe_diss[2];
-            Res4_Diss[node_L] -= flux_roe_diss[3];
-            Res5_Diss[node_L] -= flux_roe_diss[4];
+            Res1_Diss[node_L] += flux_roe_diss[0];
+            Res2_Diss[node_L] += flux_roe_diss[1];
+            Res3_Diss[node_L] += flux_roe_diss[2];
+            Res4_Diss[node_L] += flux_roe_diss[3];
+            Res5_Diss[node_L] += flux_roe_diss[4];
         }
     }
     
-    // Multiply by Precondition Matrix and Construct the Flux
-    if (SolverScheme == SOLVER_SCHEME_ROE_CV) {
-        int j, nid;
-        double rho, u, v, w, c, ht, rhoet, p, q2, sigma, reta;
-        double lp, lc, dp, lmach;
+    // Precondition and Transform the Residual in Conservative or Primitive Form
+    Compute_Precondition_Residual_Roe();
+    if (PrecondMethod == SOLVER_PRECOND_NONE || PrecondMethod == SOLVER_PRECOND_ROE_LMFIX) {
         for (i = 0; i < nNode; i++) {
-            rho   = Q1[i];
-            u     = Q2[i]/rho;
-            v     = Q3[i]/rho;
-            w     = Q4[i]/rho;
-            rhoet = Q5[i];
-            p     = (Gamma - 1.0)*(rhoet - 0.5*rho*(u*u + v*v + w*w)) + Gauge_Pressure;
-            ht    = (rhoet + p)/rho;
-            c     = sqrt((Gamma * p) / rho);
-            q2    = u*u + v*v + w*w;
-            //sigma = MAX(MAX(MIN(1.0, Ref_Mach), sqrt(u*u + v*v + w*w)/c), 1.0e-5);
-            dp    = 0.0;
-            lmach = 0.0;
-            for (j = crs_IA_Node2Node[i]; j < crs_IA_Node2Node[i+1]; j++) {
-                nid     = crs_JA_Node2Node[j];
-                lp      = (Gamma - 1.0)*(Q5[nid] - 0.5*(Q2[nid]*Q2[nid] + Q3[nid]*Q3[nid] + Q4[nid]*Q4[nid])/Q1[nid]) + Gauge_Pressure;
-                lc      = sqrt((Gamma * lp) / Q1[nid]);
-                lmach = MAX(lmach, sqrt((Q2[nid]*Q2[nid] + Q3[nid]*Q3[nid] + Q4[nid]*Q4[nid])/(Q1[nid]*Q1[nid]))/lc);
-                dp    = MAX(dp, fabs(p - lp));
-            }
-            
-             sigma = MIN(1.0, MAX(MAX(MAX(1.0e-5, sqrt(q2)/c), lmach), dp/(rho*c*c)));
-             if (sqrt(q2)/c > 0.3)
-                 sigma  = 1.0;
-            //sigma = MIN(1.0, MAX(1.0e-6, sqrt(u*u + v*v + w*w)/c));
-            //sigma = sqrt(u*u + v*v + w*w)/c;
-            
-            // Compute the Precondition in Conservative form
-            reta = (Gamma - 1.0)*(sigma*sigma - 1.0)/(c*c);
-
-            Roe_P[0][0] = 1.0 + 0.5*q2*reta;
-            Roe_P[0][1] = -u*reta;
-            Roe_P[0][2] = -v*reta;
-            Roe_P[0][3] = -w*reta;
-            Roe_P[0][4] = reta;
-
-            Roe_P[1][0] = 0.5*u*q2*reta;
-            Roe_P[1][1] = 1.0 - u*u*reta;
-            Roe_P[1][2] = -u*v*reta;
-            Roe_P[1][3] = -u*w*reta;
-            Roe_P[1][4] = u*reta;
-
-            Roe_P[2][0] = 0.5*v*q2*reta;
-            Roe_P[2][1] = -u*v*reta;
-            Roe_P[2][2] = 1.0 - v*v*reta;
-            Roe_P[2][3] = -v*w*reta;
-            Roe_P[2][4] = v*reta;
-
-            Roe_P[3][0] = 0.5*w*q2*reta;
-            Roe_P[3][1] = -u*w*reta;
-            Roe_P[3][2] = -v*w*reta;
-            Roe_P[3][3] = 1.0 - w*w*reta;
-            Roe_P[3][4] = w*reta;
-
-            Roe_P[4][0] = 0.5*q2*((sigma*sigma - 1.0) + 0.5*q2*reta);
-            Roe_P[4][1] = -u*((sigma*sigma - 1.0) + 0.5*q2*reta);
-            Roe_P[4][2] = -v*((sigma*sigma - 1.0) + 0.5*q2*reta);
-            Roe_P[4][3] = -w*((sigma*sigma - 1.0) + 0.5*q2*reta);
-            Roe_P[4][4] = sigma*sigma + 0.5*q2*reta;
-
-            // Get the Convective Flux
-            flux_roe_diss[0] = Res1[i];
-            flux_roe_diss[1] = Res2[i];
-            flux_roe_diss[2] = Res3[i];
-            flux_roe_diss[3] = Res4[i];
-            flux_roe_diss[4] = Res5[i];
-            
-            // Finally Compute precondition residual
-            flux_roe[0] = 0.0;
-            flux_roe[1] = 0.0;
-            flux_roe[2] = 0.0;
-            flux_roe[3] = 0.0;
-            flux_roe[4] = 0.0;
-            MC_Matrix_Mul_Vector(5, 5, Roe_P, flux_roe_diss, flux_roe);
-
-            // Compute the Preconditioned Roe Flux Residual
-            Res1[i] = flux_roe[0] + Res1_Diss[i];
-            Res2[i] = flux_roe[1] + Res2_Diss[i];
-            Res3[i] = flux_roe[2] + Res3_Diss[i];
-            Res4[i] = flux_roe[3] + Res4_Diss[i];
-            Res5[i] = flux_roe[4] + Res5_Diss[i];
+            Res1[i] += Res1_Diss[i];
+            Res2[i] += Res2_Diss[i];
+            Res3[i] += Res3_Diss[i];
+            Res4[i] += Res4_Diss[i];
+            Res5[i] += Res5_Diss[i];
         }
     }
 }
