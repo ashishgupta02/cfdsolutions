@@ -13,31 +13,33 @@
 #include "SolverParameters.h"
 #include "MC.h"
 
-// Conservative Variables
-extern double *Q1;
-extern double *Q2;
-extern double *Q3;
-extern double *Q4;
-extern double *Q5;
+extern int SolverIteration;
 
-// Conservative Variables Gradients
-extern double *Q1x;
+// Conservative or Primitive Variables
+extern double *Q1; /* rho,    P   */
+extern double *Q2; /* rho*u,  u   */
+extern double *Q3; /* rho*v,  v   */
+extern double *Q4; /* rho*w,  w   */
+extern double *Q5; /* rho*et, T   */
+
+// Conservative or Primitive Variables Gradients
+extern double *Q1x; /* rho,     P */
 extern double *Q1y;
 extern double *Q1z;
 
-extern double *Q2x;
+extern double *Q2x; /* rho*u,   u */
 extern double *Q2y;
 extern double *Q2z;
 
-extern double *Q3x;
+extern double *Q3x; /* rho*v,   v */
 extern double *Q3y;
 extern double *Q3z;
 
-extern double *Q4x;
+extern double *Q4x; /* rho*w,    w */
 extern double *Q4y;
 extern double *Q4z;
 
-extern double *Q5x;
+extern double *Q5x; /* rho*et,   T */
 extern double *Q5y;
 extern double *Q5z;
 
@@ -56,6 +58,8 @@ extern double *Res5_Diss;
 
 // Local Time
 extern double *DeltaT;
+extern double MinDeltaT;
+extern double MaxDeltaT;
 
 // Limiters
 extern double *Limiter_Phi1;
@@ -68,11 +72,21 @@ extern double *Limiter_Phi5;
 extern double RMS[5];
 extern double RMS_Res;
 
+// Min and Max EigenValue Value
+extern double MinEigenLamda1;
+extern double MaxEigenLamda1;
+extern double MinEigenLamda4;
+extern double MaxEigenLamda4;
+extern double MinEigenLamda5;
+extern double MaxEigenLamda5;
+
+// Min and Max Precondition Variable
+extern double *PrecondSigma;
+extern double MinPrecondSigma;
+extern double MaxPrecondSigma;
+
 // MC CRS Matrix
 extern MC_CRS SolverBlockMatrix;
-
-// Compute Free Stream Condition with Mach Ramping
-void ComputeFreeStreamCondition(int Iteration);
 
 // Initialize the Solver Data Structure
 void Solver_Init(void);
@@ -81,7 +95,11 @@ void Solver_Finalize(void);
 void Solver_Set_Initial_Conditions(void);
 int  Solve(void);
 int  Solve_Explicit(void);
-void Compute_Residual(void);
+int  Solve_Explicit_Unsteady(void);
+int  Solve_Implicit(void);
+int  Solve_Implicit_Unsteady(void);
+void Compute_Residual(int AddTime);
+void Unsteady_Initialization(void);
 
 // Implicit Method Routines
 void Create_CRS_SolverBlockMatrix(void);
@@ -107,12 +125,55 @@ void Roe_Finalize(void);
 void Roe_Reset(void);
 void Compute_RoeVariables(double *Q_L, double *Q_R, double *Q_Roe);
 void Compute_RoeAJacobian(double *Q_L, double *Q_R, Vector3D areavec, double **AJacobian_Roe);
-void Compute_RoeFlux(int node_L, int node_R, Vector3D areavec, double *Flux_Roe);
-void Compute_Residual_Roe(void);
+void Compute_RoeFlux(int node_L, int node_R, Vector3D areavec, double *Flux_Roe_Conv, double *Flux_Roe_Diss, int AddTime);
+void Compute_RoeFlux_Optimized(int node_L, int node_R, Vector3D areavec, double *Flux_Roe_Conv, double *Flux_Roe_Diss, int AddTime);
+void Compute_Residual_Roe(int AddTime);
 void Compute_Jacobian_Exact_Roe(int AddTime, int Iteration);
 void Compute_Jacobian_Approximate_Roe(int AddTime, int Iteration);
 void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration);
 void Compute_Jacobian_Roe(int AddTime, int Iteration);
+
+// HLLC Scheme Functions
+void HLLC_Init(void);
+void HLLC_Finalize(void);
+void HLLC_Reset(void);
+void Compute_Residual_HLLC(int AddTime);
+
+// AUSM Scheme Functions
+void AUSM_Init(void);
+void AUSM_Finalize(void);
+void AUSM_Reset(void);
+void Compute_Residual_AUSM(int AddTime);
+
+// Van Leer Scheme Functions
+void VanLeer_Init(void);
+void VanLeer_Finalize(void);
+void VanLeer_Reset(void);
+void Compute_Residual_VanLeer(int AddTime);
+
+// LDFSS Scheme Functions
+void LDFSS_Init(void);
+void LDFSS_Finalize(void);
+void LDFSS_Reset(void);
+void Compute_Residual_LDFSS(int AddTime);
+
+// Osher Scheme Functions
+void Osher_Init(void);
+void Osher_Finalize(void);
+void Osher_Reset(void);
+void Compute_Residual_Osher(int AddTime);
+
+// Steger Warming Scheme Functions
+void StegerWarming_Init(void);
+void StegerWarming_Finalize(void);
+void StegerWarming_Reset(void);
+void Compute_Residual_StegerWarming(int AddTime);
+
+// JST Scheme Functions
+void JST_Init(void);
+void JST_Finalize(void);
+void JST_Reset(void);
+void Compute_Residual_JST(int AddTime);
 
 // Limiter
 void Compute_Limiter(void);

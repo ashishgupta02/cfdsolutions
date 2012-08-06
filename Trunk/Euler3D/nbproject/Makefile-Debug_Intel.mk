@@ -14,15 +14,15 @@ GREP=grep
 NM=nm
 CCADMIN=CCadmin
 RANLIB=ranlib
-CC=gcc
-CCC=g++
-CXX=g++
-FC=gfortran
+CC=icc
+CCC=icc
+CXX=icc
+FC=ifort
 AS=as
 
 # Macros
 CND_PLATFORM=GNU-Linux-x86
-CND_CONF=Debug
+CND_CONF=Debug_Intel
 CND_DISTDIR=dist
 CND_BUILDDIR=build
 
@@ -69,11 +69,11 @@ OBJECTFILES= \
 
 
 # C Compiler Flags
-CFLAGS=
+CFLAGS=-axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer
 
 # CC Compiler Flags
-CCFLAGS=-Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer
-CXXFLAGS=-Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer
+CCFLAGS=-axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer
+CXXFLAGS=-axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -82,19 +82,19 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-Wl,-rpath ../UTILS/dist/Debug/GNU-Linux-x86 -L../UTILS/dist/Debug/GNU-Linux-x86 -lUTILS -Wl,-rpath ../MATH/dist/Debug/GNU-Linux-x86 -L../MATH/dist/Debug/GNU-Linux-x86 -lMATH
+LDLIBSOPTIONS=-Wl,-rpath ../MATH/dist/Debug_Intel/GNU-Linux-x86 -L../MATH/dist/Debug_Intel/GNU-Linux-x86 -lMATH -Wl,-rpath ../UTILS/dist/Debug_Intel/GNU-Linux-x86 -L../UTILS/dist/Debug_Intel/GNU-Linux-x86 -lUTILS
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
 	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d: ../UTILS/dist/Debug/GNU-Linux-x86/libUTILS.so
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d: ../MATH/dist/Debug_Intel/GNU-Linux-x86/libMATH.so
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d: ../MATH/dist/Debug/GNU-Linux-x86/libMATH.so
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d: ../UTILS/dist/Debug_Intel/GNU-Linux-x86/libUTILS.so
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	g++ -lstdc++ -lm -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d ${OBJECTFILES} ${LDLIBSOPTIONS} 
+	icc -lstdc++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
 ${OBJECTDIR}/src/Limiters.o: src/Limiters.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -258,8 +258,8 @@ ${OBJECTDIR}/src/AUSM_Fluxes.o: src/AUSM_Fluxes.cpp
 
 # Subprojects
 .build-subprojects:
-	cd ../UTILS && ${MAKE}  -f Makefile CONF=Debug
-	cd ../MATH && ${MAKE}  -f Makefile CONF=Debug
+	cd ../MATH && ${MAKE}  -f Makefile CONF=Debug_Intel
+	cd ../UTILS && ${MAKE}  -f Makefile CONF=Debug_Intel
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
@@ -268,8 +268,8 @@ ${OBJECTDIR}/src/AUSM_Fluxes.o: src/AUSM_Fluxes.cpp
 
 # Subprojects
 .clean-subprojects:
-	cd ../UTILS && ${MAKE}  -f Makefile CONF=Debug clean
-	cd ../MATH && ${MAKE}  -f Makefile CONF=Debug clean
+	cd ../MATH && ${MAKE}  -f Makefile CONF=Debug_Intel clean
+	cd ../UTILS && ${MAKE}  -f Makefile CONF=Debug_Intel clean
 
 # Enable dependency checking
 .dep.inc: .depcheck-impl

@@ -11,6 +11,7 @@
 #include "Vector3D.h"
 #include "MC.h"
 #include "Commons.h"
+#include "Material.h"
 #include "Solver.h"
 
 //------------------------------------------------------------------------------
@@ -67,7 +68,7 @@ void Compute_Limiter(void) {
     }
 
     // Apply Roe Pressure Correction to Limiters
-    if ((SolverScheme == SOLVER_SCHEME_ROE) || (SolverScheme == SOLVER_SCHEME_LMROE)) {
+    if (SolverScheme == SOLVER_SCHEME_ROE) {
         double Phi_N[5];
         
         for (iNode = 0; iNode < nNode; iNode++) {

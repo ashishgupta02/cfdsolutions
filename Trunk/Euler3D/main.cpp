@@ -12,7 +12,7 @@
 /* Name of package */
 #define PACKAGE "EULER3D"
 /* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT "ashish-gupta@utc.edu"
+#define PACKAGE_BUGREPORT "ashishgupta02@gmail.com"
 /* Define to the full name of this package. */
 #define PACKAGE_NAME ""
 /* Define to the full name and version of this package. */
@@ -36,17 +36,11 @@
 #include "Solver.h"
 
 /* Command line options */
-static char options[] = "abcdefhv";
+static char options[] = "-hv";
 
 static char *usgmsg[] = {
-    "usage: euler3d [OPTIONS]... [FILE]",
+    "usage: euler3d [PARAMFILE]",
     "options:",
-    " -a = Van Leer Flux Vector Splitting",
-    " -b = Steger Warming Flux Vector Splitting",
-    " -c = Advection Upstream Splitting Method",
-    " -d = Low Diffusion Flux Splitting Scheme",
-    " -e = Oshers Splitting",
-    " -f = Roe Flux Splitting",
     " -h = Print this message",
     " -v = Print Version",
     NULL
@@ -68,8 +62,6 @@ static void usage(char **usgstr) {
  *----------------------------------------------------------------------*/
 
 static int arguments(int argc, char **argv) {
-    unsigned int n;
-
     if (argc < 2) {
         fprintf(stderr, "ERROR: Too few arguments\n");
         usage(usgmsg);
@@ -78,28 +70,15 @@ static int arguments(int argc, char **argv) {
 
     if (argc >= 2) {
         /* Check if help or version is enquired */
-        if (argv[1][1] == options[6]) {
+        if (argv[1][0] == options[0] && argv[1][1] == options[1]) {
             usage(usgmsg);
             exit(0);
-        } else if(argv[1][1] == options[7]) {
+        } else if(argv[1][0] == options[0] && argv[1][1] == options[2]) {
             printf("%s Utility, Version %s \n", PACKAGE, VERSION);
-            printf("Copyright (C) 2010-11 Ashish Gupta. All rights reserved.\n");
+            printf("Copyright (C) 2010-12 Ashish Gupta. All rights reserved.\n");
             printf("Contact for Help or Bugs %s \n", PACKAGE_BUGREPORT);
             exit(0);
-        } else if (argc < 3) {
-            fprintf(stderr, "ERROR: Invalid Usage or No Input File\n");
-            usage(usgmsg);
-            exit(1);
         }
-    }
-    /* Check for options inputs */
-    if (argc >= 3) {
-        for (n = 0; n < strlen(options); n++)
-            if (argv[1][1] == options[n])
-                return n;
-        fprintf(stderr, "ERROR: Invalid option\n");
-        usage(usgmsg);
-        exit(1);
     }
     return 0;
 }
@@ -119,7 +98,7 @@ int main(int argc, char *argv[]) {
     Solver_Parameters_Init();
     
     // Read the Solver Parameters
-    Solver_Parameters_Read(argv[2]);
+    Solver_Parameters_Read(argv[1]);
     
     // Read input Grid File
     UGrid_Reader(MeshInputFilename);
@@ -139,39 +118,16 @@ int main(int argc, char *argv[]) {
     // Initialize the Solver Data
     Solver_Init();
 
-    /* Selecting the module */
-    switch (opt) {
-        case 0:
-            // -a = Van Leer Flux Vector Splitting
-            info("Van Leer Flux Vector Splitting: Not Yet Implemented");
-            break;
-        case 1:
-            // -b = Steger Warming Flux Vector Splitting
-            info("Steger Warming Flux Vector Splitting: Not Yet Implemented");
-            break;
-        case 2:
-            // -c = Advection Upstream Splitting Method
-            info("Advection Upstream Splitting Method: Not Yet Implemented");
-            break;
-        case 3:
-            // -d = Low Diffusion Flux Splitting Scheme
-            info("Low Diffusion Flux Splitting Scheme: Not Yet Implemented");
-            break;
-        case 4:
-            // -e = Oshers Splitting
-            info("Oshers Splitting: Not Yet Implemented");
-            break;
-        case 5:
-            // -f = Roe Flux Splitting
-            Solver_Set_Initial_Conditions();
-            if (Solve() == EXIT_SUCCESS)
-                VTK_Writer(SolutionOutputFilename, 1);
-            break;
-    }
+    // Set Initial Condition for Solver
+    Solver_Set_Initial_Conditions();
+    
+    // Solve and Write Output
+    if (Solve() == EXIT_SUCCESS)
+        VTK_Writer(SolutionOutputFilename, 1);
     
     // Finalize the Solver Data
     Solver_Finalize();
-
+    
     // Finalize the Common Data
     Commons_Finalize();
     

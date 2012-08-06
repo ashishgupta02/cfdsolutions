@@ -17,12 +17,12 @@ RANLIB=ranlib
 CC=gcc
 CCC=g++
 CXX=g++
-FC=gfortran
-AS=as
+FC=gfortran.exe
+AS=as.exe
 
 # Macros
-CND_PLATFORM=GNU-Linux-x86
-CND_CONF=Debug
+CND_PLATFORM=Cygwin_4.x-Windows
+CND_CONF=Debug_Cygwin
 CND_DISTDIR=dist
 CND_BUILDDIR=build
 
@@ -82,17 +82,17 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-Wl,-rpath ../UTILS/dist/Debug/GNU-Linux-x86 -L../UTILS/dist/Debug/GNU-Linux-x86 -lUTILS -Wl,-rpath ../MATH/dist/Debug/GNU-Linux-x86 -L../MATH/dist/Debug/GNU-Linux-x86 -lMATH
+LDLIBSOPTIONS=-L../UTILS/dist/Debug_Cygwin/Cygwin_4.x-Windows -lUTILS -L../MATH/dist/Debug_Cygwin/Cygwin_4.x-Windows -lMATH
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d.exe
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d: ../UTILS/dist/Debug/GNU-Linux-x86/libUTILS.so
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d.exe: ../UTILS/dist/Debug_Cygwin/Cygwin_4.x-Windows/libUTILS.dll
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d: ../MATH/dist/Debug/GNU-Linux-x86/libMATH.so
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d.exe: ../MATH/dist/Debug_Cygwin/Cygwin_4.x-Windows/libMATH.dll
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d: ${OBJECTFILES}
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d.exe: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	g++ -lstdc++ -lm -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
@@ -258,18 +258,18 @@ ${OBJECTDIR}/src/AUSM_Fluxes.o: src/AUSM_Fluxes.cpp
 
 # Subprojects
 .build-subprojects:
-	cd ../UTILS && ${MAKE}  -f Makefile CONF=Debug
-	cd ../MATH && ${MAKE}  -f Makefile CONF=Debug
+	cd ../UTILS && ${MAKE}  -f Makefile CONF=Debug_Cygwin
+	cd ../MATH && ${MAKE}  -f Makefile CONF=Debug_Cygwin
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d
+	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d.exe
 
 # Subprojects
 .clean-subprojects:
-	cd ../UTILS && ${MAKE}  -f Makefile CONF=Debug clean
-	cd ../MATH && ${MAKE}  -f Makefile CONF=Debug clean
+	cd ../UTILS && ${MAKE}  -f Makefile CONF=Debug_Cygwin clean
+	cd ../MATH && ${MAKE}  -f Makefile CONF=Debug_Cygwin clean
 
 # Enable dependency checking
 .dep.inc: .depcheck-impl

@@ -12,7 +12,9 @@
 #include "Trim_Utils.h"
 #include "Commons.h"
 #include "MeshIO.h"
+#include "Material.h"
 #include "Solver.h"
+#include "Residual_Smoothing.h"
 
 //------------------------------------------------------------------------------
 //! UGRID Grid Connectivity Ordering
@@ -194,7 +196,7 @@ void UGrid_Reader(const char* filename) {
     // Close file
     fclose(fp);
 
-    // Bring Grid Connectivity to Proper Odering
+    // Bring Grid Connectivity to Proper Ordering
     UGrid_Translate_Winding();
     
     // Print Out Mesh Output
@@ -304,43 +306,173 @@ void VTK_Writer(const char* filename, int verbose) {
     
     /*****PRINT OUT VARIABLES**************/
     fprintf(fp, "POINT_DATA %d\n", nNode);
-    fprintf(fp, "SCALARS Density double 1\n");
-    fprintf(fp, "LOOKUP_TABLE default\n");
-    for (i = 0; i < nNode; i++)
-        fprintf(fp, "%22.15e\n", Q1[i]);
+    // Conservative Variable Formulation
+    if (Variable_Type == VARIABLE_CONSERVATIVE) {
+	// Scalar Data Fields
+        fprintf(fp, "SCALARS Density double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e\n", Q1[i]);
 
+        fprintf(fp, "SCALARS X_Velocity double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e\n", Q2[i] / Q1[i]);
 
-    fprintf(fp, "SCALARS X_Velocity double 1\n");
-    fprintf(fp, "LOOKUP_TABLE default\n");
-    for (i = 0; i < nNode; i++)
-        fprintf(fp, "%22.15e\n", Q2[i] / Q1[i]);
+        fprintf(fp, "SCALARS Y_Velocity double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e\n", Q3[i] / Q1[i]);
 
+        fprintf(fp, "SCALARS Z_Velocity double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e\n", Q4[i] / Q1[i]);
 
-    fprintf(fp, "SCALARS Y_Velocity double 1\n");
-    fprintf(fp, "LOOKUP_TABLE default\n");
-    for (i = 0; i < nNode; i++)
-        fprintf(fp, "%22.15e\n", Q3[i] / Q1[i]);
+        double var, Q[5];
 
-    fprintf(fp, "SCALARS Z_Velocity double 1\n");
-    fprintf(fp, "LOOKUP_TABLE default\n");
-    for (i = 0; i < nNode; i++)
-        fprintf(fp, "%22.15e\n", Q4[i] / Q1[i]);
+        fprintf(fp, "SCALARS Pressure double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++) {
+            Q[0] = Q1[i];
+            Q[1] = Q2[i];
+            Q[2] = Q3[i];
+            Q[3] = Q4[i];
+            Q[4] = Q5[i];
+            var  = Get_Pressure(Q);
+            fprintf(fp, "%22.15e\n", var);
+        }
+        
+        fprintf(fp, "SCALARS Temperature double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++) {
+            Q[0] = Q1[i];
+            Q[1] = Q2[i];
+            Q[2] = Q3[i];
+            Q[3] = Q4[i];
+            Q[4] = Q5[i];
+            var  = Get_Temperature(Q);
+            fprintf(fp, "%22.15e\n", var);
+        }
 
-    double p, rho, et, u, v, w;
-
-    fprintf(fp, "SCALARS Pressure double 1\n");
-    fprintf(fp, "LOOKUP_TABLE default\n");
-    for (i = 0; i < nNode; i++) {
-        rho = Q1[i];
-        u   = Q2[i] / rho;
-        v   = Q3[i] / rho;
-        w   = Q4[i] / rho;
-        et  = Q5[i] / rho;
-        p   = (Gamma - 1.0) * rho * (et - 0.5 * (u * u + v * v + w * w)) + Gauge_Pressure;
-
-        fprintf(fp, "%22.15e\n", p);
+        fprintf(fp, "SCALARS Mach double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++) {
+            Q[0] = Q1[i];
+            Q[1] = Q2[i];
+            Q[2] = Q3[i];
+            Q[3] = Q4[i];
+            Q[4] = Q5[i];
+            var  = Get_Mach(Q);
+            fprintf(fp, "%22.15e\n", var);
+        }
+        
+        // Vector Data Fields
+        fprintf(fp, "VECTORS Velocity double \n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e \t %22.15e \t %22.15e\n", Q2[i]/Q1[i], Q3[i]/Q1[i], Q4[i]/Q1[i]);
     }
+    
+    // Primitive Variable Formulation Pressure Velocity Temperature
+    if (Variable_Type == VARIABLE_PRIMITIVE_PUT) {
+        // Scalar Data Fields
+        fprintf(fp, "SCALARS Density double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e\n", (Q1[i] + Gauge_Pressure)/(NonDim_R*(Q5[i] + Gauge_Temperature)));
 
+        fprintf(fp, "SCALARS X_Velocity double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e\n", Q2[i]);
+
+        fprintf(fp, "SCALARS Y_Velocity double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e\n", Q3[i]);
+
+        fprintf(fp, "SCALARS Z_Velocity double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e\n", Q4[i]);
+
+        fprintf(fp, "SCALARS Pressure double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e\n", Q1[i] + Gauge_Pressure);
+
+        fprintf(fp, "SCALARS Temperature double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e\n", Q5[i] + Gauge_Temperature);
+        
+        double var;
+        
+        fprintf(fp, "SCALARS Mach double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++) {
+            var = (Q1[i] + Gauge_Pressure)/(NonDim_R*(Q5[i] + Gauge_Temperature)); // Density
+            var = sqrt(Q2[i]*Q2[i] + Q3[i]*Q3[i] + Q4[i]*Q4[i])/sqrt(Gamma*(Q1[i] + Gauge_Pressure)/var); // Mach
+            fprintf(fp, "%22.15e\n", var);
+        }
+        
+        // Vector Data Fields
+        fprintf(fp, "VECTORS Velocity double \n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e \t %22.15e \t %22.15e\n", Q2[i], Q3[i], Q4[i]);
+    }
+    
+    // Primitive Variable Formulation Density Velocity Pressure
+    if (Variable_Type == VARIABLE_PRIMITIVE_RUP) {
+        // Scalar Data Fields
+        fprintf(fp, "SCALARS Density double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e\n", Q1[i]);
+
+        fprintf(fp, "SCALARS X_Velocity double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e\n", Q2[i]);
+
+        fprintf(fp, "SCALARS Y_Velocity double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e\n", Q3[i]);
+
+        fprintf(fp, "SCALARS Z_Velocity double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e\n", Q4[i]);
+
+        fprintf(fp, "SCALARS Pressure double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e\n", Q5[i] + Gauge_Pressure);
+        
+        fprintf(fp, "SCALARS Temperature double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e\n", (Q5[i] + Gauge_Pressure)/(NonDim_R*Q1[i]));
+
+        fprintf(fp, "SCALARS Mach double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e\n", sqrt(Q2[i]*Q2[i] + Q3[i]*Q3[i] + Q4[i]*Q4[i])/sqrt(Gamma*(Q5[i] + Gauge_Pressure)/Q1[i]));
+
+        if (PrecondMethod != SOLVER_PRECOND_NONE) {
+            fprintf(fp, "SCALARS Sigma double 1\n");
+            fprintf(fp, "LOOKUP_TABLE default\n");
+            for (i = 0; i < nNode; i++)
+                fprintf(fp, "%22.15e\n", PrecondSigma[i]);
+        }
+        
+        // Vector Data Fields
+        fprintf(fp, "VECTORS Velocity double \n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e \t %22.15e \t %22.15e\n", Q2[i], Q3[i], Q4[i]);
+
+    }
     fclose(fp);
 }
 
