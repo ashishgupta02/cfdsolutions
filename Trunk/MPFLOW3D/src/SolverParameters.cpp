@@ -797,29 +797,112 @@ void Solver_Parameters_Read(const char *filename) {
 //!
 //------------------------------------------------------------------------------
 void Solver_BC_Parameters_Read(const char *filename) {
-    FILE *fp;
-    int bdim = 256;
-    char buff[256];
-    char *dummy;
-
-    if ((fp = fopen(filename, "r")) == NULL)
-        error("Solver_BC_Parameters_Read: Unable to Read Boundary Condition Parameter File - %s", filename);
+    ifstream bc_file;
+    string text_line;
+    string option_name;
+    string::size_type position;
+    int nb  = 0;
+    int bid = -1;
     
-    // Number of Boundaries
-    int nb;
-    // Read Number of Boundaries
-    dummy = fgets(buff, bdim, fp);
-    dummy = fgets(buff, bdim, fp);
-    sscanf(buff, "%d", &nb);
-
-    // Allocate memory to store boundary type and read
-    bndType = new int[nBC];
-    for (int i = 0; i < nb; i++) {
-        dummy = fgets(buff, bdim, fp);
-        dummy = fgets(buff, bdim, fp);
-        sscanf(buff, "%d", &bndType[i]);
+    // Open the Boundary Condition File
+    bc_file.open(filename, ios::in);
+    if (bc_file.fail())
+        error("Solver_BC_Parameters_Read: Unable to Read Boundary Condition File - %s", filename);
+    
+    // Start Reading the Boundary Condition File
+    while (getline(bc_file, text_line)) {
+        // Check if line is comment
+        position = text_line.find("#", 0);
+        if (position != string::npos)
+            continue;
+        
+        // Remove Any Space, Return or End Characters
+        for (size_t i = 0 ; i < text_line.size(); i++) {
+            position = text_line.find(" ", 0);
+            if (position != string::npos) text_line.erase(position, 1);
+            position = text_line.find("\r", 0);
+            if (position != string::npos) text_line.erase(position, 1);
+            position = text_line.find("\n", 0);
+            if (position != string::npos) text_line.erase(position, 1);
+        }
+        
+        // Get the Number of Boundaries from BC File
+        position = text_line.find("NUMBER_OF_BOUNDARY=", 0);
+        if ((position != string::npos) && (position == 0)) {
+            text_line.erase(0, 19);
+            option_name.assign(text_line);
+            nb = atoi(option_name.c_str());
+            break;
+        }
     }
+    // Close the Boundary Condition File
+    bc_file.close();
     
-    // Close file
-    fclose(fp);
+    // Validate with number of boundaries in the mesh file
+    if (nb != nBC)
+        error("Solver_BC_Parameters_Read: Insufficient/Excess Boundary Conditions in  - %s", filename);
+    
+    // Reopen the Boundary Condition File
+    bc_file.open(filename, ios::in);
+    if (bc_file.fail())
+        error("Solver_BC_Parameters_Read: Unable to Reopen Boundary Condition File - %s", filename);
+    
+    // Allocate memory to store boundary type
+    bndType = new int[nBC];
+    for (int i = 0; i < nBC; i++)
+        bndType[i] = BC_TYPE_NONE;
+    
+    // Start Reading the Boundary Condition File
+    while (getline(bc_file, text_line)) {
+        // Check if line is comment
+        position = text_line.find("#", 0);
+        if (position != string::npos)
+            continue;
+        
+        // Remove Any Space, Return or End Characters
+        for (size_t i = 0 ; i < text_line.size(); i++) {
+            position = text_line.find(" ", 0);
+            if (position != string::npos) text_line.erase(position, 1);
+            position = text_line.find("\r", 0);
+            if (position != string::npos) text_line.erase(position, 1);
+            position = text_line.find("\n", 0);
+            if (position != string::npos) text_line.erase(position, 1);
+        }
+        
+        // Get the Number of Boundaries from BC File
+        position = text_line.find("BND_ID=", 0);
+        if ((position != string::npos) && (position == 0)) {
+            text_line.erase(0, 7);
+            
+            // Get the Boundary ID from the string
+            bid = -1;
+            position = text_line.find("=", 0);
+            // Check if Boundary ID is provided
+            if ((position == 0) || (position == string::npos))
+                error("Solver_BC_Parameters_Read: No Boundary ID Found - %s", text_line.c_str());
+            option_name.assign(text_line, 0, position);
+            bid = atoi(option_name.c_str());
+            
+            // Validate the Boundary ID
+            if ((bid <= 0) || (bid > nBC))
+                error("Solver_BC_Parameters_Read: Invalid Boundary ID Found - %s", text_line.c_str());
+            
+            // Check if Boundary Condition is Already Updated
+            if (bndType[bid-1] != BC_TYPE_NONE) {
+                error("Solver_BC_Parameters_Read: Multiple Boundary ID Found - %s", text_line.c_str());
+                break;
+            }
+            
+            // Erase to get Boundary Type
+            text_line.erase(0, position+1);
+            
+            // Finally Assign the Boundary Type
+            option_name.assign(text_line);
+            StringToUpperCase(option_name);
+            GetOptionNameValue(option_name, bndType[bid-1], BCTypeMap);
+        }
+    }
+    // Close the Boundary Condition File
+    bc_file.close();
 }
+

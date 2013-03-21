@@ -11,19 +11,9 @@
 
 #define UNIV_GAS_CONST          8314.47215
 
-// Material Type
-#define MATERIAL_NONE           0
-#define MATERIAL_IDEAL_GAS      1
-
-// Non Dimensionalization Type
-#define NONDIMENSIONAL_NONE     0
-#define NONDIMENSIONAL_GENERIC  1
-#define NONDIMENSIONAL_BTW      2
-#define NONDIMENSIONAL_LMROE    3
-
 // Material and Non Dimensionalization Type
-extern int    NonDimensional_Type;
-extern int    Material_Type;
+extern int    NonDimensionalMethod;
+extern int    MaterialType;
 
 // Dimensional Properties
 extern double Ref_R;
@@ -49,7 +39,7 @@ extern double NonDim_Rho;
 extern double NonDim_Pressure;
 extern double NonDim_Temperature;
 
-// Free Stream Conditions
+// Far Field Conditions
 extern double Inf_Rho;
 extern double Inf_U;
 extern double Inf_V;
@@ -69,8 +59,8 @@ extern double Outflow_Pressure;
 void Material_Init(void);
 void Material_Set_Properties(void);
 
-// Compute Free Stream Condition with Mach Ramping
-void ComputeFreeStreamCondition(int Iteration);
+// Compute Far Field Condition with Mach Ramping
+void ComputeFarFieldCondition(int Iteration);
 
 // Equation of State
 void Compute_EOS_Variables_Face(double *Q, double nx, double ny, double nz,
@@ -88,6 +78,8 @@ double Get_Temperature(double Rho, double Pressure);
 double Get_Temperature(double *Q);
 double Get_SpeedSound(double Rho, double Pressure);
 double Get_SpeedSound(double Temperature);
+double Get_SpeedSound(double Velocity_U, double Velocity_V, double Velocity_W, double Total_Enthalpy);
+double Get_SpeedSoundSquare(double Velocity_U, double Velocity_V, double Velocity_W, double Total_Enthalpy);
 double Get_TotalEnergy(double Rho, double Pressure, double Velocity_U, double Velocity_V, double Velocity_W);
 double Get_Mach(double *Q);
 
@@ -112,6 +104,7 @@ void Compute_Transformation_PUT_To_RUT(double Rho, double Velocity_U, double Vel
 void Compute_Transformation_RUT_To_PUT(double Rho, double Velocity_U, double Velocity_V, double Velocity_W, double SpeedSound, double **Matrix);
 void Compute_Transformation_PUS_To_RUT(double Rho, double Velocity_U, double Velocity_V, double Velocity_W, double SpeedSound, double **Matrix);
 void Compute_Transformation_RUT_To_PUS(double Rho, double Velocity_U, double Velocity_V, double Velocity_W, double SpeedSound, double **Matrix);
+void Compute_Transformation_Matrix(int VarType1, int VarType2, double Rho, double Velocity_U, double Velocity_V, double Velocity_W, double SpeedSound, double **Matrix);
 
 #endif	/* _MATERIAL_H */
 

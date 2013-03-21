@@ -10,6 +10,7 @@
 #define _CHECK_MALLOC_H
 
 #include <stdlib.h>
+#include "NDM_TypeDefs.h"
 
 /*******************************************************************************
 * Keep C++ compilers from getting confused
@@ -58,6 +59,20 @@ extern void *private_check_realloc(void *old, size_t bytes,
         const char *sourcename, int line_no);
 
 extern void private_free(void *ptr, const char *sourcename, int line_no);
+
+/*******************************************************************************
+* util functions to alloc different types of ndm arrays
+* e.g. NDMType4 = (Type (*)[4])check_malloc(dim * sizeof(Type[4]))
+*******************************************************************************/
+#define ndmdouble1_mem(dim)  private_ndmdouble1_mem((dim), __FILE__, __LINE__)
+#define ndmindex1_mem(dim) private_ndmindex1_mem((dim), __FILE__, __LINE__)
+#define ndmfloat1_mem(dim) private_ndmfloat1_mem((dim), __FILE__, __LINE__)
+#define ndmint1_mem(dim) private_ndmint1_mem((dim), __FILE__, __LINE__)
+
+NDMDouble  *private_ndmdouble1_mem(int dim, const char *source, int line_no);
+NDMIndex   *private_ndmindex1_mem(int dim, const char *source, int line_no);
+float      *private_ndmfloat1_mem(int dim, const char *source, int line_no);
+int        *private_ndmint1_mem(int dim, const char *source, int line_no);
 
 /*******************************************************************************
 * Keep C++ compilers from getting confused

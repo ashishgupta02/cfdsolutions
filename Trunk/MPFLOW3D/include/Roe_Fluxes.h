@@ -25,7 +25,7 @@ void Compute_Roe_Transformed_Precondition_Matrix_Turkel(int nodeID, int reqInv, 
 void Compute_Roe_Transformed_Precondition_Matrix(int nodeID, int reqInv, double **PrecondMatrix);
 
 void Compute_Transformed_Residual_Roe(void);
-void Compute_Steady_Residual_Roe_Precondition_Eriksson(void);
+void Compute_Steady_Residual_Roe_Precondition_Merkel(void);
 void Compute_Steady_Residual_Roe_Precondition_Turkel(void);
 
 void Compute_Flux_Roe_OneSided(int node_L, int node_R, Vector3D areavec, double *Flux_Roe_Conv, double *Flux_Roe_Diss, int AddTime);

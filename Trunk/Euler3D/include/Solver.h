@@ -12,6 +12,14 @@
 // Custom header files
 #include "SolverParameters.h"
 #include "MC.h"
+#include "Roe_Fluxes.h"
+#include "HLLC_Fluxes.h"
+#include "VanLeer_Fluxes.h"
+#include "AUSM_Fluxes.h"
+#include "JST_Fluxes.h"
+#include "LDFSS_Fluxes.h"
+#include "Osher_Fluxes.h"
+#include "StegerWarming_Fluxes.h"
 
 extern int SolverIteration;
 
@@ -93,11 +101,11 @@ void Solver_Init(void);
 // Finalize the Solver Data Structure
 void Solver_Finalize(void);
 void Solver_Set_Initial_Conditions(void);
-int  Solve(void);
-int  Solve_Explicit(void);
-int  Solve_Explicit_Unsteady(void);
-int  Solve_Implicit(void);
-int  Solve_Implicit_Unsteady(void);
+int  Solver(void);
+int  Solver_Steady_Explicit(void);
+int  Solver_Steady_Implicit(void);
+int  Solver_Unsteady_Explicit(void);
+int  Solver_Unsteady_Implicit(void);
 void Compute_Residual(int AddTime);
 void Unsteady_Initialization(void);
 
@@ -111,69 +119,11 @@ void Compute_Jacobian(int AddTime, int Iteration);
 void Initialize_Boundary_Condition(void);
 void Compute_Characteristic_BoundaryCondition(int BEdgeID, int Iteration);
 int  Compute_Characteristic_BoundaryCondition_New(double Q_L[NEQUATIONS], double Q_R[NEQUATIONS], Vector3D AreaVec, int BCType, int Iteration, double Q_B[NEQUATIONS]);
-void Compute_Pressure_BoundaryCondition(int BEdgeID, int Iteration);
 void Apply_Characteristic_Boundary_Condition(int Iteration);
-void Apply_Pressure_Boundary_Condition(int Iteration);
 void Apply_Boundary_Condition(int Iteration);
 
 // Time Stepping
 void Compute_DeltaT(int Iteration);
-
-// Roe Scheme Functions
-void Roe_Init(void);
-void Roe_Finalize(void);
-void Roe_Reset(void);
-void Compute_RoeVariables(double *Q_L, double *Q_R, double *Q_Roe);
-void Compute_RoeAJacobian(double *Q_L, double *Q_R, Vector3D areavec, double **AJacobian_Roe);
-void Compute_RoeFlux(int node_L, int node_R, Vector3D areavec, double *Flux_Roe_Conv, double *Flux_Roe_Diss, int AddTime);
-void Compute_RoeFlux_Optimized(int node_L, int node_R, Vector3D areavec, double *Flux_Roe_Conv, double *Flux_Roe_Diss, int AddTime);
-void Compute_Residual_Roe(int AddTime);
-void Compute_Jacobian_Exact_Roe(int AddTime, int Iteration);
-void Compute_Jacobian_Approximate_Roe(int AddTime, int Iteration);
-void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration);
-void Compute_Jacobian_Roe(int AddTime, int Iteration);
-
-// HLLC Scheme Functions
-void HLLC_Init(void);
-void HLLC_Finalize(void);
-void HLLC_Reset(void);
-void Compute_Residual_HLLC(int AddTime);
-
-// AUSM Scheme Functions
-void AUSM_Init(void);
-void AUSM_Finalize(void);
-void AUSM_Reset(void);
-void Compute_Residual_AUSM(int AddTime);
-
-// Van Leer Scheme Functions
-void VanLeer_Init(void);
-void VanLeer_Finalize(void);
-void VanLeer_Reset(void);
-void Compute_Residual_VanLeer(int AddTime);
-
-// LDFSS Scheme Functions
-void LDFSS_Init(void);
-void LDFSS_Finalize(void);
-void LDFSS_Reset(void);
-void Compute_Residual_LDFSS(int AddTime);
-
-// Osher Scheme Functions
-void Osher_Init(void);
-void Osher_Finalize(void);
-void Osher_Reset(void);
-void Compute_Residual_Osher(int AddTime);
-
-// Steger Warming Scheme Functions
-void StegerWarming_Init(void);
-void StegerWarming_Finalize(void);
-void StegerWarming_Reset(void);
-void Compute_Residual_StegerWarming(int AddTime);
-
-// JST Scheme Functions
-void JST_Init(void);
-void JST_Finalize(void);
-void JST_Reset(void);
-void Compute_Residual_JST(int AddTime);
 
 // Limiter
 void Compute_Limiter(void);

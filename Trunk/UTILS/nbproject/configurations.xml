@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="79">
+<configurationDescriptor version="80">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -68,6 +68,38 @@
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
+    <conf name="Release" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GNU|GNU</compilerSet>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <commandLine>-Wno-write-strings</commandLine>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+      </compileType>
+    </conf>
     <conf name="Debug" type="2">
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
@@ -97,10 +129,10 @@
         </asmTool>
       </compileType>
     </conf>
-    <conf name="Release" type="2">
+    <conf name="Release_Cygwin" type="2">
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
-        <compilerSet>GNU|GNU</compilerSet>
+        <compilerSet>Cygwin_4.x|Cygwin_4.x</compilerSet>
       </toolsSet>
       <compileType>
         <cTool>
@@ -122,6 +154,255 @@
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+      </compileType>
+    </conf>
+    <conf name="Debug_Cygwin" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>Cygwin_4.x|Cygwin_4.x</compilerSet>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <commandLine>-Wno-write-strings</commandLine>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+      </compileType>
+    </conf>
+    <conf name="Release_Intel" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GNU|GNU</compilerSet>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <commandlineTool>icc</commandlineTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>include</pElem>
+            <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/include</pElem>
+          </incDir>
+          <commandLine>-axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer</commandLine>
+          <preprocessorList>
+            <Elem>HAVE_MPI</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <commandlineTool>icc</commandlineTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>include</pElem>
+            <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/include</pElem>
+          </incDir>
+          <commandLine>-axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer</commandLine>
+          <preprocessorList>
+            <Elem>HAVE_MPI</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+          <commandlineTool>ifort</commandlineTool>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <linkerAddLib>
+            <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/lib</pElem>
+          </linkerAddLib>
+          <commandlineTool>icc</commandlineTool>
+          <commandLine>-lmpi</commandLine>
+        </linkerTool>
+      </compileType>
+    </conf>
+    <conf name="Debug_Intel" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GNU|GNU</compilerSet>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <commandlineTool>icc</commandlineTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>include</pElem>
+            <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/include</pElem>
+          </incDir>
+          <commandLine>-axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer</commandLine>
+          <preprocessorList>
+            <Elem>HAVE_MPI</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <commandlineTool>icc</commandlineTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>include</pElem>
+            <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/include</pElem>
+          </incDir>
+          <commandLine>-axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer</commandLine>
+          <preprocessorList>
+            <Elem>HAVE_MPI</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <linkerAddLib>
+            <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/lib</pElem>
+          </linkerAddLib>
+          <commandlineTool>icc</commandlineTool>
+          <commandLine>-lmpi</commandLine>
+        </linkerTool>
+      </compileType>
+    </conf>
+    <conf name="Release_GUPC_x86_64" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GUPC_x86_64|GNU</compilerSet>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <commandLine>-Wno-write-strings</commandLine>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+      </compileType>
+    </conf>
+    <conf name="Debug_GUPC_x86_64" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GUPC_x86_64|GNU</compilerSet>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <commandLine>-Wno-write-strings</commandLine>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+      </compileType>
+    </conf>
+    <conf name="Release_GUPC_ppc64" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GUPC_ppc64|GNU</compilerSet>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <commandLine>-Wno-write-strings</commandLine>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+      </compileType>
+    </conf>
+    <conf name="Debug_GUPC_ppc64" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GUPC_ppc64|GNU</compilerSet>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <commandLine>-Wno-write-strings</commandLine>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
         <asmTool>

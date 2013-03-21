@@ -165,7 +165,7 @@ void Compute_VanLeerFlux(int node_L, int node_R, Vector3D areavec, double *Flux_
         // Internal Nodes
         if (node_R < nNode) {
             // Make Solution Second Order
-            if (Order == SOLVER_ORDER_SECOND) {
+            if (SolverOrder == SOLVER_ORDER_SECOND) {
                 Compute_SecondOrderReconstructQ(node_L, node_R, VanLeer_Q_L, VanLeer_Q_R);
             } else {
                 VanLeer_Q_L[0] = Q1[node_L];
@@ -219,7 +219,7 @@ void Compute_VanLeerFlux(int node_L, int node_R, Vector3D areavec, double *Flux_
         }
         
         // Computations for Variable Relaxation Residual Smoothing
-        if (ResidualSmoothType == RESIDUAL_SMOOTH_IMPLICIT) {
+        if (ResidualSmoothMethod == RESIDUAL_SMOOTH_METHOD_IMPLICIT) {
             maxlambda = MAX(fabs(ubar_avg), MAX(fabs(ubar_avg + c_avg), fabs(ubar_avg - c_avg)));
             for (i = crs_IA_Node2Node[node_L]; i < crs_IA_Node2Node[node_L + 1]; i++) {
                 // Get the Node ID and Match with node_R

@@ -511,7 +511,6 @@ void Compute_Transformed_Residual_Roe(void) {
         Compute_EOS_Variables_ControlVolume(Q, rho, p, T, u, v, w, q2, c, mach, et, ht);
         
         // Compute Transformation
-        // Note: rho can be perturb
         // Mro
         Compute_Transformation_Matrix(VariableType, VARIABLE_CONSERVATIVE, rho, u, v, w, c, Roe_M);
         
@@ -3494,7 +3493,7 @@ void Compute_Residual_Roe(int AddTime) {
                 Compute_Steady_Residual_Roe_Precondition_Turkel();
                 break;
             default:
-                error("Compute_Residual_Roe: Invalid Solver Precondition Scheme - %d -3", PrecondMethod);
+                error("Compute_Residual_Roe: Invalid Solver Precondition Scheme - %d", PrecondMethod);
                 break;
         }
     }

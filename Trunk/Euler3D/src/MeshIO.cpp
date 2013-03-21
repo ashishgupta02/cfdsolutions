@@ -108,7 +108,7 @@ void UGrid_Reader(const char* filename) {
         cell2Node[TRI][NNODE_TRI * c + 2]--;
     }
     
-    // Read in Quadrilatral connectivity
+    // Read in Quadrilateral connectivity
     for (int c = 0; c < nElem[QUAD]; c++) {
         dummy = fgets(buff, bdim, fp);
         sscanf(buff, "%d %d %d %d",
@@ -307,7 +307,7 @@ void VTK_Writer(const char* filename, int verbose) {
     /*****PRINT OUT VARIABLES**************/
     fprintf(fp, "POINT_DATA %d\n", nNode);
     // Conservative Variable Formulation
-    if (Variable_Type == VARIABLE_CONSERVATIVE) {
+    if (VariableType == VARIABLE_CONSERVATIVE) {
 	// Scalar Data Fields
         fprintf(fp, "SCALARS Density double 1\n");
         fprintf(fp, "LOOKUP_TABLE default\n");
@@ -374,7 +374,7 @@ void VTK_Writer(const char* filename, int verbose) {
     }
     
     // Primitive Variable Formulation Pressure Velocity Temperature
-    if (Variable_Type == VARIABLE_PRIMITIVE_PUT) {
+    if (VariableType == VARIABLE_PRIMITIVE_PUT) {
         // Scalar Data Fields
         fprintf(fp, "SCALARS Density double 1\n");
         fprintf(fp, "LOOKUP_TABLE default\n");
@@ -423,7 +423,7 @@ void VTK_Writer(const char* filename, int verbose) {
     }
     
     // Primitive Variable Formulation Density Velocity Pressure
-    if (Variable_Type == VARIABLE_PRIMITIVE_RUP) {
+    if (VariableType == VARIABLE_PRIMITIVE_RUP) {
         // Scalar Data Fields
         fprintf(fp, "SCALARS Density double 1\n");
         fprintf(fp, "LOOKUP_TABLE default\n");
@@ -460,7 +460,7 @@ void VTK_Writer(const char* filename, int verbose) {
         for (i = 0; i < nNode; i++)
             fprintf(fp, "%22.15e\n", sqrt(Q2[i]*Q2[i] + Q3[i]*Q3[i] + Q4[i]*Q4[i])/sqrt(Gamma*(Q5[i] + Gauge_Pressure)/Q1[i]));
 
-        if (PrecondMethod != SOLVER_PRECOND_NONE) {
+        if (PrecondMethod != PRECOND_METHOD_NONE) {
             fprintf(fp, "SCALARS Sigma double 1\n");
             fprintf(fp, "LOOKUP_TABLE default\n");
             for (i = 0; i < nNode; i++)

@@ -4,16 +4,25 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>include/AUSM_Fluxes.h</itemPath>
       <itemPath>include/Commons.h</itemPath>
       <itemPath>include/CompressibleUtils.h</itemPath>
       <itemPath>include/DebugSolver.h</itemPath>
       <itemPath>include/Gradient.h</itemPath>
+      <itemPath>include/HLLC_Fluxes.h</itemPath>
+      <itemPath>include/JST_Fluxes.h</itemPath>
+      <itemPath>include/LDFSS_Fluxes.h</itemPath>
       <itemPath>include/Material.h</itemPath>
       <itemPath>include/MeshIO.h</itemPath>
+      <itemPath>include/Osher_Fluxes.h</itemPath>
       <itemPath>include/Residual_Smoothing.h</itemPath>
       <itemPath>include/RestartIO.h</itemPath>
+      <itemPath>include/Roe_Fluxes.h</itemPath>
       <itemPath>include/Solver.h</itemPath>
       <itemPath>include/SolverParameters.h</itemPath>
+      <itemPath>include/SolverUtils.h</itemPath>
+      <itemPath>include/StegerWarming_Fluxes.h</itemPath>
+      <itemPath>include/VanLeer_Fluxes.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -30,6 +39,7 @@
       <itemPath>src/Connectivity_Maps.cpp</itemPath>
       <itemPath>src/Cuthill_Mckee_Reorder.cpp</itemPath>
       <itemPath>src/DebugSolver.cpp</itemPath>
+      <itemPath>src/FluxTest.cpp</itemPath>
       <itemPath>src/Gradient.cpp</itemPath>
       <itemPath>src/HLLC_Fluxes.cpp</itemPath>
       <itemPath>src/HigherOrderReconstructQ.cpp</itemPath>
@@ -49,6 +59,10 @@
       <itemPath>src/Roe_Jacobian.cpp</itemPath>
       <itemPath>src/Solver.cpp</itemPath>
       <itemPath>src/SolverParameters.cpp</itemPath>
+      <itemPath>src/Solver_Steady_Explicit.cpp</itemPath>
+      <itemPath>src/Solver_Steady_Implicit.cpp</itemPath>
+      <itemPath>src/Solver_Unsteady_Explicit.cpp</itemPath>
+      <itemPath>src/Solver_Unsteady_Implicit.cpp</itemPath>
       <itemPath>src/StegerWarming_Fluxes.cpp</itemPath>
       <itemPath>src/Test.cpp</itemPath>
       <itemPath>src/Time_Step.cpp</itemPath>
@@ -340,7 +354,7 @@
     <conf name="Release_Intel" type="1">
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
-        <compilerSet>INTEL|GNU</compilerSet>
+        <compilerSet>GNU|GNU</compilerSet>
       </toolsSet>
       <compileType>
         <cTool>
@@ -351,8 +365,12 @@
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
             <pElem>include</pElem>
+            <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/include</pElem>
           </incDir>
           <commandLine>-axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer</commandLine>
+          <preprocessorList>
+            <Elem>HAVE_MPI</Elem>
+          </preprocessorList>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
@@ -363,8 +381,12 @@
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
             <pElem>include</pElem>
+            <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/include</pElem>
           </incDir>
           <commandLine>-axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer</commandLine>
+          <preprocessorList>
+            <Elem>HAVE_MPI</Elem>
+          </preprocessorList>
           <warningLevel>2</warningLevel>
         </ccTool>
         <fortranCompilerTool>
@@ -376,6 +398,9 @@
           <warningLevel>2</warningLevel>
         </asmTool>
         <linkerTool>
+          <linkerAddLib>
+            <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/lib</pElem>
+          </linkerAddLib>
           <commandlineTool>icc</commandlineTool>
           <linkerLibItems>
             <linkerLibProjectItem>
@@ -403,7 +428,7 @@
               </makeArtifact>
             </linkerLibProjectItem>
           </linkerLibItems>
-          <commandLine>-lstdc++</commandLine>
+          <commandLine>-lstdc++ -lmpi</commandLine>
         </linkerTool>
       </compileType>
     </conf>
@@ -420,8 +445,12 @@
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
             <pElem>include</pElem>
+            <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/include</pElem>
           </incDir>
           <commandLine>-axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer</commandLine>
+          <preprocessorList>
+            <Elem>HAVE_MPI</Elem>
+          </preprocessorList>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
@@ -431,8 +460,12 @@
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
             <pElem>include</pElem>
+            <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/include</pElem>
           </incDir>
           <commandLine>-axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer</commandLine>
+          <preprocessorList>
+            <Elem>HAVE_MPI</Elem>
+          </preprocessorList>
           <warningLevel>2</warningLevel>
         </ccTool>
         <fortranCompilerTool>
@@ -443,6 +476,9 @@
           <warningLevel>2</warningLevel>
         </asmTool>
         <linkerTool>
+          <linkerAddLib>
+            <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/lib</pElem>
+          </linkerAddLib>
           <commandlineTool>icc</commandlineTool>
           <linkerLibItems>
             <linkerLibProjectItem>
@@ -470,7 +506,275 @@
               </makeArtifact>
             </linkerLibProjectItem>
           </linkerLibItems>
-          <commandLine>-lstdc++</commandLine>
+          <commandLine>-lstdc++ -lmpi</commandLine>
+        </linkerTool>
+      </compileType>
+    </conf>
+    <conf name="Release_GUPC_x86_64" type="1">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GUPC_x86_64|GNU</compilerSet>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <commandlineTool>gcc</commandlineTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <commandlineTool>g++</commandlineTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <commandLine>-Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer</commandLine>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <commandlineTool>g++</commandlineTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Release_GUPC_x86_64"
+                            AC="false"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Release_GUPC_x86_64"
+                            CC="${MAKE}  -f Makefile CONF=Release_GUPC_x86_64 clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../MATH"
+                            CT="2"
+                            CN="Release_GUPC_x86_64"
+                            AC="false"
+                            BL="true"
+                            WD="../MATH"
+                            BC="${MAKE}  -f Makefile CONF=Release_GUPC_x86_64"
+                            CC="${MAKE}  -f Makefile CONF=Release_GUPC_x86_64 clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
+          <commandLine>-lstdc++ -lm</commandLine>
+        </linkerTool>
+      </compileType>
+    </conf>
+    <conf name="Debug_GUPC_x88_64" type="1">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GUPC_x86_64|GNU</compilerSet>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <commandlineTool>gcc</commandlineTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <commandlineTool>g++</commandlineTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <commandLine>-Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer</commandLine>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <commandlineTool>g++</commandlineTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Debug_GUPC_x86_64"
+                            AC="false"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Debug_GUPC_x86_64"
+                            CC="${MAKE}  -f Makefile CONF=Debug_GUPC_x86_64 clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../MATH"
+                            CT="2"
+                            CN="Debug_GUPC_x86_64"
+                            AC="false"
+                            BL="true"
+                            WD="../MATH"
+                            BC="${MAKE}  -f Makefile CONF=Debug_GUPC_x86_64"
+                            CC="${MAKE}  -f Makefile CONF=Debug_GUPC_x86_64 clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
+          <commandLine>-lstdc++ -lm</commandLine>
+        </linkerTool>
+      </compileType>
+    </conf>
+    <conf name="Release_GUPC_ppc64" type="1">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GUPC_ppc64|GNU</compilerSet>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <commandlineTool>gcc</commandlineTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <commandlineTool>g++</commandlineTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <commandLine>-Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer</commandLine>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <commandlineTool>g++</commandlineTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../../../../Dropbox/CFDSolutions/Trunk/UTILS"
+                            CT="2"
+                            CN="Release_GUPC_ppc64"
+                            AC="false"
+                            BL="true"
+                            WD="../../../../Dropbox/CFDSolutions/Trunk/UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Release_GUPC_ppc64"
+                            CC="${MAKE}  -f Makefile CONF=Release_GUPC_ppc64 clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../../../../Dropbox/CFDSolutions/Trunk/MATH"
+                            CT="2"
+                            CN="Release_GUPC_ppc64"
+                            AC="false"
+                            BL="true"
+                            WD="../../../../Dropbox/CFDSolutions/Trunk/MATH"
+                            BC="${MAKE}  -f Makefile CONF=Release_GUPC_ppc64"
+                            CC="${MAKE}  -f Makefile CONF=Release_GUPC_ppc64 clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
+          <commandLine>-lstdc++ -lm</commandLine>
+        </linkerTool>
+      </compileType>
+    </conf>
+    <conf name="Debug_GUPC_ppc64" type="1">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GUPC_ppc64|GNU</compilerSet>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <commandlineTool>gcc</commandlineTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <commandlineTool>g++</commandlineTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <commandLine>-Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer</commandLine>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <commandlineTool>g++</commandlineTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../../../../Dropbox/CFDSolutions/Trunk/UTILS"
+                            CT="2"
+                            CN="Debug_GUPC_ppc64"
+                            AC="false"
+                            BL="true"
+                            WD="../../../../Dropbox/CFDSolutions/Trunk/UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Debug_GUPC_ppc64"
+                            CC="${MAKE}  -f Makefile CONF=Debug_GUPC_ppc64 clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../../../../Dropbox/CFDSolutions/Trunk/MATH"
+                            CT="2"
+                            CN="Debug_GUPC_ppc64"
+                            AC="false"
+                            BL="true"
+                            WD="../../../../Dropbox/CFDSolutions/Trunk/MATH"
+                            BC="${MAKE}  -f Makefile CONF=Debug_GUPC_ppc64"
+                            CC="${MAKE}  -f Makefile CONF=Debug_GUPC_ppc64 clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
+          <commandLine>-lstdc++ -lm</commandLine>
         </linkerTool>
       </compileType>
     </conf>

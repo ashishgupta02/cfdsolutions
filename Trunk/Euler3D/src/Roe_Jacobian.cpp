@@ -279,15 +279,15 @@ void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
     }
     
     // Check if Alternating
-    if (FiniteDifference == SOLVER_JACOBIAN_ALTERNATE) {
+    if (FiniteDifference == JACOBIAN_METHOD_ALTERNATE) {
         if (Iteration%2 == 0)
-            FiniteDifference = SOLVER_JACOBIAN_FORWARD;
+            FiniteDifference = JACOBIAN_METHOD_FORWARD;
         else
-            FiniteDifference = SOLVER_JACOBIAN_BACKWARD;
+            FiniteDifference = JACOBIAN_METHOD_BACKWARD;
     }
     
     // Set the value of Coeff based on Finite Difference Method
-    if (FiniteDifference == SOLVER_JACOBIAN_CENTRAL) // Central
+    if (FiniteDifference == JACOBIAN_METHOD_CENTRAL) // Central
         Coeff =  0.5;
     else // Forward or Backward
         Coeff =  1.0;
@@ -349,7 +349,7 @@ void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
         // - Left Node ---------------------------------------------------------
         // -- Q1 ---------------------------------------------------------------
         // Now Perturb the Left Node Q1 +eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_FORWARD)) // Central or Forward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) // Central or Forward
             Q1[node_L] = Q_L[0] + eps;
         else
             Q1[node_L] = Q_L[0];
@@ -357,7 +357,7 @@ void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
         Compute_RoeFlux(node_L, node_R, areavec, FluxP_Conv, FluxP_Diss, FALSE);
         
         // Now Perturb the Left Node Q1 -eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_BACKWARD))  // Central or Backward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD))  // Central or Backward
             Q1[node_L] = Q_L[0] - eps;
         else
             Q1[node_L] = Q_L[0];
@@ -371,13 +371,13 @@ void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
         
         // -- Q2 ---------------------------------------------------------------
         // Now Perturb the Left Node Q2 +eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_FORWARD)) { // Central or Forward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
             Q2[node_L] = Q_L[1] + eps;
             Compute_RoeFlux(node_L, node_R, areavec, FluxP_Conv, FluxP_Diss, FALSE);
         }
         
         // Now Perturb the Left Node Q2 -eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_BACKWARD)) { // Central or Backward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
             Q2[node_L] = Q_L[1] - eps;
             Compute_RoeFlux(node_L, node_R, areavec, FluxM_Conv, FluxM_Diss, FALSE);
         }
@@ -389,13 +389,13 @@ void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
         
         // -- Q3 ---------------------------------------------------------------
         // Now Perturb the Left Node Q3 +eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_FORWARD)) { // Central or Forward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
             Q3[node_L] = Q_L[2] + eps;
             Compute_RoeFlux(node_L, node_R, areavec, FluxP_Conv, FluxP_Diss, FALSE);
         }
         
         // Now Perturb the Left Node Q3 -eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_BACKWARD)) { // Central or Backward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
             Q3[node_L] = Q_L[2] - eps;
             Compute_RoeFlux(node_L, node_R, areavec, FluxM_Conv, FluxM_Diss, FALSE);
         }
@@ -407,13 +407,13 @@ void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
         
         // -- Q4 ---------------------------------------------------------------
         // Now Perturb the Left Node Q4 +eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_FORWARD)) { // Central or Forward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
             Q4[node_L] = Q_L[3] + eps;
             Compute_RoeFlux(node_L, node_R, areavec, FluxP_Conv, FluxP_Diss, FALSE);
         }
         
         // Now Perturb the Left Node Q4 -eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_BACKWARD)) { // Central or Backward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
             Q4[node_L] = Q_L[3] - eps;
             Compute_RoeFlux(node_L, node_R, areavec, FluxM_Conv, FluxM_Diss, FALSE);
         }
@@ -425,13 +425,13 @@ void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
         
         // -- Q5 ---------------------------------------------------------------
         // Now Perturb the Left Node Q5 +eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_FORWARD)) { // Central or Forward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
             Q5[node_L] = Q_L[4] + eps;
             Compute_RoeFlux(node_L, node_R, areavec, FluxP_Conv, FluxP_Diss, FALSE);
         }
         
         // Now Perturb the Left Node Q5 -eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_BACKWARD)) { // Central or Backward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
             Q5[node_L] = Q_L[4] - eps;
             Compute_RoeFlux(node_L, node_R, areavec, FluxM_Conv, FluxM_Diss, FALSE);
         }
@@ -446,7 +446,7 @@ void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
         // ---------------------------------------------------------------------
         // -- Q1 --
         // Now Perturb the Right Node Q1 +eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_FORWARD)) // Central or Forward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) // Central or Forward
             Q1[node_R] = Q_R[0] + eps;
         else
             Q1[node_R] = Q_R[0];
@@ -454,7 +454,7 @@ void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
         Compute_RoeFlux(node_L, node_R, areavec, FluxP_Conv, FluxP_Diss, FALSE);
         
         // Now Perturb the Right Node Q1 -eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_BACKWARD)) // Central or Backward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) // Central or Backward
             Q1[node_R] = Q_R[0] - eps;
         else
             Q1[node_R] = Q_R[0];
@@ -468,13 +468,13 @@ void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
         
         // -- Q2 ---------------------------------------------------------------
         // Now Perturb the Right Node Q2 +eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_FORWARD)) { // Central or Forward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
             Q2[node_R] = Q_R[1] + eps;
             Compute_RoeFlux(node_L, node_R, areavec, FluxP_Conv, FluxP_Diss, FALSE);
         }
         
         // Now Perturb the Right Node Q2 -eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_BACKWARD)) { // Central or Backward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
             Q2[node_R] = Q_R[1] - eps;
             Compute_RoeFlux(node_L, node_R, areavec, FluxM_Conv, FluxM_Diss, FALSE);
         }
@@ -486,13 +486,13 @@ void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
         
         // -- Q3 ---------------------------------------------------------------
         // Now Perturb the Right Node Q3 +eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_FORWARD)) { // Central or Forward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
             Q3[node_R] = Q_R[2] + eps;
             Compute_RoeFlux(node_L, node_R, areavec, FluxP_Conv, FluxP_Diss, FALSE);
         }
         
         // Now Perturb the Right Node Q3 -eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_BACKWARD)) { // Central or Backward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
             Q3[node_R] = Q_R[2] - eps;
             Compute_RoeFlux(node_L, node_R, areavec, FluxM_Conv, FluxM_Diss, FALSE);
         }
@@ -504,13 +504,13 @@ void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
         
         // -- Q4 ---------------------------------------------------------------
         // Now Perturb the Right Node Q4 +eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_FORWARD)) { // Central or Forward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
             Q4[node_R] = Q_R[3] + eps;
             Compute_RoeFlux(node_L, node_R, areavec, FluxP_Conv, FluxP_Diss, FALSE);
         }
         
         // Now Perturb the Right Node Q4 -eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_BACKWARD)) { // Central or Backward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
             Q4[node_R] = Q_R[3] - eps;
             Compute_RoeFlux(node_L, node_R, areavec, FluxM_Conv, FluxM_Diss, FALSE);
         }
@@ -522,13 +522,13 @@ void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
         
         // -- Q5 ---------------------------------------------------------------
         // Now Perturb the Right Node Q5 +eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_FORWARD)) { // Central or Forward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
             Q5[node_R] = Q_R[4] + eps;
             Compute_RoeFlux(node_L, node_R, areavec, FluxP_Conv, FluxP_Diss, FALSE);
         }
         
         // Now Perturb the Right Node Q5 -eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_BACKWARD)) { // Central or Backward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
             Q5[node_R] = Q_R[4] - eps;
             Compute_RoeFlux(node_L, node_R, areavec, FluxM_Conv, FluxM_Diss, FALSE);
         }
@@ -553,7 +553,7 @@ void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
     
     // Note: Currently Forcing Boundary Contribution as Central
     // More Research has to be done for Forward and Backward to work here
-    FiniteDifference = SOLVER_JACOBIAN_CENTRAL;
+    FiniteDifference = JACOBIAN_METHOD_CENTRAL;
     Coeff = 0.5;
     // Boundary Edges
     for (ibEdge = 0; ibEdge < nBEdge; ibEdge++) {
@@ -592,7 +592,7 @@ void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
         // Left Node - Physical ------------------------------------------------
         // -- Q1 ---------------------------------------------------------------
         // Now Perturb the Left Node Q1 +eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_FORWARD)) { // Central or Forward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
             Q1[node_L] = Q_L[0] + eps;
             // Update the Boundary Condition Ghost Node 
             Compute_Characteristic_BoundaryCondition(ibEdge, Iteration);
@@ -609,7 +609,7 @@ void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
         Q5[node_R] = Q_R[4];
         
         // Now Perturb the Left Node Q1 -eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_BACKWARD)) { // Central or Backward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
             Q1[node_L] = Q_L[0] - eps;
             // Update the Boundary Condition Ghost Node 
             Compute_Characteristic_BoundaryCondition(ibEdge, Iteration);
@@ -632,7 +632,7 @@ void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
         
         // -- Q2 ---------------------------------------------------------------
         // Now Perturb the Left Node Q2 +eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_FORWARD)) { // Central or Forward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
             Q2[node_L] = Q_L[1] + eps;
             // Update the Boundary Condition Ghost Node 
             Compute_Characteristic_BoundaryCondition(ibEdge, Iteration);
@@ -646,7 +646,7 @@ void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
         }
         
         // Now Perturb the Left Node Q2 -eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_BACKWARD)) { // Central or Backward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
             Q2[node_L] = Q_L[1] - eps;
             // Update the Boundary Condition Ghost Node 
             Compute_Characteristic_BoundaryCondition(ibEdge, Iteration);
@@ -666,7 +666,7 @@ void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
         
         // -- Q3 ---------------------------------------------------------------
         // Now Perturb the Left Node Q3 +eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_FORWARD)) { // Central or Forward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
             Q3[node_L] = Q_L[2] + eps;
             // Update the Boundary Condition Ghost Node 
             Compute_Characteristic_BoundaryCondition(ibEdge, Iteration);
@@ -680,7 +680,7 @@ void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
         }
         
         // Now Perturb the Left Node Q3 -eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_BACKWARD)) { // Central or Backward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
             Q3[node_L] = Q_L[2] - eps;
             // Update the Boundary Condition Ghost Node 
             Compute_Characteristic_BoundaryCondition(ibEdge, Iteration);
@@ -700,7 +700,7 @@ void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
         
         // -- Q4 ---------------------------------------------------------------
         // Now Perturb the Left Node Q4 +eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_FORWARD)) { // Central or Forward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
             Q4[node_L] = Q_L[3] + eps;
             // Update the Boundary Condition Ghost Node 
             Compute_Characteristic_BoundaryCondition(ibEdge, Iteration);
@@ -714,7 +714,7 @@ void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
         }
         
         // Now Perturb the Left Node Q4 -eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_BACKWARD)) { // Central or Backward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
             Q4[node_L] = Q_L[3] - eps;
             // Update the Boundary Condition Ghost Node 
             Compute_Characteristic_BoundaryCondition(ibEdge, Iteration);
@@ -734,7 +734,7 @@ void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
         
         // -- Q5 ---------------------------------------------------------------
         // Now Perturb the Left Node Q5 +eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_FORWARD)) { // Central or Forward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
             Q5[node_L] = Q_L[4] + eps;
             // Update the Boundary Condition Ghost Node 
             Compute_Characteristic_BoundaryCondition(ibEdge, Iteration);
@@ -748,7 +748,7 @@ void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
         }
         
         // Now Perturb the Left Node Q5 -eps
-        if ((FiniteDifference == SOLVER_JACOBIAN_CENTRAL) || (FiniteDifference == SOLVER_JACOBIAN_BACKWARD)) { // Central or Backward
+        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
             Q5[node_L] = Q_L[4] - eps;
             // Update the Boundary Condition Ghost Node 
             Compute_Characteristic_BoundaryCondition(ibEdge, Iteration);
@@ -779,22 +779,22 @@ void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
 //------------------------------------------------------------------------------
 void Compute_Jacobian_Roe(int AddTime, int Iteration) {
     switch (JacobianMethod) {
-        case SOLVER_JACOBIAN_CENTRAL:
+        case JACOBIAN_METHOD_CENTRAL:
             Compute_Jacobian_FiniteDifference_Roe(AddTime, Iteration);
             break;
-        case SOLVER_JACOBIAN_FORWARD:
+        case JACOBIAN_METHOD_FORWARD:
             Compute_Jacobian_FiniteDifference_Roe(AddTime, Iteration);
             break;
-        case SOLVER_JACOBIAN_BACKWARD:
+        case JACOBIAN_METHOD_BACKWARD:
             Compute_Jacobian_FiniteDifference_Roe(AddTime, Iteration);
             break;
-        case SOLVER_JACOBIAN_ALTERNATE:
+        case JACOBIAN_METHOD_ALTERNATE:
             Compute_Jacobian_FiniteDifference_Roe(AddTime, Iteration);
             break;
-        case SOLVER_JACOBIAN_APPROX:
+        case JACOBIAN_METHOD_APPROX:
             Compute_Jacobian_Approximate_Roe(AddTime, Iteration);
             break;
-        case SOLVER_JACOBIAN_EXACT:
+        case JACOBIAN_METHOD_EXACT:
             Compute_Jacobian_Exact_Roe(AddTime, Iteration);
             break;
         default:

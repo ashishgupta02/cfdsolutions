@@ -6,7 +6,7 @@
 
 # Macros
 TOP=`pwd`
-CND_PLATFORM=INTEL-Linux-x86
+CND_PLATFORM=GNU-Linux-x86
 CND_CONF=Release_Intel
 CND_DISTDIR=dist
 CND_BUILDDIR=build

@@ -27,11 +27,11 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 PROJECTNAME=MATH
 
 # Active Configuration
-DEFAULTCONF=Debug
+DEFAULTCONF=Release
 CONF=${DEFAULTCONF}
 
 # All Configurations
-ALLCONFS=Debug Release 
+ALLCONFS=Release Debug Release_Cygwin Debug_Cygwin Release_Intel Debug_Intel Release_GUPC_x86_64 Debug_GUPC_x86_64 Release_GUPC_ppc64 Debug_GUPC_ppc64 
 
 
 # build

@@ -502,37 +502,24 @@ int Compute_Precondition_Characteristic_BoundaryCondition_Turkel(double Q_L[NEQU
             }
             break;
         case BC_TYPE_SUBSONIC_INFLOW:
-            break;
-        case BC_TYPE_SUBSONIC_OUTFLOW:
-            break;
-        case BC_TYPE_SUPERSONIC_INFLOW:
-            break;
-        case BC_TYPE_SUPERSONIC_OUTFLOW:
-            p_b_n   = p_i;   // Note Perturbation input
-            rho_b_n = rho_i;
-            u_b_n   = u_i;
-            v_b_n   = v_i;
-            w_b_n   = w_i;
-            break;
-        case BC_TYPE_FAR_FIELD_SUBSONIC_OUTFLOW:
-            // Compute the Internal Characteristic variable
-            BC_L[0] = rho_i;
-            BC_L[1] = u_i;
-            BC_L[2] = v_i;
-            BC_L[3] = w_i;
-            BC_L[4] = p_i;   // Note Perturbation input
-            MC_Matrix_Mul_Vector(NEQUATIONS, NEQUATIONS, BC_A, BC_L, BC_B);
-            
-            // Compute the Infinity Characteristic Variable
+            // Compute the Infinity Characteristic variable
             BC_L[0] = Inf_Rho;
             BC_L[1] = Inf_U;
             BC_L[2] = Inf_V;
             BC_L[3] = Inf_W;
-            BC_L[4] = Inf_Pressure; // Note Perturbation input
+            BC_L[4] = p_i; // Note Perturbation input
+            MC_Matrix_Mul_Vector(NEQUATIONS, NEQUATIONS, BC_A, BC_L, BC_B);
+            
+            // Compute the Internal Characteristic Variable
+            BC_L[0] = rho_i;
+            BC_L[1] = u_i;
+            BC_L[2] = v_i;
+            BC_L[3] = w_i;
+            BC_L[4] = p_i; // Note Perturbation input
             MC_Matrix_Mul_Vector(NEQUATIONS, NEQUATIONS, BC_A, BC_L, BC_X);
             
-            // Update the B in last Characteristic
-            BC_B[4] = BC_X[4];
+            // Update the B in forth Characteristic
+            BC_B[3] = BC_X[3];
             
             // Pivot Gaussain LU Decompose BC_A : Note BC_A is replace with LU
             GaussainLUDecompose(BC_A, BC_P, NEQUATIONS, 1);
@@ -547,6 +534,54 @@ int Compute_Precondition_Characteristic_BoundaryCondition_Turkel(double Q_L[NEQU
             v_b_n   = BC_X[2];
             w_b_n   = BC_X[3];
             p_b_n   = BC_X[4];
+            break;
+        case BC_TYPE_SUBSONIC_OUTFLOW:
+            // Procedure validated in Mathematica
+            // Compute the Internal Characteristic variable
+            BC_L[0] = rho_i;
+            BC_L[1] = u_i;
+            BC_L[2] = v_i;
+            BC_L[3] = w_i;
+            BC_L[4] = p_i;   // Note Perturbation input
+            MC_Matrix_Mul_Vector(NEQUATIONS, NEQUATIONS, BC_A, BC_L, BC_B);
+            
+            // Now Modify the last row of right eigenvector matrix to set pressure
+            BC_A[4][0] = 0.0;
+            BC_A[4][1] = 0.0;
+            BC_A[4][2] = 0.0;
+            BC_A[4][3] = 0.0;
+            BC_A[4][4] = 1.0;
+            
+            // Set the last Characteristic to Outflow Pressure
+            BC_B[4] = Outflow_Pressure;
+            
+            // Pivot Gaussain LU Decompose BC_A : Note BC_A is replace with LU
+            GaussainLUDecompose(BC_A, BC_P, NEQUATIONS, 1);
+            // Ly = Pb
+            Solve_PivotForwardSubstitution(BC_A, BC_L, BC_B, BC_P, NEQUATIONS);
+            // Pivot Ux = y
+            Solve_PivotBackSubstitution(BC_A, BC_X, BC_L, BC_P, NEQUATIONS);
+            
+            // Solution
+            rho_b_n = BC_X[0];
+            u_b_n   = BC_X[1];
+            v_b_n   = BC_X[2];
+            w_b_n   = BC_X[3];
+            p_b_n   = BC_X[4];
+            break;
+        case BC_TYPE_SUPERSONIC_INFLOW:
+            p_b_n   = Inf_Pressure; // Note Perturbation input
+            rho_b_n = Inf_Rho;
+            u_b_n   = Inf_U;
+            v_b_n   = Inf_V;
+            w_b_n   = Inf_W;
+            break;
+        case BC_TYPE_SUPERSONIC_OUTFLOW:
+            p_b_n   = p_i;   // Note Perturbation input
+            rho_b_n = rho_i;
+            u_b_n   = u_i;
+            v_b_n   = v_i;
+            w_b_n   = w_i;
             break;
         case BC_TYPE_FAR_FIELD_SUBSONIC_INFLOW:
             // Compute the Infinity Characteristic variable
@@ -567,6 +602,40 @@ int Compute_Precondition_Characteristic_BoundaryCondition_Turkel(double Q_L[NEQU
             
             // Update the B in forth Characteristic
             BC_B[3] = BC_X[3];
+            
+            // Pivot Gaussain LU Decompose BC_A : Note BC_A is replace with LU
+            GaussainLUDecompose(BC_A, BC_P, NEQUATIONS, 1);
+            // Ly = Pb
+            Solve_PivotForwardSubstitution(BC_A, BC_L, BC_B, BC_P, NEQUATIONS);
+            // Pivot Ux = y
+            Solve_PivotBackSubstitution(BC_A, BC_X, BC_L, BC_P, NEQUATIONS);
+            
+            // Solution
+            rho_b_n = BC_X[0];
+            u_b_n   = BC_X[1];
+            v_b_n   = BC_X[2];
+            w_b_n   = BC_X[3];
+            p_b_n   = BC_X[4];
+            break;
+        case BC_TYPE_FAR_FIELD_SUBSONIC_OUTFLOW:
+            // Compute the Internal Characteristic variable
+            BC_L[0] = rho_i;
+            BC_L[1] = u_i;
+            BC_L[2] = v_i;
+            BC_L[3] = w_i;
+            BC_L[4] = p_i;   // Note Perturbation input
+            MC_Matrix_Mul_Vector(NEQUATIONS, NEQUATIONS, BC_A, BC_L, BC_B);
+            
+            // Compute the Infinity Characteristic Variable
+            BC_L[0] = Inf_Rho;
+            BC_L[1] = Inf_U;
+            BC_L[2] = Inf_V;
+            BC_L[3] = Inf_W;
+            BC_L[4] = Inf_Pressure; // Note Perturbation input
+            MC_Matrix_Mul_Vector(NEQUATIONS, NEQUATIONS, BC_A, BC_L, BC_X);
+            
+            // Update the B in last Characteristic
+            BC_B[4] = BC_X[4];
             
             // Pivot Gaussain LU Decompose BC_A : Note BC_A is replace with LU
             GaussainLUDecompose(BC_A, BC_P, NEQUATIONS, 1);
@@ -955,37 +1024,24 @@ int Compute_Characteristic_BoundaryCondition(double Q_L[NEQUATIONS], double Q_R[
             }
             break;
         case BC_TYPE_SUBSONIC_INFLOW:
-            break;
-        case BC_TYPE_SUBSONIC_OUTFLOW:
-            break;
-        case BC_TYPE_SUPERSONIC_INFLOW:
-            break;
-        case BC_TYPE_SUPERSONIC_OUTFLOW:
-            p_b_n   = p_i;   // Note Perturbation input
-            rho_b_n = rho_i;
-            u_b_n   = u_i;
-            v_b_n   = v_i;
-            w_b_n   = w_i;
-            break;
-        case BC_TYPE_FAR_FIELD_SUBSONIC_OUTFLOW:
-            // Compute the Internal Characteristic variable
-            BC_L[0] = rho_i;
-            BC_L[1] = u_i;
-            BC_L[2] = v_i;
-            BC_L[3] = w_i;
-            BC_L[4] = p_i;   // Note Perturbation input
-            MC_Matrix_Mul_Vector(NEQUATIONS, NEQUATIONS, BC_A, BC_L, BC_B);
-            
-            // Compute the Infinity Characteristic Variable
+            // Compute the Infinity Characteristic variable
             BC_L[0] = Inf_Rho;
             BC_L[1] = Inf_U;
             BC_L[2] = Inf_V;
             BC_L[3] = Inf_W;
-            BC_L[4] = Inf_Pressure; // Note Perturbation input
+            BC_L[4] = p_i; // Note Perturbation input
+            MC_Matrix_Mul_Vector(NEQUATIONS, NEQUATIONS, BC_A, BC_L, BC_B);
+            
+            // Compute the Internal Characteristic Variable
+            BC_L[0] = rho_i;
+            BC_L[1] = u_i;
+            BC_L[2] = v_i;
+            BC_L[3] = w_i;
+            BC_L[4] = p_i; // Note Perturbation input
             MC_Matrix_Mul_Vector(NEQUATIONS, NEQUATIONS, BC_A, BC_L, BC_X);
             
-            // Update the B in last Characteristic
-            BC_B[4] = BC_X[4];
+            // Update the B in forth Characteristic
+            BC_B[3] = BC_X[3];
             
             // Pivot Gaussain LU Decompose BC_A : Note BC_A is replace with LU
             GaussainLUDecompose(BC_A, BC_P, NEQUATIONS, 1);
@@ -1000,6 +1056,54 @@ int Compute_Characteristic_BoundaryCondition(double Q_L[NEQUATIONS], double Q_R[
             v_b_n   = BC_X[2];
             w_b_n   = BC_X[3];
             p_b_n   = BC_X[4];
+            break;
+        case BC_TYPE_SUBSONIC_OUTFLOW:
+            // Procedure validated in Mathematica
+            // Compute the Internal Characteristic variable
+            BC_L[0] = rho_i;
+            BC_L[1] = u_i;
+            BC_L[2] = v_i;
+            BC_L[3] = w_i;
+            BC_L[4] = p_i;   // Note Perturbation input
+            MC_Matrix_Mul_Vector(NEQUATIONS, NEQUATIONS, BC_A, BC_L, BC_B);
+            
+            // Now Modify the last row of right eigenvector matrix to set pressure
+            BC_A[4][0] = 0.0;
+            BC_A[4][1] = 0.0;
+            BC_A[4][2] = 0.0;
+            BC_A[4][3] = 0.0;
+            BC_A[4][4] = 1.0;
+            
+            // Set the last Characteristic to Outflow Pressure
+            BC_B[4] = Outflow_Pressure;
+            
+            // Pivot Gaussain LU Decompose BC_A : Note BC_A is replace with LU
+            GaussainLUDecompose(BC_A, BC_P, NEQUATIONS, 1);
+            // Ly = Pb
+            Solve_PivotForwardSubstitution(BC_A, BC_L, BC_B, BC_P, NEQUATIONS);
+            // Pivot Ux = y
+            Solve_PivotBackSubstitution(BC_A, BC_X, BC_L, BC_P, NEQUATIONS);
+            
+            // Solution
+            rho_b_n = BC_X[0];
+            u_b_n   = BC_X[1];
+            v_b_n   = BC_X[2];
+            w_b_n   = BC_X[3];
+            p_b_n   = BC_X[4];
+            break;
+        case BC_TYPE_SUPERSONIC_INFLOW:
+            p_b_n   = Inf_Pressure; // Note Perturbation input
+            rho_b_n = Inf_Rho;
+            u_b_n   = Inf_U;
+            v_b_n   = Inf_V;
+            w_b_n   = Inf_W;
+            break;
+        case BC_TYPE_SUPERSONIC_OUTFLOW:
+            p_b_n   = p_i;   // Note Perturbation input
+            rho_b_n = rho_i;
+            u_b_n   = u_i;
+            v_b_n   = v_i;
+            w_b_n   = w_i;
             break;
         case BC_TYPE_FAR_FIELD_SUBSONIC_INFLOW:
             // Compute the Infinity Characteristic variable
@@ -1020,6 +1124,40 @@ int Compute_Characteristic_BoundaryCondition(double Q_L[NEQUATIONS], double Q_R[
             
             // Update the B in forth Characteristic
             BC_B[3] = BC_X[3];
+            
+            // Pivot Gaussain LU Decompose BC_A : Note BC_A is replace with LU
+            GaussainLUDecompose(BC_A, BC_P, NEQUATIONS, 1);
+            // Ly = Pb
+            Solve_PivotForwardSubstitution(BC_A, BC_L, BC_B, BC_P, NEQUATIONS);
+            // Pivot Ux = y
+            Solve_PivotBackSubstitution(BC_A, BC_X, BC_L, BC_P, NEQUATIONS);
+            
+            // Solution
+            rho_b_n = BC_X[0];
+            u_b_n   = BC_X[1];
+            v_b_n   = BC_X[2];
+            w_b_n   = BC_X[3];
+            p_b_n   = BC_X[4];
+            break;
+        case BC_TYPE_FAR_FIELD_SUBSONIC_OUTFLOW:
+            // Compute the Internal Characteristic variable
+            BC_L[0] = rho_i;
+            BC_L[1] = u_i;
+            BC_L[2] = v_i;
+            BC_L[3] = w_i;
+            BC_L[4] = p_i;   // Note Perturbation input
+            MC_Matrix_Mul_Vector(NEQUATIONS, NEQUATIONS, BC_A, BC_L, BC_B);
+            
+            // Compute the Infinity Characteristic Variable
+            BC_L[0] = Inf_Rho;
+            BC_L[1] = Inf_U;
+            BC_L[2] = Inf_V;
+            BC_L[3] = Inf_W;
+            BC_L[4] = Inf_Pressure; // Note Perturbation input
+            MC_Matrix_Mul_Vector(NEQUATIONS, NEQUATIONS, BC_A, BC_L, BC_X);
+            
+            // Update the B in last Characteristic
+            BC_B[4] = BC_X[4];
             
             // Pivot Gaussain LU Decompose BC_A : Note BC_A is replace with LU
             GaussainLUDecompose(BC_A, BC_P, NEQUATIONS, 1);
@@ -1344,6 +1482,12 @@ int Compute_Characteristic_BoundaryCondition_Direct(double Q_L[NEQUATIONS], doub
             }
             break;
         case BC_TYPE_SUBSONIC_INFLOW:
+            temp    = nx * (u_i - Inf_U) + ny * (v_i - Inf_V) + nz * (w_i - Inf_W);
+            p_b_n   = p_i + 0.5 * rho * c * temp;
+            rho_b_n = Inf_Rho + 0.5 * rho * temp / c;
+            u_b_n   = Inf_U + 0.5 * nx*temp;
+            v_b_n   = Inf_V + 0.5 * ny*temp;
+            w_b_n   = Inf_W + 0.5 * nz*temp;
             break;
         case BC_TYPE_SUBSONIC_OUTFLOW:
             p_b_n   = Outflow_Pressure;
@@ -1353,6 +1497,11 @@ int Compute_Characteristic_BoundaryCondition_Direct(double Q_L[NEQUATIONS], doub
             w_b_n   = w_i - nz * (p_b_n - p_i) / (rho * c);
             break;
         case BC_TYPE_SUPERSONIC_INFLOW:
+            p_b_n   = Inf_Pressure;
+            rho_b_n = Inf_Rho;
+            u_b_n   = Inf_U;
+            v_b_n   = Inf_V;
+            w_b_n   = Inf_W;
             break;
         case BC_TYPE_SUPERSONIC_OUTFLOW:
             p_b_n   = p_i;
@@ -1361,13 +1510,6 @@ int Compute_Characteristic_BoundaryCondition_Direct(double Q_L[NEQUATIONS], doub
             v_b_n   = v_i;
             w_b_n   = w_i;
             break;
-        case BC_TYPE_FAR_FIELD_SUBSONIC_OUTFLOW:
-            p_b_n   = Inf_Pressure;
-            rho_b_n = rho_i + (p_b_n - p_i) / (c * c);
-            u_b_n   = u_i - nx * (p_b_n - p_i) / (rho * c);
-            v_b_n   = v_i - ny * (p_b_n - p_i) / (rho * c);
-            w_b_n   = w_i - nz * (p_b_n - p_i) / (rho * c);
-            break;
         case BC_TYPE_FAR_FIELD_SUBSONIC_INFLOW:
             temp    = nx * (Inf_U - u_i) + ny * (Inf_V - v_i) + nz * (Inf_W - w_i);
             p_b_n   = 0.5 * (Inf_Pressure + p_i - rho * c * temp);
@@ -1375,6 +1517,13 @@ int Compute_Characteristic_BoundaryCondition_Direct(double Q_L[NEQUATIONS], doub
             u_b_n   = Inf_U + nx * (p_b_n - Inf_Pressure) / (rho * c);
             v_b_n   = Inf_V + ny * (p_b_n - Inf_Pressure) / (rho * c);
             w_b_n   = Inf_W + nz * (p_b_n - Inf_Pressure) / (rho * c);
+            break;
+        case BC_TYPE_FAR_FIELD_SUBSONIC_OUTFLOW:
+            p_b_n   = Inf_Pressure;
+            rho_b_n = rho_i + (p_b_n - p_i) / (c * c);
+            u_b_n   = u_i - nx * (p_b_n - p_i) / (rho * c);
+            v_b_n   = v_i - ny * (p_b_n - p_i) / (rho * c);
+            w_b_n   = w_i - nz * (p_b_n - p_i) / (rho * c);
             break;
         case BC_TYPE_FAR_FIELD_SUPERSONIC_INFLOW:
             p_b_n   = Inf_Pressure;

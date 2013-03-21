@@ -167,7 +167,7 @@ void Compute_HLLCFlux(int node_L, int node_R, Vector3D areavec, double *Flux_HLL
         // Internal Nodes
         if (node_R < nNode) {
             // Make Solution Second Order
-            if (Order == SOLVER_ORDER_SECOND) {
+            if (SolverOrder == SOLVER_ORDER_SECOND) {
                 Compute_SecondOrderReconstructQ(node_L, node_R, HLLC_Q_L, HLLC_Q_R);
             } else {
                 HLLC_Q_L[0] = Q1[node_L];
@@ -227,7 +227,7 @@ void Compute_HLLCFlux(int node_L, int node_R, Vector3D areavec, double *Flux_HLL
         }
         
         // Computations for Variable Relaxation Residual Smoothing
-        if (ResidualSmoothType == RESIDUAL_SMOOTH_IMPLICIT) {
+        if (ResidualSmoothMethod == RESIDUAL_SMOOTH_METHOD_IMPLICIT) {
             maxlambda = MAX(fabs(ubar), MAX(fabs(ubar + c), fabs(ubar - c)));
             for (i = crs_IA_Node2Node[node_L]; i < crs_IA_Node2Node[node_L + 1]; i++) {
                 // Get the Node ID and Match with node_R
@@ -355,7 +355,7 @@ void Compute_HLLCFlux_LMFix(int node_L, int node_R, Vector3D areavec, double *Fl
         // Internal Nodes
         if (node_R < nNode) {
             // Make Solution Second Order
-            if (Order == SOLVER_ORDER_SECOND) {
+            if (SolverOrder == SOLVER_ORDER_SECOND) {
                 Compute_SecondOrderReconstructQ(node_L, node_R, HLLC_Q_L, HLLC_Q_R);
             } else {
                 HLLC_Q_L[0] = Q1[node_L];
@@ -415,7 +415,7 @@ void Compute_HLLCFlux_LMFix(int node_L, int node_R, Vector3D areavec, double *Fl
         }
         
         // Computations for Variable Relaxation Residual Smoothing
-        if (ResidualSmoothType == RESIDUAL_SMOOTH_IMPLICIT) {
+        if (ResidualSmoothMethod == RESIDUAL_SMOOTH_METHOD_IMPLICIT) {
             maxlambda = MAX(fabs(ubar), MAX(fabs(ubar + c), fabs(ubar - c)));
             for (i = crs_IA_Node2Node[node_L]; i < crs_IA_Node2Node[node_L + 1]; i++) {
                 // Get the Node ID and Match with node_R

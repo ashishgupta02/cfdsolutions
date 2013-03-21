@@ -14,6 +14,7 @@
 #include "Utils.h"
 #include "Log.h"
 #include "Warn_Error.h"
+#include "NDM_TypeDefs.h"
 
 #ifdef DEBUG_CHECK_MALLOC
 #include "Check_String.h"
@@ -306,7 +307,6 @@ void private_print_memory_usage_file(char *filename, const char *source, int lin
 
 #endif /* DEBUG_CHECK_MALLOC */
 
-
 /*******************************************************************************
  *
  ******************************************************************************/
@@ -322,4 +322,54 @@ void ndm_print_memory_usage_file(char *filename) {
 }
 
 #endif   /* DEBUG_CHECK_MALLOC */
+
+/*******************************************************************************
+ *
+ *******************************************************************************/
+NDMDouble *private_ndmdouble1_mem(int dim, const char *source, int line_no) {
+    NDMDouble *ptr = NULL;
+    size_t size = dim * sizeof (NDMDouble);
+
+    if (dim)
+        ptr = (NDMDouble *) private_check_malloc(size, source, line_no);
+    return ptr;
+} /* private_ndmdouble1_mem() */
+
+
+/*******************************************************************************
+ *
+ *******************************************************************************/
+NDMIndex *private_ndmindex1_mem(int dim, const char *source, int line_no) {
+    NDMIndex *ptr = NULL;
+    size_t size = dim * sizeof (NDMIndex);
+
+    if (dim)
+        ptr = (NDMIndex *) private_check_malloc(size, source, line_no);
+    return ptr;
+} /* private_ndmindex1_mem() */
+
+
+/*******************************************************************************
+ *
+ *******************************************************************************/
+float *private_ndmfloat1_mem(int dim, const char *source, int line_no) {
+    float *ptr = NULL;
+    size_t size = dim * sizeof (float);
+
+    if (dim)
+        ptr = (float *) private_check_malloc(size, source, line_no);
+    return ptr;
+} /* private_ndmfloat1_mem() */
+
+/*******************************************************************************
+ *
+ *******************************************************************************/
+int *private_ndmint1_mem(int dim, const char *source, int line_no) {
+    int *ptr = NULL;
+    size_t size = dim * sizeof (int);
+
+    if (dim)
+        ptr = (int *) private_check_malloc(size, source, line_no);
+    return ptr;
+} /* private_ndmint1_mem() */
 

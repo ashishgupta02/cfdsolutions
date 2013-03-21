@@ -36,16 +36,16 @@ void Compute_Limiter(void) {
         Phi_C[0] = Phi_C[1] = Phi_C[2] = Phi_C[3] = Phi_C[4] = 1.0;
 
         // Compute Flux Limiter
-        switch (Limiter) {
-            case 1: // Barth and Jespersen
+        switch (LimiterMethod) {
+            case LIMITER_METHOD_BERTH_JESPERSEN:
                 Compute_Limiter_Barth_Jespersen(iNode, Phi_C);
                 break;
-            case 2: // Venkatakrishnan
+            case LIMITER_METHOD_VENKATAKRISHNAN:
                 Compute_Limiter_Venkatakrishnan(iNode, Phi_C);
                 break;
         }
 
-        // Check if Smooth Limiter is Reqested - All Phi_C's for All variable will be same
+        // Check if Smooth Limiter is Requested - All Phi_C's for All variable will be same
         if (LimiterSmooth == 1) {
             // Get the Minimum Phi_C
             for (i = 1; i < 5; i++)
@@ -68,7 +68,7 @@ void Compute_Limiter(void) {
     }
 
     // Apply Roe Pressure Correction to Limiters
-    if (SolverScheme == SOLVER_SCHEME_ROE) {
+    if (FluxScheme == FLUX_SCHEME_ROE) {
         double Phi_N[5];
         
         for (iNode = 0; iNode < nNode; iNode++) {
@@ -111,7 +111,6 @@ void Compute_Limiter(void) {
 
 //------------------------------------------------------------------------------
 //! Higher Order Limiter : Barth and Jespersen
-//! Limiter = 1
 //------------------------------------------------------------------------------
 void Compute_Limiter_Barth_Jespersen(int node_C, double *Phi_C) {
     int i, n, nodeid;
@@ -119,7 +118,7 @@ void Compute_Limiter_Barth_Jespersen(int node_C, double *Phi_C) {
     double Q_C[5], Qtmp[5], Qmin[5], Qmax[5], frac;
 
     frac = 0.0;
-    if (LimiterOrder == 2)
+    if (LimiterOrder == LIMITER_ORDER_SECOND)
         frac = 0.5;
     
     // Initialize Flux Limiters
@@ -181,7 +180,6 @@ void Compute_Limiter_Barth_Jespersen(int node_C, double *Phi_C) {
 
 //------------------------------------------------------------------------------
 //! Higher Order Limiter : Venkatakrishnan
-//! Limiter = 2
 //------------------------------------------------------------------------------
 void Compute_Limiter_Venkatakrishnan(int node_C, double *Phi_C) {
     int i, n, nodeid;
@@ -191,7 +189,7 @@ void Compute_Limiter_Venkatakrishnan(int node_C, double *Phi_C) {
     double Q_C[5], Qtmp[5], Qmin[5], Qmax[5];
 
     frac = 0.0;
-    if (LimiterOrder == 2)
+    if (LimiterOrder == LIMITER_ORDER_SECOND)
         frac = 0.5;
     
     // Initialize Flux Limiters
@@ -278,7 +276,7 @@ void Compute_Limiter_PressureCorrection(int node_C, double *Phi_C) {
     double P_C, frac;
 
     frac = 0.0;
-    if (LimiterOrder == 2)
+    if (LimiterOrder == LIMITER_ORDER_SECOND)
         frac = 0.5;
     
     for (n = crs_IA_Node2Node[node_C]; n < crs_IA_Node2Node[node_C + 1]; n++) {
@@ -317,7 +315,7 @@ void Compute_Limiter_RoePressureCorrection(int node_L, int node_R, double *Phi_L
     double P_Roe, frac;
 
     frac = 0.0;
-    if (LimiterOrder == 2)
+    if (LimiterOrder == LIMITER_ORDER_SECOND)
         frac = 0.5;
 
     // Compute Vector R for this edge node_L-->node_R

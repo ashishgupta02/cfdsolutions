@@ -18,30 +18,30 @@
 void Compute_Jacobian(int AddTime, int Iteration) {
     int saveorder;
     
-    // Save the Order
-    saveorder = Order;
-    Order     = SOLVER_ORDER_FIRST;
+    // Save the Solver Order
+    saveorder   = SolverOrder;
+    SolverOrder = SOLVER_ORDER_FIRST;
     
     // Check the frequency of Jacobian Update
     if (Iteration%JacobianUpdate != 0)
         return;
     
     // Update the Jacobian
-    switch (SolverScheme) {
-        case SOLVER_SCHEME_ROE: // Roe
+    switch (FluxScheme) {
+        case FLUX_SCHEME_ROE: // Roe
             Compute_Jacobian_Roe(AddTime, Iteration);
             break;
         default:
-            error("Compute_Jacobian: Invalid Solver Scheme - %d", SolverScheme);
+            error("Compute_Jacobian: Invalid Flux Scheme - %d", FluxScheme);
             break;
     }
     
     // For Unsteady Computations
-    if (SolverMethod == SOLVER_METHOD_IMPLICIT_UNSTEADY) {
+    if (SolverMethod == SOLVER_METHOD_UNSTEADY) {
         
     }
     
-    // Switch Back to Original Order
-    Order    = saveorder;
+    // Switch Back to Original Solver Order
+    SolverOrder = saveorder;
 }
 

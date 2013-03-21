@@ -23,8 +23,8 @@ void RMS_Writer_Init(void) {
     if ((RMS_FP = fopen("Residual.res", "wb")) == NULL)
         error("RMS_Writer_Init: Unable to Write RMS File - Residual.res");
     
-    if (Variable_Type == VARIABLE_CONSERVATIVE) {
-        if (PrecondMethod == SOLVER_PRECOND_NONE) {
+    if (VariableType == VARIABLE_CONSERVATIVE) {
+        if (PrecondMethod == PRECOND_METHOD_NONE) {
             fprintf(RMS_FP, "=============================================================================================================================================================================\n");
             fprintf(RMS_FP, "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
             fprintf(RMS_FP, " Iter     RMS_RHO    RMS_RHOU    RMS_RHOV    RMS_RHOW       RMS_E     RMS_RES    MIN_TIME    MAX_TIME  MIN_LAMDA1  MAX_LAMDA1  MIN_LAMDA4  MAX_LAMDA4  MIN_LAMDA5  MAX_LAMDA5\n");
@@ -35,28 +35,28 @@ void RMS_Writer_Init(void) {
             fprintf(RMS_FP, " Iter     RMS_RHO    RMS_RHOU    RMS_RHOV    RMS_RHOW       RMS_E     RMS_RES    MIN_TIME    MAX_TIME  MIN_LAMDA1  MAX_LAMDA1  MIN_LAMDA4  MAX_LAMDA4  MIN_LAMDA5  MAX_LAMDA5   MIN_SIGMA   MAX_SIGMA\n");
             fprintf(RMS_FP, "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
         }
-    } else if (Variable_Type == VARIABLE_PRIMITIVE_PUT) {
-        if (PrecondMethod == SOLVER_PRECOND_NONE) {
+    } else if (VariableType == VARIABLE_PRIMITIVE_PUT) {
+        if (PrecondMethod == PRECOND_METHOD_NONE) {
             fprintf(RMS_FP, "=============================================================================================================================================================================\n");
             fprintf(RMS_FP, "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
-            fprintf(RMS_FP, " Iter        RMS_P      RMS_U       RMS_V       RMS_W       RMS_T     RMS_RES    MIN_TIME    MAX_TIME  MIN_LAMDA1  MAX_LAMDA1  MIN_LAMDA4  MAX_LAMDA4  MIN_LAMDA5  MAX_LAMDA5\n");
+            fprintf(RMS_FP, " Iter       RMS_P       RMS_U       RMS_V       RMS_W       RMS_T     RMS_RES    MIN_TIME    MAX_TIME  MIN_LAMDA1  MAX_LAMDA1  MIN_LAMDA4  MAX_LAMDA4  MIN_LAMDA5  MAX_LAMDA5\n");
             fprintf(RMS_FP, "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
         } else {
             fprintf(RMS_FP, "=====================================================================================================================================================================================================\n");
             fprintf(RMS_FP, "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
-            fprintf(RMS_FP, " Iter        RMS_P      RMS_U       RMS_V       RMS_W       RMS_T     RMS_RES    MIN_TIME    MAX_TIME  MIN_LAMDA1  MAX_LAMDA1  MIN_LAMDA4  MAX_LAMDA4  MIN_LAMDA5  MAX_LAMDA5   MIN_SIGMA   MAX_SIGMA\n");
+            fprintf(RMS_FP, " Iter       RMS_P       RMS_U       RMS_V       RMS_W       RMS_T     RMS_RES    MIN_TIME    MAX_TIME  MIN_LAMDA1  MAX_LAMDA1  MIN_LAMDA4  MAX_LAMDA4  MIN_LAMDA5  MAX_LAMDA5   MIN_SIGMA   MAX_SIGMA\n");
             fprintf(RMS_FP, "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
         }
     } else {
-        if (PrecondMethod == SOLVER_PRECOND_NONE) {
+        if (PrecondMethod == PRECOND_METHOD_NONE) {
             fprintf(RMS_FP, "=============================================================================================================================================================================\n");
             fprintf(RMS_FP, "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
-            fprintf(RMS_FP, " Iter        RMS_RHO    RMS_U       RMS_V       RMS_W       RMS_P     RMS_RES    MIN_TIME    MAX_TIME  MIN_LAMDA1  MAX_LAMDA1  MIN_LAMDA4  MAX_LAMDA4  MIN_LAMDA5  MAX_LAMDA5\n");
+            fprintf(RMS_FP, " Iter     RMS_RHO       RMS_U       RMS_V       RMS_W       RMS_P     RMS_RES    MIN_TIME    MAX_TIME  MIN_LAMDA1  MAX_LAMDA1  MIN_LAMDA4  MAX_LAMDA4  MIN_LAMDA5  MAX_LAMDA5\n");
             fprintf(RMS_FP, "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
         } else {
             fprintf(RMS_FP, "=====================================================================================================================================================================================================\n");
             fprintf(RMS_FP, "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
-            fprintf(RMS_FP, " Iter        RMS_RHO    RMS_U       RMS_V       RMS_W       RMS_P     RMS_RES    MIN_TIME    MAX_TIME  MIN_LAMDA1  MAX_LAMDA1  MIN_LAMDA4  MAX_LAMDA4  MIN_LAMDA5  MAX_LAMDA5   MIN_SIGMA   MAX_SIGMA\n");
+            fprintf(RMS_FP, " Iter     RMS_RHO       RMS_U       RMS_V       RMS_W       RMS_P     RMS_RES    MIN_TIME    MAX_TIME  MIN_LAMDA1  MAX_LAMDA1  MIN_LAMDA4  MAX_LAMDA4  MIN_LAMDA5  MAX_LAMDA5   MIN_SIGMA   MAX_SIGMA\n");
             fprintf(RMS_FP, "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
         }
     }
@@ -67,7 +67,7 @@ void RMS_Writer_Init(void) {
 //! RMS Writer Finalize
 //------------------------------------------------------------------------------
 void RMS_Writer_Finalize(void) {
-    if (PrecondMethod == SOLVER_PRECOND_NONE)
+    if (PrecondMethod == PRECOND_METHOD_NONE)
         fprintf(RMS_FP, "=============================================================================================================================================================================\n");
     else
         fprintf(RMS_FP, "=====================================================================================================================================================================================================\n");
@@ -83,7 +83,7 @@ void RMS_Writer_Finalize(void) {
 //! RMS Writer
 //------------------------------------------------------------------------------
 void RMS_Writer(int Iteration, double *RMS) {
-    if (PrecondMethod != SOLVER_PRECOND_NONE) {
+    if (PrecondMethod != PRECOND_METHOD_NONE) {
         fprintf(RMS_FP, "%5d %10.5e %10.5e %10.5e %10.5e %10.5e %10.5e %10.5e %10.5e %10.5e %10.5e %10.5e %10.5e %10.5e %10.5e %10.5e %10.5e\n",
                 Iteration, RMS[0], RMS[1], RMS[2], RMS[3], RMS[4], RMS_Res, MinDeltaT, MaxDeltaT,
                 MinEigenLamda1, MaxEigenLamda1, MinEigenLamda4, MaxEigenLamda4, MinEigenLamda5, MaxEigenLamda5, MinPrecondSigma, MaxPrecondSigma);

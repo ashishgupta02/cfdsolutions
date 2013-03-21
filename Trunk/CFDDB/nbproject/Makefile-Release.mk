@@ -60,7 +60,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-L../../../../00-Applications/HPC_LIBS/lib -lcgns -lnetcdf -Wl,-rpath ../UTILS/dist/Release/GNU-Linux-x86 -L../UTILS/dist/Release/GNU-Linux-x86 -lUTILS
+LDLIBSOPTIONS=-L../../../../00-Applications/HPC_LIBS/intel64/lib -Wl,-rpath ../UTILS/dist/Release/GNU-Linux-x86 -L../UTILS/dist/Release/GNU-Linux-x86 -lUTILS -lcgns -lnetcdf
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -75,52 +75,52 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libCFDDB.so: ${OBJECTFILES}
 ${OBJECTDIR}/src/ugridIO.o: src/ugridIO.c 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.c) -O2 -Wall -Iinclude -I.. -I../UTILS/include -I../../../../00-Applications/HPC_LIBS/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/ugridIO.o src/ugridIO.c
+	$(COMPILE.c) -O2 -Wall -Iinclude -I.. -I../UTILS/include -I../../../../00-Applications/HPC_LIBS/intel64/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/ugridIO.o src/ugridIO.c
 
 ${OBJECTDIR}/src/DBMANAGER.o: src/DBMANAGER.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -I.. -Iinclude -I../UTILS/include -I../../../../00-Applications/HPC_LIBS/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/DBMANAGER.o src/DBMANAGER.cpp
+	$(COMPILE.cc) -O2 -Wall -I.. -Iinclude -I../UTILS/include -I../../../../00-Applications/HPC_LIBS/intel64/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/DBMANAGER.o src/DBMANAGER.cpp
 
 ${OBJECTDIR}/src/netcdfIO.o: src/netcdfIO.c 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.c) -O2 -Wall -Iinclude -I.. -I../UTILS/include -I../../../../00-Applications/HPC_LIBS/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/netcdfIO.o src/netcdfIO.c
+	$(COMPILE.c) -O2 -Wall -Iinclude -I.. -I../UTILS/include -I../../../../00-Applications/HPC_LIBS/intel64/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/netcdfIO.o src/netcdfIO.c
 
 ${OBJECTDIR}/src/DB.o: src/DB.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -I.. -Iinclude -I../UTILS/include -I../../../../00-Applications/HPC_LIBS/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/DB.o src/DB.cpp
+	$(COMPILE.cc) -O2 -Wall -I.. -Iinclude -I../UTILS/include -I../../../../00-Applications/HPC_LIBS/intel64/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/DB.o src/DB.cpp
 
 ${OBJECTDIR}/src/DBUGRID.o: src/DBUGRID.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -I.. -Iinclude -I../UTILS/include -I../../../../00-Applications/HPC_LIBS/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/DBUGRID.o src/DBUGRID.cpp
+	$(COMPILE.cc) -O2 -Wall -I.. -Iinclude -I../UTILS/include -I../../../../00-Applications/HPC_LIBS/intel64/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/DBUGRID.o src/DBUGRID.cpp
 
 ${OBJECTDIR}/src/corelib.o: src/corelib.c 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.c) -O2 -Wall -Iinclude -I.. -I../UTILS/include -I../../../../00-Applications/HPC_LIBS/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/corelib.o src/corelib.c
+	$(COMPILE.c) -O2 -Wall -Iinclude -I.. -I../UTILS/include -I../../../../00-Applications/HPC_LIBS/intel64/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/corelib.o src/corelib.c
 
 ${OBJECTDIR}/src/DBNETCDF.o: src/DBNETCDF.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -I.. -Iinclude -I../UTILS/include -I../../../../00-Applications/HPC_LIBS/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/DBNETCDF.o src/DBNETCDF.cpp
+	$(COMPILE.cc) -O2 -Wall -I.. -Iinclude -I../UTILS/include -I../../../../00-Applications/HPC_LIBS/intel64/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/DBNETCDF.o src/DBNETCDF.cpp
 
 ${OBJECTDIR}/src/DBERROR.o: src/DBERROR.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -I.. -Iinclude -I../UTILS/include -I../../../../00-Applications/HPC_LIBS/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/DBERROR.o src/DBERROR.cpp
+	$(COMPILE.cc) -O2 -Wall -I.. -Iinclude -I../UTILS/include -I../../../../00-Applications/HPC_LIBS/intel64/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/DBERROR.o src/DBERROR.cpp
 
 ${OBJECTDIR}/src/cgnsIO.o: src/cgnsIO.c 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.c) -O2 -Wall -Iinclude -I.. -I../UTILS/include -I../../../../00-Applications/HPC_LIBS/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/cgnsIO.o src/cgnsIO.c
+	$(COMPILE.c) -O2 -Wall -Iinclude -I.. -I../UTILS/include -I../../../../00-Applications/HPC_LIBS/intel64/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/cgnsIO.o src/cgnsIO.c
 
 ${OBJECTDIR}/src/DBCGNS.o: src/DBCGNS.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -I.. -Iinclude -I../UTILS/include -I../../../../00-Applications/HPC_LIBS/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/DBCGNS.o src/DBCGNS.cpp
+	$(COMPILE.cc) -O2 -Wall -I.. -Iinclude -I../UTILS/include -I../../../../00-Applications/HPC_LIBS/intel64/include -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/DBCGNS.o src/DBCGNS.cpp
 
 # Subprojects
 .build-subprojects:

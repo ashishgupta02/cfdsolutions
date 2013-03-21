@@ -29,6 +29,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef HAVE_MPI
+#include <mpi.h>
+#endif
+
 /* Custom header files */
 #include "Trim_Utils.h"
 #include "Commons.h"
@@ -62,75 +66,94 @@ static void usage(char **usgstr) {
  *----------------------------------------------------------------------*/
 
 static int arguments(int argc, char **argv) {
+    int rcode = EXIT_SUCCESS;
+    
     if (argc < 2) {
         fprintf(stderr, "ERROR: Too few arguments\n");
         usage(usgmsg);
-        exit(1);
+        rcode = EXIT_FAILURE;
     }
 
     if (argc >= 2) {
         /* Check if help or version is enquired */
         if (argv[1][0] == options[0] && argv[1][1] == options[1]) {
             usage(usgmsg);
-            exit(0);
+            rcode = EXIT_FAILURE;
         } else if(argv[1][0] == options[0] && argv[1][1] == options[2]) {
             printf("%s Utility, Version %s \n", PACKAGE, VERSION);
             printf("Copyright (C) 2010-12 Ashish Gupta. All rights reserved.\n");
             printf("Contact for Help or Bugs %s \n", PACKAGE_BUGREPORT);
-            exit(0);
+            rcode = EXIT_FAILURE;
         }
     }
-    return 0;
+    return rcode;
 }
 
 // *****************************************************************************
 // *****************************************************************************
 int main(int argc, char *argv[]) {
-    int opt;
+#ifdef HAVE_MPI
+    int rank, nproc, ROOT;
+    
+    // Initialize MPI
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &nproc);
+    
+    // Make process with Rank = 0 as Root Process
+    ROOT = 0;
+    
+    // Run Solver on Root Process Only
+    if (rank == ROOT) {
+#endif
+        // Check the arguments
+        if (arguments(argc, argv) == EXIT_SUCCESS) {
+            // Initialize the Common Data
+            Commons_Init();
 
-    // Get the argument options
-    opt = arguments(argc, argv);
+            // Initialize the Solver Parameters Data
+            Solver_Parameters_Init();
 
-    // Initialize the Common Data
-    Commons_Init();
+            // Read the Solver Parameters
+            Solver_Parameters_Read(argv[1]);
 
-    // Initialize the Solver Parameters Data
-    Solver_Parameters_Init();
-    
-    // Read the Solver Parameters
-    Solver_Parameters_Read(argv[1]);
-    
-    // Read input Grid File
-    UGrid_Reader(MeshInputFilename);
+            // Read input Grid File
+            UGrid_Reader(MeshInputFilename);
 
-    // Create All Connectivity Maps
-    Create_Connectivity_Maps(MeshReorder);
-    
-    // Calculate Areas and Control Volumes
-    Calculate_Area_Volume();
+            // Create All Connectivity Maps
+            Create_Connectivity_Maps(MeshReorder);
 
-    // Free Excess Memory Used for Connectivity Creation
-    Trim_Connectivity_Memory();
-    
-    // Read Boundary Conditions
-    Solver_BC_Parameters_Read(BCInputFilename);
-    
-    // Initialize the Solver Data
-    Solver_Init();
+            // Calculate Areas and Control Volumes
+            Calculate_Area_Volume();
 
-    // Set Initial Condition for Solver
-    Solver_Set_Initial_Conditions();
-    
-    // Solve and Write Output
-    if (Solve() == EXIT_SUCCESS)
-        VTK_Writer(SolutionOutputFilename, 1);
-    
-    // Finalize the Solver Data
-    Solver_Finalize();
-    
-    // Finalize the Common Data
-    Commons_Finalize();
-    
+            // Free Excess Memory Used for Connectivity Creation
+            Trim_Connectivity_Memory();
+
+            // Read Boundary Conditions
+            Solver_BC_Parameters_Read(BCInputFilename);
+
+            // Initialize the Solver Data
+            Solver_Init();
+
+            // Set Initial Condition for Solver
+            Solver_Set_Initial_Conditions();
+
+            // Solve and Write Output
+            if (Solver() == EXIT_SUCCESS)
+                VTK_Writer(SolutionOutputFilename, 1);
+
+            // Finalize the Solver Data
+            Solver_Finalize();
+
+            // Finalize the Common Data
+            Commons_Finalize();
+        }
+#ifdef HAVE_MPI
+    }
+    // Synchronize All Process
+    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Finalize();
+#endif
     return EXIT_SUCCESS;
 }
 

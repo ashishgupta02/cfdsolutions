@@ -12,10 +12,10 @@
 #include "Trim_Utils.h"
 
 // Material Variables
-int    Material_Type;
+int    MaterialType;
 
-// Non Dimensionalization Type
-int    NonDimensional_Type;
+// Non Dimensionalization Method
+int    NonDimensionalMethod;
 
 // Dimensional Properties
 double Ref_R;
@@ -41,7 +41,7 @@ double NonDim_Rho;
 double NonDim_Pressure;
 double NonDim_Temperature;
 
-// Free Stream Conditions
+// Far Field Conditions
 double Inf_Rho;
 double Inf_U;
 double Inf_V;
@@ -62,8 +62,8 @@ double Outflow_Pressure;
 //------------------------------------------------------------------------------
 void Material_Init(void) {
     // Initialize
-    NonDimensional_Type = NONDIMENSIONAL_NONE;
-    Material_Type       = MATERIAL_NONE;
+    NonDimensionalMethod = NONDIMENSIONAL_METHOD_NONE;
+    MaterialType         = MATERIAL_TYPE_NONE;
     
     // Dimensional Reference Properties
     Ref_R               = 0.0;
@@ -89,7 +89,7 @@ void Material_Init(void) {
     NonDim_Pressure     = 0.0;
     NonDim_Temperature  = 0.0;
     
-    // Free Stream Conditions
+    // Far Field Conditions
     Inf_Rho             = 0.0;
     Inf_U               = 0.0;
     Inf_V               = 0.0;
@@ -110,78 +110,44 @@ void Material_Init(void) {
 //!
 //------------------------------------------------------------------------------
 void Material_Set_Properties(void) {
-    Material_Type       = MATERIAL_IDEAL_GAS; // Only Support for now
+    MaterialType       = MATERIAL_TYPE_IDEAL_GAS; // Only Support for now
     
-    // Set the Non Dimensionalization Type based on Preconditioning Method
-    if (PrecondMethod != SOLVER_PRECOND_NONE) {
-        switch (PrecondMethod) {
-            case SOLVER_PRECOND_ROE_LMFIX:
-                NonDimensional_Type = NONDIMENSIONAL_GENERIC;
-                break;
-            case SOLVER_PRECOND_ROE_WS:
-                NonDimensional_Type = NONDIMENSIONAL_GENERIC;
-                break;
-            case SOLVER_PRECOND_ROE_CV:
-                NonDimensional_Type = NONDIMENSIONAL_LMROE;
-                break;
-            case SOLVER_PRECOND_ROE_CV_ORIGINAL:
-                NonDimensional_Type = NONDIMENSIONAL_LMROE;
-                break;
-            case SOLVER_PRECOND_ROE_BTW:
-                NonDimensional_Type = NONDIMENSIONAL_BTW;
-                break;
-            case SOLVER_PRECOND_ROE_BTW_ORIGINAL:
-                NonDimensional_Type = NONDIMENSIONAL_BTW;
-                break;
-            case SOLVER_PRECOND_ROE_ERIKSSON:
-                NonDimensional_Type = NONDIMENSIONAL_BTW;
-                break;
-            case SOLVER_PRECOND_ROE_ERIKSSON_ORIGINAL:
-                NonDimensional_Type = NONDIMENSIONAL_BTW;
-                break;
-            default:
-                NonDimensional_Type = NONDIMENSIONAL_GENERIC;
-                break;
-        }
-    } else
-        NonDimensional_Type = NONDIMENSIONAL_GENERIC; 
-    
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             Ref_MolecularWeight = 28.97;
             Ref_R               = UNIV_GAS_CONST/Ref_MolecularWeight;
             
-            switch (NonDimensional_Type) {
-                case NONDIMENSIONAL_GENERIC:
+            switch (NonDimensionalMethod) {
+                case NONDIMENSIONAL_METHOD_GENERIC:
                     NonDim_R           = 1.0/Gamma;
                     NonDim_Rho         = 1.0;
                     NonDim_Temperature = Gamma;
                     NonDim_Pressure    = NonDim_R*NonDim_Rho*NonDim_Temperature;
                     break;
-                case NONDIMENSIONAL_BTW:
+                case NONDIMENSIONAL_METHOD_BTW:
                     NonDim_R           = 1.0/(Gamma*Ref_Mach*Ref_Mach);
                     NonDim_Rho         = 1.0;
                     NonDim_Temperature = Gamma*Ref_Mach*Ref_Mach;
                     NonDim_Pressure    = NonDim_R*NonDim_Rho*NonDim_Temperature;
                     break;
-                case NONDIMENSIONAL_LMROE:
+                case NONDIMENSIONAL_METHOD_LMROE:
                     NonDim_R           = 1.0;
                     NonDim_Rho         = 1.0;
                     NonDim_Temperature = 1.0;
                     NonDim_Pressure    = NonDim_R*NonDim_Rho*NonDim_Temperature;
                     break;
                 default:
-                    error("Material_Set_Properties: Undefined Non-Dimensional Type - %d", NonDimensional_Type);
+                    error("Material_Set_Properties: Undefined Non-Dimensional Method - %d", NonDimensionalMethod);
                     break;
             }
             break;
         default:
-            error("Material_Set_Properties: Undefined Material Type - %d", Material_Type);
+            error("Material_Set_Properties: Undefined Material Type - %d", MaterialType);
             break;
     }
     
     // Gauge Variables
-    switch (Variable_Type) {
+    switch (VariableType) {
         case VARIABLE_CONSERVATIVE:
             Gauge_Pressure    = 0.0;
             Gauge_Temperature = 0.0;
@@ -199,7 +165,7 @@ void Material_Set_Properties(void) {
             Gauge_Temperature = NonDim_Temperature;
             break;
         default:
-            error("Material_Set_Properties: Undefined Variable Type - %d", Variable_Type);
+            error("Material_Set_Properties: Undefined Variable Type - %d", VariableType);
             break;
     }
     
@@ -214,12 +180,12 @@ void Material_Set_Properties(void) {
 }
 
 //------------------------------------------------------------------------------
-//! Compute Free Stream Condition with Mach Ramping
+//! Compute Far Field Condition with Mach Ramping
 //------------------------------------------------------------------------------
-void ComputeFreeStreamCondition(int Iteration) {
+void ComputeFarFieldCondition(int Iteration) {
     double tmpMach = 0.0;
 
-    // Compute the Free Stream Condition Ramping
+    // Compute the Far Field Condition Ramping
     if ((Mach_Ramp > 1) && (Mach_MAX > Mach_MIN)) {
         if (Iteration < Mach_Ramp)
             tmpMach = Mach_MIN + (Mach_MAX - Mach_MIN)*(((double)Iteration)/((double)(Mach_Ramp-1)));
@@ -228,7 +194,7 @@ void ComputeFreeStreamCondition(int Iteration) {
     } else
         tmpMach = Mach_MAX;
 
-    // Set the Free Stream Conditions
+    // Set the Far Field Conditions
     Inf_Mach        = tmpMach;
     Inf_Rho         = NonDim_Rho;
     Inf_Pressure    = NonDim_Pressure - Gauge_Pressure;
@@ -254,10 +220,10 @@ void Compute_EOS_Variables_Face(double *Q, double nx, double ny, double nz,
         double &total_enthalpy) {
     
     // Compute the EOS Based on Non Dimensionalization and Variable Type of Q
-    switch (NonDimensional_Type) {
+    switch (NonDimensionalMethod) {
         // Default Non Dimensionalization
-        case NONDIMENSIONAL_GENERIC:
-            switch (Variable_Type) {
+        case NONDIMENSIONAL_METHOD_GENERIC:
+            switch (VariableType) {
                 // Conservative Variable Formulation
                 case VARIABLE_CONSERVATIVE:
                     rho            = Q[0];
@@ -323,13 +289,13 @@ void Compute_EOS_Variables_Face(double *Q, double nx, double ny, double nz,
                     temperature    = Q[4]; // Only Perturbation
                     break;
                 default:
-                    error("Compute_EOS_Variables_Face: Undefined Variable Type - %d - Error-1", Variable_Type);
+                    error("Compute_EOS_Variables_Face: Undefined Variable Type - %d - Error-1", VariableType);
                     break;
             }
             break;
         // Briley Taylor Whitfield Non Dimensionalization
-        case NONDIMENSIONAL_BTW:
-            switch (Variable_Type) {
+        case NONDIMENSIONAL_METHOD_BTW:
+            switch (VariableType) {
                 // Conservative Variable Formulation
                 case VARIABLE_CONSERVATIVE:
                     rho            = Q[0];
@@ -395,13 +361,13 @@ void Compute_EOS_Variables_Face(double *Q, double nx, double ny, double nz,
                     temperature    = Q[4]; // Only Perturbation
                     break;
                 default:
-                    error("Compute_EOS_Variables_Face: Undefined Variable Type - %d - Error-2", Variable_Type);
+                    error("Compute_EOS_Variables_Face: Undefined Variable Type - %d - Error-2", VariableType);
                     break;
             }
             break;
         // LMRoe Non Dimensionalization
-        case NONDIMENSIONAL_LMROE:
-            switch (Variable_Type) {
+        case NONDIMENSIONAL_METHOD_LMROE:
+            switch (VariableType) {
                 // Conservative Variable Formulation
                 case VARIABLE_CONSERVATIVE:
                     rho            = Q[0];
@@ -467,12 +433,12 @@ void Compute_EOS_Variables_Face(double *Q, double nx, double ny, double nz,
                     temperature    = Q[4]; // Only Perturbation
                     break;
                 default:
-                    error("Compute_EOS_Variables_Face: Undefined Variable Type - %d - Error-3", Variable_Type);
+                    error("Compute_EOS_Variables_Face: Undefined Variable Type - %d - Error-3", VariableType);
                     break;
             }
             break;
         default:
-            error("Compute_EOS_Variables_Face: Undefined Non Dimensional Type - %d - Error-4", NonDimensional_Type);
+            error("Compute_EOS_Variables_Face: Undefined Non Dimensional Method - %d - Error-4", NonDimensionalMethod);
             break;
     }
 }
@@ -486,10 +452,10 @@ void Compute_EOS_Variables_ControlVolume(double *Q,
         double &speed_sound, double &mach, double &total_energy, double &total_enthalpy) {
     
     // Compute the EOS Based on Non Dimensionalization and Variable Type of Q
-    switch (NonDimensional_Type) {
+    switch (NonDimensionalMethod) {
         // Default Non Dimensionalization
-        case NONDIMENSIONAL_GENERIC:
-            switch (Variable_Type) {
+        case NONDIMENSIONAL_METHOD_GENERIC:
+            switch (VariableType) {
                 // Conservative Variable Formulation
                 case VARIABLE_CONSERVATIVE:
                     rho            = Q[0];
@@ -551,13 +517,13 @@ void Compute_EOS_Variables_ControlVolume(double *Q,
                     temperature    = Q[4]; // Only Perturbation
                     break;
                 default:
-                    error("Compute_EOS_Variables_ControlVolume: Undefined Variable Type - %d - Error-1", Variable_Type);
+                    error("Compute_EOS_Variables_ControlVolume: Undefined Variable Type - %d - Error-1", VariableType);
                     break;
             }
             break;
         // Briley Taylor Whitfield Non Dimensionalization
-        case NONDIMENSIONAL_BTW:
-            switch (Variable_Type) {
+        case NONDIMENSIONAL_METHOD_BTW:
+            switch (VariableType) {
                 // Conservative Variable Formulation
                 case VARIABLE_CONSERVATIVE:
                     rho            = Q[0];
@@ -619,13 +585,13 @@ void Compute_EOS_Variables_ControlVolume(double *Q,
                     temperature    = Q[4]; // Only Perturbation
                     break;
                 default:
-                    error("Compute_EOS_Variables_ControlVolume: Undefined Variable Type - %d - Error-2", Variable_Type);
+                    error("Compute_EOS_Variables_ControlVolume: Undefined Variable Type - %d - Error-2", VariableType);
                     break;
             }
             break;
         // LMRoe Non Dimensionalization
-        case NONDIMENSIONAL_LMROE:
-            switch (Variable_Type) {
+        case NONDIMENSIONAL_METHOD_LMROE:
+            switch (VariableType) {
                 // Conservative Variable Formulation
                 case VARIABLE_CONSERVATIVE:
                     rho            = Q[0];
@@ -687,12 +653,12 @@ void Compute_EOS_Variables_ControlVolume(double *Q,
                     temperature    = Q[4]; // Only Perturbation
                     break;
                 default:
-                    error("Compute_EOS_Variables_ControlVolume: Undefined Variable Type - %d - Error-3", Variable_Type);
+                    error("Compute_EOS_Variables_ControlVolume: Undefined Variable Type - %d - Error-3", VariableType);
                     break;
             }
             break;
         default:
-            error("Compute_EOS_Variables_ControlVolume: Undefined Non Dimensional Type - %d - Error-4", NonDimensional_Type);
+            error("Compute_EOS_Variables_ControlVolume: Undefined Non Dimensional Method - %d - Error-4", NonDimensionalMethod);
             break;
     }
 }
@@ -702,12 +668,12 @@ void Compute_EOS_Variables_ControlVolume(double *Q,
 //------------------------------------------------------------------------------
 double Get_Rho(double Pressure, double Temperature) {
     double Rho = 0.0;
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             Rho = (Pressure + Gauge_Pressure)/(NonDim_R*(Temperature + Gauge_Temperature));
             break;
         default:
-            error("Get_Rho: Undefined Material Type - %d", Material_Type);
+            error("Get_Rho: Undefined Material Type - %d", MaterialType);
             break;
     }
     return Rho;
@@ -718,12 +684,12 @@ double Get_Rho(double Pressure, double Temperature) {
 //------------------------------------------------------------------------------
 double Get_Pressure(double Rho, double Temperature) {
     double Pressure = 0.0;
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             Pressure = NonDim_R*Rho*(Temperature + Gauge_Temperature);
             break;
         default:
-            error("Get_Pressure: Undefined Material Type - %d", Material_Type);
+            error("Get_Pressure: Undefined Material Type - %d", MaterialType);
             break;
     }
     return Pressure;
@@ -734,12 +700,12 @@ double Get_Pressure(double Rho, double Temperature) {
 //------------------------------------------------------------------------------
 double Get_Pressure(double *Q) {
     double Pressure = 0.0;
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
-            switch (NonDimensional_Type) {
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
+            switch (NonDimensionalMethod) {
                 // Default Non Dimensionalization
-                case NONDIMENSIONAL_GENERIC:
-                    switch (Variable_Type) {
+                case NONDIMENSIONAL_METHOD_GENERIC:
+                    switch (VariableType) {
                         // Conservative Variable Formulation
                         case VARIABLE_CONSERVATIVE:
                             Pressure = (Gamma - 1.0)*(Q[4] - 0.5*(Q[1]*Q[1] + Q[2]*Q[2] + Q[3]*Q[3])/Q[0]);
@@ -757,13 +723,13 @@ double Get_Pressure(double *Q) {
                             Pressure = NonDim_R*Q[0]*(Q[4] + Gauge_Temperature);
                             break;
                         default:
-                            error("Get_Pressure: Undefined Variable Type - %d - Error-1", Variable_Type);
+                            error("Get_Pressure: Undefined Variable Type - %d - Error-1", VariableType);
                             break;
                     }
                     break;
                 // Briley Taylor Whitfield Non Dimensionalization
-                case NONDIMENSIONAL_BTW:
-                    switch (Variable_Type) {
+                case NONDIMENSIONAL_METHOD_BTW:
+                    switch (VariableType) {
                         // Conservative Variable Formulation
                         case VARIABLE_CONSERVATIVE:
                             Pressure = Q[4]/(Ref_Mach*Ref_Mach) - 0.5*(Gamma - 1.0)*(Q[1]*Q[1] + Q[2]*Q[2] + Q[3]*Q[3])/Q[0];
@@ -781,13 +747,13 @@ double Get_Pressure(double *Q) {
                             Pressure = NonDim_R*Q[0]*(Q[4] + Gauge_Temperature);
                             break;
                         default:
-                            error("Get_Pressure: Undefined Variable Type - %d - Error-2", Variable_Type);
+                            error("Get_Pressure: Undefined Variable Type - %d - Error-2", VariableType);
                             break;
                     }
                     break;
                 // LMRoe Non Dimensionalization
-                case NONDIMENSIONAL_LMROE:
-                    switch (Variable_Type) {
+                case NONDIMENSIONAL_METHOD_LMROE:
+                    switch (VariableType) {
                         // Conservative Variable Formulation
                         case VARIABLE_CONSERVATIVE:
                             Pressure = (Gamma - 1.0)*(Q[4] - 0.5*(Q[1]*Q[1] + Q[2]*Q[2] + Q[3]*Q[3])/Q[0]);
@@ -805,17 +771,17 @@ double Get_Pressure(double *Q) {
                             Pressure = NonDim_R*Q[0]*(Q[4] + Gauge_Temperature);
                             break;
                         default:
-                            error("Get_Pressure: Undefined Variable Type - %d - Error-3", Variable_Type);
+                            error("Get_Pressure: Undefined Variable Type - %d - Error-3", VariableType);
                             break;
                     }
                     break;
                 default:
-                    error("Get_Pressure: Undefined Non Dimensional Type - %d", NonDimensional_Type);
+                    error("Get_Pressure: Undefined Non Dimensional Method - %d", NonDimensionalMethod);
                     break;
             }
             break;
         default:
-            error("Get_Pressure: Undefined Material Type - %d", Material_Type);
+            error("Get_Pressure: Undefined Material Type - %d", MaterialType);
             break;
     }
     return Pressure;
@@ -826,12 +792,12 @@ double Get_Pressure(double *Q) {
 //------------------------------------------------------------------------------
 double Get_Temperature(double Rho, double Pressure) {
     double Temperature = 0.0;
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             Temperature = (Pressure + Gauge_Pressure)/(NonDim_R*Rho) - Gauge_Temperature;
             break;
         default:
-            error("Get_Temperature: Undefined Material Type - %d", Material_Type);
+            error("Get_Temperature: Undefined Material Type - %d", MaterialType);
             break;
     }
     return Temperature;
@@ -842,12 +808,12 @@ double Get_Temperature(double Rho, double Pressure) {
 //------------------------------------------------------------------------------
 double Get_Temperature(double *Q) {
     double Temperature = 0.0, Pressure = 0.0;
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
-            switch (NonDimensional_Type) {
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
+            switch (NonDimensionalMethod) {
                 // Default Non Dimensionalization
-                case NONDIMENSIONAL_GENERIC:
-                    switch (Variable_Type) {
+                case NONDIMENSIONAL_METHOD_GENERIC:
+                    switch (VariableType) {
                         // Conservative Variable Formulation
                         case VARIABLE_CONSERVATIVE:
                             Pressure    = (Gamma - 1.0)*(Q[4] - 0.5*(Q[1]*Q[1] + Q[2]*Q[2] + Q[3]*Q[3])/Q[0]);
@@ -867,13 +833,13 @@ double Get_Temperature(double *Q) {
                             Temperature = Q[4];
                             break;
                         default:
-                            error("Get_Temperature: Undefined Variable Type - %d - Error-1", Variable_Type);
+                            error("Get_Temperature: Undefined Variable Type - %d - Error-1", VariableType);
                             break;
                     }
                     break;
                 // Briley Taylor Whitfield Non Dimensionalization
-                case NONDIMENSIONAL_BTW:
-                    switch (Variable_Type) {
+                case NONDIMENSIONAL_METHOD_BTW:
+                    switch (VariableType) {
                         // Conservative Variable Formulation
                         case VARIABLE_CONSERVATIVE:
                             Pressure    = Q[4]/(Ref_Mach*Ref_Mach) - 0.5*(Gamma - 1.0)*(Q[1]*Q[1] + Q[2]*Q[2] + Q[3]*Q[3])/Q[0];
@@ -893,13 +859,13 @@ double Get_Temperature(double *Q) {
                             Temperature = Q[4];
                             break;
                         default:
-                            error("Get_Temperature: Undefined Variable Type - %d - Error-2", Variable_Type);
+                            error("Get_Temperature: Undefined Variable Type - %d - Error-2", VariableType);
                             break;
                     }
                     break;
                 // LMRoe Non Dimensionalization
-                case NONDIMENSIONAL_LMROE:
-                    switch (Variable_Type) {
+                case NONDIMENSIONAL_METHOD_LMROE:
+                    switch (VariableType) {
                         // Conservative Variable Formulation
                         case VARIABLE_CONSERVATIVE:
                             Pressure    = (Gamma - 1.0)*(Q[4] - 0.5*(Q[1]*Q[1] + Q[2]*Q[2] + Q[3]*Q[3])/Q[0]);
@@ -919,17 +885,17 @@ double Get_Temperature(double *Q) {
                             Temperature = Q[4];
                             break;
                         default:
-                            error("Get_Temperature: Undefined Variable Type - %d - Error-3", Variable_Type);
+                            error("Get_Temperature: Undefined Variable Type - %d - Error-3", VariableType);
                             break;
                     }
                     break;
                 default:
-                    error("Get_Temperature: Undefined Non Dimensional Type - %d", NonDimensional_Type);
+                    error("Get_Temperature: Undefined Non Dimensional Method - %d", NonDimensionalMethod);
                     break;
             }
             break;
         default:
-            error("Get_Temperature: Undefined Material Type - %d", Material_Type);
+            error("Get_Temperature: Undefined Material Type - %d", MaterialType);
             break;
     }
     return Temperature;
@@ -940,12 +906,12 @@ double Get_Temperature(double *Q) {
 //------------------------------------------------------------------------------
 double Get_SpeedSound(double Rho, double Pressure) {
     double SpeedSound = 0.0;
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             SpeedSound = sqrt(Gamma*(Pressure + Gauge_Pressure)/Rho);
             break;
         default:
-            error("Get_SpeedSound: Undefined Material Type - %d", Material_Type);
+            error("Get_SpeedSound: Undefined Material Type - %d", MaterialType);
             break;
     }
     return SpeedSound;
@@ -956,12 +922,12 @@ double Get_SpeedSound(double Rho, double Pressure) {
 //------------------------------------------------------------------------------
 double Get_SpeedSound(double Temperature) {
     double SpeedSound = 0.0;
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             SpeedSound = sqrt(Gamma*NonDim_R*(Temperature + Gauge_Temperature));
             break;
         default:
-            error("Get_SpeedSound: Undefined Material Type - %d", Material_Type);
+            error("Get_SpeedSound: Undefined Material Type - %d", MaterialType);
             break;
     }
     return SpeedSound;
@@ -970,33 +936,106 @@ double Get_SpeedSound(double Temperature) {
 //------------------------------------------------------------------------------
 //!
 //------------------------------------------------------------------------------
-double Get_TotalEnergy(double Rho, double Pressure, double Velocity_U, double Velocity_V, double Velocity_W) {
-    double TotalEnergy = 0.0;
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
-            switch (NonDimensional_Type) {
+double Get_SpeedSound(double Velocity_U, double Velocity_V, double Velocity_W, double Total_Enthalpy) {
+    double SpeedSound = 0.0;
+    double phi = 0.0;
+    
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
+            phi = 0.5*(Gamma - 1.0)*(Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W);
+            switch (NonDimensionalMethod) {
                 // Default Non Dimensionalization
-                case NONDIMENSIONAL_GENERIC:
-                    TotalEnergy = Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W;
-                    TotalEnergy = (Pressure + Gauge_Pressure)/((Gamma - 1.0)*Rho) + 0.5*TotalEnergy;
+                case NONDIMENSIONAL_METHOD_GENERIC:
+                    SpeedSound = (Gamma - 1.0) * Total_Enthalpy - phi;
+                    SpeedSound = sqrt(SpeedSound);
                     break;
                 // Briley Taylor Whitfield Non Dimensionalization
-                case NONDIMENSIONAL_BTW:
-                    TotalEnergy = Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W;
-                    TotalEnergy = (Ref_Mach*Ref_Mach)*((Pressure + Gauge_Pressure)/Rho + 0.5*(Gamma - 1.0)*TotalEnergy);
+                case NONDIMENSIONAL_METHOD_BTW:
+                    SpeedSound = Total_Enthalpy / (Ref_Mach * Ref_Mach) - phi;
+                    SpeedSound = sqrt(SpeedSound);
                     break;
                 // LMRoe Non Dimensionalization
-                case NONDIMENSIONAL_LMROE:
-                    TotalEnergy = Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W;
-                    TotalEnergy = (Pressure + Gauge_Pressure)/((Gamma - 1.0)*Rho) + 0.5*TotalEnergy;
+                case NONDIMENSIONAL_METHOD_LMROE:
+                    SpeedSound = (Gamma - 1.0) * Total_Enthalpy - phi;
+                    SpeedSound = sqrt(SpeedSound);
                     break;
                 default:
-                    error("Get_TotalEnergy: Undefined Non Dimensional Type - %d", NonDimensional_Type);
+                    error("Get_SpeedSound: Undefined Non-Dimensional Method - %d", NonDimensionalMethod);
                     break;
             }
             break;
         default:
-            error("Get_TotalEnergy: Undefined Material Type - %d", Material_Type);
+            error("Get_SpeedSound: Undefined Material Type - %d", MaterialType);
+            break;
+    }
+    return SpeedSound;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double Get_SpeedSoundSquare(double Velocity_U, double Velocity_V, double Velocity_W, double Total_Enthalpy) {
+    double SpeedSoundSquare = 0.0;
+    double phi = 0.0;
+    
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
+            phi = 0.5*(Gamma - 1.0)*(Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W);
+            switch (NonDimensionalMethod) {
+                // Default Non Dimensionalization
+                case NONDIMENSIONAL_METHOD_GENERIC:
+                    SpeedSoundSquare = (Gamma - 1.0) * Total_Enthalpy - phi;
+                    break;
+                // Briley Taylor Whitfield Non Dimensionalization
+                case NONDIMENSIONAL_METHOD_BTW:
+                    SpeedSoundSquare = Total_Enthalpy / (Ref_Mach * Ref_Mach) - phi;
+                    break;
+                // LMRoe Non Dimensionalization
+                case NONDIMENSIONAL_METHOD_LMROE:
+                    SpeedSoundSquare = (Gamma - 1.0) * Total_Enthalpy - phi;
+                    break;
+                default:
+                    error("Get_SpeedSoundSquare: Undefined Non-Dimensional Method - %d", NonDimensionalMethod);
+                    break;
+            }
+            break;
+        default:
+            error("Get_SpeedSoundSquare: Undefined Material Type - %d", MaterialType);
+            break;
+    }
+    return SpeedSoundSquare;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double Get_TotalEnergy(double Rho, double Pressure, double Velocity_U, double Velocity_V, double Velocity_W) {
+    double TotalEnergy = 0.0;
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
+            switch (NonDimensionalMethod) {
+                // Default Non Dimensionalization
+                case NONDIMENSIONAL_METHOD_GENERIC:
+                    TotalEnergy = Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W;
+                    TotalEnergy = (Pressure + Gauge_Pressure)/((Gamma - 1.0)*Rho) + 0.5*TotalEnergy;
+                    break;
+                // Briley Taylor Whitfield Non Dimensionalization
+                case NONDIMENSIONAL_METHOD_BTW:
+                    TotalEnergy = Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W;
+                    TotalEnergy = (Ref_Mach*Ref_Mach)*((Pressure + Gauge_Pressure)/Rho + 0.5*(Gamma - 1.0)*TotalEnergy);
+                    break;
+                // LMRoe Non Dimensionalization
+                case NONDIMENSIONAL_METHOD_LMROE:
+                    TotalEnergy = Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W;
+                    TotalEnergy = (Pressure + Gauge_Pressure)/((Gamma - 1.0)*Rho) + 0.5*TotalEnergy;
+                    break;
+                default:
+                    error("Get_TotalEnergy: Undefined Non Dimensional Method - %d", NonDimensionalMethod);
+                    break;
+            }
+            break;
+        default:
+            error("Get_TotalEnergy: Undefined Material Type - %d", MaterialType);
             break;
     }
     return TotalEnergy;
@@ -1007,12 +1046,12 @@ double Get_TotalEnergy(double Rho, double Pressure, double Velocity_U, double Ve
 //------------------------------------------------------------------------------
 double Get_Mach(double *Q) {
     double q2 = 0.0, var = 0.0, Pressure = 0.0, Mach = 0.0;
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
-            switch (NonDimensional_Type) {
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
+            switch (NonDimensionalMethod) {
                 // Default Non Dimensionalization
-                case NONDIMENSIONAL_GENERIC:
-                    switch (Variable_Type) {
+                case NONDIMENSIONAL_METHOD_GENERIC:
+                    switch (VariableType) {
                         // Conservative Variable Formulation
                         case VARIABLE_CONSERVATIVE:
                             q2       = (Q[1]*Q[1] + Q[2]*Q[2] + Q[3]*Q[3])/(Q[0]*Q[0]);
@@ -1041,13 +1080,13 @@ double Get_Mach(double *Q) {
                             Mach     = sqrt(q2*Q[0]/(Gamma * Pressure));
                             break;
                         default:
-                            error("Get_Mach: Undefined Variable Type - %d - Error-1", Variable_Type);
+                            error("Get_Mach: Undefined Variable Type - %d - Error-1", VariableType);
                             break;
                     }
                     break;
                 // Briley Taylor Whitfield Non Dimensionalization
-                case NONDIMENSIONAL_BTW:
-                    switch (Variable_Type) {
+                case NONDIMENSIONAL_METHOD_BTW:
+                    switch (VariableType) {
                         // Conservative Variable Formulation
                         case VARIABLE_CONSERVATIVE:
                             q2       = (Q[1]*Q[1] + Q[2]*Q[2] + Q[3]*Q[3])/(Q[0]*Q[0]);
@@ -1076,13 +1115,13 @@ double Get_Mach(double *Q) {
                             Mach     = sqrt(q2*Q[0]/(Gamma * Pressure));
                             break;
                         default:
-                            error("Get_Mach: Undefined Variable Type - %d - Error-2", Variable_Type);
+                            error("Get_Mach: Undefined Variable Type - %d - Error-2", VariableType);
                             break;
                     }
                     break;
                 // LMRoe Non Dimensionalization
-                case NONDIMENSIONAL_LMROE:
-                    switch (Variable_Type) {
+                case NONDIMENSIONAL_METHOD_LMROE:
+                    switch (VariableType) {
                         // Conservative Variable Formulation
                         case VARIABLE_CONSERVATIVE:
                             q2       = (Q[1]*Q[1] + Q[2]*Q[2] + Q[3]*Q[3])/(Q[0]*Q[0]);
@@ -1111,17 +1150,17 @@ double Get_Mach(double *Q) {
                             Mach     = sqrt(q2*Q[0]/(Gamma * Pressure));
                             break;
                         default:
-                            error("Get_Mach: Undefined Variable Type - %d - Error-3", Variable_Type);
+                            error("Get_Mach: Undefined Variable Type - %d - Error-3", VariableType);
                             break;
                     }
                     break;
                 default:
-                    error("Get_Mach: Undefined Non Dimensional Type - %d", NonDimensional_Type);
+                    error("Get_Mach: Undefined Non Dimensional Method - %d", NonDimensionalMethod);
                     break;
             }
             break;
         default:
-            error("Get_Mach: Undefined Material Type - %d", Material_Type);
+            error("Get_Mach: Undefined Material Type - %d", MaterialType);
             break;
     }
     return Mach;
@@ -1134,8 +1173,8 @@ void Compute_Transformation_Conservative_To_RUP(double Rho, double Velocity_U, d
     double phi = 0.0;
     
     // Matrix
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             phi = 0.5*(Gamma - 1.0)*(Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W);
             
             Matrix[0][0] = 1.0;
@@ -1162,22 +1201,22 @@ void Compute_Transformation_Conservative_To_RUP(double Rho, double Velocity_U, d
             Matrix[3][3] = Rho;
             Matrix[3][4] = 0.0;
 
-            switch (NonDimensional_Type) {
-                case NONDIMENSIONAL_GENERIC:
+            switch (NonDimensionalMethod) {
+                case NONDIMENSIONAL_METHOD_GENERIC:
                     Matrix[4][0] = phi/(Gamma - 1.0);
                     Matrix[4][1] = Rho * Velocity_U;
                     Matrix[4][2] = Rho * Velocity_V;
                     Matrix[4][3] = Rho * Velocity_W;
                     Matrix[4][4] = 1.0/(Gamma - 1.0);
                     break;
-                case NONDIMENSIONAL_BTW:
+                case NONDIMENSIONAL_METHOD_BTW:
                     Matrix[4][0] = phi * Ref_Mach * Ref_Mach;
                     Matrix[4][1] = (Gamma - 1.0) * Rho * Velocity_U * Ref_Mach * Ref_Mach;
                     Matrix[4][2] = (Gamma - 1.0) * Rho * Velocity_V * Ref_Mach * Ref_Mach;
                     Matrix[4][3] = (Gamma - 1.0) * Rho * Velocity_W * Ref_Mach * Ref_Mach;
                     Matrix[4][4] = Ref_Mach * Ref_Mach;
                     break;
-                case NONDIMENSIONAL_LMROE:
+                case NONDIMENSIONAL_METHOD_LMROE:
                     Matrix[4][0] = phi/(Gamma - 1.0);
                     Matrix[4][1] = Rho * Velocity_U;
                     Matrix[4][2] = Rho * Velocity_V;
@@ -1185,12 +1224,12 @@ void Compute_Transformation_Conservative_To_RUP(double Rho, double Velocity_U, d
                     Matrix[4][4] = 1.0/(Gamma - 1.0);
                     break;
                 default:
-                    error("Compute_Transformation_Conservative_To_RUP: Undefined Non Dimensional Type - %d", NonDimensional_Type);
+                    error("Compute_Transformation_Conservative_To_RUP: Undefined Non Dimensional Method - %d", NonDimensionalMethod);
                     break;
             }
             break;
         default:
-            error("Compute_Transformation_Conservative_To_RUP: Undefined Material Type - %d", Material_Type);
+            error("Compute_Transformation_Conservative_To_RUP: Undefined Material Type - %d", MaterialType);
             break;
     }
 }
@@ -1202,8 +1241,8 @@ void Compute_Transformation_RUP_To_Conservative(double Rho, double Velocity_U, d
     double phi = 0.0;
     
     // Matrix
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             phi = 0.5*(Gamma - 1.0)*(Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W);
             
             Matrix[0][0] = 1.0;
@@ -1230,22 +1269,22 @@ void Compute_Transformation_RUP_To_Conservative(double Rho, double Velocity_U, d
             Matrix[3][3] = 1.0/Rho;
             Matrix[3][4] = 0.0;
 
-            switch (NonDimensional_Type) {
-                case NONDIMENSIONAL_GENERIC:
+            switch (NonDimensionalMethod) {
+                case NONDIMENSIONAL_METHOD_GENERIC:
                     Matrix[4][0] = phi;
                     Matrix[4][1] = -Velocity_U * (Gamma - 1.0);
                     Matrix[4][2] = -Velocity_V * (Gamma - 1.0);
                     Matrix[4][3] = -Velocity_W * (Gamma - 1.0);
                     Matrix[4][4] = (Gamma - 1.0);
                     break;
-                case NONDIMENSIONAL_BTW:
+                case NONDIMENSIONAL_METHOD_BTW:
                     Matrix[4][0] = phi;
                     Matrix[4][1] = -Velocity_U * (Gamma - 1.0);
                     Matrix[4][2] = -Velocity_V * (Gamma - 1.0);
                     Matrix[4][3] = -Velocity_W * (Gamma - 1.0);
                     Matrix[4][4] = 1.0/(Ref_Mach * Ref_Mach);
                     break;
-                case NONDIMENSIONAL_LMROE:
+                case NONDIMENSIONAL_METHOD_LMROE:
                     Matrix[4][0] = phi;
                     Matrix[4][1] = -Velocity_U * (Gamma - 1.0);
                     Matrix[4][2] = -Velocity_V * (Gamma - 1.0);
@@ -1253,12 +1292,12 @@ void Compute_Transformation_RUP_To_Conservative(double Rho, double Velocity_U, d
                     Matrix[4][4] = (Gamma - 1.0);
                     break;
                 default:
-                    error("Compute_Transformation_RUP_To_Conservative: Undefined Non Dimensional Type - %d", NonDimensional_Type);
+                    error("Compute_Transformation_RUP_To_Conservative: Undefined Non Dimensional Method - %d", NonDimensionalMethod);
                     break;
             }
             break;
         default:
-            error("Compute_Transformation_RUP_To_Conservative: Undefined Material Type - %d", Material_Type);
+            error("Compute_Transformation_RUP_To_Conservative: Undefined Material Type - %d", MaterialType);
             break;
     }
 }
@@ -1272,13 +1311,13 @@ void Compute_Transformation_Conservative_To_PUT(double Rho, double Velocity_U, d
     double q2  = 0.0;
     
     // Matrix
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             q2  = (Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W);
             phi = 0.5*(Gamma - 1.0)*q2;
             c2  = SpeedSound*SpeedSound;
-            switch (NonDimensional_Type) {
-                case NONDIMENSIONAL_GENERIC:
+            switch (NonDimensionalMethod) {
+                case NONDIMENSIONAL_METHOD_GENERIC:
                     Matrix[0][0] = Gamma/c2;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -1309,7 +1348,7 @@ void Compute_Transformation_Conservative_To_PUT(double Rho, double Velocity_U, d
                     Matrix[4][3] = Rho*Velocity_W;
                     Matrix[4][4] = -(Rho*q2)/(2*c2);
                     break;
-                case NONDIMENSIONAL_BTW:
+                case NONDIMENSIONAL_METHOD_BTW:
                     Matrix[0][0] = Gamma/c2;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -1340,7 +1379,7 @@ void Compute_Transformation_Conservative_To_PUT(double Rho, double Velocity_U, d
                     Matrix[4][3] = (Gamma - 1.0)*Rho*Velocity_W*Ref_Mach*Ref_Mach;
                     Matrix[4][4] = -(Rho*phi)/c2;
                     break;
-                case NONDIMENSIONAL_LMROE:
+                case NONDIMENSIONAL_METHOD_LMROE:
                     Matrix[0][0] = Gamma/c2;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -1372,12 +1411,12 @@ void Compute_Transformation_Conservative_To_PUT(double Rho, double Velocity_U, d
                     Matrix[4][4] = -(Gamma*Rho*q2)/(2*c2);
                     break;
                 default:
-                    error("Compute_Transformation_Conservative_To_PUT: Undefined Non Dimensional Type - %d", NonDimensional_Type);
+                    error("Compute_Transformation_Conservative_To_PUT: Undefined Non Dimensional Method - %d", NonDimensionalMethod);
                     break;
             }
             break;
         default:
-            error("Compute_Transformation_Conservative_To_PUT: Undefined Material Type - %d", Material_Type);
+            error("Compute_Transformation_Conservative_To_PUT: Undefined Material Type - %d", MaterialType);
             break;
     }
 }
@@ -1391,13 +1430,13 @@ void Compute_Transformation_PUT_To_Conservative(double Rho, double Velocity_U, d
     double q2  = 0.0;
     
     // Matrix
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             q2  = (Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W);
             phi = 0.5*(Gamma - 1.0)*q2;
             c2  = SpeedSound*SpeedSound;
-            switch (NonDimensional_Type) {
-                case NONDIMENSIONAL_GENERIC:
+            switch (NonDimensionalMethod) {
+                case NONDIMENSIONAL_METHOD_GENERIC:
                     Matrix[0][0] = phi;
                     Matrix[0][1] = -(Gamma - 1.0)*Velocity_U;
                     Matrix[0][2] = -(Gamma - 1.0)*Velocity_V;
@@ -1428,7 +1467,7 @@ void Compute_Transformation_PUT_To_Conservative(double Rho, double Velocity_U, d
                     Matrix[4][3] = -Gamma*(Gamma - 1.0)*Velocity_W/Rho;
                     Matrix[4][4] = (Gamma*(Gamma - 1.0))/Rho;
                     break;
-                case NONDIMENSIONAL_BTW:
+                case NONDIMENSIONAL_METHOD_BTW:
                     Matrix[0][0] = phi;
                     Matrix[0][1] = -(Gamma - 1.0)*Velocity_U;
                     Matrix[0][2] = -(Gamma - 1.0)*Velocity_V;
@@ -1459,7 +1498,7 @@ void Compute_Transformation_PUT_To_Conservative(double Rho, double Velocity_U, d
                     Matrix[4][3] = -(Gamma*(Gamma - 1.0)*Velocity_W/Rho)*Ref_Mach*Ref_Mach;
                     Matrix[4][4] = Gamma/Rho;
                     break;
-                case NONDIMENSIONAL_LMROE:
+                case NONDIMENSIONAL_METHOD_LMROE:
                     Matrix[0][0] = phi;
                     Matrix[0][1] = -(Gamma - 1.0)*Velocity_U;
                     Matrix[0][2] = -(Gamma - 1.0)*Velocity_V;
@@ -1491,12 +1530,12 @@ void Compute_Transformation_PUT_To_Conservative(double Rho, double Velocity_U, d
                     Matrix[4][4] = (Gamma - 1.0)/Rho;
                     break;
                 default:
-                    error("Compute_Transformation_PUT_To_Conservative: Undefined Non Dimensional Type - %d", NonDimensional_Type);
+                    error("Compute_Transformation_PUT_To_Conservative: Undefined Non Dimensional Method - %d", NonDimensionalMethod);
                     break;
             }
             break;
         default:
-            error("Compute_Transformation_PUT_To_Conservative: Undefined Material Type - %d", Material_Type);
+            error("Compute_Transformation_PUT_To_Conservative: Undefined Material Type - %d", MaterialType);
             break;
     }
 }
@@ -1510,13 +1549,13 @@ void Compute_Transformation_Conservative_To_PUS(double Rho, double Velocity_U, d
     double q2  = 0.0;
     
     // Matrix
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             q2  = (Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W);
             phi = 0.5*(Gamma - 1.0)*q2;
             c2  = SpeedSound*SpeedSound;
-            switch (NonDimensional_Type) {
-                case NONDIMENSIONAL_GENERIC:
+            switch (NonDimensionalMethod) {
+                case NONDIMENSIONAL_METHOD_GENERIC:
                     Matrix[0][0] = 1.0/c2;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -1547,7 +1586,7 @@ void Compute_Transformation_Conservative_To_PUS(double Rho, double Velocity_U, d
                     Matrix[4][3] = Rho*Velocity_W;
                     Matrix[4][4] = -(Rho*phi)/(Gamma*(Gamma - 1.0));
                     break;
-                case NONDIMENSIONAL_BTW:
+                case NONDIMENSIONAL_METHOD_BTW:
                     Matrix[0][0] = 1.0/c2;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -1578,7 +1617,7 @@ void Compute_Transformation_Conservative_To_PUS(double Rho, double Velocity_U, d
                     Matrix[4][3] = (Gamma - 1.0)*Rho*Velocity_W*Ref_Mach*Ref_Mach;
                     Matrix[4][4] = -((Rho*phi)/Gamma)*Ref_Mach*Ref_Mach;
                     break;
-                case NONDIMENSIONAL_LMROE:
+                case NONDIMENSIONAL_METHOD_LMROE:
                     Matrix[0][0] = 1.0/c2;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -1610,12 +1649,12 @@ void Compute_Transformation_Conservative_To_PUS(double Rho, double Velocity_U, d
                     Matrix[4][4] = -(Rho*phi)/(Gamma*(Gamma - 1.0));
                     break;
                 default:
-                    error("Compute_Transformation_Conservative_To_PUS: Undefined Non Dimensional Type - %d", NonDimensional_Type);
+                    error("Compute_Transformation_Conservative_To_PUS: Undefined Non Dimensional Method - %d", NonDimensionalMethod);
                     break;
             }
             break;
         default:
-            error("Compute_Transformation_Conservative_To_PUS: Undefined Material Type - %d", Material_Type);
+            error("Compute_Transformation_Conservative_To_PUS: Undefined Material Type - %d", MaterialType);
             break;
     }
 }
@@ -1629,13 +1668,13 @@ void Compute_Transformation_PUS_To_Conservative(double Rho, double Velocity_U, d
     double q2  = 0.0;
     
     // Matrix
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             q2  = (Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W);
             phi = 0.5*(Gamma - 1.0)*q2;
             c2  = SpeedSound*SpeedSound;
-            switch (NonDimensional_Type) {
-                case NONDIMENSIONAL_GENERIC:
+            switch (NonDimensionalMethod) {
+                case NONDIMENSIONAL_METHOD_GENERIC:
                     Matrix[0][0] = phi;
                     Matrix[0][1] = -(Gamma - 1.0)*Velocity_U;
                     Matrix[0][2] = -(Gamma - 1.0)*Velocity_V;
@@ -1666,7 +1705,7 @@ void Compute_Transformation_PUS_To_Conservative(double Rho, double Velocity_U, d
                     Matrix[4][3] = -Gamma*(Gamma - 1.0)*Velocity_W/(Rho*c2);
                     Matrix[4][4] = (Gamma*(Gamma - 1.0))/(Rho*c2);
                     break;
-                case NONDIMENSIONAL_BTW:
+                case NONDIMENSIONAL_METHOD_BTW:
                     Matrix[0][0] = phi;
                     Matrix[0][1] = -(Gamma - 1.0)*Velocity_U;
                     Matrix[0][2] = -(Gamma - 1.0)*Velocity_V;
@@ -1697,7 +1736,7 @@ void Compute_Transformation_PUS_To_Conservative(double Rho, double Velocity_U, d
                     Matrix[4][3] = -Gamma*(Gamma - 1.0)*Velocity_W/(Rho*c2);
                     Matrix[4][4] = Gamma/(Rho*c2*Ref_Mach*Ref_Mach);
                     break;
-                case NONDIMENSIONAL_LMROE:
+                case NONDIMENSIONAL_METHOD_LMROE:
                     Matrix[0][0] = phi;
                     Matrix[0][1] = -(Gamma - 1.0)*Velocity_U;
                     Matrix[0][2] = -(Gamma - 1.0)*Velocity_V;
@@ -1729,12 +1768,12 @@ void Compute_Transformation_PUS_To_Conservative(double Rho, double Velocity_U, d
                     Matrix[4][4] = (Gamma*(Gamma - 1.0))/(Rho*c2);
                     break;
                 default:
-                    error("Compute_Transformation_PUS_To_Conservative: Undefined Non Dimensional Type - %d", NonDimensional_Type);
+                    error("Compute_Transformation_PUS_To_Conservative: Undefined Non Dimensional Method - %d", NonDimensionalMethod);
                     break;
             }
             break;
         default:
-            error("Compute_Transformation_PUS_To_Conservative: Undefined Material Type - %d", Material_Type);
+            error("Compute_Transformation_PUS_To_Conservative: Undefined Material Type - %d", MaterialType);
             break;
     }
 }
@@ -1748,13 +1787,13 @@ void Compute_Transformation_Conservative_To_RUT(double Rho, double Velocity_U, d
     double q2  = 0.0;
     
     // Matrix
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             q2  = (Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W);
             phi = 0.5*(Gamma - 1.0)*q2;
             c2  = SpeedSound*SpeedSound;
-            switch (NonDimensional_Type) {
-                case NONDIMENSIONAL_GENERIC:
+            switch (NonDimensionalMethod) {
+                case NONDIMENSIONAL_METHOD_GENERIC:
                     Matrix[0][0] = 1.0;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -1785,7 +1824,7 @@ void Compute_Transformation_Conservative_To_RUT(double Rho, double Velocity_U, d
                     Matrix[4][3] = Rho*Velocity_W;
                     Matrix[4][4] = Rho/(Gamma*(Gamma - 1.0));
                     break;
-                case NONDIMENSIONAL_BTW:
+                case NONDIMENSIONAL_METHOD_BTW:
                     Matrix[0][0] = 1.0;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -1816,7 +1855,7 @@ void Compute_Transformation_Conservative_To_RUT(double Rho, double Velocity_U, d
                     Matrix[4][3] = (Gamma - 1.0)*Rho*Velocity_W*Ref_Mach*Ref_Mach;
                     Matrix[4][4] = Rho/Gamma;
                     break;
-                case NONDIMENSIONAL_LMROE:
+                case NONDIMENSIONAL_METHOD_LMROE:
                     Matrix[0][0] = 1.0;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -1848,12 +1887,12 @@ void Compute_Transformation_Conservative_To_RUT(double Rho, double Velocity_U, d
                     Matrix[4][4] = Rho/(Gamma - 1.0);
                     break;
                 default:
-                    error("Compute_Transformation_Conservative_To_RUT: Undefined Non Dimensional Type - %d", NonDimensional_Type);
+                    error("Compute_Transformation_Conservative_To_RUT: Undefined Non Dimensional Method - %d", NonDimensionalMethod);
                     break;
             }
             break;
         default:
-            error("Compute_Transformation_Conservative_To_RUT: Undefined Material Type - %d", Material_Type);
+            error("Compute_Transformation_Conservative_To_RUT: Undefined Material Type - %d", MaterialType);
             break;
     }
 }
@@ -1867,13 +1906,13 @@ void Compute_Transformation_RUT_To_Conservative(double Rho, double Velocity_U, d
     double q2  = 0.0;
     
     // Matrix
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             q2  = (Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W);
             phi = 0.5*(Gamma - 1.0)*q2;
             c2  = SpeedSound*SpeedSound;
-            switch (NonDimensional_Type) {
-                case NONDIMENSIONAL_GENERIC:
+            switch (NonDimensionalMethod) {
+                case NONDIMENSIONAL_METHOD_GENERIC:
                     Matrix[0][0] = 1.0;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -1904,7 +1943,7 @@ void Compute_Transformation_RUT_To_Conservative(double Rho, double Velocity_U, d
                     Matrix[4][3] = -Gamma*(Gamma - 1.0)*Velocity_W/Rho;
                     Matrix[4][4] = (Gamma*(Gamma - 1.0))/Rho;
                     break;
-                case NONDIMENSIONAL_BTW:
+                case NONDIMENSIONAL_METHOD_BTW:
                     Matrix[0][0] = 1.0;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -1935,7 +1974,7 @@ void Compute_Transformation_RUT_To_Conservative(double Rho, double Velocity_U, d
                     Matrix[4][3] = -(Gamma*(Gamma - 1.0)*Velocity_W/Rho)*Ref_Mach*Ref_Mach;
                     Matrix[4][4] = Gamma/Rho;
                     break;
-                case NONDIMENSIONAL_LMROE:
+                case NONDIMENSIONAL_METHOD_LMROE:
                     Matrix[0][0] = 1.0;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -1967,12 +2006,12 @@ void Compute_Transformation_RUT_To_Conservative(double Rho, double Velocity_U, d
                     Matrix[4][4] = (Gamma - 1.0)/Rho;
                     break;
                 default:
-                    error("Compute_Transformation_RUT_To_Conservative: Undefined Non Dimensional Type - %d", NonDimensional_Type);
+                    error("Compute_Transformation_RUT_To_Conservative: Undefined Non Dimensional Method - %d", NonDimensionalMethod);
                     break;
             }
             break;
         default:
-            error("Compute_Transformation_RUT_To_Conservative: Undefined Material Type - %d", Material_Type);
+            error("Compute_Transformation_RUT_To_Conservative: Undefined Material Type - %d", MaterialType);
             break;
     }
 }
@@ -1984,11 +2023,11 @@ void Compute_Transformation_RUP_To_PUT(double Rho, double Velocity_U, double Vel
     double c2  = 0.0;
     
     // Matrix
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             c2  = SpeedSound*SpeedSound;
-            switch (NonDimensional_Type) {
-                case NONDIMENSIONAL_GENERIC:
+            switch (NonDimensionalMethod) {
+                case NONDIMENSIONAL_METHOD_GENERIC:
                     Matrix[0][0] = Gamma/c2;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2019,7 +2058,7 @@ void Compute_Transformation_RUP_To_PUT(double Rho, double Velocity_U, double Vel
                     Matrix[4][3] = 0.0;
                     Matrix[4][4] = 0.0;
                     break;
-                case NONDIMENSIONAL_BTW:
+                case NONDIMENSIONAL_METHOD_BTW:
                     Matrix[0][0] = Gamma/c2;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2050,7 +2089,7 @@ void Compute_Transformation_RUP_To_PUT(double Rho, double Velocity_U, double Vel
                     Matrix[4][3] = 0.0;
                     Matrix[4][4] = 0.0;
                     break;
-                case NONDIMENSIONAL_LMROE:
+                case NONDIMENSIONAL_METHOD_LMROE:
                     Matrix[0][0] = Gamma/c2;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2082,12 +2121,12 @@ void Compute_Transformation_RUP_To_PUT(double Rho, double Velocity_U, double Vel
                     Matrix[4][4] = 0.0;
                     break;
                 default:
-                    error("Compute_Transformation_RUP_To_PUT: Undefined Non Dimensional Type - %d", NonDimensional_Type);
+                    error("Compute_Transformation_RUP_To_PUT: Undefined Non Dimensional Method - %d", NonDimensionalMethod);
                     break;
             }
             break;
         default:
-            error("Compute_Transformation_RUP_To_PUT: Undefined Material Type - %d", Material_Type);
+            error("Compute_Transformation_RUP_To_PUT: Undefined Material Type - %d", MaterialType);
             break;
     }
 }
@@ -2099,11 +2138,11 @@ void Compute_Transformation_PUT_To_RUP(double Rho, double Velocity_U, double Vel
     double c2  = 0.0;
     
     // Matrix
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             c2  = SpeedSound*SpeedSound;
-            switch (NonDimensional_Type) {
-                case NONDIMENSIONAL_GENERIC:
+            switch (NonDimensionalMethod) {
+                case NONDIMENSIONAL_METHOD_GENERIC:
                     Matrix[0][0] = 0.0;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2134,7 +2173,7 @@ void Compute_Transformation_PUT_To_RUP(double Rho, double Velocity_U, double Vel
                     Matrix[4][3] = 0.0;
                     Matrix[4][4] = Gamma/Rho;
                     break;
-                case NONDIMENSIONAL_BTW:
+                case NONDIMENSIONAL_METHOD_BTW:
                     Matrix[0][0] = 0.0;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2165,7 +2204,7 @@ void Compute_Transformation_PUT_To_RUP(double Rho, double Velocity_U, double Vel
                     Matrix[4][3] = 0.0;
                     Matrix[4][4] = Gamma*Ref_Mach*Ref_Mach/Rho;
                     break;
-                case NONDIMENSIONAL_LMROE:
+                case NONDIMENSIONAL_METHOD_LMROE:
                     Matrix[0][0] = 0.0;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2197,12 +2236,12 @@ void Compute_Transformation_PUT_To_RUP(double Rho, double Velocity_U, double Vel
                     Matrix[4][4] = 1.0/Rho;
                     break;
                 default:
-                    error("Compute_Transformation_PUT_To_RUP: Undefined Non Dimensional Type - %d", NonDimensional_Type);
+                    error("Compute_Transformation_PUT_To_RUP: Undefined Non Dimensional Method - %d", NonDimensionalMethod);
                     break;
             }
             break;
         default:
-            error("Compute_Transformation_PUT_To_RUP: Undefined Material Type - %d", Material_Type);
+            error("Compute_Transformation_PUT_To_RUP: Undefined Material Type - %d", MaterialType);
             break;
     }
 }
@@ -2214,11 +2253,11 @@ void Compute_Transformation_RUP_To_PUS(double Rho, double Velocity_U, double Vel
     double c2  = 0.0;
     
     // Matrix
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             c2  = SpeedSound*SpeedSound;
-            switch (NonDimensional_Type) {
-                case NONDIMENSIONAL_GENERIC:
+            switch (NonDimensionalMethod) {
+                case NONDIMENSIONAL_METHOD_GENERIC:
                     Matrix[0][0] = 1.0/c2;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2249,7 +2288,7 @@ void Compute_Transformation_RUP_To_PUS(double Rho, double Velocity_U, double Vel
                     Matrix[4][3] = 0.0;
                     Matrix[4][4] = 0.0;
                     break;
-                case NONDIMENSIONAL_BTW:
+                case NONDIMENSIONAL_METHOD_BTW:
                     Matrix[0][0] = 1.0/c2;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2280,7 +2319,7 @@ void Compute_Transformation_RUP_To_PUS(double Rho, double Velocity_U, double Vel
                     Matrix[4][3] = 0.0;
                     Matrix[4][4] = 0.0;
                     break;
-                case NONDIMENSIONAL_LMROE:
+                case NONDIMENSIONAL_METHOD_LMROE:
                     Matrix[0][0] = 1.0/c2;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2312,12 +2351,12 @@ void Compute_Transformation_RUP_To_PUS(double Rho, double Velocity_U, double Vel
                     Matrix[4][4] = 0.0;
                     break;
                 default:
-                    error("Compute_Transformation_RUP_To_PUS: Undefined Non Dimensional Type - %d", NonDimensional_Type);
+                    error("Compute_Transformation_RUP_To_PUS: Undefined Non Dimensional Method - %d", NonDimensionalMethod);
                     break;
             }
             break;
         default:
-            error("Compute_Transformation_RUP_To_PUS: Undefined Material Type - %d", Material_Type);
+            error("Compute_Transformation_RUP_To_PUS: Undefined Material Type - %d", MaterialType);
             break;
     }
 }
@@ -2329,11 +2368,11 @@ void Compute_Transformation_PUS_To_RUP(double Rho, double Velocity_U, double Vel
     double c2  = 0.0;
     
     // Matrix
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             c2  = SpeedSound*SpeedSound;
-            switch (NonDimensional_Type) {
-                case NONDIMENSIONAL_GENERIC:
+            switch (NonDimensionalMethod) {
+                case NONDIMENSIONAL_METHOD_GENERIC:
                     Matrix[0][0] = 0.0;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2364,7 +2403,7 @@ void Compute_Transformation_PUS_To_RUP(double Rho, double Velocity_U, double Vel
                     Matrix[4][3] = 0.0;
                     Matrix[4][4] = Gamma/(c2*Rho);
                     break;
-                case NONDIMENSIONAL_BTW:
+                case NONDIMENSIONAL_METHOD_BTW:
                     Matrix[0][0] = 0.0;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2395,7 +2434,7 @@ void Compute_Transformation_PUS_To_RUP(double Rho, double Velocity_U, double Vel
                     Matrix[4][3] = 0.0;
                     Matrix[4][4] = Gamma/(c2*Rho);
                     break;
-                case NONDIMENSIONAL_LMROE:
+                case NONDIMENSIONAL_METHOD_LMROE:
                     Matrix[0][0] = 0.0;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2427,12 +2466,12 @@ void Compute_Transformation_PUS_To_RUP(double Rho, double Velocity_U, double Vel
                     Matrix[4][4] = Gamma/(c2*Rho);
                     break;
                 default:
-                    error("Compute_Transformation_PUS_To_RUP: Undefined Non Dimensional Type - %d", NonDimensional_Type);
+                    error("Compute_Transformation_PUS_To_RUP: Undefined Non Dimensional Method - %d", NonDimensionalMethod);
                     break;
             }
             break;
         default:
-            error("Compute_Transformation_PUS_To_RUP: Undefined Material Type - %d", Material_Type);
+            error("Compute_Transformation_PUS_To_RUP: Undefined Material Type - %d", MaterialType);
             break;
     }
 }
@@ -2445,11 +2484,11 @@ void Compute_Transformation_RUP_To_RUT(double Rho, double Velocity_U, double Vel
     double c2  = 0.0;
     
     // Matrix
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             c2  = SpeedSound*SpeedSound;
-            switch (NonDimensional_Type) {
-                case NONDIMENSIONAL_GENERIC:
+            switch (NonDimensionalMethod) {
+                case NONDIMENSIONAL_METHOD_GENERIC:
                     Matrix[0][0] = 1.0;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2480,7 +2519,7 @@ void Compute_Transformation_RUP_To_RUT(double Rho, double Velocity_U, double Vel
                     Matrix[4][3] = 0.0;
                     Matrix[4][4] = Rho/Gamma;
                     break;
-                case NONDIMENSIONAL_BTW:
+                case NONDIMENSIONAL_METHOD_BTW:
                     Matrix[0][0] = 1.0;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2511,7 +2550,7 @@ void Compute_Transformation_RUP_To_RUT(double Rho, double Velocity_U, double Vel
                     Matrix[4][3] = 0.0;
                     Matrix[4][4] = Rho/(Gamma*Ref_Mach*Ref_Mach);
                     break;
-                case NONDIMENSIONAL_LMROE:
+                case NONDIMENSIONAL_METHOD_LMROE:
                     Matrix[0][0] = 1.0;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2543,12 +2582,12 @@ void Compute_Transformation_RUP_To_RUT(double Rho, double Velocity_U, double Vel
                     Matrix[4][4] = Rho;
                     break;
                 default:
-                    error("Compute_Transformation_RUP_To_RUT: Undefined Non Dimensional Type - %d", NonDimensional_Type);
+                    error("Compute_Transformation_RUP_To_RUT: Undefined Non Dimensional Method - %d", NonDimensionalMethod);
                     break;
             }
             break;
         default:
-            error("Compute_Transformation_RUP_To_RUT: Undefined Material Type - %d", Material_Type);
+            error("Compute_Transformation_RUP_To_RUT: Undefined Material Type - %d", MaterialType);
             break;
     }
 }
@@ -2560,11 +2599,11 @@ void Compute_Transformation_RUT_To_RUP(double Rho, double Velocity_U, double Vel
     double c2  = 0.0;
     
     // Matrix
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             c2  = SpeedSound*SpeedSound;
-            switch (NonDimensional_Type) {
-                case NONDIMENSIONAL_GENERIC:
+            switch (NonDimensionalMethod) {
+                case NONDIMENSIONAL_METHOD_GENERIC:
                     Matrix[0][0] = 1.0;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2595,7 +2634,7 @@ void Compute_Transformation_RUT_To_RUP(double Rho, double Velocity_U, double Vel
                     Matrix[4][3] = 0.0;
                     Matrix[4][4] = Gamma/Rho;
                     break;
-                case NONDIMENSIONAL_BTW:
+                case NONDIMENSIONAL_METHOD_BTW:
                     Matrix[0][0] = 1.0;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2626,7 +2665,7 @@ void Compute_Transformation_RUT_To_RUP(double Rho, double Velocity_U, double Vel
                     Matrix[4][3] = 0.0;
                     Matrix[4][4] = (Gamma*Ref_Mach*Ref_Mach)/Rho;
                     break;
-                case NONDIMENSIONAL_LMROE:
+                case NONDIMENSIONAL_METHOD_LMROE:
                     Matrix[0][0] = 1.0;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2658,12 +2697,12 @@ void Compute_Transformation_RUT_To_RUP(double Rho, double Velocity_U, double Vel
                     Matrix[4][4] = 1.0/Rho;
                     break;
                 default:
-                    error("Compute_Transformation_RUT_To_RUP: Undefined Non Dimensional Type - %d", NonDimensional_Type);
+                    error("Compute_Transformation_RUT_To_RUP: Undefined Non Dimensional Method - %d", NonDimensionalMethod);
                     break;
             }
             break;
         default:
-            error("Compute_Transformation_RUT_To_RUP: Undefined Material Type - %d", Material_Type);
+            error("Compute_Transformation_RUT_To_RUP: Undefined Material Type - %d", MaterialType);
             break;
     }
 }
@@ -2675,11 +2714,11 @@ void Compute_Transformation_PUT_To_PUS(double Rho, double Velocity_U, double Vel
     double c2  = 0.0;
     
     // Matrix
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             c2  = SpeedSound*SpeedSound;
-            switch (NonDimensional_Type) {
-                case NONDIMENSIONAL_GENERIC:
+            switch (NonDimensionalMethod) {
+                case NONDIMENSIONAL_METHOD_GENERIC:
                     Matrix[0][0] = 1.0;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2710,7 +2749,7 @@ void Compute_Transformation_PUT_To_PUS(double Rho, double Velocity_U, double Vel
                     Matrix[4][3] = 0.0;
                     Matrix[4][4] = c2/Gamma;
                     break;
-                case NONDIMENSIONAL_BTW:
+                case NONDIMENSIONAL_METHOD_BTW:
                     Matrix[0][0] = 1.0;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2741,7 +2780,7 @@ void Compute_Transformation_PUT_To_PUS(double Rho, double Velocity_U, double Vel
                     Matrix[4][3] = 0.0;
                     Matrix[4][4] = c2*Ref_Mach*Ref_Mach/Gamma;
                     break;
-                case NONDIMENSIONAL_LMROE:
+                case NONDIMENSIONAL_METHOD_LMROE:
                     Matrix[0][0] = 1.0;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2773,12 +2812,12 @@ void Compute_Transformation_PUT_To_PUS(double Rho, double Velocity_U, double Vel
                     Matrix[4][4] = c2/(Gamma*Gamma);
                     break;
                 default:
-                    error("Compute_Transformation_PUT_To_PUS: Undefined Non Dimensional Type - %d", NonDimensional_Type);
+                    error("Compute_Transformation_PUT_To_PUS: Undefined Non Dimensional Method - %d", NonDimensionalMethod);
                     break;
             }
             break;
         default:
-            error("Compute_Transformation_PUT_To_PUS: Undefined Material Type - %d", Material_Type);
+            error("Compute_Transformation_PUT_To_PUS: Undefined Material Type - %d", MaterialType);
             break;
     }
 }
@@ -2790,11 +2829,11 @@ void Compute_Transformation_PUS_To_PUT(double Rho, double Velocity_U, double Vel
     double c2  = 0.0;
     
     // Matrix
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             c2  = SpeedSound*SpeedSound;
-            switch (NonDimensional_Type) {
-                case NONDIMENSIONAL_GENERIC:
+            switch (NonDimensionalMethod) {
+                case NONDIMENSIONAL_METHOD_GENERIC:
                     Matrix[0][0] = 1.0;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2825,7 +2864,7 @@ void Compute_Transformation_PUS_To_PUT(double Rho, double Velocity_U, double Vel
                     Matrix[4][3] = 0.0;
                     Matrix[4][4] = Gamma/c2;
                     break;
-                case NONDIMENSIONAL_BTW:
+                case NONDIMENSIONAL_METHOD_BTW:
                     Matrix[0][0] = 1.0;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2856,7 +2895,7 @@ void Compute_Transformation_PUS_To_PUT(double Rho, double Velocity_U, double Vel
                     Matrix[4][3] = 0.0;
                     Matrix[4][4] = Gamma/(c2*Ref_Mach*Ref_Mach);
                     break;
-                case NONDIMENSIONAL_LMROE:
+                case NONDIMENSIONAL_METHOD_LMROE:
                     Matrix[0][0] = 1.0;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2888,12 +2927,12 @@ void Compute_Transformation_PUS_To_PUT(double Rho, double Velocity_U, double Vel
                     Matrix[4][4] = Gamma*Gamma/c2;
                     break;
                 default:
-                    error("Compute_Transformation_PUS_To_PUT: Undefined Non Dimensional Type - %d", NonDimensional_Type);
+                    error("Compute_Transformation_PUS_To_PUT: Undefined Non Dimensional Method - %d", NonDimensionalMethod);
                     break;
             }
             break;
         default:
-            error("Compute_Transformation_PUS_To_PUT: Undefined Material Type - %d", Material_Type);
+            error("Compute_Transformation_PUS_To_PUT: Undefined Material Type - %d", MaterialType);
             break;
     }
 }
@@ -2905,11 +2944,11 @@ void Compute_Transformation_PUT_To_RUT(double Rho, double Velocity_U, double Vel
     double c2  = 0.0;
     
     // Matrix
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             c2  = SpeedSound*SpeedSound;
-            switch (NonDimensional_Type) {
-                case NONDIMENSIONAL_GENERIC:
+            switch (NonDimensionalMethod) {
+                case NONDIMENSIONAL_METHOD_GENERIC:
                     Matrix[0][0] = c2/Gamma;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2940,7 +2979,7 @@ void Compute_Transformation_PUT_To_RUT(double Rho, double Velocity_U, double Vel
                     Matrix[4][3] = 0.0;
                     Matrix[4][4] = 1.0;
                     break;
-                case NONDIMENSIONAL_BTW:
+                case NONDIMENSIONAL_METHOD_BTW:
                     Matrix[0][0] = c2/Gamma;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -2971,7 +3010,7 @@ void Compute_Transformation_PUT_To_RUT(double Rho, double Velocity_U, double Vel
                     Matrix[4][3] = 0.0;
                     Matrix[4][4] = 1.0;
                     break;
-                case NONDIMENSIONAL_LMROE:
+                case NONDIMENSIONAL_METHOD_LMROE:
                     Matrix[0][0] = c2/Gamma;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -3003,12 +3042,12 @@ void Compute_Transformation_PUT_To_RUT(double Rho, double Velocity_U, double Vel
                     Matrix[4][4] = 1.0;
                     break;
                 default:
-                    error("Compute_Transformation_PUT_To_RUT: Undefined Non Dimensional Type - %d", NonDimensional_Type);
+                    error("Compute_Transformation_PUT_To_RUT: Undefined Non Dimensional Method - %d", NonDimensionalMethod);
                     break;
             }
             break;
         default:
-            error("Compute_Transformation_PUT_To_RUT: Undefined Material Type - %d", Material_Type);
+            error("Compute_Transformation_PUT_To_RUT: Undefined Material Type - %d", MaterialType);
             break;
     }
 }
@@ -3020,11 +3059,11 @@ void Compute_Transformation_RUT_To_PUT(double Rho, double Velocity_U, double Vel
     double c2  = 0.0;
     
     // Matrix
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             c2  = SpeedSound*SpeedSound;
-            switch (NonDimensional_Type) {
-                case NONDIMENSIONAL_GENERIC:
+            switch (NonDimensionalMethod) {
+                case NONDIMENSIONAL_METHOD_GENERIC:
                     Matrix[0][0] = Gamma/c2;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -3055,7 +3094,7 @@ void Compute_Transformation_RUT_To_PUT(double Rho, double Velocity_U, double Vel
                     Matrix[4][3] = 0.0;
                     Matrix[4][4] = 1.0;
                     break;
-                case NONDIMENSIONAL_BTW:
+                case NONDIMENSIONAL_METHOD_BTW:
                     Matrix[0][0] = Gamma/c2;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -3086,7 +3125,7 @@ void Compute_Transformation_RUT_To_PUT(double Rho, double Velocity_U, double Vel
                     Matrix[4][3] = 0.0;
                     Matrix[4][4] = 1.0;
                     break;
-                case NONDIMENSIONAL_LMROE:
+                case NONDIMENSIONAL_METHOD_LMROE:
                     Matrix[0][0] = Gamma/c2;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -3118,12 +3157,12 @@ void Compute_Transformation_RUT_To_PUT(double Rho, double Velocity_U, double Vel
                     Matrix[4][4] = 1.0;
                     break;
                 default:
-                    error("Compute_Transformation_RUT_To_PUT: Undefined Non Dimensional Type - %d", NonDimensional_Type);
+                    error("Compute_Transformation_RUT_To_PUT: Undefined Non Dimensional Method - %d", NonDimensionalMethod);
                     break;
             }
             break;
         default:
-            error("Compute_Transformation_RUT_To_PUT: Undefined Material Type - %d", Material_Type);
+            error("Compute_Transformation_RUT_To_PUT: Undefined Material Type - %d", MaterialType);
             break;
     }
 }
@@ -3135,11 +3174,11 @@ void Compute_Transformation_PUS_To_RUT(double Rho, double Velocity_U, double Vel
     double c2  = 0.0;
     
     // Matrix
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             c2  = SpeedSound*SpeedSound;
-            switch (NonDimensional_Type) {
-                case NONDIMENSIONAL_GENERIC:
+            switch (NonDimensionalMethod) {
+                case NONDIMENSIONAL_METHOD_GENERIC:
                     Matrix[0][0] = c2/Gamma;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -3170,7 +3209,7 @@ void Compute_Transformation_PUS_To_RUT(double Rho, double Velocity_U, double Vel
                     Matrix[4][3] = 0.0;
                     Matrix[4][4] = 1.0/c2;
                     break;
-                case NONDIMENSIONAL_BTW:
+                case NONDIMENSIONAL_METHOD_BTW:
                     Matrix[0][0] = c2/Gamma;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -3201,7 +3240,7 @@ void Compute_Transformation_PUS_To_RUT(double Rho, double Velocity_U, double Vel
                     Matrix[4][3] = 0.0;
                     Matrix[4][4] = 1.0/(c2*Ref_Mach*Ref_Mach);
                     break;
-                case NONDIMENSIONAL_LMROE:
+                case NONDIMENSIONAL_METHOD_LMROE:
                     Matrix[0][0] = c2/Gamma;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -3233,12 +3272,12 @@ void Compute_Transformation_PUS_To_RUT(double Rho, double Velocity_U, double Vel
                     Matrix[4][4] = Gamma/c2;
                     break;
                 default:
-                    error("Compute_Transformation_PUS_To_RUT: Undefined Non Dimensional Type - %d", NonDimensional_Type);
+                    error("Compute_Transformation_PUS_To_RUT: Undefined Non Dimensional Method - %d", NonDimensionalMethod);
                     break;
             }
             break;
         default:
-            error("Compute_Transformation_PUS_To_RUT: Undefined Material Type - %d", Material_Type);
+            error("Compute_Transformation_PUS_To_RUT: Undefined Material Type - %d", MaterialType);
             break;
     }
 }
@@ -3250,11 +3289,11 @@ void Compute_Transformation_RUT_To_PUS(double Rho, double Velocity_U, double Vel
     double c2  = 0.0;
     
     // Matrix
-    switch (Material_Type) {
-        case MATERIAL_IDEAL_GAS:
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEAL_GAS:
             c2  = SpeedSound*SpeedSound;
-            switch (NonDimensional_Type) {
-                case NONDIMENSIONAL_GENERIC:
+            switch (NonDimensionalMethod) {
+                case NONDIMENSIONAL_METHOD_GENERIC:
                     Matrix[0][0] = 1.0/c2;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -3285,7 +3324,7 @@ void Compute_Transformation_RUT_To_PUS(double Rho, double Velocity_U, double Vel
                     Matrix[4][3] = 0.0;
                     Matrix[4][4] = c2/Gamma;
                     break;
-                case NONDIMENSIONAL_BTW:
+                case NONDIMENSIONAL_METHOD_BTW:
                     Matrix[0][0] = 1.0/c2;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -3316,7 +3355,7 @@ void Compute_Transformation_RUT_To_PUS(double Rho, double Velocity_U, double Vel
                     Matrix[4][3] = 0.0;
                     Matrix[4][4] = c2*Ref_Mach*Ref_Mach/Gamma;
                     break;
-                case NONDIMENSIONAL_LMROE:
+                case NONDIMENSIONAL_METHOD_LMROE:
                     Matrix[0][0] = 1.0/c2;
                     Matrix[0][1] = 0.0;
                     Matrix[0][2] = 0.0;
@@ -3348,13 +3387,132 @@ void Compute_Transformation_RUT_To_PUS(double Rho, double Velocity_U, double Vel
                     Matrix[4][4] = c2/(Gamma*Gamma);
                     break;
                 default:
-                    error("Compute_Transformation_RUT_To_PUS: Undefined Non Dimensional Type - %d", NonDimensional_Type);
+                    error("Compute_Transformation_RUT_To_PUS: Undefined Non Dimensional Method - %d", NonDimensionalMethod);
                     break;
             }
             break;
         default:
-            error("Compute_Transformation_RUT_To_PUS: Undefined Material Type - %d", Material_Type);
+            error("Compute_Transformation_RUT_To_PUS: Undefined Material Type - %d", MaterialType);
             break;
+    }
+}
+
+//------------------------------------------------------------------------------
+//! Transformation Matrix: Mpr = dqp/dqr
+//------------------------------------------------------------------------------
+void Compute_Transformation_Matrix(int VarType1, int VarType2, double Rho, double Velocity_U, double Velocity_V, double Velocity_W, double SpeedSound, double **Matrix) {
+    // Check the Variable Type and Return the proper Transformation Matrix
+    // Return Identity
+    if (VarType1 == VarType2) {
+        for (int i = 0; i < NEQUATIONS; i++) {
+            for (int j = 0; j < NEQUATIONS; j++) {
+                if (i == j)
+                    Matrix[i][j] = 1.0;
+                else
+                    Matrix[i][j] = 0.0;
+            }
+        }
+    } else {
+        switch (VarType1) {
+            case VARIABLE_CONSERVATIVE:
+                switch (VarType2) {
+                    case VARIABLE_PRIMITIVE_PUT:
+                        Compute_Transformation_Conservative_To_PUT(Rho, Velocity_U, Velocity_V, Velocity_W, SpeedSound, Matrix);
+                        break;
+                    case VARIABLE_PRIMITIVE_RUP:
+                        Compute_Transformation_Conservative_To_RUP(Rho, Velocity_U, Velocity_V, Velocity_W, SpeedSound, Matrix);
+                        break;
+                    case VARIABLE_PRIMITIVE_RUT:
+                        Compute_Transformation_Conservative_To_RUT(Rho, Velocity_U, Velocity_V, Velocity_W, SpeedSound, Matrix);
+                        break;
+                    case VARIABLE_PRIMITIVE_PUS:
+                        Compute_Transformation_Conservative_To_PUS(Rho, Velocity_U, Velocity_V, Velocity_W, SpeedSound, Matrix);
+                        break;
+                    default:
+                        error("Compute_Transformation_Matrix: Undefined Variable Type - %d - Error-1", VarType2);
+                        break;
+                }
+                break;
+            case VARIABLE_PRIMITIVE_PUT:
+                switch (VarType2) {
+                    case VARIABLE_CONSERVATIVE:
+                        Compute_Transformation_PUT_To_Conservative(Rho, Velocity_U, Velocity_V, Velocity_W, SpeedSound, Matrix);
+                        break;
+                    case VARIABLE_PRIMITIVE_RUP:
+                        Compute_Transformation_PUT_To_RUP(Rho, Velocity_U, Velocity_V, Velocity_W, SpeedSound, Matrix);
+                        break;
+                    case VARIABLE_PRIMITIVE_RUT:
+                        Compute_Transformation_PUT_To_RUT(Rho, Velocity_U, Velocity_V, Velocity_W, SpeedSound, Matrix);
+                        break;
+                    case VARIABLE_PRIMITIVE_PUS:
+                        Compute_Transformation_PUT_To_PUS(Rho, Velocity_U, Velocity_V, Velocity_W, SpeedSound, Matrix);
+                        break;
+                    default:
+                        error("Compute_Transformation_Matrix: Undefined Variable Type - %d - Error-2", VarType2);
+                        break;
+                }
+                break;
+            case VARIABLE_PRIMITIVE_RUP:
+                switch (VarType2) {
+                    case VARIABLE_CONSERVATIVE:
+                        Compute_Transformation_RUP_To_Conservative(Rho, Velocity_U, Velocity_V, Velocity_W, SpeedSound, Matrix);
+                        break;
+                    case VARIABLE_PRIMITIVE_PUT:
+                        Compute_Transformation_RUP_To_PUT(Rho, Velocity_U, Velocity_V, Velocity_W, SpeedSound, Matrix);
+                        break;
+                    case VARIABLE_PRIMITIVE_RUT:
+                        Compute_Transformation_RUP_To_RUT(Rho, Velocity_U, Velocity_V, Velocity_W, SpeedSound, Matrix);
+                        break;
+                    case VARIABLE_PRIMITIVE_PUS:
+                        Compute_Transformation_RUP_To_PUS(Rho, Velocity_U, Velocity_V, Velocity_W, SpeedSound, Matrix);
+                        break;
+                    default:
+                        error("Compute_Transformation_Matrix: Undefined Variable Type - %d - Error-3", VarType2);
+                        break;
+                }
+                break;
+            case VARIABLE_PRIMITIVE_RUT:
+                switch (VarType2) {
+                    case VARIABLE_CONSERVATIVE:
+                        Compute_Transformation_RUT_To_Conservative(Rho, Velocity_U, Velocity_V, Velocity_W, SpeedSound, Matrix);
+                        break;
+                    case VARIABLE_PRIMITIVE_PUT:
+                        Compute_Transformation_RUT_To_PUT(Rho, Velocity_U, Velocity_V, Velocity_W, SpeedSound, Matrix);
+                        break;
+                    case VARIABLE_PRIMITIVE_RUP:
+                        Compute_Transformation_RUT_To_RUP(Rho, Velocity_U, Velocity_V, Velocity_W, SpeedSound, Matrix);
+                        break;
+                    case VARIABLE_PRIMITIVE_PUS:
+                        Compute_Transformation_RUT_To_PUS(Rho, Velocity_U, Velocity_V, Velocity_W, SpeedSound, Matrix);
+                        break;
+                    default:
+                        error("Compute_Transformation_Matrix: Undefined Variable Type - %d - Error-4", VarType2);
+                        break;
+                }
+                break;
+            case VARIABLE_PRIMITIVE_PUS:
+                switch (VarType2) {
+                    case VARIABLE_CONSERVATIVE:
+                        Compute_Transformation_PUS_To_Conservative(Rho, Velocity_U, Velocity_V, Velocity_W, SpeedSound, Matrix);
+                        break;
+                    case VARIABLE_PRIMITIVE_PUT:
+                        Compute_Transformation_PUS_To_PUT(Rho, Velocity_U, Velocity_V, Velocity_W, SpeedSound, Matrix);
+                        break;
+                    case VARIABLE_PRIMITIVE_RUP:
+                        Compute_Transformation_PUS_To_RUP(Rho, Velocity_U, Velocity_V, Velocity_W, SpeedSound, Matrix);
+                        break;
+                    case VARIABLE_PRIMITIVE_RUT:
+                        Compute_Transformation_PUS_To_RUT(Rho, Velocity_U, Velocity_V, Velocity_W, SpeedSound, Matrix);
+                        break;
+                    default:
+                        error("Compute_Transformation_Matrix: Undefined Variable Type - %d - Error-5", VarType2);
+                        break;
+                }
+                break;
+            default:
+                error("Compute_Transformation_Matrix: Undefined Variable Type - %d - Error-6", VarType1);
+                break;
+        }
     }
 }
 
