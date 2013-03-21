@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="79">
+<configurationDescriptor version="80">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -43,6 +43,56 @@
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
+    <conf name="Release" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GNU|GNU</compilerSet>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Release"
+                            AC="false"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Release"
+                            CC="${MAKE}  -f Makefile CONF=Release clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+    </conf>
     <conf name="Debug" type="2">
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
@@ -89,10 +139,10 @@
         </linkerTool>
       </compileType>
     </conf>
-    <conf name="Release" type="2">
+    <conf name="Release_Cygwin" type="2">
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
-        <compilerSet>GNU|GNU</compilerSet>
+        <compilerSet>Cygwin_4.x|Cygwin_4.x</compilerSet>
       </toolsSet>
       <compileType>
         <cTool>
@@ -126,12 +176,382 @@
             <linkerLibProjectItem>
               <makeArtifact PL="../UTILS"
                             CT="2"
-                            CN="Release"
+                            CN="Release_Cygwin"
+                            AC="true"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Release_Cygwin"
+                            CC="${MAKE}  -f Makefile CONF=Release_Cygwin clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.dll">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+    </conf>
+    <conf name="Debug_Cygwin" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>Cygwin_4.x|Cygwin_4.x</compilerSet>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Debug_Cygwin"
                             AC="false"
                             BL="true"
                             WD="../UTILS"
-                            BC="${MAKE}  -f Makefile CONF=Release"
-                            CC="${MAKE}  -f Makefile CONF=Release clean"
+                            BC="${MAKE}  -f Makefile CONF=Debug_Cygwin"
+                            CC="${MAKE}  -f Makefile CONF=Debug_Cygwin clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.dll">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+    </conf>
+    <conf name="Release_Intel" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GNU|GNU</compilerSet>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <commandlineTool>icc</commandlineTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>include</pElem>
+            <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/include</pElem>
+          </incDir>
+          <commandLine>-axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer</commandLine>
+          <preprocessorList>
+            <Elem>HAVE_MPI</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <commandlineTool>icc</commandlineTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>include</pElem>
+            <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/include</pElem>
+          </incDir>
+          <commandLine>-axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer</commandLine>
+          <preprocessorList>
+            <Elem>HAVE_MPI</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+          <commandlineTool>ifort</commandlineTool>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <linkerAddLib>
+            <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/lib</pElem>
+          </linkerAddLib>
+          <commandlineTool>icc</commandlineTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Release_Intel"
+                            AC="false"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Release_Intel"
+                            CC="${MAKE}  -f Makefile CONF=Release_Intel clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
+          <commandLine>-lmpi</commandLine>
+        </linkerTool>
+      </compileType>
+    </conf>
+    <conf name="Debug_Intel" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GNU|GNU</compilerSet>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <commandlineTool>icc</commandlineTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>include</pElem>
+            <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/include</pElem>
+          </incDir>
+          <commandLine>-axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer</commandLine>
+          <preprocessorList>
+            <Elem>HAVE_MPI</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <commandlineTool>icc</commandlineTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>include</pElem>
+            <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/include</pElem>
+          </incDir>
+          <commandLine>-axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer</commandLine>
+          <preprocessorList>
+            <Elem>HAVE_MPI</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <commandlineTool>ifort</commandlineTool>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <linkerAddLib>
+            <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/lib</pElem>
+          </linkerAddLib>
+          <commandlineTool>icc</commandlineTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Debug_Intel"
+                            AC="true"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Debug_Intel"
+                            CC="${MAKE}  -f Makefile CONF=Debug_Intel clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
+          <commandLine>-lmpi</commandLine>
+        </linkerTool>
+      </compileType>
+    </conf>
+    <conf name="Release_GUPC_x86_64" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GUPC_x86_64|GNU</compilerSet>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../../../../NetBeansProjects/CFDSolutions/Trunk/UTILS"
+                            CT="2"
+                            CN="Release_GUPC_x86_64"
+                            AC="false"
+                            BL="true"
+                            WD="../../../../NetBeansProjects/CFDSolutions/Trunk/UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Release_GUPC_x86_64"
+                            CC="${MAKE}  -f Makefile CONF=Release_GUPC_x86_64 clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+    </conf>
+    <conf name="Debug_GUPC_x86_64" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GUPC_x86_64|GNU</compilerSet>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../../../../NetBeansProjects/CFDSolutions/Trunk/UTILS"
+                            CT="2"
+                            CN="Debug_GUPC_x86_64"
+                            AC="false"
+                            BL="true"
+                            WD="../../../../NetBeansProjects/CFDSolutions/Trunk/UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Debug_GUPC_x86_64"
+                            CC="${MAKE}  -f Makefile CONF=Debug_GUPC_x86_64 clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+    </conf>
+    <conf name="Release_GUPC_ppc64" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GUPC_ppc64|GNU</compilerSet>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Release_GUPC_ppc64"
+                            AC="false"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Release_GUPC_ppc64"
+                            CC="${MAKE}  -f Makefile CONF=Release_GUPC_ppc64 clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+    </conf>
+    <conf name="Debug_GUPC_ppc64" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GUPC_ppc64|GNU</compilerSet>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Debug_GUPC_ppc64"
+                            AC="false"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Debug_GUPC_ppc64"
+                            CC="${MAKE}  -f Makefile CONF=Debug_GUPC_ppc64 clean"
                             OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
               </makeArtifact>
             </linkerLibProjectItem>

@@ -9,16 +9,49 @@
             <header-extensions>h</header-extensions>
             <sourceEncoding>UTF-8</sourceEncoding>
             <make-dep-projects>
+                <make-dep-project>../../../../NetBeansProjects/CFDSolutions/Trunk/UTILS</make-dep-project>
                 <make-dep-project>../UTILS</make-dep-project>
             </make-dep-projects>
             <sourceRootList/>
             <confList>
                 <confElem>
+                    <name>Release</name>
+                    <type>2</type>
+                </confElem>
+                <confElem>
                     <name>Debug</name>
                     <type>2</type>
                 </confElem>
                 <confElem>
-                    <name>Release</name>
+                    <name>Release_Cygwin</name>
+                    <type>2</type>
+                </confElem>
+                <confElem>
+                    <name>Debug_Cygwin</name>
+                    <type>2</type>
+                </confElem>
+                <confElem>
+                    <name>Release_Intel</name>
+                    <type>2</type>
+                </confElem>
+                <confElem>
+                    <name>Debug_Intel</name>
+                    <type>2</type>
+                </confElem>
+                <confElem>
+                    <name>Release_GUPC_x86_64</name>
+                    <type>2</type>
+                </confElem>
+                <confElem>
+                    <name>Debug_GUPC_x86_64</name>
+                    <type>2</type>
+                </confElem>
+                <confElem>
+                    <name>Release_GUPC_ppc64</name>
+                    <type>2</type>
+                </confElem>
+                <confElem>
+                    <name>Debug_GUPC_ppc64</name>
                     <type>2</type>
                 </confElem>
             </confList>

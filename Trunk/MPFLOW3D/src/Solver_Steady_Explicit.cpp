@@ -32,6 +32,11 @@ int Solver_Steady_Explicit_Euler(void) {
     double eta      = 0.0;
     double scale_RMS[5], scale_RMS_Res;
     
+    // Initialize
+    for (int i = 0; i < NEQUATIONS; i++)
+        scale_RMS[i] = 1.0;
+    scale_RMS_Res = 1.0;
+    
     // Save Solver Parameters
     SaveOrder   = SolverOrder;
     SaveLimiter = LimiterMethod;
@@ -211,6 +216,11 @@ int Solver_Steady_Explicit_RK4(void) {
     double phi1, phi2, phi3, phi4;
     double eta;
     double scale_RMS[5], scale_RMS_Res;
+    
+    // Initialize
+    for (int i = 0; i < NEQUATIONS; i++)
+        scale_RMS[i] = 1.0;
+    scale_RMS_Res = 1.0;
     
     // Check if Euler or Runge-Kutta Scheme
     W01 = W02 = W03 = W04 = W05 = NULL;
@@ -604,6 +614,11 @@ int Solver_Steady_Explicit_RK5(void) {
     double psi1, psi2, psi3, psi4, psi5;
     double eta;
     double scale_RMS[5], scale_RMS_Res;
+    
+    // Initialize
+    for (int i = 0; i < NEQUATIONS; i++)
+        scale_RMS[i] = 1.0;
+    scale_RMS_Res = 1.0;
     
     // Runge-Kutta Scheme
     W01 = W02 = W03 = W04 = W05 = NULL;

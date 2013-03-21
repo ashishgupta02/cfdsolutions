@@ -5,23 +5,29 @@ from numpy import *
 
 # If the package has been installed correctly, this should work:
 import Gnuplot, Gnuplot.funcutils
-import os, sys
+import os, sys, time
+import signal
 from optparse import OptionParser
+
+
+#-----------------------------------------------------
+def signal_handler(signal, frame):
+    sys.exit(0)
 
 #-----------------------------------------------------
 def VariableID(var):
-     if (var.lower() == "rho"):
-	return 2
-     if (var.lower() == "rhou"):
-	return 3
-     if (var.lower() == "rhov"):
-	return 4
-     if (var.lower() == "rhow"):
-	return 5
-     if (var.lower() == "rhoet"):
-	return 6
-     if (var.lower() == "res"):
-	return 7
+    if (var.lower() == "rho"):
+        return 2
+    if (var.lower() == "rhou"):
+        return 3
+    if (var.lower() == "rhov"):
+        return 4
+    if (var.lower() == "rhow"):
+        return 5
+    if (var.lower() == "rhoet"):
+        return 6
+    if (var.lower() == "res"):
+        return 7
 
 #-----------------------------------------------------
 def ResidualPlot(g, filename, variable):
@@ -69,10 +75,11 @@ def LoopPlot(filename, variable):
     g = Gnuplot.Gnuplot(debug=0)
     ResidualPlot(g, filename, variable)
     while True:
+        time.sleep(5)
         mtime2 = os.stat(filename).st_mtime
-    	if mtime1 != mtime2:
+        if mtime1 != mtime2:
             ResidualPlot(g, filename, variable)
-	    mtime1 = mtime2
+            mtime1 = mtime2
     raw_input('Please press return to continue...\n')
     g.reset()
 
@@ -83,15 +90,15 @@ def main():
     parser.add_option("-f", "--file", action="store", type="string", dest="filename", default="residual.res")
     parser.add_option("-v", "--var",  action="append", type="string", dest="variable")
     (options, args) = parser.parse_args()
-
+    
     if options.filename == None:
-        print "ERROR: Input File Not Provided !"
+        print "ERROR: Input File Not Provided !" 
         sys.exit()
-
+    
     if options.variable == None:
-        print "ERROR: No variable Supplied to Parse !"
+        print "ERROR: No variable Supplied to Parse !" 
         sys.exit()
-
+    
     # Check if File exits
     if not os.path.exists(options.filename):
         print "ERROR: Input File Does Not Exists !"
@@ -104,5 +111,7 @@ def main():
 #-----------------------------------------------------
 # Main:
 if __name__ == '__main__':
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.getsignal(signal.SIGINT)
     main()
 

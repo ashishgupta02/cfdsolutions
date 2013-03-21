@@ -23,98 +23,6 @@
 #include "DebugSolver.h"
 
 //------------------------------------------------------------------------------
-//! Compute Transformed Residual in Conservative to Primitive Form
-//------------------------------------------------------------------------------
-void Transform_Residual_ConservativeToPrimitive(void) {
-    int i;
-    double Q[5];
-    double flux_roe[5];
-    double flux_roe_diss[5];
-    double rho, u, v, w, p, T, c, ht, et, q2, mach;
-    double dtmp;
-    double **Roe_P;
-    
-    // Transform the Residual in Conservative Form to Primitive Form
-    for (i = 0; i < nNode; i++) {
-        // Get the Variables
-        Q[0] = Q1[i];
-        Q[1] = Q2[i];
-        Q[2] = Q3[i];
-        Q[3] = Q4[i];
-        Q[4] = Q5[i];
-
-        // Compute Equation of State
-        Compute_EOS_Variables_ControlVolume(Q, rho, p, T, u, v, w, q2, c, mach, et, ht);
-
-        // Compute the Transformation Matrix Based on Variable Type and Non Dimensionalization Used
-        switch (NonDimensional_Type) {
-            case NONDIMENSIONAL_GENERIC:
-                switch (Variable_Type) {
-                    case VARIABLE_PRIMITIVE_PUT:
-                        dtmp = 0.5*(Gamma - 1.0)*q2;
-                        Roe_P[0][0] = dtmp;
-                        Roe_P[0][1] = (1.0 - Gamma)*u;
-                        Roe_P[0][2] = (1.0 - Gamma)*v;
-                        Roe_P[0][3] = (1.0 - Gamma)*w;
-                        Roe_P[0][4] = (Gamma - 1.0);
-
-                        Roe_P[1][0] = -u/rho;
-                        Roe_P[1][1] = 1.0/rho;
-                        Roe_P[1][2] = 0.0;
-                        Roe_P[1][3] = 0.0;
-                        Roe_P[1][4] = 0.0;
-
-                        Roe_P[2][0] = -v/rho;
-                        Roe_P[2][1] = 0.0;
-                        Roe_P[2][2] = 1.0/rho;
-                        Roe_P[2][3] = 0.0;
-                        Roe_P[2][4] = 0.0;
-
-                        Roe_P[3][0] = -w/rho;
-                        Roe_P[3][1] = 0.0;
-                        Roe_P[3][2] = 0.0;
-                        Roe_P[3][3] = 1.0/rho;
-                        Roe_P[3][4] = 0.0;
-
-                        Roe_P[4][0] = (dtmp*Gamma - T)/rho;
-                        Roe_P[4][1] = (1.0 - Gamma)*Gamma*u/rho;
-                        Roe_P[4][2] = (1.0 - Gamma)*Gamma*v/rho;
-                        Roe_P[4][3] = (1.0 - Gamma)*Gamma*w/rho;
-                        Roe_P[4][4] = (1.0 - Gamma)*Gamma/rho;
-                        break;
-                    case VARIABLE_PRIMITIVE_RUP:
-                        break;
-                    default:
-                        error("Transform_Residual_ConservativeToPrimitive: Undefined Variable Type - %d - Error-1", Variable_Type);
-                        break;
-                }
-                break;
-            case NONDIMENSIONAL_BTW:
-                    break;
-            case NONDIMENSIONAL_LMROE:
-                break;
-            default:
-                error("Transform_Residual_ConservativeToPrimitive: Undefined Non-Dimensional Type - %d", NonDimensional_Type);
-                break;
-        }
-        // Get the Conservative Residual
-        flux_roe[0] = Res1[i];
-        flux_roe[1] = Res2[i];
-        flux_roe[2] = Res3[i];
-        flux_roe[3] = Res4[i];
-        flux_roe[4] = Res5[i];
-        MC_Matrix_Mul_Vector(5, 5, Roe_P, flux_roe, flux_roe_diss);
-
-        // Update the Residual in Primitive Form
-        Res1[i] = flux_roe_diss[0];
-        Res2[i] = flux_roe_diss[1];
-        Res3[i] = flux_roe_diss[2];
-        Res4[i] = flux_roe_diss[3];
-        Res5[i] = flux_roe_diss[4]; 
-    }
-}
-
-//------------------------------------------------------------------------------
 //!
 //------------------------------------------------------------------------------
 void Unsteady_Initialization(void) {
@@ -174,5 +82,578 @@ void Unsteady_Initialization(void) {
         Q4[bndEdge[iBEdge].node[1]] = Q4[bndEdge[iBEdge].node[0]];
         Q5[bndEdge[iBEdge].node[1]] = Q5[bndEdge[iBEdge].node[0]];
     }
+}
+
+//------------------------------------------------------------------------------
+//! Computes Implicit Linearized Residual System of Equation (SOE): Roe Approximate
+//! Note: Jacobian are computed using first order Q's
+//------------------------------------------------------------------------------
+void Compute_Implicit_Linearized_Residual_SOE_Roe_Approximate(int AddTime, int Iteration) {
+    int i, j, k, iNode, iEdge, ibEdge;
+    int node_L, node_R;
+    int idgn, idgnL, idgnR, ofdgnL, ofdgnR;
+    double area, tmp;
+    double **dFdL;
+    double **dFdR;
+    double **ARoe;
+    Vector3D areavec;
+    
+    // Create the Helper Matrix
+    dFdL = (double **) malloc(NEQUATIONS*sizeof(double*));
+    dFdR = (double **) malloc(NEQUATIONS*sizeof(double*));
+    ARoe = (double **) malloc(NEQUATIONS*sizeof(double*));
+    for (i = 0; i < NEQUATIONS; i++) {
+        dFdL[i] = (double *) malloc(NEQUATIONS*sizeof(double));
+        dFdR[i] = (double *) malloc(NEQUATIONS*sizeof(double));
+        ARoe[i] = (double *) malloc(NEQUATIONS*sizeof(double));
+    }
+    
+    // Initialize the CRS Matrix
+    for (i = 0; i < SolverBlockMatrix.DIM; i++) {
+        for (j = 0; j < SolverBlockMatrix.Block_nRow; j++) {
+            for (k = 0; k < SolverBlockMatrix.Block_nCol; k++)
+                SolverBlockMatrix.A[i][j][k] = 0.0;
+        }
+    }
+    
+    // Internal Edges
+    for (iEdge = 0; iEdge < nEdge; iEdge++) {
+        // Get two nodes of edge
+        node_L = intEdge[iEdge].node[0];
+        node_R = intEdge[iEdge].node[1];
+        
+        // Get area vector
+        areavec = intEdge[iEdge].areav;
+        area    = areavec.magnitude();
+        
+        // Get the diagonal Locations
+        idgnL = SolverBlockMatrix.IAU[node_L];
+        idgnR = SolverBlockMatrix.IAU[node_R];
+        
+        // Get the Off-Diagonal Locations
+        // node_L: ofdgnL-> node_R;
+        // node_R: ofdgnR-> node_L;
+        ofdgnL = -1;
+        for (i = SolverBlockMatrix.IA[node_L]; i < SolverBlockMatrix.IA[node_L+1]; i++) {
+            if (SolverBlockMatrix.JA[i] == node_R) {
+                ofdgnL = i;
+                break;
+            }
+        }
+        ofdgnR = -1;
+        for (i = SolverBlockMatrix.IA[node_R]; i < SolverBlockMatrix.IA[node_R+1]; i++) {
+            if (SolverBlockMatrix.JA[i] == node_L) {
+                ofdgnR = i;
+                break;
+            }
+        }
+        
+        // Initialize the Helper Matrix
+        for (i = 0; i < NEQUATIONS; i++) {
+            for (j = 0; j < NEQUATIONS; j++) {
+                dFdL[i][j] = 0.0;
+                dFdR[i][j] = 0.0;
+                ARoe[i][j] = 0.0;
+            }
+        }
+        
+        // Compute dFdL
+        Compute_Flux_Jacobian_Euler_Convective(node_L, areavec, dFdL);
+        
+        // Compute dFdR
+        Compute_Flux_Jacobian_Euler_Convective(node_R, areavec, dFdR);
+        
+        // Compute Dissipation Matrix Roe
+        Compute_Dissipation_Matrix_Roe(node_L, node_R, areavec, ARoe);
+        
+        // Finally Compute the dFlux/dQ_L and dFlux/dQ_R
+        for (i = 0; i < NEQUATIONS; i++) {
+            for (j = 0; j < NEQUATIONS; j++) {
+                dFdL[i][j] = 0.5*(dFdL[i][j] + ARoe[i][j])*area;
+                dFdR[i][j] = 0.5*(dFdR[i][j] - ARoe[i][j])*area;
+            }
+        }
+        
+        // Update the Diagonal and Off-Diagonal Terms
+        for (i = 0; i < NEQUATIONS; i++) {
+            for (j = 0; j < NEQUATIONS; j++) {
+                // Diagonal
+                SolverBlockMatrix.A[idgnL][i][j] += dFdL[i][j];
+                SolverBlockMatrix.A[idgnR][i][j] -= dFdR[i][j];
+                // Off-Diagonal
+                SolverBlockMatrix.A[ofdgnL][i][j] += dFdR[i][j];
+                SolverBlockMatrix.A[ofdgnR][i][j] -= dFdL[i][j];
+            }
+        }
+    }
+    
+    // Boundary Edges
+    for (ibEdge = 0; ibEdge < nBEdge; ibEdge++) {
+        // Get two nodes of edge
+        node_L = bndEdge[ibEdge].node[0];
+        node_R = bndEdge[ibEdge].node[1];
+        
+        // Get area vector
+        areavec = bndEdge[ibEdge].areav;
+        area    = areavec.magnitude();
+        
+        // Get the diagonal Locations - Only Physical
+        // No diagonal and off-diagonal locations exists for Ghost Nodes
+        idgnL = SolverBlockMatrix.IAU[node_L];
+        
+        // Initialize the Helper Matrix - Only Physical
+        for (i = 0; i < NEQUATIONS; i++) {
+            for (j = 0; j < NEQUATIONS; j++) {
+                dFdL[i][j] = 0.0;
+                ARoe[i][j] = 0.0;
+            }
+        }
+        
+        // Compute dFdL
+        Compute_Flux_Jacobian_Euler_Convective(node_L, areavec, dFdL);
+        
+        // Compute Dissipation Matrix Roe
+        Compute_Dissipation_Matrix_Roe(node_L, node_R, areavec, ARoe);
+        
+        
+        // Finally Compute the dFlux/dQ_L
+        for (i = 0; i < NEQUATIONS; i++) {
+            for (j = 0; j < NEQUATIONS; j++)
+                dFdL[i][j] = 0.5*(dFdL[i][j] + ARoe[i][j])*area;
+        }
+        
+        // Update the Diagonal Term of Physical Node Only
+        for (i = 0; i < NEQUATIONS; i++) {
+            for (j = 0; j < NEQUATIONS; j++)
+                SolverBlockMatrix.A[idgnL][i][j] += dFdL[i][j];
+        }
+    }
+    
+    // Copy the Residuals to Block Matrix which is B
+    // And Copy I/DeltaT
+    for (iNode = 0; iNode < nNode; iNode++) {
+        // Get the LHS
+        SolverBlockMatrix.B[iNode][0] = -Res1[iNode];
+        SolverBlockMatrix.B[iNode][1] = -Res2[iNode];
+        SolverBlockMatrix.B[iNode][2] = -Res3[iNode];
+        SolverBlockMatrix.B[iNode][3] = -Res4[iNode];
+        SolverBlockMatrix.B[iNode][4] = -Res5[iNode];
+        
+        if (AddTime == 1) {
+            // Initialize the Helper Matrix
+            for (i = 0; i < NEQUATIONS; i++)
+                for (j = 0; j < NEQUATIONS; j++)
+                    ARoe[i][j] = 0.0;
+
+            // Compute the Diagonal Term: Cinv
+            Compute_Roe_Transformed_Precondition_Matrix(iNode, 1, ARoe);
+
+            // Scale the Diagonal Term
+            tmp = cVolume[iNode]/DeltaT[iNode];
+            for (i = 0; i < NEQUATIONS; i++)
+                for (j = 0; j < NEQUATIONS; j++)
+                    ARoe[i][j] *= tmp;
+            
+            // Get the diagonal location
+            idgn = SolverBlockMatrix.IAU[iNode];
+            
+            // Add the Diagonal Term
+            for (j = 0; j < SolverBlockMatrix.Block_nRow; j++) {
+                for (k = 0; k < SolverBlockMatrix.Block_nCol; k++)
+                    if (k == j)
+                        SolverBlockMatrix.A[idgn][j][k] += ARoe[j][k];
+            }
+        }
+    }
+    
+    // Delete the Helper Matrix
+    for (i = 0; i < NEQUATIONS; i++) {
+        free(ARoe[i]);
+        free(dFdL[i]);
+        free(dFdR[i]);
+    }
+    free(ARoe);
+    free(dFdL);
+    free(dFdR);
+}
+
+//------------------------------------------------------------------------------
+//! Solver in Steady State Mode with Explicit Mode and RK4 Time Integration
+//------------------------------------------------------------------------------
+int Solver_Steady_Explicit_RungeKutta4(void) {
+    int AddTime     = FALSE;
+    int CheckNAN    = 0;
+    int SaveOrder   = 0;
+    int SaveLimiter = 0;
+    int SaveRMS     = 0;
+    double *WQ;
+    double *WDeltaT, *Dummy;
+    double phi[4];
+    double eta;
+    double scale_RMS[5], scale_RMS_Res;
+    
+    // Check if Euler or Runge-Kutta Scheme
+    WQ      = NULL;
+    WDeltaT = NULL;
+    Dummy   = NULL;
+    
+    // Create the helper arrays for Runge-Kutta Method
+    // WQ
+    WQ = new double[NEQUATIONS*nNode];
+    
+    // WDeltaT : Needed because DeltaT computations is inside Residual Computation
+    WDeltaT = new double[nNode];
+    
+    // Helper Variables
+    eta  = 0.0;
+    
+    // Runge-Kutta 4 Coefficients
+    phi[0] = 0.25;
+    phi[1] = 0.333333333333333333;
+    phi[2] = 0.5;
+    phi[3] = 1.0;
+    
+    // Save Solver Parameters
+    SaveOrder   = SolverOrder;
+    SaveLimiter = LimiterMethod;
+    
+    for (int iter = RestartIteration; iter < SolverNIteration; iter++) {
+        SolverIteration = iter;
+        
+        // Reset Residuals and DeltaT
+        for (int i = 0; i < nNode; i++) {
+            Res1[i]      = 0.0;
+            Res2[i]      = 0.0;
+            Res3[i]      = 0.0;
+            Res4[i]      = 0.0;
+            Res5[i]      = 0.0;
+            Res1_Diss[i] = 0.0;
+            Res2_Diss[i] = 0.0;
+            Res3_Diss[i] = 0.0;
+            Res4_Diss[i] = 0.0;
+            Res5_Diss[i] = 0.0;
+            DeltaT[i]    = 0.0;
+        }
+        
+        // Min and Max EigenValue Value
+        MinEigenLamda1   = DBL_MAX;
+        MaxEigenLamda1   = DBL_MIN;
+        MinEigenLamda4   = DBL_MAX;
+        MaxEigenLamda4   = DBL_MIN;
+        MinEigenLamda5   = DBL_MAX;
+        MaxEigenLamda5   = DBL_MIN;
+        
+        // Min and Max Time
+        MinDeltaT = DBL_MAX;
+        MaxDeltaT = DBL_MIN;
+        
+        // Min and Max Precondition Variable
+        if (PrecondMethod != PRECOND_METHOD_NONE) {
+            for (int i = 0; i < nNode; i++)
+                PrecondSigma[i] = 0.0;
+            MinPrecondSigma = DBL_MAX;
+            MaxPrecondSigma = DBL_MIN;
+        }
+        
+        // Compute Far Field Conditions with Mach Ramping
+        ComputeFarFieldCondition(iter);
+        
+        // Check if First Order Iterations are Required
+        SolverOrder = SaveOrder;
+        if (FirstOrderNIteration > iter)
+            SolverOrder = SOLVER_ORDER_FIRST;
+
+        // Set the Start and End of Limiter Iterations
+        LimiterMethod = LIMITER_METHOD_NONE;
+        if (LimiterStartSolverIteration < LimiterEndSolverIteration) {
+            if ((LimiterStartSolverIteration <= iter+1) && (LimiterEndSolverIteration > iter))
+                LimiterMethod = SaveLimiter;
+        }
+
+        // Compute Least Square Gradient -- Unweighted
+        if (SolverOrder == SOLVER_ORDER_SECOND) {
+            Compute_Least_Square_Gradient(0); // Need to be fixed: replace zero with enum type
+            if (LimiterMethod != LIMITER_METHOD_NONE)
+                Compute_Limiter();
+        }
+        
+        // Apply boundary conditions
+        Apply_Boundary_Condition(iter);
+
+        // Reset the Residual Smoothing Variables: Required before Residual Computation
+        if (ResidualSmoothMethod != RESIDUAL_SMOOTH_METHOD_NONE)
+            Residual_Smoothing_Reset();
+        
+        // Compute Residuals
+        AddTime = TRUE;
+        Compute_Residual(AddTime);
+        
+        // Compute Local Time Stepping
+        Compute_DeltaT(iter);
+
+        // Smooth the Residual: DeltaT Computation is required
+        if (ResidualSmoothMethod != RESIDUAL_SMOOTH_METHOD_NONE)
+            Residual_Smoothing();
+        
+        // Compute RMS
+        RMS[0] = RMS[1] = RMS[2] = RMS[3] = RMS[4] = 0.0;
+        for (int i = 0; i < nNode; i++) {
+            RMS[0] += (Res1[i]+ Res1_Diss[i])*(Res1[i]+ Res1_Diss[i]);
+            RMS[1] += (Res2[i]+ Res2_Diss[i])*(Res2[i]+ Res2_Diss[i]);
+            RMS[2] += (Res3[i]+ Res3_Diss[i])*(Res3[i]+ Res3_Diss[i]);
+            RMS[3] += (Res4[i]+ Res4_Diss[i])*(Res4[i]+ Res4_Diss[i]);
+            RMS[4] += (Res5[i]+ Res5_Diss[i])*(Res5[i]+ Res5_Diss[i]);
+        }
+        RMS_Res = RMS[0] + RMS[1] + RMS[2] + RMS[3] + RMS[4];
+        RMS_Res = sqrt(RMS_Res/(5.0 * (double)nNode));
+        RMS[0] = sqrt(RMS[0]/(double)nNode);
+        RMS[1] = sqrt(RMS[1]/(double)nNode);
+        RMS[2] = sqrt(RMS[2]/(double)nNode);
+        RMS[3] = sqrt(RMS[3]/(double)nNode);
+        RMS[4] = sqrt(RMS[4]/(double)nNode);
+        
+        // Normalize the RMS
+        if (SaveRMS == 0) {
+            scale_RMS_Res = 0.0;
+            for (int i = 0; i < NEQUATIONS; i++) {
+                scale_RMS[i] = RMS[i];
+                scale_RMS_Res += RMS[i];
+            }
+            scale_RMS_Res /= NEQUATIONS;
+            SaveRMS = 1;
+        }
+        for (int i = 0; i < NEQUATIONS; i++)
+            RMS[i] /= scale_RMS[i];
+        RMS_Res /= scale_RMS_Res;
+        
+        // Write RMS
+        RMS_Writer(iter+1, RMS);
+        
+        // Check for Residual NAN
+        if (isnan(RMS_Res)) {
+            info("Solve_Explicit: NAN Encountered ! - Abort");
+            iter = SolverNIteration + 1;
+            CheckNAN = 1;
+            VTK_Writer("SolutionBeforeNAN.vtk", 1);;
+        }
+        
+        // Runge-Kutta 4 Time Integration Method
+        for (int i = 0; i < nNode; i++) {
+            // W0 = Wn
+            WQ[NEQUATIONS*i + 0] = Q1[i];
+            WQ[NEQUATIONS*i + 1] = Q2[i];
+            WQ[NEQUATIONS*i + 2] = Q3[i];
+            WQ[NEQUATIONS*i + 3] = Q4[i];
+            WQ[NEQUATIONS*i + 4] = Q5[i];
+            WDeltaT[i] = DeltaT[i];
+
+            // W1 = W0 - phi*dT*RES0/vol
+            eta   = WDeltaT[i]/cVolume[i];
+            Q1[i] = WQ[NEQUATIONS*i + 0] - phi[0]*eta*Res1[i];
+            Q2[i] = WQ[NEQUATIONS*i + 1] - phi[0]*eta*Res2[i];
+            Q3[i] = WQ[NEQUATIONS*i + 2] - phi[0]*eta*Res3[i];
+            Q4[i] = WQ[NEQUATIONS*i + 3] - phi[0]*eta*Res4[i];
+            Q5[i] = WQ[NEQUATIONS*i + 4] - phi[0]*eta*Res5[i];
+            
+            // Reset the Residual
+            Res1[i]      = 0.0;
+            Res2[i]      = 0.0;
+            Res3[i]      = 0.0;
+            Res4[i]      = 0.0;
+            Res5[i]      = 0.0;
+            Res1_Diss[i] = 0.0;
+            Res2_Diss[i] = 0.0;
+            Res3_Diss[i] = 0.0;
+            Res4_Diss[i] = 0.0;
+            Res5_Diss[i] = 0.0;
+            DeltaT[i]    = 0.0;
+        }
+
+        // Compute RES1
+        // Compute Least Square Gradient -- Unweighted
+        if (SolverOrder == SOLVER_ORDER_SECOND) {
+            Compute_Least_Square_Gradient(0);
+            if (LimiterMethod != LIMITER_METHOD_NONE)
+                Compute_Limiter();
+        }
+
+        // Apply boundary conditions
+        Apply_Boundary_Condition(iter);
+
+        // Reset the Residual Smoothing Variables: Required before Residual Computation
+        if (ResidualSmoothMethod != RESIDUAL_SMOOTH_METHOD_NONE)
+            Residual_Smoothing_Reset();
+
+        // Compute Residuals
+        AddTime = FALSE;
+        Compute_Residual(AddTime);
+
+        // Smooth the Residual: DeltaT Computation is required
+        if (ResidualSmoothMethod != RESIDUAL_SMOOTH_METHOD_NONE) {
+            // Set the original Time
+            Dummy  = DeltaT;
+            DeltaT = WDeltaT;
+            Residual_Smoothing();
+            // Swith back
+            DeltaT = Dummy;
+            Dummy  = NULL;
+        }
+
+        for (int i = 0; i < nNode; i++) {
+            // W2 = W0 - phi2*dT*RES1/vol
+            eta   = WDeltaT[i]/cVolume[i];
+            Q1[i] = WQ[NEQUATIONS*i + 0] - phi[1]*eta*Res1[i];
+            Q2[i] = WQ[NEQUATIONS*i + 1] - phi[1]*eta*Res2[i];
+            Q3[i] = WQ[NEQUATIONS*i + 2] - phi[1]*eta*Res3[i];
+            Q4[i] = WQ[NEQUATIONS*i + 3] - phi[1]*eta*Res4[i];
+            Q5[i] = WQ[NEQUATIONS*i + 4] - phi[1]*eta*Res5[i];
+
+            // Reset the Residual
+            Res1[i]      = 0.0;
+            Res2[i]      = 0.0;
+            Res3[i]      = 0.0;
+            Res4[i]      = 0.0;
+            Res5[i]      = 0.0;
+            Res1_Diss[i] = 0.0;
+            Res2_Diss[i] = 0.0;
+            Res3_Diss[i] = 0.0;
+            Res4_Diss[i] = 0.0;
+            Res5_Diss[i] = 0.0;
+            DeltaT[i]    = 0.0;
+        }
+
+        // Compute RES2
+        // Compute Least Square Gradient -- Unweighted
+        if (SolverOrder == SOLVER_ORDER_SECOND) {
+            Compute_Least_Square_Gradient(0);
+            if (LimiterMethod != LIMITER_METHOD_NONE)
+                Compute_Limiter();
+        }
+
+        // Apply boundary conditions
+        Apply_Boundary_Condition(iter);
+
+        // Reset the Residual Smoothing Variables: Required before Residual Computation
+        if (ResidualSmoothMethod != RESIDUAL_SMOOTH_METHOD_NONE)
+            Residual_Smoothing_Reset();
+
+        // Compute Residuals
+        AddTime = FALSE;
+        Compute_Residual(AddTime);
+
+        // Smooth the Residual: DeltaT Computation is required
+        if (ResidualSmoothMethod != RESIDUAL_SMOOTH_METHOD_NONE) {
+            // Set the original Time
+            Dummy  = DeltaT;
+            DeltaT = WDeltaT;
+            Residual_Smoothing();
+            // Swith back
+            DeltaT = Dummy;
+            Dummy  = NULL;
+        }
+
+        for (int i = 0; i < nNode; i++) {
+            // W3 = W0 - phi3*dT*RES2/vol
+            eta   = WDeltaT[i]/cVolume[i];
+            Q1[i] = WQ[NEQUATIONS*i + 0] - phi[2]*eta*Res1[i];
+            Q2[i] = WQ[NEQUATIONS*i + 1] - phi[2]*eta*Res2[i];
+            Q3[i] = WQ[NEQUATIONS*i + 2] - phi[2]*eta*Res3[i];
+            Q4[i] = WQ[NEQUATIONS*i + 3] - phi[2]*eta*Res4[i];
+            Q5[i] = WQ[NEQUATIONS*i + 4] - phi[2]*eta*Res5[i];
+
+            // Reset the Residual
+            Res1[i]      = 0.0;
+            Res2[i]      = 0.0;
+            Res3[i]      = 0.0;
+            Res4[i]      = 0.0;
+            Res5[i]      = 0.0;
+            Res1_Diss[i] = 0.0;
+            Res2_Diss[i] = 0.0;
+            Res3_Diss[i] = 0.0;
+            Res4_Diss[i] = 0.0;
+            Res5_Diss[i] = 0.0;
+            DeltaT[i]    = 0.0;
+        }
+
+        // Compute RES3
+        // Compute Least Square Gradient -- Unweighted
+        if (SolverOrder == SOLVER_ORDER_SECOND) {
+            Compute_Least_Square_Gradient(0);
+            if (LimiterMethod != LIMITER_METHOD_NONE)
+                Compute_Limiter();
+        }
+
+        // Apply boundary conditions
+        Apply_Boundary_Condition(iter);
+
+        // Reset the Residual Smoothing Variables: Required before Residual Computation
+        if (ResidualSmoothMethod != RESIDUAL_SMOOTH_METHOD_NONE)
+            Residual_Smoothing_Reset();
+
+        // Compute Residuals
+        AddTime = FALSE;
+        Compute_Residual(AddTime);
+
+        // Smooth the Residual: DeltaT Computation is required
+        if (ResidualSmoothMethod != RESIDUAL_SMOOTH_METHOD_NONE) {
+            // Set the original Time
+            Dummy  = DeltaT;
+            DeltaT = WDeltaT;
+            Residual_Smoothing();
+            // Swith back
+            DeltaT = Dummy;
+            Dummy  = NULL;
+        }
+
+        for (int i = 0; i < nNode; i++) {
+            // W4 = W0 - phi4*dT*RES3/vol
+            eta   = WDeltaT[i]/cVolume[i];
+            Q1[i] = WQ[NEQUATIONS*i + 0] - phi[3]*eta*Res1[i];
+            Q2[i] = WQ[NEQUATIONS*i + 1] - phi[3]*eta*Res2[i];
+            Q3[i] = WQ[NEQUATIONS*i + 2] - phi[3]*eta*Res3[i];
+            Q4[i] = WQ[NEQUATIONS*i + 3] - phi[3]*eta*Res4[i];
+            Q5[i] = WQ[NEQUATIONS*i + 4] - phi[3]*eta*Res5[i];
+        }
+
+        // Precondition Variable Normalize
+        if (PrecondMethod != PRECOND_METHOD_NONE) {
+            for (int i = 0; i < nNode; i++)
+                PrecondSigma[i] /= (crs_IA_Node2Node[i+1] - crs_IA_Node2Node[i]);
+        }
+        
+        // Check Cyclic Restart is Requested
+        RestartIteration = iter+1;
+        Check_Restart(iter);
+        
+        if ((RMS_Res < (DBL_EPSILON*10.0))|| ((iter+1) == SolverNIteration)) {
+            iter = SolverNIteration + 1;
+        }
+    }
+    
+    // Check if Solution Restart is Requested
+    if (RestartOutput && CheckNAN != 1)
+        Restart_Writer(RestartOutputFilename, 1);
+
+    // Debug the NAN
+    if (CheckNAN)
+        DebugNAN();
+
+    // Free Memory
+    // Wo
+    if (WQ != NULL)
+        delete[] WQ;
+    
+    // WDeltaT
+    if (WDeltaT != NULL)
+        delete[] WDeltaT;
+
+    WQ = NULL;
+    WDeltaT = NULL;
+    
+    // Return Solver State
+    if (CheckNAN)
+        return EXIT_FAILURE;
+    else
+        return EXIT_SUCCESS;
 }
 

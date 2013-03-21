@@ -11,6 +11,7 @@
 
 #include "Check_String.h"
 #include "Warn_Error.h"
+#include "Utils.h"
 
 /*******************************************************************************
  *

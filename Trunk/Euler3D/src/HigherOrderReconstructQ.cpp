@@ -25,11 +25,11 @@ void Compute_SecondOrderReconstructQ(int node_L, int node_R, double *Q_L, double
 
     // Initialize
     frac = 0.0;
-    if (LimiterOrder == 2)
+    if (LimiterOrder == LIMITER_ORDER_SECOND)
         frac = 0.5;
     
     // Check if Limiting is applied
-    if (Limiter > 0) {
+    if (LimiterMethod != LIMITER_METHOD_NONE) {
         // Left
         Phi_L[0] = Limiter_Phi1[node_L];
         Phi_L[1] = Limiter_Phi2[node_L];

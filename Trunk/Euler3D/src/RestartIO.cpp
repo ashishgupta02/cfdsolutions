@@ -69,7 +69,7 @@ void Restart_Writer(const char* filename, int verbose) {
 
     // Write the restart variables
     // Conservative Variable Formulation
-    if (Variable_Type == VARIABLE_CONSERVATIVE) {
+    if (VariableType == VARIABLE_CONSERVATIVE) {
         for (i = 0; i < (nNode + nBNode); i++) {
             fwrite(&Q1[i], sizeof (double), 1, fp);
             fwrite(&Q2[i], sizeof (double), 1, fp);
@@ -79,7 +79,7 @@ void Restart_Writer(const char* filename, int verbose) {
         }
     }
     // Primitive Variable Formulation Pressure Velocity Temperature
-    if (Variable_Type == VARIABLE_PRIMITIVE_PUT) {
+    if (VariableType == VARIABLE_PRIMITIVE_PUT) {
         double p, T;
         for (i = 0; i < (nNode + nBNode); i++) {
             p = Q1[i] + Gauge_Pressure;
@@ -92,7 +92,7 @@ void Restart_Writer(const char* filename, int verbose) {
         }
     }
     // Primitive Variable Formulation Density Velocity Pressure
-    if (Variable_Type == VARIABLE_PRIMITIVE_RUP) {
+    if (VariableType == VARIABLE_PRIMITIVE_RUP) {
         double p;
         for (i = 0; i < (nNode + nBNode); i++) {
             p = Q5[i] + Gauge_Pressure;
@@ -141,7 +141,7 @@ void Restart_Reader(const char* filename) {
 
     // Read the restart variables
     // Conservative Variable Formulation
-    if (Variable_Type == VARIABLE_CONSERVATIVE) {
+    if (VariableType == VARIABLE_CONSERVATIVE) {
         for (i = 0; i < (nNode + nBNode); i++) {
             sdum = fread(&Q1[i], sizeof (double), 1, fp);
             sdum = fread(&Q2[i], sizeof (double), 1, fp);
@@ -151,7 +151,7 @@ void Restart_Reader(const char* filename) {
         }
     }
     // Primitive Variable Formulation Pressure Velocity Temperature
-    if (Variable_Type == VARIABLE_PRIMITIVE_PUT) {
+    if (VariableType == VARIABLE_PRIMITIVE_PUT) {
         for (i = 0; i < (nNode + nBNode); i++) {
             sdum = fread(&Q1[i], sizeof (double), 1, fp);
             Q1[i] -= Gauge_Pressure;
@@ -163,7 +163,7 @@ void Restart_Reader(const char* filename) {
         }
     }
     // Primitive Variable Formulation Density Velocity Pressure
-    if (Variable_Type == VARIABLE_PRIMITIVE_RUP) {
+    if (VariableType == VARIABLE_PRIMITIVE_RUP) {
         for (i = 0; i < (nNode + nBNode); i++) {
             sdum = fread(&Q1[i], sizeof (double), 1, fp);
             sdum = fread(&Q2[i], sizeof (double), 1, fp);

@@ -59,10 +59,6 @@ inline bool isnan(double x) {
 #define NEDGE_PRISM                     9
 #define NEDGE_HEXA                      12
 
-#define UNSIO_FLOWTYPE_UNKNOWN         -1
-#define UNSIO_FLOWTYPE_INCOMPRESSIBLE   0
-#define UNSIO_FLOWTYPE_COMPRESSIBLE     1
-#define UNSIO_FLOWTYPE_VARMACHRUP       2
 
 // Grid Connectivity Data Structure
 extern int     nNode;
