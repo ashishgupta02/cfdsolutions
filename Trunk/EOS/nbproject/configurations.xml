@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="88">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+      <itemPath>include/EOS.h</itemPath>
+      <itemPath>include/EOS_Internal.h</itemPath>
+      <itemPath>include/NISTThermo_Interface.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <itemPath>src/EOS.c</itemPath>
+      <itemPath>src/EOS_Density_Pressure.c</itemPath>
+      <itemPath>src/EOS_Density_Temperature.c</itemPath>
+      <itemPath>src/EOS_Internal.c</itemPath>
+      <itemPath>src/EOS_Pressure_Temperature.c</itemPath>
+      <itemPath>src/Test.cpp</itemPath>
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="1">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GUPC_x86_64|GNU</compilerSet>
+        <rebuildPropChanged>true</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>../NISTThermo/NISTThermo/include</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>__linux</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>../NISTThermo/NISTThermo/include</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>__linux</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../../../../Dropbox/CFDSolutions/Trunk/NISTThermo/NISTThermo"
+                            CT="2"
+                            CN="Debug"
+                            AC="true"
+                            BL="true"
+                            WD="../../../../Dropbox/CFDSolutions/Trunk/NISTThermo/NISTThermo"
+                            BC="${MAKE}  -f Makefile CONF=Debug"
+                            CC="${MAKE}  -f Makefile CONF=Debug clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libNISTThermo.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Debug_GUPC_x86_64"
+                            AC="false"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Debug_GUPC_x86_64"
+                            CC="${MAKE}  -f Makefile CONF=Debug_GUPC_x86_64 clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
+          <commandLine>-lgfortran</commandLine>
+        </linkerTool>
+      </compileType>
+      <item path="include/EOS.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Internal.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/NISTThermo_Interface.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/EOS.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_Density_Pressure.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_Density_Temperature.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_Internal.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_Pressure_Temperature.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/Test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Release" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GUPC_x86_64|GNU</compilerSet>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+      </compileType>
+      <item path="include/EOS.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Internal.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/NISTThermo_Interface.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/EOS.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_Density_Pressure.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_Density_Temperature.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_Internal.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_Pressure_Temperature.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/Test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>
