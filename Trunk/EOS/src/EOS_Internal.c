@@ -16,22 +16,25 @@ EOS_S_NISTHelper SogNISTHelper;
 /* Fluid Information */
 EOS_S_FluidInfo SogFluidInfo;
 /* Reference Properties */
-double dvTemperature_Ref;
-double dvPressure_Ref;
-double dvDensity_Ref;
-double dvVelocity_Ref;
-double dvLength_Ref;
-double dvMach_Ref;
-double dvSpeedSound_Ref;
-double dvTime_Ref;
-double dvEnthalpy_Ref;
-double dvTotalEnthalpy_Ref;
-double dvInternalEnergy_Ref;
-double dvTotalEnergy_Ref;
-double dvEntropy_Ref;
-double dvEntropyConst_Ref;
-double dvGasConstant_Ref;
-double dvRatioSpecificHeat_Ref;
+int    ivgSet_Ref;
+double dvgTemperature_Ref;
+double dvgPressure_Ref;
+double dvgDensity_Ref;
+double dvgVelocity_Ref;
+double dvgLength_Ref;
+double dvgMach_Ref;
+double dvgSpeedSound_Ref;
+double dvgTime_Ref;
+double dvgEnthalpy_Ref;
+double dvgTotalEnthalpy_Ref;
+double dvgInternalEnergy_Ref;
+double dvgTotalEnergy_Ref;
+double dvgEntropy_Ref;
+double dvgEntropyConst_Ref;
+double dvgGasConstant_Ref;
+double dvgHeatCapacityCv_Ref;
+double dvgHeatCapacityCp_Ref;
+double dvgRatioSpecificHeat_Ref;
 
 //------------------------------------------------------------------------------
 //!
@@ -82,6 +85,7 @@ void EOS_Internal_Init_Fluid_Information() {
 
 //------------------------------------------------------------------------------
 //! Initialize Fluid Information from NIST Thermodynamic Library
+//  All Thermodynamic variables are in SI Units
 //------------------------------------------------------------------------------
 void EOS_Internal_Set_NIST_Fluid_Information(int ivComp) {
     // Get the Information about the fluid
@@ -106,6 +110,13 @@ void EOS_Internal_Set_NIST_Fluid_Information(int ivComp) {
 #endif
     if (SogNISTHelper.ivError != 0)
         error("EOS_Internal_Set_NIST_Fluid_Information: %s", SogNISTHelper.csError);
+    
+    // Convert into International Standard Units (SI)
+    SogFluidInfo.dvPressure_Crit = EOS_Internal_Get_NIST_To_SI_Pressure(SogFluidInfo.dvPressure_Crit);
+    SogFluidInfo.dvPressure_Max  = EOS_Internal_Get_NIST_To_SI_Pressure(SogFluidInfo.dvPressure_Max);
+    SogFluidInfo.dvDensity_Crit  = EOS_Internal_Get_NIST_To_SI_Density(SogFluidInfo.dvDensity_Crit);
+    SogFluidInfo.dvDensity_Max   = EOS_Internal_Get_NIST_To_SI_Density(SogFluidInfo.dvDensity_Max);
+    SogFluidInfo.dvGasConstant  /= 0.001*SogFluidInfo.dvMolecularWeight;
 }
 
 //------------------------------------------------------------------------------
@@ -117,134 +128,274 @@ void EOS_Internal_Print_NIST_Fluid_Information(int ivComp) {
     printf("=============================================================================\n");
     info("FLUID INFORMATION : %s", SogFluidInfo.csFluidName);
     printf("=============================================================================\n");
-    info("Molecular Weight                  = %10.4e", SogFluidInfo.dvMolecularWeight);
-    info("Gas Constant                      = %10.4e", SogFluidInfo.dvGasConstant);
-    info("Temperature Critical              = %10.4e", SogFluidInfo.dvTemperature_Crit);
-    info("Pressure Critical                 = %10.4e", SogFluidInfo.dvPressure_Crit);
-    info("Compressibility @ Critical Point  = %10.4e", SogFluidInfo.dvZ_Crit);
-    info("Density Critical                  = %10.4e", SogFluidInfo.dvDensity_Crit);
-    info("Triple Point Temperature          = %10.4e", SogFluidInfo.dvTPTemperature);
-    info("Normal Boiling Point Temperature  = %10.4e", SogFluidInfo.dvNBPTemperature);
-    info("Acentric Factor                   = %10.4e", SogFluidInfo.dvAcentric_Fact);
-    info("Dipole Moment                     = %10.4e", SogFluidInfo.dvDipole_Mom);
-    info("Temperature Minimum               = %10.4e", SogFluidInfo.dvTemperature_Min);
-    info("Temperature Maximum               = %10.4e", SogFluidInfo.dvTemperature_Max);
-    info("Pressure Maximum                  = %10.4e", SogFluidInfo.dvPressure_Max);
-    info("Density Maximum                   = %10.4e", SogFluidInfo.dvDensity_Max);
+    info("Molecular Weight                  = %15.6f kg/kmol", SogFluidInfo.dvMolecularWeight);
+    info("Gas Constant                      = %15.6f J/kg-K",  SogFluidInfo.dvGasConstant);
+    info("Temperature Critical              = %15.6f K",       SogFluidInfo.dvTemperature_Crit);
+    info("Pressure Critical                 = %15.6f kPa",     EOS_Internal_Get_SI_To_NIST_Pressure(SogFluidInfo.dvPressure_Crit));
+    info("Compressibility @ Critical Point  = %15.6f ",        SogFluidInfo.dvZ_Crit);
+    info("Density Critical                  = %15.6f kg/m^3",  SogFluidInfo.dvDensity_Crit);
+    info("Triple Point Temperature          = %15.6f K",       SogFluidInfo.dvTPTemperature);
+    info("Normal Boiling Point Temperature  = %15.6f K",       SogFluidInfo.dvNBPTemperature);
+    info("Acentric Factor                   = %15.6f ",        SogFluidInfo.dvAcentric_Fact);
+    info("Dipole Moment                     = %15.6f debye",   SogFluidInfo.dvDipole_Mom);
+    info("Temperature Minimum               = %15.6f K",       SogFluidInfo.dvTemperature_Min);
+    info("Temperature Maximum               = %15.6f K",       SogFluidInfo.dvTemperature_Max);
+    info("Pressure Maximum                  = %15.6f kPa",     EOS_Internal_Get_SI_To_NIST_Pressure(SogFluidInfo.dvPressure_Max));
+    info("Density Maximum                   = %15.6f kg/m^3",  SogFluidInfo.dvDensity_Max);
 }
 
 //------------------------------------------------------------------------------
 //! Initialize Reference Property for Fluid
-//! Initialization is based for Ideal Gas
 //------------------------------------------------------------------------------
 void EOS_Internal_Init_Reference_Properties() {
-    /* Properties of Ideal Gas */
-    dvTemperature_Ref       = 273.15;
-    dvPressure_Ref          = 101325;
-    dvGasConstant_Ref       = 287.04;
-    dvRatioSpecificHeat_Ref = 1.4;
-    dvLength_Ref            = 1.0;
-    dvDensity_Ref           = dvPressure_Ref/(dvGasConstant_Ref*dvTemperature_Ref);
-    dvSpeedSound_Ref        = sqrt(dvRatioSpecificHeat_Ref*dvGasConstant_Ref*dvTemperature_Ref);
-    dvVelocity_Ref          = dvSpeedSound_Ref;
-    dvMach_Ref              = 1.0;
-    dvTime_Ref              = dvLength_Ref/dvSpeedSound_Ref;
-    dvEnthalpy_Ref          = dvSpeedSound_Ref*dvSpeedSound_Ref;
-    dvTotalEnthalpy_Ref     = dvEnthalpy_Ref;
-    dvInternalEnergy_Ref    = dvEnthalpy_Ref;
-    dvTotalEnergy_Ref       = dvEnthalpy_Ref;
-    dvEntropy_Ref           = dvGasConstant_Ref/(dvRatioSpecificHeat_Ref - 1.0);
-    dvEntropyConst_Ref      = 1.0;
+    /* Initialize the Reference Properties */
+    ivgSet_Ref               = 0;
+    dvgTemperature_Ref       = 0.0;
+    dvgPressure_Ref          = 0.0;
+    dvgGasConstant_Ref       = 0.0;
+    dvgRatioSpecificHeat_Ref = 0.0;
+    dvgLength_Ref            = 0.0;
+    dvgDensity_Ref           = 0.0;
+    dvgSpeedSound_Ref        = 0.0;
+    dvgVelocity_Ref          = 0.0;
+    dvgMach_Ref              = 0.0;
+    dvgTime_Ref              = 0.0;
+    dvgEnthalpy_Ref          = 0.0;
+    dvgTotalEnthalpy_Ref     = 0.0;
+    dvgInternalEnergy_Ref    = 0.0;
+    dvgTotalEnergy_Ref       = 0.0;
+    dvgEntropy_Ref           = 0.0;
+    dvgHeatCapacityCv_Ref    = 0.0;
+    dvgHeatCapacityCp_Ref    = 0.0;
+    dvgEntropyConst_Ref      = 0.0;
 }
 
 //------------------------------------------------------------------------------
-//! Compute the Dimensionalize the Properties
-//
+//! Compute the SI to NIST compatible Density
+// Density in kg/m^3 to mol/L
 //------------------------------------------------------------------------------
-void EOS_Internal_Dimensionalize_Properties(int ivVariableType, double *dpPropertyIn, double *dpPropertyOut) {
+double EOS_Internal_Get_SI_To_NIST_Density(double dvDensity) {
+    return dvDensity/SogFluidInfo.dvMolecularWeight;
+}
+
+//------------------------------------------------------------------------------
+//! Compute the NIST to SI compatible Density
+// Density in mol/L to kg/m^3 
+//------------------------------------------------------------------------------
+double EOS_Internal_Get_NIST_To_SI_Density(double dvDensity) {
+    return dvDensity*SogFluidInfo.dvMolecularWeight;
+}
+
+//------------------------------------------------------------------------------
+//! Compute the SI to NIST compatible Pressure
+// Pressure in Pa to kPa
+//------------------------------------------------------------------------------
+double EOS_Internal_Get_SI_To_NIST_Pressure(double dvPressure) {
+    return 0.001*dvPressure;
+}
+
+//------------------------------------------------------------------------------
+//! Compute the NIST to SI compatible Pressure
+// Pressure in kPa to Pa
+//------------------------------------------------------------------------------
+double EOS_Internal_Get_NIST_To_SI_Pressure(double dvPressure) {
+    return 1000.0*dvPressure;
+}
+
+//------------------------------------------------------------------------------
+//! Compute the Dimensionalize the Variables
+//  Note: Reference values and dpVariableOut are in SI units
+//------------------------------------------------------------------------------
+void EOS_Internal_Dimensionalize_Variables(int ivVariableType, double *dpVariableIn, double *dpVariableOut) {
     // Compute Properties Based on Input Variable Types
     switch(ivVariableType) {
         // Conservative Variables
         case EOS_VARIABLE_CON:
-            dpPropertyOut[0] = dpPropertyIn[0]*dvDensity_Ref;
-            dpPropertyOut[1] = dpPropertyIn[1]*dvDensity_Ref*dvVelocity_Ref;
-            dpPropertyOut[2] = dpPropertyIn[2]*dvDensity_Ref*dvVelocity_Ref;
-            dpPropertyOut[3] = dpPropertyIn[3]*dvDensity_Ref*dvVelocity_Ref;
-            dpPropertyOut[4] = dpPropertyIn[4]*dvDensity_Ref*dvTotalEnergy_Ref;
-            break;
-        // Primitive Variable Formulation Pressure Velocity Temperature
-        case EOS_VARIABLE_PUT:
-            dpPropertyOut[0] = dpPropertyIn[0]*dvPressure_Ref;
-            dpPropertyOut[1] = dpPropertyIn[1]*dvVelocity_Ref;
-            dpPropertyOut[2] = dpPropertyIn[2]*dvVelocity_Ref;
-            dpPropertyOut[3] = dpPropertyIn[3]*dvVelocity_Ref;
-            dpPropertyOut[4] = dpPropertyIn[4]*dvTemperature_Ref;
+            dpVariableOut[0] = dpVariableIn[0]*dvgDensity_Ref;
+            dpVariableOut[1] = dpVariableIn[1]*dvgDensity_Ref*dvgVelocity_Ref;
+            dpVariableOut[2] = dpVariableIn[2]*dvgDensity_Ref*dvgVelocity_Ref;
+            dpVariableOut[3] = dpVariableIn[3]*dvgDensity_Ref*dvgVelocity_Ref;
+            dpVariableOut[4] = dpVariableIn[4]*dvgDensity_Ref*dvgTotalEnergy_Ref;
             break;
         // Primitive Variable Formulation Density Velocity Pressure
         case EOS_VARIABLE_RUP:
-            dpPropertyOut[0] = dpPropertyIn[0]*dvDensity_Ref;
-            dpPropertyOut[1] = dpPropertyIn[1]*dvVelocity_Ref;
-            dpPropertyOut[2] = dpPropertyIn[2]*dvVelocity_Ref;
-            dpPropertyOut[3] = dpPropertyIn[3]*dvVelocity_Ref;
-            dpPropertyOut[4] = dpPropertyIn[4]*dvPressure_Ref;
+            dpVariableOut[0] = dpVariableIn[0]*dvgDensity_Ref;
+            dpVariableOut[1] = dpVariableIn[1]*dvgVelocity_Ref;
+            dpVariableOut[2] = dpVariableIn[2]*dvgVelocity_Ref;
+            dpVariableOut[3] = dpVariableIn[3]*dvgVelocity_Ref;
+            dpVariableOut[4] = dpVariableIn[4]*dvgPressure_Ref;
+            break;
+        // Primitive Variable Formulation Pressure Velocity Temperature
+        case EOS_VARIABLE_PUT:
+            dpVariableOut[0] = dpVariableIn[0]*dvgPressure_Ref;
+            dpVariableOut[1] = dpVariableIn[1]*dvgVelocity_Ref;
+            dpVariableOut[2] = dpVariableIn[2]*dvgVelocity_Ref;
+            dpVariableOut[3] = dpVariableIn[3]*dvgVelocity_Ref;
+            dpVariableOut[4] = dpVariableIn[4]*dvgTemperature_Ref;
+            break;
+        // Primitive Variable Formulation Pressure Velocity Entropy
+        case EOS_VARIABLE_PUS:
+            dpVariableOut[0] = dpVariableIn[0]*dvgPressure_Ref;
+            dpVariableOut[1] = dpVariableIn[1]*dvgVelocity_Ref;
+            dpVariableOut[2] = dpVariableIn[2]*dvgVelocity_Ref;
+            dpVariableOut[3] = dpVariableIn[3]*dvgVelocity_Ref;
+            dpVariableOut[4] = dpVariableIn[4]*dvgEntropy_Ref;
             break;
         // Primitive Variable Formulation Density Velocity Temperature
         case EOS_VARIABLE_RUT:
-            dpPropertyOut[0] = dpPropertyIn[0]*dvDensity_Ref;
-            dpPropertyOut[1] = dpPropertyIn[1]*dvVelocity_Ref;
-            dpPropertyOut[2] = dpPropertyIn[2]*dvVelocity_Ref;
-            dpPropertyOut[3] = dpPropertyIn[3]*dvVelocity_Ref;
-            dpPropertyOut[4] = dpPropertyIn[4]*dvTemperature_Ref;
+            dpVariableOut[0] = dpVariableIn[0]*dvgDensity_Ref;
+            dpVariableOut[1] = dpVariableIn[1]*dvgVelocity_Ref;
+            dpVariableOut[2] = dpVariableIn[2]*dvgVelocity_Ref;
+            dpVariableOut[3] = dpVariableIn[3]*dvgVelocity_Ref;
+            dpVariableOut[4] = dpVariableIn[4]*dvgTemperature_Ref;
             break;
         default:
-            error("EOS_Internal_Dimensionalize_Properties: Undefined Variable Type - %d", ivVariableType);
+            error("EOS_Internal_Dimensionalize_Variables: Undefined Variable Type - %d", ivVariableType);
             break;
     }
 }
 
+//------------------------------------------------------------------------------
+//! Compute the Non-Dimensionalize the Properties
+//  Note: Reference values and dpVariableIn are in SI units
+//------------------------------------------------------------------------------
+void EOS_Internal_NonDimensionalize_Variables(int ivVariableType, double *dpVariableIn, double *dpVariableOut) {
+    // Compute Properties Based on Input Variable Types
+    switch(ivVariableType) {
+        // Conservative Variables
+        case EOS_VARIABLE_CON:
+            dpVariableOut[0] = dpVariableIn[0]/dvgDensity_Ref;
+            dpVariableOut[1] = dpVariableIn[1]/(dvgDensity_Ref*dvgVelocity_Ref);
+            dpVariableOut[2] = dpVariableIn[2]/(dvgDensity_Ref*dvgVelocity_Ref);
+            dpVariableOut[3] = dpVariableIn[3]/(dvgDensity_Ref*dvgVelocity_Ref);
+            dpVariableOut[4] = dpVariableIn[4]/(dvgDensity_Ref*dvgTotalEnergy_Ref);
+            break;
+        // Primitive Variable Formulation Density Velocity Pressure
+        case EOS_VARIABLE_RUP:
+            dpVariableOut[0] = dpVariableIn[0]/dvgDensity_Ref;
+            dpVariableOut[1] = dpVariableIn[1]/dvgVelocity_Ref;
+            dpVariableOut[2] = dpVariableIn[2]/dvgVelocity_Ref;
+            dpVariableOut[3] = dpVariableIn[3]/dvgVelocity_Ref;
+            dpVariableOut[4] = dpVariableIn[4]/dvgPressure_Ref;
+            break;
+        // Primitive Variable Formulation Pressure Velocity Temperature
+        case EOS_VARIABLE_PUT:
+            dpVariableOut[0] = dpVariableIn[0]/dvgPressure_Ref;
+            dpVariableOut[1] = dpVariableIn[1]/dvgVelocity_Ref;
+            dpVariableOut[2] = dpVariableIn[2]/dvgVelocity_Ref;
+            dpVariableOut[3] = dpVariableIn[3]/dvgVelocity_Ref;
+            dpVariableOut[4] = dpVariableIn[4]/dvgTemperature_Ref;
+            break;
+        // Primitive Variable Formulation Pressure Velocity Entropy
+        case EOS_VARIABLE_PUS:
+            dpVariableOut[0] = dpVariableIn[0]/dvgPressure_Ref;
+            dpVariableOut[1] = dpVariableIn[1]/dvgVelocity_Ref;
+            dpVariableOut[2] = dpVariableIn[2]/dvgVelocity_Ref;
+            dpVariableOut[3] = dpVariableIn[3]/dvgVelocity_Ref;
+            dpVariableOut[4] = dpVariableIn[4]/dvgEntropy_Ref;
+            break;
+        // Primitive Variable Formulation Density Velocity Temperature
+        case EOS_VARIABLE_RUT:
+            dpVariableOut[0] = dpVariableIn[0]/dvgDensity_Ref;
+            dpVariableOut[1] = dpVariableIn[1]/dvgVelocity_Ref;
+            dpVariableOut[2] = dpVariableIn[2]/dvgVelocity_Ref;
+            dpVariableOut[3] = dpVariableIn[3]/dvgVelocity_Ref;
+            dpVariableOut[4] = dpVariableIn[4]/dvgTemperature_Ref;
+            break;
+        default:
+            error("EOS_Internal_NonDimensionalize_Variables: Undefined Variable Type - %d", ivVariableType);
+            break;
+    }
+}
+
+//------------------------------------------------------------------------------
+//! Compute the Dimensionalize the Properties
+//  Note: Reference values and dpPropertyOut are in SI units
+//--------------------------------------------------
+void EOS_Internal_Dimensionalize_Properties(double *dpPropertyIn, double *dpPropertyOut) {
+    dpPropertyOut[ 0] = dpPropertyIn[ 0] * dvgDensity_Ref;
+    dpPropertyOut[ 1] = dpPropertyIn[ 1] * dvgPressure_Ref;
+    dpPropertyOut[ 2] = dpPropertyIn[ 2] * dvgTemperature_Ref;
+    dpPropertyOut[ 3] = dpPropertyIn[ 3] * dvgVelocity_Ref;
+    dpPropertyOut[ 4] = dpPropertyIn[ 4] * dvgVelocity_Ref;
+    dpPropertyOut[ 5] = dpPropertyIn[ 5] * dvgVelocity_Ref;
+    dpPropertyOut[ 6] = dpPropertyIn[ 6] * (dvgVelocity_Ref*dvgVelocity_Ref);
+    dpPropertyOut[ 7] = dpPropertyIn[ 7] * dvgSpeedSound_Ref;
+    dpPropertyOut[ 8] = dpPropertyIn[ 8] * dvgMach_Ref;
+    dpPropertyOut[ 9] = dpPropertyIn[ 9] * dvgEntropy_Ref;
+    dpPropertyOut[10] = dpPropertyIn[10] * dvgEnthalpy_Ref;
+    dpPropertyOut[11] = dpPropertyIn[11] * dvgInternalEnergy_Ref;
+    dpPropertyOut[12] = dpPropertyIn[12] * dvgTotalEnthalpy_Ref;
+    dpPropertyOut[13] = dpPropertyIn[13] * dvgTotalEnergy_Ref;
+    dpPropertyOut[14] = dpPropertyIn[14] * dvgHeatCapacityCv_Ref;
+    dpPropertyOut[15] = dpPropertyIn[15] * dvgHeatCapacityCp_Ref;
+}
+
+//------------------------------------------------------------------------------
+//! Compute the Non-Dimensionalize the Properties
+//  Note: Reference values and dpPropertyIn are in SI units
+//------------------------------------------------------------------------------
+void EOS_Internal_NonDimensionalize_Properties(double *dpPropertyIn, double *dpPropertyOut) {
+    dpPropertyOut[ 0] = dpPropertyIn[ 0] / dvgDensity_Ref;
+    dpPropertyOut[ 1] = dpPropertyIn[ 1] / dvgPressure_Ref;
+    dpPropertyOut[ 2] = dpPropertyIn[ 2] / dvgTemperature_Ref;
+    dpPropertyOut[ 3] = dpPropertyIn[ 3] / dvgVelocity_Ref;
+    dpPropertyOut[ 4] = dpPropertyIn[ 4] / dvgVelocity_Ref;
+    dpPropertyOut[ 5] = dpPropertyIn[ 5] / dvgVelocity_Ref;
+    dpPropertyOut[ 6] = dpPropertyIn[ 6] / (dvgVelocity_Ref*dvgVelocity_Ref);
+    dpPropertyOut[ 7] = dpPropertyIn[ 7] / dvgSpeedSound_Ref;
+    dpPropertyOut[ 8] = dpPropertyIn[ 8] / dvgMach_Ref;
+    dpPropertyOut[ 9] = dpPropertyIn[ 9] / dvgEntropy_Ref;
+    dpPropertyOut[10] = dpPropertyIn[10] / dvgEnthalpy_Ref;
+    dpPropertyOut[11] = dpPropertyIn[11] / dvgInternalEnergy_Ref;
+    dpPropertyOut[12] = dpPropertyIn[12] / dvgTotalEnthalpy_Ref;
+    dpPropertyOut[13] = dpPropertyIn[13] / dvgTotalEnergy_Ref;
+    dpPropertyOut[14] = dpPropertyIn[14] / dvgHeatCapacityCv_Ref;
+    dpPropertyOut[15] = dpPropertyIn[15] / dvgHeatCapacityCp_Ref;
+}
 
 //------------------------------------------------------------------------------
 //! Dimensionalize Density and Temperature
 //------------------------------------------------------------------------------
 void EOS_Internal_Dimensionalize_DT(double *dpDensity, double *dpTemperature) {
-    *dpDensity     = *dpDensity*dvDensity_Ref;
-    *dpTemperature = *dpTemperature*dvTemperature_Ref;
+    *dpDensity     = *dpDensity*dvgDensity_Ref;
+    *dpTemperature = *dpTemperature*dvgTemperature_Ref;
 }
 
 //------------------------------------------------------------------------------
 //! Dimensionalize Density and Pressure
 //------------------------------------------------------------------------------
 void EOS_Internal_Dimensionalize_DP(double *dpDensity, double *dpPressure) {
-    *dpDensity  = *dpDensity*dvDensity_Ref;
-    *dpPressure = *dpPressure*dvPressure_Ref;
+    *dpDensity  = *dpDensity*dvgDensity_Ref;
+    *dpPressure = *dpPressure*dvgPressure_Ref;
 }
 
 //------------------------------------------------------------------------------
 //! Dimensionalize Pressure and Temperature
 //------------------------------------------------------------------------------
 void EOS_Internal_Dimensionalize_PT(double *dpPressure, double *dpTemperature) {
-    *dpPressure    = *dpPressure*dvPressure_Ref;
-    *dpTemperature = *dpTemperature*dvTemperature_Ref;
+    *dpPressure    = *dpPressure*dvgPressure_Ref;
+    *dpTemperature = *dpTemperature*dvgTemperature_Ref;
 }
 
 //------------------------------------------------------------------------------
 //! Non-Dimensionalize Pressure
 //------------------------------------------------------------------------------
 void EOS_Internal_NonDimensionalize_Pressure(double *dpPressure) {
-    *dpPressure = *dpPressure/dvPressure_Ref;
+    *dpPressure = *dpPressure/dvgPressure_Ref;
 }
 
 //------------------------------------------------------------------------------
 //! Non-Dimensionalize Density
 //------------------------------------------------------------------------------
 void EOS_Internal_NonDimensionalize_Density(double *dpDensity) {
-    *dpDensity = *dpDensity/dvDensity_Ref;
+    *dpDensity = *dpDensity/dvgDensity_Ref;
 }
 
 //------------------------------------------------------------------------------
 //! Non-Dimensionalize Temperature
 //------------------------------------------------------------------------------
 void EOS_Internal_NonDimensionalize_Temperature(double *dpTemperature) {
-    *dpTemperature = *dpTemperature/dvTemperature_Ref;
+    *dpTemperature = *dpTemperature/dvgTemperature_Ref;
 }
 

@@ -12,6 +12,7 @@
 // search path (current directory and $PATH).
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "NISTThermo_Extension.h"
 #include "EOS.h"
@@ -40,7 +41,6 @@ int main(int argc, char* argv[]) {
     // hfmix[] a character array defining the path to the mixture file
 
     double x[ncmax], xliq[ncmax], xvap[ncmax];
-
     int ierr;
     char hf[refpropcharlength * ncmax], hrf[lengthofreference],
             herr[errormessagelength], hfmix[refpropcharlength];
@@ -54,8 +54,25 @@ int main(int argc, char* argv[]) {
     strcpy(herr,"Ok");
     
     EOS_Set();
-    EOS_Set_Reference_Properties(2495.8110, 119.0734, 1.0);
-    EOS_Get_Reference_Properties();
+    EOS_Set_Reference_Properties(2395800.0, 119.5302, 1.0);
+    EOS_Print_Reference_Properties();
+    
+    double Q[5], Pro[16];
+    // RUP
+    Q[0] = 0.5;
+    Q[1] = 1.0;
+    Q[2] = 0.0;
+    Q[3] = 0.0;
+    Q[4] = 1.0;
+    EOS_Get_Properties(2, Q, Pro);
+    for(int k = 0; k < 16; k++)
+        printf("Property[%2d] = %10.6f\n", k, Pro[k]);
+    printf("========\n");
+    Q[4] = Pro[2];
+    EOS_Get_Properties(4, Q, Pro);
+    for(int k = 0; k < 16; k++)
+        printf("Property[%2d] = %10.6f\n", k, Pro[k]);
+    exit(0);
     
     double t, p, dl, dv;
     double d, q, e, h, s, cv, cp, w;
@@ -469,7 +486,7 @@ int test2(int argc, char* argv[]) {
     
     EOS_Set();
     EOS_Set_Reference_Properties(2495.8110, 119.0734, 1.0);
-    EOS_Get_Reference_Properties();
+    EOS_Print_Reference_Properties();
     
     
     double wm, ttp, tnbp, tc, pc, dc, zc, acf, dip, rgas;
