@@ -5,8 +5,10 @@
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>include/EOS.h</itemPath>
+      <itemPath>include/EOS_Density_Pressure.h</itemPath>
+      <itemPath>include/EOS_Density_Temperature.h</itemPath>
       <itemPath>include/EOS_Internal.h</itemPath>
-      <itemPath>include/NISTThermo_Interface.h</itemPath>
+      <itemPath>include/EOS_Pressure_Temperature.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -105,9 +107,13 @@
       </compileType>
       <item path="include/EOS.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/EOS_Density_Pressure.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Density_Temperature.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/EOS_Internal.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="include/NISTThermo_Interface.h" ex="false" tool="3" flavor2="0">
+      <item path="include/EOS_Pressure_Temperature.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/EOS.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -143,9 +149,13 @@
       </compileType>
       <item path="include/EOS.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/EOS_Density_Pressure.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Density_Temperature.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/EOS_Internal.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="include/NISTThermo_Interface.h" ex="false" tool="3" flavor2="0">
+      <item path="include/EOS_Pressure_Temperature.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/EOS.c" ex="false" tool="0" flavor2="0">
       </item>

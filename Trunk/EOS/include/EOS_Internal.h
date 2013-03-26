@@ -12,15 +12,18 @@
 extern "C" {
 #endif
 
+    // No of Equations
+    #define NEQUATIONS          5
+    
     /*!
     * \brief Variable Type
     */
     enum EOS_VARIABLE_TYPE {
         EOS_VARIABLE_NONE = -1,    /*!< \brief Variable Type None. */
         EOS_VARIABLE_CON  =  0,    /*!< \brief Variable Type Conservative. */
-        EOS_VARIABLE_PUT  =  1,    /*!< \brief Variable Type Presure Velocity and Temperature. */
-        EOS_VARIABLE_RUP  =  2,    /*!< \brief Variable Type Density Velocity and Pressure. */
-        EOS_VARIABLE_PUS  =  3,    /*!< \brief Variable Type Pressure Velocity and Entropy. */
+        EOS_VARIABLE_RUP  =  1,    /*!< \brief Variable Type Density Velocity and Pressure. */
+        EOS_VARIABLE_PUT  =  2,    /*!< \brief Variable Type Presure Velocity and Temperature. */
+        EOS_VARIABLE_PUS  =  3,    /*!< \brief Variable Type Pressure Velocity Entropy. */
         EOS_VARIABLE_RUT  =  4     /*!< \brief Variable Type Density Velocity and Temperature. */
     };
 
@@ -28,11 +31,11 @@ extern "C" {
     * \brief Thermodynamic Region Type
     */
     enum EOS_REG_TYPE {
-        EOS_REG_UKN     = 0, /*!< \brief Unknown */
-        EOS_REG_SCS     = 1, /*!< \brief Super Critical State */
-        EOS_REG_SCL     = 2, /*!< \brief Subcooled Compressed Liquid */
-        EOS_REG_SHV     = 3, /*!< \brief Super Heated Vapor */
-        EOS_REG_MP      = 4  /*!< \brief Multi-Phase Liquid-Vapor */
+        EOS_REG_UNKNOWN                      = 0, /*!< \brief Unknown */
+        EOS_REG_SUPER_CRITICAL_STATE         = 1, /*!< \brief Super Critical State */
+        EOS_REG_SUBCOOOLED_COMPRESSED_LIQUID = 2, /*!< \brief Subcooled Compressed Liquid */
+        EOS_REG_SUPER_HEATED_VAPOR           = 3, /*!< \brief Super Heated Vapor */
+        EOS_REG_MULTIPHASE                   = 4  /*!< \brief Multi-Phase Liquid-Vapor */
     };
     
     /*!
@@ -78,22 +81,25 @@ extern "C" {
     /* Fluid Information */
     extern EOS_S_FluidInfo SogFluidInfo;
     /* Reference Properties */
-    extern double dvTemperature_Ref;
-    extern double dvPressure_Ref;
-    extern double dvDensity_Ref;
-    extern double dvVelocity_Ref;
-    extern double dvLength_Ref;
-    extern double dvMach_Ref;
-    extern double dvSpeedSound_Ref;
-    extern double dvTime_Ref;
-    extern double dvEnthalpy_Ref;
-    extern double dvTotalEnthalpy_Ref;
-    extern double dvInternalEnergy_Ref;
-    extern double dvTotalEnergy_Ref;
-    extern double dvEntropy_Ref;
-    extern double dvEntropyConst_Ref;
-    extern double dvGasConstant_Ref;
-    extern double dvRatioSpecificHeat_Ref;
+    extern int    ivgSet_Ref;
+    extern double dvgTemperature_Ref;
+    extern double dvgPressure_Ref;
+    extern double dvgDensity_Ref;
+    extern double dvgVelocity_Ref;
+    extern double dvgLength_Ref;
+    extern double dvgMach_Ref;
+    extern double dvgSpeedSound_Ref;
+    extern double dvgTime_Ref;
+    extern double dvgEnthalpy_Ref;
+    extern double dvgTotalEnthalpy_Ref;
+    extern double dvgInternalEnergy_Ref;
+    extern double dvgTotalEnergy_Ref;
+    extern double dvgEntropy_Ref;
+    extern double dvgEntropyConst_Ref;
+    extern double dvgGasConstant_Ref;
+    extern double dvgHeatCapacityCv_Ref;
+    extern double dvgHeatCapacityCp_Ref;
+    extern double dvgRatioSpecificHeat_Ref;
     
     /* Functions */
     void EOS_Internal_Init();
@@ -101,7 +107,18 @@ extern "C" {
     void EOS_Internal_Set_NIST_Fluid_Information(int ivComp);
     void EOS_Internal_Print_NIST_Fluid_Information(int ivComp);
     void EOS_Internal_Init_Reference_Properties();
-    void EOS_Internal_Dimensionalize_Properties(int ivVariableType, double *dpPropertyIn, double *dpPropertyOut);
+    
+    double EOS_Internal_Get_SI_To_NIST_Density(double dvDensity);
+    double EOS_Internal_Get_NIST_To_SI_Density(double dvDensity);
+    double EOS_Internal_Get_SI_To_NIST_Pressure(double dvPressure);
+    double EOS_Internal_Get_NIST_To_SI_Pressure(double dvPressure);
+    
+    void EOS_Internal_Dimensionalize_Variables(int ivVariableType, double *dpVariableIn, double *dpVariableOut);
+    void EOS_Internal_NonDimensionalize_Variables(int ivVariableType, double *dpVariableIn, double *dpVariableOut);
+    
+    void EOS_Internal_Dimensionalize_Properties(double *dpPropertyIn, double *dpPropertyOut);
+    void EOS_Internal_NonDimensionalize_Properties(double *dpPropertyIn, double *dpPropertyOut);
+    
     void EOS_Internal_Dimensionalize_DT(double *dpDensity, double *dpTemperature);
     void EOS_Internal_Dimensionalize_DP(double *dpDensity, double *dpPressure);
     void EOS_Internal_Dimensionalize_PT(double *dpPressure, double *dpTemperature);
