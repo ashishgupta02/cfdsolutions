@@ -50,6 +50,7 @@
             <pElem>include</pElem>
             <pElem>../NISTThermo/NISTThermo/include</pElem>
             <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
             <pElem>../</pElem>
           </incDir>
           <preprocessorList>
@@ -62,6 +63,7 @@
             <pElem>include</pElem>
             <pElem>../NISTThermo/NISTThermo/include</pElem>
             <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
             <pElem>../</pElem>
           </incDir>
           <preprocessorList>
@@ -99,6 +101,18 @@
                             BC="${MAKE}  -f Makefile CONF=Debug_GUPC_x86_64"
                             CC="${MAKE}  -f Makefile CONF=Debug_GUPC_x86_64 clean"
                             OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../MATH"
+                            CT="2"
+                            CN="Release_GUPC_x86_64"
+                            AC="true"
+                            BL="true"
+                            WD="../MATH"
+                            BC="${MAKE}  -f Makefile CONF=Release_GUPC_x86_64"
+                            CC="${MAKE}  -f Makefile CONF=Release_GUPC_x86_64 clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.${CND_DLIB_EXT}">
               </makeArtifact>
             </linkerLibProjectItem>
           </linkerLibItems>

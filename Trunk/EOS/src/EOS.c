@@ -9,8 +9,11 @@
 
 #include "NISTThermo.h"
 #include "NISTThermo_Extension.h"
-#include "EOS_Internal.h"
 #include "EOS.h"
+#include "EOS_Internal.h"
+#include "EOS_Density_Pressure.h"
+#include "EOS_Density_Temperature.h"
+#include "EOS_Pressure_Temperature.h"
 #include "Trim_Utils.h"
 
 //------------------------------------------------------------------------------
@@ -75,6 +78,26 @@ void EOS_Set() {
     
     // Print the NIST Fluid Information
     EOS_Internal_Print_NIST_Fluid_Information(SogNISTHelper.ivNumberComponent);
+}
+
+//------------------------------------------------------------------------------
+//! Get the NIST Fluid Information
+//------------------------------------------------------------------------------
+void EOS_Get_Fluid_Information(double *dpProperty) {
+    dpProperty[ 0] = SogFluidInfo.dvMolecularWeight;
+    dpProperty[ 1] = SogFluidInfo.dvGasConstant;
+    dpProperty[ 2] = SogFluidInfo.dvTemperature_Crit;
+    dpProperty[ 3] = SogFluidInfo.dvPressure_Crit;
+    dpProperty[ 4] = SogFluidInfo.dvZ_Crit;
+    dpProperty[ 5] = SogFluidInfo.dvDensity_Crit;
+    dpProperty[ 6] = SogFluidInfo.dvTPTemperature;
+    dpProperty[ 7] = SogFluidInfo.dvNBPTemperature;
+    dpProperty[ 8] = SogFluidInfo.dvAcentric_Fact;
+    dpProperty[ 9] = SogFluidInfo.dvDipole_Mom;
+    dpProperty[10] = SogFluidInfo.dvTemperature_Min;
+    dpProperty[11] = SogFluidInfo.dvTemperature_Max;
+    dpProperty[12] = SogFluidInfo.dvPressure_Max;
+    dpProperty[13] = SogFluidInfo.dvDensity_Max;
 }
 
 //------------------------------------------------------------------------------
@@ -236,28 +259,28 @@ void EOS_Set_Reference_Properties(double dvPressure, double dvTemperature, doubl
 //! Get the Reference Property for Fluid
 //  Note: Reference values are in SI units
 //------------------------------------------------------------------------------
-void EOS_Get_Reference_Properties(double *dvProperty_Ref) {
+void EOS_Get_Reference_Properties(double *dpProperty) {
     if (ivgSet_Ref == 0)
         warn("EOS_Get_Reference_Properties:1: Reference Properties are Not Set");
     
-    dvProperty_Ref[ 0] = dvgDensity_Ref;                 // Density
-    dvProperty_Ref[ 1] = dvgPressure_Ref;                // Pressure in Pa
-    dvProperty_Ref[ 2] = dvgTemperature_Ref;             // Temperature
-    dvProperty_Ref[ 3] = dvgVelocity_Ref;                // Velocity
-    dvProperty_Ref[ 4] = dvgLength_Ref;                  // Length
-    dvProperty_Ref[ 5] = dvgSpeedSound_Ref;              // Speed of Sound
-    dvProperty_Ref[ 6] = dvgMach_Ref;                    // Mach
-    dvProperty_Ref[ 7] = dvgTime_Ref;                    // Time
-    dvProperty_Ref[ 8] = dvgEntropy_Ref;                 // Entropy
-    dvProperty_Ref[ 9] = dvgEnthalpy_Ref;                // Enthalpy
-    dvProperty_Ref[10] = dvgInternalEnergy_Ref;          // Internal Energy
-    dvProperty_Ref[11] = dvgTotalEnthalpy_Ref;           // Total Enthalpy
-    dvProperty_Ref[12] = dvgTotalEnergy_Ref;             // Total Energy
-    dvProperty_Ref[13] = dvgHeatCapacityCv_Ref;          // Heat Capacity Cv
-    dvProperty_Ref[14] = dvgHeatCapacityCp_Ref;          // Heat Capacity Cp
-    dvProperty_Ref[15] = dvgGasConstant_Ref;             // Gas Constant
-    dvProperty_Ref[16] = dvgRatioSpecificHeat_Ref;       // Specific Heat Ratio
-    dvProperty_Ref[17] = dvgEntropyConst_Ref;            // Entropy Constant
+    dpProperty[ 0] = dvgDensity_Ref;                 // Density
+    dpProperty[ 1] = dvgPressure_Ref;                // Pressure in Pa
+    dpProperty[ 2] = dvgTemperature_Ref;             // Temperature
+    dpProperty[ 3] = dvgVelocity_Ref;                // Velocity
+    dpProperty[ 4] = dvgLength_Ref;                  // Length
+    dpProperty[ 5] = dvgSpeedSound_Ref;              // Speed of Sound
+    dpProperty[ 6] = dvgMach_Ref;                    // Mach
+    dpProperty[ 7] = dvgTime_Ref;                    // Time
+    dpProperty[ 8] = dvgEntropy_Ref;                 // Entropy
+    dpProperty[ 9] = dvgEnthalpy_Ref;                // Enthalpy
+    dpProperty[10] = dvgInternalEnergy_Ref;          // Internal Energy
+    dpProperty[11] = dvgTotalEnthalpy_Ref;           // Total Enthalpy
+    dpProperty[12] = dvgTotalEnergy_Ref;             // Total Energy
+    dpProperty[13] = dvgHeatCapacityCv_Ref;          // Heat Capacity Cv
+    dpProperty[14] = dvgHeatCapacityCp_Ref;          // Heat Capacity Cp
+    dpProperty[15] = dvgGasConstant_Ref;             // Gas Constant
+    dpProperty[16] = dvgRatioSpecificHeat_Ref;       // Specific Heat Ratio
+    dpProperty[17] = dvgEntropyConst_Ref;            // Entropy Constant
 }
 
 //------------------------------------------------------------------------------
@@ -292,25 +315,48 @@ void EOS_Print_Reference_Properties() {
 
 //------------------------------------------------------------------------------
 //! Compute the EOS Properties based on Variable Type
-//! Input and Output property is non-dimensional
+//! Input and Output property are based on Dimensional Input/Output Type
 //------------------------------------------------------------------------------
-void EOS_Get_Properties(int ivVariableType, double *dpVariableIn, double *dpPropertyOut) {
-    double dvRho, dvPressure, dvTemperature;
+void EOS_Get_Properties(int ivDimIOType, int ivVariableType, double *dpVariableIn, double *dpPropertyOut) {
+    int i;
+    double dvRho, dvRhoL, dvRhoV, dvPressure, dvTemperature;
     double dvVelocityU, dvVelocityV, dvVelocityW, dvQ2, dvSpeedSound, dvMach;
     double dvEntropy, dvEnthalpy, dvInternalEnergy, dvTotalEnergy, dvTotalEnthalpy;
     double dvCv, dvCp;
-    double daVariableDimensional[NEQUATIONS];
+    double daVariableDimensional[EOS_NEQUATIONS];
     double dvRhoNIST, dvRhoLNIST, dvRhoVNIST, dvPressureNIST, dvQualityNIST;
     
-    // Dimensionalize the Input Properties
-    EOS_Internal_Dimensionalize_Variables(ivVariableType, dpVariableIn, daVariableDimensional);
+    // Dimensionalize the Input Properties based on I/O Type
+    switch (ivDimIOType) {
+        // Type Input: Non-Dimensional  Output: Non-Dimensional
+        case EOS_DIMENSIONAL_IO_ND_ND:
+            EOS_Internal_Dimensionalize_Variables(ivVariableType, dpVariableIn, daVariableDimensional);
+            break;
+        // Type Input: Dimensional  Output: Dimensional
+        case EOS_DIMENSIONAL_IO_D_D:
+            for (i = 0; i < EOS_NEQUATIONS; i++)
+                daVariableDimensional[i] = dpVariableIn[i];
+            break;
+        // Type Input: Non-Dimensional  Output: Dimensional
+        case EOS_DIMENSIONAL_IO_ND_D:
+            EOS_Internal_Dimensionalize_Variables(ivVariableType, dpVariableIn, daVariableDimensional);
+            break;
+        // Type Input: Dimensional  Output: Non-Dimensional
+        case EOS_DIMENSIONAL_IO_D_ND:
+            for (i = 0; i < EOS_NEQUATIONS; i++)
+                daVariableDimensional[i] = dpVariableIn[i];
+            break;
+        default:
+            error("EOS_Get_Properties:1: Undefined Dimensional Input/Output -%d", ivDimIOType);
+            break;
+    }
     
     //-START--------------Dimensional Computations------------------------------
     // Compute Properties Based on Input Variable Types
     switch(ivVariableType) {
         // Conservative Variables
         case EOS_VARIABLE_CON:
-            error("EOS_Get_Properties:1: Conservative Variables Not Implemented");
+            error("EOS_Get_Properties:2: Conservative Variables Not Implemented");
             break;
         // Primitive Variable Formulation Density Velocity Pressure
         case EOS_VARIABLE_RUP:
@@ -331,11 +377,11 @@ void EOS_Get_Properties(int ivVariableType, double *dpVariableIn, double *dpProp
             break;
         // Primitive Variable Formulation Pressure Velocity Temperature
         case EOS_VARIABLE_PUT:
-            error("EOS_Get_Properties:2: EOS_VARIABLE_PUT Variables Not Implemented");
+            error("EOS_Get_Properties:3: EOS_VARIABLE_PUT Variables Not Implemented");
             break;
         // Primitive Variable Formulation Pressure Velocity Temperature
         case EOS_VARIABLE_PUS:
-            error("EOS_Get_Properties:3: EOS_VARIABLE_PUS Variables Not Implemented");
+            error("EOS_Get_Properties:4: EOS_VARIABLE_PUS Variables Not Implemented");
             break;
         // Primitive Variable Formulation Density Velocity Temperature
         case EOS_VARIABLE_RUT:
@@ -352,54 +398,368 @@ void EOS_Get_Properties(int ivVariableType, double *dpVariableIn, double *dpProp
                     SogNISTHelper.daXLiq, SogNISTHelper.daXVap, &dvQualityNIST, &dvInternalEnergy, &dvEnthalpy,
                     &dvEntropy, &dvCv, &dvCp, &dvSpeedSound, &SogNISTHelper.ivError, SogNISTHelper.csError,
                     NISTTHERMO_GEN_STR_LEN);
-            // Get the SI Pressure
-            dvPressure = EOS_Internal_Get_NIST_To_SI_Pressure(dvPressureNIST);
             break;
         default:
-            error("EOS_Get_Properties:4: Undefined Variable Type - %d", ivVariableType);
+            error("EOS_Get_Properties:5: Undefined Variable Type - %d", ivVariableType);
             break;
     }
     
-    // Compute the Remaining Properties
+    // Properties in NIST Units
+    dpPropertyOut[ 0] = dvRhoNIST;
+    dpPropertyOut[ 1] = dvRhoLNIST;
+    dpPropertyOut[ 2] = dvRhoVNIST;
+    dpPropertyOut[ 3] = dvPressureNIST;
+    dpPropertyOut[ 4] = dvTemperature;
+    dpPropertyOut[ 5] = dvSpeedSound;
+    dpPropertyOut[ 6] = dvEntropy;
+    dpPropertyOut[ 7] = dvEnthalpy;
+    dpPropertyOut[ 8] = dvInternalEnergy;
+    dpPropertyOut[ 9] = dvCv;
+    dpPropertyOut[10] = dvCp;
+    
+    // Convert Properties From NIST to SI units
+    EOS_Internal_Get_NIST_To_SI_Property(dpPropertyOut);
+    
+    // Get the Properties in SI units
+    dvRho            = dpPropertyOut[ 0];
+    dvRhoL           = dpPropertyOut[ 1];
+    dvRhoV           = dpPropertyOut[ 2];
+    dvPressure       = dpPropertyOut[ 3];
+    dvTemperature    = dpPropertyOut[ 4];
+    dvSpeedSound     = dpPropertyOut[ 5];
+    dvEntropy        = dpPropertyOut[ 6];
+    dvEnthalpy       = dpPropertyOut[ 7];
+    dvInternalEnergy = dpPropertyOut[ 8];
+    dvCv             = dpPropertyOut[ 9];
+    dvCp             = dpPropertyOut[10];
+    
+    // Compute the Remaining Properties in SI units
     dvMach          = sqrt(dvQ2)/dvSpeedSound;
     dvTotalEnthalpy = dvEnthalpy + 0.5*dvQ2;
     dvTotalEnergy   = dvInternalEnergy + 0.5*dvQ2;
     
-    // Update the Output
+    // Update the Output (is Dimensional)
     dpPropertyOut[ 0] = dvRho;
-    dpPropertyOut[ 1] = dvPressure;
-    dpPropertyOut[ 2] = dvTemperature;
-    dpPropertyOut[ 3] = dvVelocityU;
-    dpPropertyOut[ 4] = dvVelocityV;
-    dpPropertyOut[ 5] = dvVelocityW;
-    dpPropertyOut[ 6] = dvQ2;
-    dpPropertyOut[ 7] = dvSpeedSound;
-    dpPropertyOut[ 8] = dvMach;
-    dpPropertyOut[ 9] = dvEntropy;
-    dpPropertyOut[10] = dvEnthalpy;
-    dpPropertyOut[11] = dvInternalEnergy;
-    dpPropertyOut[12] = dvTotalEnthalpy;
-    dpPropertyOut[13] = dvTotalEnergy;
-    dpPropertyOut[14] = dvCv;
-    dpPropertyOut[15] = dvCp;
+    dpPropertyOut[ 1] = dvRhoL;
+    dpPropertyOut[ 2] = dvRhoV;
+    dpPropertyOut[ 3] = dvPressure;
+    dpPropertyOut[ 4] = dvTemperature;
+    dpPropertyOut[ 5] = dvVelocityU;
+    dpPropertyOut[ 6] = dvVelocityV;
+    dpPropertyOut[ 7] = dvVelocityW;
+    dpPropertyOut[ 8] = dvQ2;
+    dpPropertyOut[ 9] = dvSpeedSound;
+    dpPropertyOut[10] = dvMach;
+    dpPropertyOut[11] = dvEntropy;
+    dpPropertyOut[12] = dvEnthalpy;
+    dpPropertyOut[13] = dvInternalEnergy;
+    dpPropertyOut[14] = dvTotalEnthalpy;
+    dpPropertyOut[15] = dvTotalEnergy;
+    dpPropertyOut[16] = dvCv;
+    dpPropertyOut[17] = dvCp;
     
-    // Non-Dimensionalize the Ouput Properties
-    EOS_Internal_NonDimensionalize_Properties(dpPropertyOut, dpPropertyOut);
+    // Dimensionalize the Output Properties based on I/O Type
+    switch (ivDimIOType) {
+        // Type Input: Non-Dimensional  Output: Non-Dimensional
+        case EOS_DIMENSIONAL_IO_ND_ND:
+            EOS_Internal_NonDimensionalize_Properties(dpPropertyOut, dpPropertyOut);
+            break;
+        // Type Input: Dimensional  Output: Dimensional
+        case EOS_DIMENSIONAL_IO_D_D:
+            // Do Nothing Output is Dimensional (SI Units)
+            break;
+        // Type Input: Non-Dimensional  Output: Dimensional
+        case EOS_DIMENSIONAL_IO_ND_D:
+            // Do Nothing Output is Dimensional (SI Units)
+            break;
+        // Type Input: Dimensional  Output: Non-Dimensional
+        case EOS_DIMENSIONAL_IO_D_ND:
+            EOS_Internal_NonDimensionalize_Properties(dpPropertyOut, dpPropertyOut);
+            break;
+        default:
+            error("EOS_Get_Properties:6: Undefined Dimensional Input/Output -%d", ivDimIOType);
+            break;
+    }
+    //-END----------------Dimensional Computations------------------------------
+}
+
+//------------------------------------------------------------------------------
+//! Compute the EOS Extended Properties based on Variable Type
+//! Input and Output property are based on Dimensional Input/Output Type
+//------------------------------------------------------------------------------
+void EOS_Get_Extended_Properties(int ivDimIOType, int ivVariableType, double *dpVariableIn, double *dpPropertyOut) {
+    int i;
+    double dvRho, dvRhoL, dvRhoV, dvPressure, dvTemperature;
+    double dvRhoNIST, dvRhoLNIST, dvRhoVNIST, dvPressureNIST;
+    double dvVelocityU, dvVelocityV, dvVelocityW, dvQ2, dvSpeedSound, dvMach;
+    double dvEntropy, dvEnthalpy, dvInternalEnergy, dvTotalEnergy, dvTotalEnthalpy;
+    double dvCv, dvCp, dvDPDRho, dvDPDT, dvDRhoDT, dvDRhoDP, dvD2PDRho2, dvD2PDT2, dvD2PDTRho;
+    double dvDHdT_Rho, dvDHdT_P, dvDHDRho_T, dvDHDRho_P, dvDHDP_T, dvDHDP_Rho;
+    double dvDEdT_Rho, dvDEdT_P, dvDEDRho_T, dvDEDRho_P, dvDEDP_T, dvDEDP_Rho;
+    double daVariableDimensional[EOS_NEQUATIONS];
+    
+    // Dimensionalize the Input Properties based on I/O Type
+    switch (ivDimIOType) {
+        // Type Input: Non-Dimensional  Output: Non-Dimensional
+        case EOS_DIMENSIONAL_IO_ND_ND:
+            EOS_Internal_Dimensionalize_Variables(ivVariableType, dpVariableIn, daVariableDimensional);
+            break;
+        // Type Input: Dimensional  Output: Dimensional
+        case EOS_DIMENSIONAL_IO_D_D:
+            for (i = 0; i < EOS_NEQUATIONS; i++)
+                daVariableDimensional[i] = dpVariableIn[i];
+            break;
+        // Type Input: Non-Dimensional  Output: Dimensional
+        case EOS_DIMENSIONAL_IO_ND_D:
+            EOS_Internal_Dimensionalize_Variables(ivVariableType, dpVariableIn, daVariableDimensional);
+            break;
+        // Type Input: Dimensional  Output: Non-Dimensional
+        case EOS_DIMENSIONAL_IO_D_ND:
+            for (i = 0; i < EOS_NEQUATIONS; i++)
+                daVariableDimensional[i] = dpVariableIn[i];
+            break;
+        default:
+            error("EOS_Get_Properties:1: Undefined Dimensional Input/Output -%d", ivDimIOType);
+            break;
+    }
+    
+    //-START--------------Dimensional Computations------------------------------
+    // Compute Properties Based on Input Variable Types
+    switch(ivVariableType) {
+        // Conservative Variables
+        case EOS_VARIABLE_CON:
+            error("EOS_Get_Extended_Properties:2: Conservative Variables Not Implemented");
+            break;
+        // Primitive Variable Formulation Density Velocity Pressure
+        case EOS_VARIABLE_RUP:
+            dvRho       = daVariableDimensional[0];
+            dvVelocityU = daVariableDimensional[1];
+            dvVelocityV = daVariableDimensional[2];
+            dvVelocityW = daVariableDimensional[3];
+            dvPressure  = daVariableDimensional[4];
+            dvQ2        = dvVelocityU*dvVelocityU + dvVelocityV*dvVelocityV + dvVelocityW*dvVelocityW;
+            // Compute NIST compatible values
+            dvRhoNIST      = EOS_Internal_Get_SI_To_NIST_Density(dvRho);
+            dvPressureNIST = EOS_Internal_Get_SI_To_NIST_Pressure(dvPressure);
+            // Compute Thermodynamic Extended Quantities
+            PDEPDFLSH2(&dvPressureNIST, &dvRhoNIST, SogNISTHelper.daX, SogNISTHelper.daXLiq, SogNISTHelper.daXVap,
+                    dpPropertyOut, &SogNISTHelper.ivError, SogNISTHelper.csError, NISTTHERMO_GEN_STR_LEN);
+            break;
+        // Primitive Variable Formulation Pressure Velocity Temperature
+        case EOS_VARIABLE_PUT:
+            error("EOS_Get_Extended_Properties:3: EOS_VARIABLE_PUT Variables Not Implemented");
+            break;
+        // Primitive Variable Formulation Pressure Velocity Temperature
+        case EOS_VARIABLE_PUS:
+            error("EOS_Get_Extended_Properties:4: EOS_VARIABLE_PUS Variables Not Implemented");
+            break;
+        // Primitive Variable Formulation Density Velocity Temperature
+        case EOS_VARIABLE_RUT:
+            dvRho         = daVariableDimensional[0];
+            dvVelocityU   = daVariableDimensional[1];
+            dvVelocityV   = daVariableDimensional[2];
+            dvVelocityW   = daVariableDimensional[3];
+            dvTemperature = daVariableDimensional[4];
+            dvQ2          = dvVelocityU*dvVelocityU + dvVelocityV*dvVelocityV + dvVelocityW*dvVelocityW;
+            // Compute NIST compatible values
+            dvRhoNIST     = EOS_Internal_Get_SI_To_NIST_Density(dvRho);
+            // Compute Thermodynamic Quantities
+            TDETDFLSH2(&dvTemperature, &dvRhoNIST, SogNISTHelper.daX, SogNISTHelper.daXLiq, SogNISTHelper.daXVap, 
+                    dpPropertyOut, &SogNISTHelper.ivError, SogNISTHelper.csError, NISTTHERMO_GEN_STR_LEN);
+            break;
+        default:
+            error("EOS_Get_Extended_Properties:5: Undefined Variable Type - %d", ivVariableType);
+            break;
+    }
+    
+    // Properties in NIST units
+    switch (ivVariableType) {
+        // Conservative Variables
+        case EOS_VARIABLE_CON:
+            error("EOS_Get_Extended_Properties:6: Conservative Variables Not Implemented");
+            break;
+        // Primitive Variable Formulation Density Velocity Pressure
+        case EOS_VARIABLE_RUP:
+            dvTemperature = dpPropertyOut[0];
+            break;
+        // Primitive Variable Formulation Pressure Velocity Temperature
+        case EOS_VARIABLE_PUT:
+            error("EOS_Get_Extended_Properties:7: EOS_VARIABLE_PUT Variables Not Implemented");
+            break;
+        // Primitive Variable Formulation Pressure Velocity Temperature
+        case EOS_VARIABLE_PUS:
+            error("EOS_Get_Extended_Properties:8: EOS_VARIABLE_PUS Variables Not Implemented");
+            break;
+        // Primitive Variable Formulation Density Velocity Temperature
+        case EOS_VARIABLE_RUT:
+            dvPressureNIST = dpPropertyOut[0];
+            break;
+        default:
+            error("EOS_Get_Extended_Properties:9: Undefined Variable Type - %d", ivVariableType);
+            break;
+    }
+    dvRhoLNIST       = dpPropertyOut[1];
+    dvRhoVNIST       = dpPropertyOut[2];
+    dvInternalEnergy = dpPropertyOut[4];
+    dvEnthalpy       = dpPropertyOut[5];
+    dvEntropy        = dpPropertyOut[6];
+    dvCv             = dpPropertyOut[7];
+    dvCp             = dpPropertyOut[8];
+    dvSpeedSound     = dpPropertyOut[9];
+    dvDPDRho         = dpPropertyOut[16];
+    dvDPDT           = dpPropertyOut[17];
+    dvDRhoDT         = dpPropertyOut[18];
+    dvDRhoDP         = dpPropertyOut[19];
+    dvD2PDRho2       = dpPropertyOut[20];
+    dvD2PDT2         = dpPropertyOut[21];
+    dvD2PDTRho       = dpPropertyOut[22];
+    dvDHdT_Rho       = dpPropertyOut[23];
+    dvDHdT_P         = dpPropertyOut[24];
+    dvDHDRho_T       = dpPropertyOut[25];
+    dvDHDRho_P       = dpPropertyOut[26];
+    dvDHDP_T         = dpPropertyOut[27];
+    dvDHDP_Rho       = dpPropertyOut[28];
+    
+    // Convert the Properties From NIST to SI units
+    dpPropertyOut[ 0] = dvRhoNIST;
+    dpPropertyOut[ 1] = dvRhoLNIST;
+    dpPropertyOut[ 2] = dvRhoVNIST;
+    dpPropertyOut[ 3] = dvPressureNIST;
+    dpPropertyOut[ 4] = dvTemperature;
+    dpPropertyOut[ 5] = dvSpeedSound;
+    dpPropertyOut[ 6] = dvEntropy;
+    dpPropertyOut[ 7] = dvEnthalpy;
+    dpPropertyOut[ 8] = dvInternalEnergy;
+    dpPropertyOut[ 9] = dvCv;
+    dpPropertyOut[10] = dvCp;
+    dpPropertyOut[11] = dvDPDRho;
+    dpPropertyOut[12] = dvDPDT;
+    dpPropertyOut[13] = dvDRhoDT;
+    dpPropertyOut[14] = dvDRhoDP;
+    dpPropertyOut[15] = dvD2PDRho2;
+    dpPropertyOut[16] = dvD2PDT2;
+    dpPropertyOut[17] = dvD2PDTRho;
+    dpPropertyOut[18] = dvDHdT_Rho;
+    dpPropertyOut[19] = dvDHdT_P;
+    dpPropertyOut[20] = dvDHDRho_T;
+    dpPropertyOut[21] = dvDHDRho_P;
+    dpPropertyOut[22] = dvDHDP_T;
+    dpPropertyOut[23] = dvDHDP_Rho;
+    EOS_Internal_Get_NIST_To_SI_Extended_Property(dpPropertyOut);
+    
+    // Get the Properties in SI units
+    dvRho            = dpPropertyOut[ 0];
+    dvRhoL           = dpPropertyOut[ 1];
+    dvRhoV           = dpPropertyOut[ 2];
+    dvPressure       = dpPropertyOut[ 3];
+    dvTemperature    = dpPropertyOut[ 4];
+    dvSpeedSound     = dpPropertyOut[ 5];
+    dvEntropy        = dpPropertyOut[ 6];
+    dvEnthalpy       = dpPropertyOut[ 7];
+    dvInternalEnergy = dpPropertyOut[ 8];
+    dvCv             = dpPropertyOut[ 9];
+    dvCp             = dpPropertyOut[10];
+    dvDPDRho         = dpPropertyOut[11];
+    dvDPDT           = dpPropertyOut[12];
+    dvDRhoDT         = dpPropertyOut[13];
+    dvDRhoDP         = dpPropertyOut[14];
+    dvD2PDRho2       = dpPropertyOut[15];
+    dvD2PDT2         = dpPropertyOut[16];
+    dvD2PDTRho       = dpPropertyOut[17];
+    dvDHdT_Rho       = dpPropertyOut[18];
+    dvDHdT_P         = dpPropertyOut[19];
+    dvDHDRho_T       = dpPropertyOut[20];
+    dvDHDRho_P       = dpPropertyOut[21];
+    dvDHDP_T         = dpPropertyOut[22];
+    dvDHDP_Rho       = dpPropertyOut[23];
+    
+    // Compute the Remaining Properties in SI units
+    dvMach          = sqrt(dvQ2)/dvSpeedSound;
+    dvTotalEnthalpy = dvEnthalpy + 0.5*dvQ2;
+    dvTotalEnergy   = dvInternalEnergy + 0.5*dvQ2;
+    dvDEdT_Rho      = dvDHdT_Rho - dvDPDT/dvRho;
+    dvDEdT_P        = dvDHdT_P + dvPressure*dvDRhoDT/(dvRho*dvRho);
+    dvDEDRho_T      = dvDHDRho_T + dvPressure/(dvRho*dvRho) - dvDPDRho/dvRho;
+    dvDEDRho_P      = dvDHDRho_P + dvPressure/(dvRho*dvRho);
+    dvDEDP_T        = dvDHDP_T - 1.0/dvRho + dvPressure*dvDRhoDP/(dvRho*dvRho);
+    dvDEDP_Rho      = dvDHDP_Rho - 1.0/dvRho;
+    
+    // Update the Output (is Dimensional)
+    dpPropertyOut[ 0] = dvRho;
+    dpPropertyOut[ 1] = dvRhoL;
+    dpPropertyOut[ 2] = dvRhoV;
+    dpPropertyOut[ 3] = dvPressure;
+    dpPropertyOut[ 4] = dvTemperature;
+    dpPropertyOut[ 5] = dvVelocityU;
+    dpPropertyOut[ 6] = dvVelocityV;
+    dpPropertyOut[ 7] = dvVelocityW;
+    dpPropertyOut[ 8] = dvQ2;
+    dpPropertyOut[ 9] = dvSpeedSound;
+    dpPropertyOut[10] = dvMach;
+    dpPropertyOut[11] = dvEntropy;
+    dpPropertyOut[12] = dvEnthalpy;
+    dpPropertyOut[13] = dvInternalEnergy;
+    dpPropertyOut[14] = dvTotalEnthalpy;
+    dpPropertyOut[15] = dvTotalEnergy;
+    dpPropertyOut[16] = dvCv;
+    dpPropertyOut[17] = dvCp;
+    dpPropertyOut[18] = dvDPDRho;
+    dpPropertyOut[19] = dvDPDT;
+    dpPropertyOut[20] = dvDRhoDT;
+    dpPropertyOut[21] = dvDRhoDP;
+    dpPropertyOut[22] = dvD2PDRho2;
+    dpPropertyOut[23] = dvD2PDT2;
+    dpPropertyOut[24] = dvD2PDTRho;
+    dpPropertyOut[25] = dvDHdT_Rho;
+    dpPropertyOut[26] = dvDHdT_P;
+    dpPropertyOut[27] = dvDHDRho_T;
+    dpPropertyOut[28] = dvDHDRho_P;
+    dpPropertyOut[29] = dvDHDP_T;
+    dpPropertyOut[30] = dvDHDP_Rho;
+    dpPropertyOut[31] = dvDEdT_Rho;
+    dpPropertyOut[32] = dvDEdT_P;
+    dpPropertyOut[33] = dvDEDRho_T;
+    dpPropertyOut[34] = dvDEDRho_P;
+    dpPropertyOut[35] = dvDEDP_T;
+    dpPropertyOut[36] = dvDEDP_Rho;
+    
+    // Dimensionalize the Output Properties based on I/O Type
+    switch (ivDimIOType) {
+        // Type Input: Non-Dimensional  Output: Non-Dimensional
+        case EOS_DIMENSIONAL_IO_ND_ND:
+            EOS_Internal_NonDimensionalize_Extended_Properties(dpPropertyOut, dpPropertyOut);
+            break;
+        // Type Input: Dimensional  Output: Dimensional
+        case EOS_DIMENSIONAL_IO_D_D:
+            // Do Nothing Output is Dimensional (SI Units)
+            break;
+        // Type Input: Non-Dimensional  Output: Dimensional
+        case EOS_DIMENSIONAL_IO_ND_D:
+            // Do Nothing Output is Dimensional (SI Units)
+            break;
+        // Type Input: Dimensional  Output: Non-Dimensional
+        case EOS_DIMENSIONAL_IO_D_ND:
+            EOS_Internal_NonDimensionalize_Extended_Properties(dpPropertyOut, dpPropertyOut);
+            break;
+        default:
+            error("EOS_Get_Properties:10: Undefined Dimensional Input/Output -%d", ivDimIOType);
+            break;
+    }
     //-END----------------Dimensional Computations------------------------------
 }
 
 //------------------------------------------------------------------------------
 //! Compute the Transformation Matrix Based on Variable Type Input
-//! All Matrix are Non-Dimensional Transformations
+//! All Matrix Output are based on Dimensional Input/Output Type
 //------------------------------------------------------------------------------
-void EOS_Get_Transformation_Matrix(int ivVarTypeIn, double *dpPropertyIn, int ivVarTypeFrom, int ivVarTypeTo, double **Matrix) {
+void EOS_Get_Transformation_Matrix(int ivDimIOType, int ivVarTypeIn, double *dpPropertyIn, int ivVarTypeFrom, int ivVarTypeTo, double **Matrix) {
     int i, j;
     
     // Check the Variable Type and Return the proper Transformation Matrix
     // Return Identity
     if (ivVarTypeFrom == ivVarTypeTo) {
-        for (i = 0; i < NEQUATIONS; i++) {
-            for (j = 0; j < NEQUATIONS; j++) {
+        for (i = 0; i < EOS_NEQUATIONS; i++) {
+            for (j = 0; j < EOS_NEQUATIONS; j++) {
                 if (i == j)
                     Matrix[i][j] = 1.0;
                 else
@@ -416,7 +776,7 @@ void EOS_Get_Transformation_Matrix(int ivVarTypeIn, double *dpPropertyIn, int iv
                     case EOS_VARIABLE_CON:
                         switch (ivVarTypeTo) {
                             case EOS_VARIABLE_RUP:
-                                // -----------------------------
+                                EOS_DP_Get_Transformation_Matrix_CON_To_RUP(ivDimIOType, dpPropertyIn, Matrix);
                                 break;
                             case EOS_VARIABLE_PUT:
                                 error("EOS_Get_Transformation_Matrix:2: Not Implemented For EOS_VARIABLE_PUT");
@@ -434,7 +794,7 @@ void EOS_Get_Transformation_Matrix(int ivVarTypeIn, double *dpPropertyIn, int iv
                     case EOS_VARIABLE_RUP:
                         switch (ivVarTypeTo) {
                             case EOS_VARIABLE_CON:
-                                // -----------------------------
+                                EOS_DP_Get_Transformation_Matrix_RUP_To_CON(ivDimIOType, dpPropertyIn, Matrix);
                                 break;
                             case EOS_VARIABLE_PUT:
                                 error("EOS_Get_Transformation_Matrix:6: Not Implemented For EOS_VARIABLE_PUT");
@@ -471,7 +831,7 @@ void EOS_Get_Transformation_Matrix(int ivVarTypeIn, double *dpPropertyIn, int iv
                     case EOS_VARIABLE_CON:
                         switch (ivVarTypeTo) {
                             case EOS_VARIABLE_RUP:
-                                // -----------------------------
+                                EOS_DT_Get_Transformation_Matrix_CON_To_RUP(ivDimIOType, dpPropertyIn, Matrix);
                                 break;
                             case EOS_VARIABLE_PUT:
                                 error("EOS_Get_Transformation_Matrix:15: Not Implemented For EOS_VARIABLE_PUT");
@@ -480,7 +840,7 @@ void EOS_Get_Transformation_Matrix(int ivVarTypeIn, double *dpPropertyIn, int iv
                                 error("EOS_Get_Transformation_Matrix:16: Not Implemented For EOS_VARIABLE_PUS");
                                 break;
                             case EOS_VARIABLE_RUT:
-                                // -----------------------------
+                                EOS_DT_Get_Transformation_Matrix_CON_To_RUT(ivDimIOType, dpPropertyIn, Matrix);
                                 break;
                             default:
                                 error("EOS_Get_Transformation_Matrix:17: Undefined Variable Type - %d", ivVarTypeTo);
@@ -498,7 +858,7 @@ void EOS_Get_Transformation_Matrix(int ivVarTypeIn, double *dpPropertyIn, int iv
                                 error("EOS_Get_Transformation_Matrix:20: Not Implemented For EOS_VARIABLE_PUS");
                                 break;
                             case EOS_VARIABLE_RUT:
-                                // -----------------------------
+                                EOS_DT_Get_Transformation_Matrix_RUP_To_RUT(ivDimIOType, dpPropertyIn, Matrix);
                                 break;
                             default:
                                 error("EOS_Get_Transformation_Matrix:21: Undefined Variable Type - %d", ivVarTypeTo);
@@ -513,10 +873,10 @@ void EOS_Get_Transformation_Matrix(int ivVarTypeIn, double *dpPropertyIn, int iv
                     case EOS_VARIABLE_RUT:
                         switch (ivVarTypeTo) {
                             case EOS_VARIABLE_CON:
-                                // -----------------------------
+                                EOS_DT_Get_Transformation_Matrix_RUT_To_CON(ivDimIOType, dpPropertyIn, Matrix);
                                 break;
                             case EOS_VARIABLE_RUP:
-                                // -----------------------------
+                                EOS_DT_Get_Transformation_Matrix_RUT_To_RUP(ivDimIOType, dpPropertyIn, Matrix);
                                 break;
                             case EOS_VARIABLE_PUT:
                                 error("EOS_Get_Transformation_Matrix:24: Not Implemented For EOS_VARIABLE_PUT");
