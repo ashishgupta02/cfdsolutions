@@ -10,6 +10,8 @@
 /* Include All Original NIST Reference Properties Interface */
 #include "NISTThermo.h"
 
+#define NIST_EX_THERM2_DIM      29
+
 #ifndef WIN32
 #if defined (UNDERSCORE)
 
