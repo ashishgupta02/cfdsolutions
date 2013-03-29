@@ -11,22 +11,7 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
-
-    // No of Equations
-    #define NEQUATIONS          5
     
-    /*!
-    * \brief Variable Type
-    */
-    enum EOS_VARIABLE_TYPE {
-        EOS_VARIABLE_NONE = -1,    /*!< \brief Variable Type None. */
-        EOS_VARIABLE_CON  =  0,    /*!< \brief Variable Type Conservative. */
-        EOS_VARIABLE_RUP  =  1,    /*!< \brief Variable Type Density Velocity and Pressure. */
-        EOS_VARIABLE_PUT  =  2,    /*!< \brief Variable Type Presure Velocity and Temperature. */
-        EOS_VARIABLE_PUS  =  3,    /*!< \brief Variable Type Pressure Velocity Entropy. */
-        EOS_VARIABLE_RUT  =  4     /*!< \brief Variable Type Density Velocity and Temperature. */
-    };
-
     /*!
     * \brief Thermodynamic Region Type
     */
@@ -113,11 +98,18 @@ extern "C" {
     double EOS_Internal_Get_SI_To_NIST_Pressure(double dvPressure);
     double EOS_Internal_Get_NIST_To_SI_Pressure(double dvPressure);
     
+    void   EOS_Internal_Get_NIST_To_SI_Property(double *dpProperty);
+    void   EOS_Internal_Get_NIST_To_SI_Extended_Property(double *dpProperty);
+    void   EOS_Internal_Get_SI_To_NIST_Property(double *dpProperty);
+    void   EOS_Internal_Get_SI_To_NIST_Extended_Property(double *dpProperty);
+    
     void EOS_Internal_Dimensionalize_Variables(int ivVariableType, double *dpVariableIn, double *dpVariableOut);
     void EOS_Internal_NonDimensionalize_Variables(int ivVariableType, double *dpVariableIn, double *dpVariableOut);
     
     void EOS_Internal_Dimensionalize_Properties(double *dpPropertyIn, double *dpPropertyOut);
     void EOS_Internal_NonDimensionalize_Properties(double *dpPropertyIn, double *dpPropertyOut);
+    void EOS_Internal_Dimensionalize_Extended_Properties(double *dpPropertyIn, double *dpPropertyOut);
+    void EOS_Internal_NonDimensionalize_Extended_Properties(double *dpPropertyIn, double *dpPropertyOut);
     
     void EOS_Internal_Dimensionalize_DT(double *dpDensity, double *dpTemperature);
     void EOS_Internal_Dimensionalize_DP(double *dpDensity, double *dpPressure);

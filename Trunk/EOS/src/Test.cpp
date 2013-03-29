@@ -14,8 +14,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "NISTThermo_Extension.h"
 #include "EOS.h"
+#include "MC.h"
+#include <time.h>
 
 // Some constants...
 
@@ -45,38 +48,360 @@ int main(int argc, char* argv[]) {
     char hf[refpropcharlength * ncmax], hrf[lengthofreference],
             herr[errormessagelength], hfmix[refpropcharlength];
 
-    EOS_Init();
-
     //...initialize the program and set the pure fluid component name
     strcpy(hf,"nitrogen.fld");
     strcpy(hfmix,"hmx.bnc");
     strcpy(hrf,"DEF");
     strcpy(herr,"Ok");
     
-    EOS_Set();
-    EOS_Set_Reference_Properties(2395800.0, 119.5302, 1.0);
-    EOS_Print_Reference_Properties();
+    int ichk;
+    double Q[5], Pro[EOS_EX_THERM_DIM];
+    double Rho_Ref, V_Ref, P_Ref, T_Ref;
+    double Rho_Max, P_Max, T_Min, T_Max;
+    double Rho_Crit, P_Crit;
+    double **Matrix1 = NULL;
+    double **Matrix2 = NULL;
+    double **Matrix3 = NULL;
+    double *ptmp = NULL;
     
-    double Q[5], Pro[16];
-    // RUP
-    Q[0] = 0.5;
-    Q[1] = 1.0;
-    Q[2] = 0.0;
-    Q[3] = 0.0;
-    Q[4] = 1.0;
-    EOS_Get_Properties(2, Q, Pro);
-    for(int k = 0; k < 16; k++)
-        printf("Property[%2d] = %10.6f\n", k, Pro[k]);
-    printf("========\n");
-    Q[4] = Pro[2];
-    EOS_Get_Properties(4, Q, Pro);
-    for(int k = 0; k < 16; k++)
-        printf("Property[%2d] = %10.6f\n", k, Pro[k]);
+    EOS_Init();
+    EOS_Set();
+    EOS_Get_Fluid_Information(Pro);
+    Rho_Crit = Pro[ 5];
+    P_Crit   = Pro[ 3];
+    Rho_Max = Pro[13];
+    P_Max   = Pro[12];
+    T_Min   = Pro[10];
+    T_Max   = Pro[11];
+    EOS_Set_Reference_Properties(2395800.0, 126.192, 1.0);
+    EOS_Print_Reference_Properties();
+    EOS_Get_Reference_Properties(Pro);
+    Rho_Ref = Pro[0];
+    P_Ref   = Pro[1];
+    T_Ref   = Pro[2];
+    V_Ref   = Pro[3];
+    
+    // Create Data Structure
+    Matrix1 = (double **) malloc(EOS_NEQUATIONS*sizeof(double*));
+    ptmp    = (double *)  malloc(EOS_NEQUATIONS*EOS_NEQUATIONS*sizeof(double));
+    for (int k = 0; k < EOS_NEQUATIONS; k++)
+        Matrix1[k] = &ptmp[k*EOS_NEQUATIONS];
+    ptmp = NULL;
+    Matrix2 = (double **) malloc(EOS_NEQUATIONS*sizeof(double*));
+    ptmp    = (double *)  malloc(EOS_NEQUATIONS*EOS_NEQUATIONS*sizeof(double));
+    for (int k = 0; k < EOS_NEQUATIONS; k++)
+        Matrix2[k] = &ptmp[k*EOS_NEQUATIONS];
+    ptmp = NULL;
+    Matrix3 = (double **) malloc(EOS_NEQUATIONS*sizeof(double*));
+    ptmp    = (double *)  malloc(EOS_NEQUATIONS*EOS_NEQUATIONS*sizeof(double));
+    for (int k = 0; k < EOS_NEQUATIONS; k++)
+        Matrix3[k] = &ptmp[k*EOS_NEQUATIONS];
+    ptmp = NULL;
+    
+    
+    srand(time(NULL));
+    for (int m = 0; m < 10000; m++) {
+        printf("[%5d]========= ", m);
+        //======================================================================
+        // ND-ND Test
+        //======================================================================
+        // RUP
+        Q[0] = ((double) rand())/((double) RAND_MAX);
+        if (Q[0]*Rho_Ref >= Rho_Max)
+            Q[0] = 1.0;
+        if (Q[0] < 0.02) Q[0] = 0.02;
+        Q[1] = ((double) rand())/((double) RAND_MAX);
+        Q[2] = ((double) rand())/((double) RAND_MAX);
+        Q[3] = ((double) rand())/((double) RAND_MAX);
+        Q[4] = ((double) rand())/((double) RAND_MAX);
+        if (Q[0]*Rho_Ref <= Rho_Crit) {
+            if (Q[4]*P_Ref >= P_Crit)
+                Q[4] = Q[4]*P_Crit/P_Ref;
+        }
+        if (Q[4]*P_Ref >= P_Max) Q[4] = 1.0;
+        if (Q[4] < 0.03) Q[4] = 0.03;
+        
+        printf("Density = %10.6f\n", Q[0]*Rho_Ref);
+        printf("ND-ND RUP: ");
+        for (int k = 0; k < EOS_NEQUATIONS; k++)
+            printf("%10.6f\t", Q[k]);
+        printf("\n");
+        EOS_Get_Properties(EOS_DIMENSIONAL_IO_ND_ND, EOS_VARIABLE_RUP, Q, Pro);
+        EOS_Get_Extended_Properties(EOS_DIMENSIONAL_IO_ND_ND, EOS_VARIABLE_RUP, Q, Pro);
+        EOS_Get_Transformation_Matrix(EOS_DIMENSIONAL_IO_ND_ND, EOS_VARIABLE_RUP, Q, EOS_VARIABLE_RUP, EOS_VARIABLE_CON, Matrix1);
+        EOS_Get_Transformation_Matrix(EOS_DIMENSIONAL_IO_ND_ND, EOS_VARIABLE_RUP, Q, EOS_VARIABLE_CON, EOS_VARIABLE_RUP, Matrix2);
+        MC_Matrix_Mul_Matrix(EOS_NEQUATIONS, EOS_NEQUATIONS, Matrix1, Matrix2, Matrix3);
+        ichk = 0;
+        for (int k = 0; k < EOS_NEQUATIONS; k++) {
+            for (int n = 0; n < EOS_NEQUATIONS; n++) {
+                if (k == n) {
+                    if (fabs(Matrix3[k][n] - 1.0) > 0.0001) ichk++;
+                } else { 
+                    if (fabs(Matrix3[k][n]) > 0.0001) ichk++;
+                }
+            }
+        }
+        if (ichk > 0) printf("Check = M10*M01: FAIL \n");
+        
+        // RUT
+        Q[4] = Pro[4];
+        printf("ND-ND RUT: ");
+        for (int k = 0; k < EOS_NEQUATIONS; k++)
+            printf("%10.6f\t", Q[k]);
+        printf("\n");
+        if (Q[4]*T_Ref >= T_Max)
+            continue;
+        if (Q[4]*T_Ref <= T_Min)
+            continue;
+        EOS_Get_Properties(EOS_DIMENSIONAL_IO_ND_ND, EOS_VARIABLE_RUT, Q, Pro);
+        EOS_Get_Extended_Properties(EOS_DIMENSIONAL_IO_ND_ND, EOS_VARIABLE_RUT, Q, Pro);
+        // Test M41 & M14
+        EOS_Get_Transformation_Matrix(EOS_DIMENSIONAL_IO_ND_ND, EOS_VARIABLE_RUT, Q, EOS_VARIABLE_RUT, EOS_VARIABLE_RUP, Matrix1);
+        EOS_Get_Transformation_Matrix(EOS_DIMENSIONAL_IO_ND_ND, EOS_VARIABLE_RUT, Q, EOS_VARIABLE_RUP, EOS_VARIABLE_RUT, Matrix2);
+        MC_Matrix_Mul_Matrix(EOS_NEQUATIONS, EOS_NEQUATIONS, Matrix1, Matrix2, Matrix3);
+        ichk = 0;
+        for (int k = 0; k < EOS_NEQUATIONS; k++) {
+            for (int n = 0; n < EOS_NEQUATIONS; n++) {
+                if (k == n) {
+                    if (fabs(Matrix3[k][n] - 1.0) > 0.0001) ichk++;
+                } else { 
+                    if (fabs(Matrix3[k][n]) > 0.0001) ichk++;
+                }
+            }
+        }
+        if (ichk > 0) { 
+            printf("Check = M41*M14: FAIL \n");
+            printf("DPDRho = %10.6f \t DPDT = %10.6f \t DRhoDT  = %10.6f \t DPDRho1 = %10.6f\n", Pro[18], Pro[19],Pro[20], 1.0/Pro[21]);
+        }
+        // Test M40 & M04
+        EOS_Get_Transformation_Matrix(EOS_DIMENSIONAL_IO_ND_ND, EOS_VARIABLE_RUT, Q, EOS_VARIABLE_RUT, EOS_VARIABLE_CON, Matrix1);
+        EOS_Get_Transformation_Matrix(EOS_DIMENSIONAL_IO_ND_ND, EOS_VARIABLE_RUT, Q, EOS_VARIABLE_CON, EOS_VARIABLE_RUT, Matrix2);
+        MC_Matrix_Mul_Matrix(EOS_NEQUATIONS, EOS_NEQUATIONS, Matrix1, Matrix2, Matrix3);
+        ichk = 0;
+        for (int k = 0; k < EOS_NEQUATIONS; k++) {
+            for (int n = 0; n < EOS_NEQUATIONS; n++) {
+                if (k == n) {
+                    if (fabs(Matrix3[k][n] - 1.0) > 0.0001) ichk++;
+                } else { 
+                    if (fabs(Matrix3[k][n]) > 0.0001) ichk++;
+                }
+            }
+        }
+        if (ichk > 0) printf("Check = M40*M04: FAIL \n");
+        
+        //======================================================================
+        // ND-D Test
+        //======================================================================
+        // RUP
+        Q[4] = Pro[3];
+        printf("ND-D  RUP: ");
+        for (int k = 0; k < EOS_NEQUATIONS; k++)
+            printf("%10.6f\t", Q[k]);
+        printf("\n");
+        EOS_Get_Properties(EOS_DIMENSIONAL_IO_ND_D, EOS_VARIABLE_RUP, Q, Pro);
+        EOS_Get_Extended_Properties(EOS_DIMENSIONAL_IO_ND_D, EOS_VARIABLE_RUP, Q, Pro);
+        EOS_Get_Transformation_Matrix(EOS_DIMENSIONAL_IO_ND_D, EOS_VARIABLE_RUP, Q, EOS_VARIABLE_RUP, EOS_VARIABLE_CON, Matrix1);
+        EOS_Get_Transformation_Matrix(EOS_DIMENSIONAL_IO_ND_D, EOS_VARIABLE_RUP, Q, EOS_VARIABLE_CON, EOS_VARIABLE_RUP, Matrix2);
+        MC_Matrix_Mul_Matrix(EOS_NEQUATIONS, EOS_NEQUATIONS, Matrix1, Matrix2, Matrix3);
+        ichk = 0;
+        for (int k = 0; k < EOS_NEQUATIONS; k++) {
+            for (int n = 0; n < EOS_NEQUATIONS; n++) {
+                if (k == n) {
+                    if (fabs(Matrix3[k][n] - 1.0) > 0.0001) ichk++;
+                } else { 
+                    if (fabs(Matrix3[k][n]) > 0.0001) ichk++;
+                }
+            }
+        }
+        if (ichk > 0) printf("ND-D Check = M10*M01: FAIL \n");
+        
+        // RUT
+        Q[4] = Pro[4]/T_Ref;
+        printf("ND-D  RUT: ");
+        for (int k = 0; k < EOS_NEQUATIONS; k++)
+            printf("%10.6f\t", Q[k]);
+        printf("\n");
+        EOS_Get_Properties(EOS_DIMENSIONAL_IO_ND_D, EOS_VARIABLE_RUT, Q, Pro);
+        EOS_Get_Extended_Properties(EOS_DIMENSIONAL_IO_ND_D, EOS_VARIABLE_RUT, Q, Pro);
+        // Test M41 & M14
+        EOS_Get_Transformation_Matrix(EOS_DIMENSIONAL_IO_ND_D, EOS_VARIABLE_RUT, Q, EOS_VARIABLE_RUT, EOS_VARIABLE_RUP, Matrix1);
+        EOS_Get_Transformation_Matrix(EOS_DIMENSIONAL_IO_ND_D, EOS_VARIABLE_RUT, Q, EOS_VARIABLE_RUP, EOS_VARIABLE_RUT, Matrix2);
+        MC_Matrix_Mul_Matrix(EOS_NEQUATIONS, EOS_NEQUATIONS, Matrix1, Matrix2, Matrix3);
+        ichk = 0;
+        for (int k = 0; k < EOS_NEQUATIONS; k++) {
+            for (int n = 0; n < EOS_NEQUATIONS; n++) {
+                if (k == n) {
+                    if (fabs(Matrix3[k][n] - 1.0) > 0.0001) ichk++;
+                } else { 
+                    if (fabs(Matrix3[k][n]) > 0.0001) ichk++;
+                }
+            }
+        }
+        if (ichk > 0) { 
+            printf("ND-D Check = M41*M14: FAIL \n");
+            printf("DPDRho = %10.6f \t DPDT = %10.6f \t DRhoDT  = %10.6f \t DPDRho1 = %10.6f\n", Pro[18], Pro[19],Pro[20], 1.0/Pro[21]);
+        }
+        // Test M40 & M04
+        EOS_Get_Transformation_Matrix(EOS_DIMENSIONAL_IO_ND_D, EOS_VARIABLE_RUT, Q, EOS_VARIABLE_RUT, EOS_VARIABLE_CON, Matrix1);
+        EOS_Get_Transformation_Matrix(EOS_DIMENSIONAL_IO_ND_D, EOS_VARIABLE_RUT, Q, EOS_VARIABLE_CON, EOS_VARIABLE_RUT, Matrix2);
+        MC_Matrix_Mul_Matrix(EOS_NEQUATIONS, EOS_NEQUATIONS, Matrix1, Matrix2, Matrix3);
+        ichk = 0;
+        for (int k = 0; k < EOS_NEQUATIONS; k++) {
+            for (int n = 0; n < EOS_NEQUATIONS; n++) {
+                if (k == n) {
+                    if (fabs(Matrix3[k][n] - 1.0) > 0.0001) ichk++;
+                } else { 
+                    if (fabs(Matrix3[k][n]) > 0.0001) ichk++;
+                }
+            }
+        }
+        if (ichk > 0) printf("ND-D Check = M40*M04: FAIL \n");
+        
+        //======================================================================
+        // D-D Test
+        //======================================================================
+        // RUP
+        Q[0] = Q[0]*Rho_Ref;
+        Q[1] = Q[1]*V_Ref;
+        Q[2] = Q[2]*V_Ref;
+        Q[3] = Q[3]*V_Ref;
+        Q[4] = Pro[3];
+        printf("D-D   RUP: ");
+        for (int k = 0; k < EOS_NEQUATIONS; k++)
+            printf("%10.6f\t", Q[k]);
+        printf("\n");
+        EOS_Get_Properties(EOS_DIMENSIONAL_IO_D_D, EOS_VARIABLE_RUP, Q, Pro);
+        EOS_Get_Extended_Properties(EOS_DIMENSIONAL_IO_D_D, EOS_VARIABLE_RUP, Q, Pro);
+        EOS_Get_Transformation_Matrix(EOS_DIMENSIONAL_IO_D_D, EOS_VARIABLE_RUP, Q, EOS_VARIABLE_RUP, EOS_VARIABLE_CON, Matrix1);
+        EOS_Get_Transformation_Matrix(EOS_DIMENSIONAL_IO_D_D, EOS_VARIABLE_RUP, Q, EOS_VARIABLE_CON, EOS_VARIABLE_RUP, Matrix2);
+        MC_Matrix_Mul_Matrix(EOS_NEQUATIONS, EOS_NEQUATIONS, Matrix1, Matrix2, Matrix3);
+        ichk = 0;
+        for (int k = 0; k < EOS_NEQUATIONS; k++) {
+            for (int n = 0; n < EOS_NEQUATIONS; n++) {
+                if (k == n) {
+                    if (fabs(Matrix3[k][n] - 1.0) > 0.0001) ichk++;
+                } else { 
+                    if (fabs(Matrix3[k][n]) > 0.0001) ichk++;
+                }
+            }
+        }
+        if (ichk > 0) printf("D-D Check = M10*M01: FAIL \n");
+        
+        // RUT
+        Q[4] = Pro[4];
+        printf("D-D   RUT: ");
+        for (int k = 0; k < EOS_NEQUATIONS; k++)
+            printf("%10.6f\t", Q[k]);
+        printf("\n");
+        EOS_Get_Properties(EOS_DIMENSIONAL_IO_D_D, EOS_VARIABLE_RUT, Q, Pro);
+        EOS_Get_Extended_Properties(EOS_DIMENSIONAL_IO_D_D, EOS_VARIABLE_RUT, Q, Pro);
+        // Test M41 & M14
+        EOS_Get_Transformation_Matrix(EOS_DIMENSIONAL_IO_D_D, EOS_VARIABLE_RUT, Q, EOS_VARIABLE_RUT, EOS_VARIABLE_RUP, Matrix1);
+        EOS_Get_Transformation_Matrix(EOS_DIMENSIONAL_IO_D_D, EOS_VARIABLE_RUT, Q, EOS_VARIABLE_RUP, EOS_VARIABLE_RUT, Matrix2);
+        MC_Matrix_Mul_Matrix(EOS_NEQUATIONS, EOS_NEQUATIONS, Matrix1, Matrix2, Matrix3);
+        ichk = 0;
+        for (int k = 0; k < EOS_NEQUATIONS; k++) {
+            for (int n = 0; n < EOS_NEQUATIONS; n++) {
+                if (k == n) {
+                    if (fabs(Matrix3[k][n] - 1.0) > 0.0001) ichk++;
+                } else { 
+                    if (fabs(Matrix3[k][n]) > 0.0001) ichk++;
+                }
+            }
+        }
+        if (ichk > 0) { 
+            printf("D-D Check = M41*M14: FAIL \n");
+            printf("DPDRho = %10.6f \t DPDT = %10.6f \t DRhoDT  = %10.6f \t DPDRho1 = %10.6f\n", Pro[18], Pro[19],Pro[20], 1.0/Pro[21]);
+        }
+        // Test M40 & M04
+        EOS_Get_Transformation_Matrix(EOS_DIMENSIONAL_IO_D_D, EOS_VARIABLE_RUT, Q, EOS_VARIABLE_RUT, EOS_VARIABLE_CON, Matrix1);
+        EOS_Get_Transformation_Matrix(EOS_DIMENSIONAL_IO_D_D, EOS_VARIABLE_RUT, Q, EOS_VARIABLE_CON, EOS_VARIABLE_RUT, Matrix2);
+        MC_Matrix_Mul_Matrix(EOS_NEQUATIONS, EOS_NEQUATIONS, Matrix1, Matrix2, Matrix3);
+        ichk = 0;
+        for (int k = 0; k < EOS_NEQUATIONS; k++) {
+            for (int n = 0; n < EOS_NEQUATIONS; n++) {
+                if (k == n) {
+                    if (fabs(Matrix3[k][n] - 1.0) > 0.0001) ichk++;
+                } else { 
+                    if (fabs(Matrix3[k][n]) > 0.0001) ichk++;
+                }
+            }
+        }
+        if (ichk > 0) printf("D-D Check = M40*M04: FAIL \n");
+        
+        //======================================================================
+        // D-ND Test
+        //======================================================================
+        // RUP
+        Q[4] = Pro[3];
+        printf("D-ND  RUP: ");
+        for (int k = 0; k < EOS_NEQUATIONS; k++)
+            printf("%10.6f\t", Q[k]);
+        printf("\n");
+        EOS_Get_Properties(EOS_DIMENSIONAL_IO_D_ND, EOS_VARIABLE_RUP, Q, Pro);
+        EOS_Get_Extended_Properties(EOS_DIMENSIONAL_IO_D_ND, EOS_VARIABLE_RUP, Q, Pro);
+        EOS_Get_Transformation_Matrix(EOS_DIMENSIONAL_IO_D_ND, EOS_VARIABLE_RUP, Q, EOS_VARIABLE_RUP, EOS_VARIABLE_CON, Matrix1);
+        EOS_Get_Transformation_Matrix(EOS_DIMENSIONAL_IO_D_ND, EOS_VARIABLE_RUP, Q, EOS_VARIABLE_CON, EOS_VARIABLE_RUP, Matrix2);
+        MC_Matrix_Mul_Matrix(EOS_NEQUATIONS, EOS_NEQUATIONS, Matrix1, Matrix2, Matrix3);
+        ichk = 0;
+        for (int k = 0; k < EOS_NEQUATIONS; k++) {
+            for (int n = 0; n < EOS_NEQUATIONS; n++) {
+                if (k == n) {
+                    if (fabs(Matrix3[k][n] - 1.0) > 0.0001) ichk++;
+                } else { 
+                    if (fabs(Matrix3[k][n]) > 0.0001) ichk++;
+                }
+            }
+        }
+        if (ichk > 0) printf("D-ND Check = M10*M01: FAIL \n");
+        
+        // RUT
+        Q[4] = Pro[4]*T_Ref;
+        printf("D-ND  RUT: ");
+        for (int k = 0; k < EOS_NEQUATIONS; k++)
+            printf("%10.6f\t", Q[k]);
+        printf("\n");
+        EOS_Get_Properties(EOS_DIMENSIONAL_IO_D_ND, EOS_VARIABLE_RUT, Q, Pro);
+        EOS_Get_Extended_Properties(EOS_DIMENSIONAL_IO_D_ND, EOS_VARIABLE_RUT, Q, Pro);
+        // Test M41 & M14
+        EOS_Get_Transformation_Matrix(EOS_DIMENSIONAL_IO_D_ND, EOS_VARIABLE_RUT, Q, EOS_VARIABLE_RUT, EOS_VARIABLE_RUP, Matrix1);
+        EOS_Get_Transformation_Matrix(EOS_DIMENSIONAL_IO_D_ND, EOS_VARIABLE_RUT, Q, EOS_VARIABLE_RUP, EOS_VARIABLE_RUT, Matrix2);
+        MC_Matrix_Mul_Matrix(EOS_NEQUATIONS, EOS_NEQUATIONS, Matrix1, Matrix2, Matrix3);
+        ichk = 0;
+        for (int k = 0; k < EOS_NEQUATIONS; k++) {
+            for (int n = 0; n < EOS_NEQUATIONS; n++) {
+                if (k == n) {
+                    if (fabs(Matrix3[k][n] - 1.0) > 0.0001) ichk++;
+                } else { 
+                    if (fabs(Matrix3[k][n]) > 0.0001) ichk++;
+                }
+            }
+        }
+        if (ichk > 0) { 
+            printf("D-ND Check = M41*M14: FAIL \n");
+            printf("DPDRho = %10.6f \t DPDT = %10.6f \t DRhoDT  = %10.6f \t DPDRho1 = %10.6f\n", Pro[18], Pro[19],Pro[20], 1.0/Pro[21]);
+        }
+        // Test M40 & M04
+        EOS_Get_Transformation_Matrix(EOS_DIMENSIONAL_IO_D_ND, EOS_VARIABLE_RUT, Q, EOS_VARIABLE_RUT, EOS_VARIABLE_CON, Matrix1);
+        EOS_Get_Transformation_Matrix(EOS_DIMENSIONAL_IO_D_ND, EOS_VARIABLE_RUT, Q, EOS_VARIABLE_CON, EOS_VARIABLE_RUT, Matrix2);
+        MC_Matrix_Mul_Matrix(EOS_NEQUATIONS, EOS_NEQUATIONS, Matrix1, Matrix2, Matrix3);
+        ichk = 0;
+        for (int k = 0; k < EOS_NEQUATIONS; k++) {
+            for (int n = 0; n < EOS_NEQUATIONS; n++) {
+                if (k == n) {
+                    if (fabs(Matrix3[k][n] - 1.0) > 0.0001) ichk++;
+                } else { 
+                    if (fabs(Matrix3[k][n]) > 0.0001) ichk++;
+                }
+            }
+        }
+        if (ichk > 0) printf("D-ND Check = M40*M04: FAIL \n");
+    }
     exit(0);
     
     double t, p, dl, dv;
     double d, q, e, h, s, cv, cp, w;
-    double thermvp[29], thermvt[29];
+    double thermvp[NIST_EX_THERM2_DIM], thermvt[NIST_EX_THERM2_DIM];
     printf("================================================================\n");
     printf("Critical Point Test\n");
     printf("================================================================\n");

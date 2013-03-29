@@ -55,8 +55,8 @@ extern "C" {
     double EOS_DP_Get_D2PressureDTemperatureDensity(double dvDensity, double dvPressure);
 
     // Transformation Matrix
-    void EOS_DP_Get_Transformation_Matrix_RUP_To_CON(double *dpPropertyIn, double **Matrix);
-    void EOS_DP_Get_Transformation_Matrix_CON_To_RUP(double *dpPropertyIn, double **Matrix);
+    void EOS_DP_Get_Transformation_Matrix_RUP_To_CON(int ivDimIOType, double *dpVariableIn, double **Matrix);
+    void EOS_DP_Get_Transformation_Matrix_CON_To_RUP(int ivDimIOType, double *dpVariableIn, double **Matrix);
     
 #ifdef	__cplusplus
 }
