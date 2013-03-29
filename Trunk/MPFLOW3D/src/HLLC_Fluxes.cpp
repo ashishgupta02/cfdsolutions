@@ -949,6 +949,9 @@ void Compute_Flux_HLLC_Precondition_Turkel(int node_L, int node_R, Vector3D area
 //------------------------------------------------------------------------------
 void Compute_Flux_HLLC(int node_L, int node_R, Vector3D areavec, double *Flux_HLLC, int AddTime) {
     
+    if (NonDimensionalMethod != NONDIMENSIONAL_METHOD_GENERIC)
+        error("Compute_Flux_HLLC: Validated Only with Generic Non-Dimensionalization - %d", NonDimensionalMethod);
+    
     // Compute the Roe Flux for this edge
     switch (PrecondMethod) {
         case PRECOND_METHOD_NONE: // HLLC
