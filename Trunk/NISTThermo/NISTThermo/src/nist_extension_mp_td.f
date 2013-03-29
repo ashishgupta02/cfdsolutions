@@ -536,9 +536,9 @@ c  bulk properties are weighted average of liquid and vapor phases
           beta=alpha*betal+q*betav
           dpdrho=alpha*dpdrhol+q*dpdrhov
           d2pdd2=alpha*d2pdd2l+q*d2pdd2v
-          dpt=alpha*dptl+q*dptv
           drhodt=alpha*drhodtl+q*drhodtv
-          drhodp=alpha*drhodpl+q*drhodpv
+          dpt=-dpdrho*drhodt
+          drhodp=1.0d0/dpdrho
           d2pdt2=alpha*d2pdt2l+q*d2pdt2v
           d2pdtrho=alpha*d2pdtrhol+q*d2pdtrhov
 c
