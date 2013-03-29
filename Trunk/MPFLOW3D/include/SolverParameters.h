@@ -286,16 +286,16 @@ static const map<string, JACOBIAN_METHOD> JacobianMethodMap = CCreateMap<string,
 enum VARIABLE_TYPE {
     VARIABLE_NONE = -1, /*!< \brief Variable Type None. */
     VARIABLE_CONSERVATIVE = 0, /*!< \brief Variable Type Conservative. */
-    VARIABLE_PRIMITIVE_PUT = 1, /*!< \brief Variable Type Presure Velocity Temperature. */
-    VARIABLE_PRIMITIVE_RUP = 2, /*!< \brief Variable Type Density Vecocity Pressure. */
+    VARIABLE_PRIMITIVE_RUP = 1, /*!< \brief Variable Type Density Vecocity Pressure. */
+    VARIABLE_PRIMITIVE_PUT = 2, /*!< \brief Variable Type Presure Velocity Temperature. */
     VARIABLE_PRIMITIVE_PUS = 3,  /*!< \brief Variable Type Pressure Velocity Entropy. */
     VARIABLE_PRIMITIVE_RUT = 4 /*!< \brief Variable Type Density Velocity Temperature. */
 };
 static const map<string, VARIABLE_TYPE> VariableTypeMap = CCreateMap<string, VARIABLE_TYPE>
 ("VARIABLE_NONE", VARIABLE_NONE)
 ("VARIABLE_CONSERVATIVE", VARIABLE_CONSERVATIVE)
-("VARIABLE_PRIMITIVE_PUT", VARIABLE_PRIMITIVE_PUT)
 ("VARIABLE_PRIMITIVE_RUP", VARIABLE_PRIMITIVE_RUP)
+("VARIABLE_PRIMITIVE_PUT", VARIABLE_PRIMITIVE_PUT)
 ("VARIABLE_PRIMITIVE_PUS", VARIABLE_PRIMITIVE_PUS)
 ("VARIABLE_PRIMITIVE_RUT", VARIABLE_PRIMITIVE_RUT);
 

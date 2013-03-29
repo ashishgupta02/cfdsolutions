@@ -196,6 +196,8 @@ void UGrid_Reader(const char* filename) {
     
     // Close file
     fclose(fp);
+    if (dummy != NULL)
+        dummy = NULL;
 
     // Bring Grid Connectivity to Proper Ordering
     UGrid_Translate_Winding();
@@ -220,7 +222,8 @@ void UGrid_Reader(const char* filename) {
 void VTK_Writer(const char* filename, int verbose) {
     int i, j;
     FILE *fp;
-
+    double var, Q[5];
+    
     if (verbose == 1)
         info("Writing VTK Solution File %s", filename);
     
@@ -330,8 +333,6 @@ void VTK_Writer(const char* filename, int verbose) {
         for (i = 0; i < nNode; i++)
             fprintf(fp, "%22.15e\n", Q4[i] / Q1[i]);
 
-        double var, Q[5];
-
         fprintf(fp, "SCALARS Pressure double 1\n");
         fprintf(fp, "LOOKUP_TABLE default\n");
         for (i = 0; i < nNode; i++) {
@@ -368,6 +369,13 @@ void VTK_Writer(const char* filename, int verbose) {
             fprintf(fp, "%22.15e\n", var);
         }
         
+        if (PrecondMethod != PRECOND_METHOD_NONE) {
+            fprintf(fp, "SCALARS Sigma double 1\n");
+            fprintf(fp, "LOOKUP_TABLE default\n");
+            for (i = 0; i < nNode; i++)
+                fprintf(fp, "%22.15e\n", PrecondSigma[i]);
+        }
+        
         // Vector Data Fields
         fprintf(fp, "VECTORS Velocity double \n");
         for (i = 0; i < nNode; i++)
@@ -380,7 +388,7 @@ void VTK_Writer(const char* filename, int verbose) {
         fprintf(fp, "SCALARS Density double 1\n");
         fprintf(fp, "LOOKUP_TABLE default\n");
         for (i = 0; i < nNode; i++)
-            fprintf(fp, "%22.15e\n", (Q1[i] + Gauge_Pressure)/(NonDim_R*Q5[i]));
+            fprintf(fp, "%22.15e\n", Get_Rho(Q1[i], Q5[i]));
 
         fprintf(fp, "SCALARS X_Velocity double 1\n");
         fprintf(fp, "LOOKUP_TABLE default\n");
@@ -407,14 +415,23 @@ void VTK_Writer(const char* filename, int verbose) {
         for (i = 0; i < nNode; i++)
             fprintf(fp, "%22.15e\n", Q5[i]);
         
-        double var;
-        
         fprintf(fp, "SCALARS Mach double 1\n");
         fprintf(fp, "LOOKUP_TABLE default\n");
         for (i = 0; i < nNode; i++) {
-            var = (Q1[i] + Gauge_Pressure)/(NonDim_R*Q5[i]); // Density
-            var = sqrt(Q2[i]*Q2[i] + Q3[i]*Q3[i] + Q4[i]*Q4[i])/sqrt(Gamma*(Q1[i] + Gauge_Pressure)/var); // Mach
+            Q[0] = Q1[i];
+            Q[1] = Q2[i];
+            Q[2] = Q3[i];
+            Q[3] = Q4[i];
+            Q[4] = Q5[i];
+            var  = Get_Mach(Q);
             fprintf(fp, "%22.15e\n", var);
+        }
+        
+        if (PrecondMethod != PRECOND_METHOD_NONE) {
+            fprintf(fp, "SCALARS Sigma double 1\n");
+            fprintf(fp, "LOOKUP_TABLE default\n");
+            for (i = 0; i < nNode; i++)
+                fprintf(fp, "%22.15e\n", PrecondSigma[i]);
         }
         
         // Vector Data Fields
@@ -458,8 +475,15 @@ void VTK_Writer(const char* filename, int verbose) {
 
         fprintf(fp, "SCALARS Mach double 1\n");
         fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++)
-            fprintf(fp, "%22.15e\n", sqrt(Q2[i]*Q2[i] + Q3[i]*Q3[i] + Q4[i]*Q4[i])/sqrt(Gamma*(Q5[i] + Gauge_Pressure)/Q1[i]));
+        for (i = 0; i < nNode; i++) {
+            Q[0] = Q1[i];
+            Q[1] = Q2[i];
+            Q[2] = Q3[i];
+            Q[3] = Q4[i];
+            Q[4] = Q5[i];
+            var  = Get_Mach(Q);
+            fprintf(fp, "%22.15e\n", var);
+        }
 
         if (PrecondMethod != PRECOND_METHOD_NONE) {
             fprintf(fp, "SCALARS Sigma double 1\n");
@@ -474,6 +498,66 @@ void VTK_Writer(const char* filename, int verbose) {
             fprintf(fp, "%22.15e \t %22.15e \t %22.15e\n", Q2[i], Q3[i], Q4[i]);
 
     }
+    
+    // Primitive Variable Formulation Density Velocity Pressure
+    if (VariableType == VARIABLE_PRIMITIVE_RUT) {
+        // Scalar Data Fields
+        fprintf(fp, "SCALARS Density double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e\n", Q1[i]);
+
+        fprintf(fp, "SCALARS X_Velocity double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e\n", Q2[i]);
+
+        fprintf(fp, "SCALARS Y_Velocity double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e\n", Q3[i]);
+
+        fprintf(fp, "SCALARS Z_Velocity double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e\n", Q4[i]);
+
+        fprintf(fp, "SCALARS Pressure double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e\n", Get_Pressure(Q1[i], Q5[i]) + Gauge_Pressure);
+        
+        fprintf(fp, "SCALARS Temperature double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e\n", Q5[i]);
+
+        fprintf(fp, "SCALARS Mach double 1\n");
+        fprintf(fp, "LOOKUP_TABLE default\n");
+        for (i = 0; i < nNode; i++) {
+            Q[0] = Q1[i];
+            Q[1] = Q2[i];
+            Q[2] = Q3[i];
+            Q[3] = Q4[i];
+            Q[4] = Q5[i];
+            var  = Get_Mach(Q);
+            fprintf(fp, "%22.15e\n", var);
+        }
+        
+        if (PrecondMethod != PRECOND_METHOD_NONE) {
+            fprintf(fp, "SCALARS Sigma double 1\n");
+            fprintf(fp, "LOOKUP_TABLE default\n");
+            for (i = 0; i < nNode; i++)
+                fprintf(fp, "%22.15e\n", PrecondSigma[i]);
+        }
+        
+        // Vector Data Fields
+        fprintf(fp, "VECTORS Velocity double \n");
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e \t %22.15e \t %22.15e\n", Q2[i], Q3[i], Q4[i]);
+
+    }
+    
     fclose(fp);
 }
 
