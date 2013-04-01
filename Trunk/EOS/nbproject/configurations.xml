@@ -7,7 +7,9 @@
       <itemPath>include/EOS.h</itemPath>
       <itemPath>include/EOS_Density_Pressure.h</itemPath>
       <itemPath>include/EOS_Density_Temperature.h</itemPath>
+      <itemPath>include/EOS_IdealGas.h</itemPath>
       <itemPath>include/EOS_Internal.h</itemPath>
+      <itemPath>include/EOS_NIST.h</itemPath>
       <itemPath>include/EOS_Pressure_Temperature.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
@@ -20,7 +22,9 @@
       <itemPath>src/EOS.c</itemPath>
       <itemPath>src/EOS_Density_Pressure.c</itemPath>
       <itemPath>src/EOS_Density_Temperature.c</itemPath>
+      <itemPath>src/EOS_IdealGas.c</itemPath>
       <itemPath>src/EOS_Internal.c</itemPath>
+      <itemPath>src/EOS_NIST.c</itemPath>
       <itemPath>src/EOS_Pressure_Temperature.c</itemPath>
       <itemPath>src/Test.cpp</itemPath>
     </logicalFolder>
@@ -125,7 +129,11 @@
       </item>
       <item path="include/EOS_Density_Temperature.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/EOS_IdealGas.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/EOS_Internal.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_NIST.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/EOS_Pressure_Temperature.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -135,7 +143,11 @@
       </item>
       <item path="src/EOS_Density_Temperature.c" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="src/EOS_IdealGas.c" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="src/EOS_Internal.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_NIST.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="src/EOS_Pressure_Temperature.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -167,7 +179,11 @@
       </item>
       <item path="include/EOS_Density_Temperature.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/EOS_IdealGas.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/EOS_Internal.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_NIST.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/EOS_Pressure_Temperature.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -177,7 +193,11 @@
       </item>
       <item path="src/EOS_Density_Temperature.c" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="src/EOS_IdealGas.c" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="src/EOS_Internal.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_NIST.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="src/EOS_Pressure_Temperature.c" ex="false" tool="0" flavor2="0">
       </item>

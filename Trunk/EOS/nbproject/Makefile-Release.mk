@@ -38,7 +38,9 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/EOS.o \
 	${OBJECTDIR}/src/EOS_Density_Pressure.o \
 	${OBJECTDIR}/src/EOS_Density_Temperature.o \
+	${OBJECTDIR}/src/EOS_IdealGas.o \
 	${OBJECTDIR}/src/EOS_Internal.o \
+	${OBJECTDIR}/src/EOS_NIST.o \
 	${OBJECTDIR}/src/EOS_Pressure_Temperature.o \
 	${OBJECTDIR}/src/Test.o
 
@@ -82,10 +84,20 @@ ${OBJECTDIR}/src/EOS_Density_Temperature.o: src/EOS_Density_Temperature.c
 	${RM} $@.d
 	$(COMPILE.c) -O2 -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/EOS_Density_Temperature.o src/EOS_Density_Temperature.c
 
+${OBJECTDIR}/src/EOS_IdealGas.o: src/EOS_IdealGas.c 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.c) -O2 -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/EOS_IdealGas.o src/EOS_IdealGas.c
+
 ${OBJECTDIR}/src/EOS_Internal.o: src/EOS_Internal.c 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.c) -O2 -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/EOS_Internal.o src/EOS_Internal.c
+
+${OBJECTDIR}/src/EOS_NIST.o: src/EOS_NIST.c 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.c) -O2 -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/EOS_NIST.o src/EOS_NIST.c
 
 ${OBJECTDIR}/src/EOS_Pressure_Temperature.o: src/EOS_Pressure_Temperature.c 
 	${MKDIR} -p ${OBJECTDIR}/src

@@ -55,6 +55,7 @@ int main(int argc, char* argv[]) {
     strcpy(herr,"Ok");
     
     int ichk;
+    int EOS_Model;
     double Q[5], Pro[EOS_EX_THERM_DIM];
     double Rho_Ref, V_Ref, P_Ref, T_Ref;
     double Rho_Max, P_Max, T_Min, T_Max;
@@ -64,8 +65,10 @@ int main(int argc, char* argv[]) {
     double **Matrix3 = NULL;
     double *ptmp = NULL;
     
-    EOS_Init();
-    EOS_Set();
+    EOS_Model = EOS_MODEL_NIST;
+    
+    EOS_Init(EOS_Model);
+    EOS_Set("Oxygen");
     EOS_Get_Fluid_Information(Pro);
     Rho_Crit = Pro[ 5];
     P_Crit   = Pro[ 3];
@@ -73,7 +76,7 @@ int main(int argc, char* argv[]) {
     P_Max   = Pro[12];
     T_Min   = Pro[10];
     T_Max   = Pro[11];
-    EOS_Set_Reference_Properties(2395800.0, 126.192, 1.0);
+    EOS_Set_Reference_Properties(101325.0, 273.15, 1.0);
     EOS_Print_Reference_Properties();
     EOS_Get_Reference_Properties(Pro);
     Rho_Ref = Pro[0];
@@ -99,28 +102,47 @@ int main(int argc, char* argv[]) {
     ptmp = NULL;
     
     
+    // RUP
+    Q[0] = 1.0;
+    Q[1] = 0.0;
+    Q[2] = 0.0;
+    Q[3] = 0.0;
+    Q[4] = 1.0;
+    printf("Density = %10.6f\n", Q[0]*Rho_Ref);
+    printf("ND-ND RUP: ");
+    for (int k = 0; k < EOS_NEQUATIONS; k++)
+        printf("%10.6f\t", Q[k]);
+    printf("\n");
+    EOS_Get_Properties(EOS_DIMENSIONAL_IO_ND_ND, EOS_VARIABLE_RUP, Q, Pro);
+    EOS_Get_Extended_Properties(EOS_DIMENSIONAL_IO_ND_D, EOS_VARIABLE_RUP, Q, Pro);
+    printf("%10.6f\t%10.6f\t%10.6f\t", Pro[0], Pro[3], Pro[4]);
+    printf("\n");
+    
     srand(time(NULL));
-    for (int m = 0; m < 10000; m++) {
+    for (int m = 0; m < 1; m++) {
         printf("[%5d]========= ", m);
         //======================================================================
         // ND-ND Test
         //======================================================================
         // RUP
         Q[0] = ((double) rand())/((double) RAND_MAX);
-        if (Q[0]*Rho_Ref >= Rho_Max)
-            Q[0] = 1.0;
-        if (Q[0] < 0.02) Q[0] = 0.02;
+        if (EOS_Model != EOS_MODEL_IDEALGAS) {
+            if (Q[0]*Rho_Ref >= Rho_Max)
+                Q[0] = 1.0;
+            if (Q[0] < 0.02) Q[0] = 0.02;
+        }
         Q[1] = ((double) rand())/((double) RAND_MAX);
         Q[2] = ((double) rand())/((double) RAND_MAX);
         Q[3] = ((double) rand())/((double) RAND_MAX);
         Q[4] = ((double) rand())/((double) RAND_MAX);
-        if (Q[0]*Rho_Ref <= Rho_Crit) {
-            if (Q[4]*P_Ref >= P_Crit)
-                Q[4] = Q[4]*P_Crit/P_Ref;
+        if (EOS_Model != EOS_MODEL_IDEALGAS) {
+            if (Q[0]*Rho_Ref <= Rho_Crit) {
+                if (Q[4]*P_Ref >= P_Crit)
+                    Q[4] = Q[4]*P_Crit/P_Ref;
+            }
+            if (Q[4]*P_Ref >= P_Max) Q[4] = 1.0;
+            if (Q[4] < 0.03) Q[4] = 0.03;
         }
-        if (Q[4]*P_Ref >= P_Max) Q[4] = 1.0;
-        if (Q[4] < 0.03) Q[4] = 0.03;
-        
         printf("Density = %10.6f\n", Q[0]*Rho_Ref);
         printf("ND-ND RUP: ");
         for (int k = 0; k < EOS_NEQUATIONS; k++)
@@ -149,10 +171,12 @@ int main(int argc, char* argv[]) {
         for (int k = 0; k < EOS_NEQUATIONS; k++)
             printf("%10.6f\t", Q[k]);
         printf("\n");
-        if (Q[4]*T_Ref >= T_Max)
-            continue;
-        if (Q[4]*T_Ref <= T_Min)
-            continue;
+        if (EOS_Model != EOS_MODEL_IDEALGAS) {
+            if (Q[4]*T_Ref >= T_Max)
+                continue;
+            if (Q[4]*T_Ref <= T_Min)
+                continue;
+        }
         EOS_Get_Properties(EOS_DIMENSIONAL_IO_ND_ND, EOS_VARIABLE_RUT, Q, Pro);
         EOS_Get_Extended_Properties(EOS_DIMENSIONAL_IO_ND_ND, EOS_VARIABLE_RUT, Q, Pro);
         // Test M41 & M14
@@ -767,7 +791,7 @@ int test2(int argc, char* argv[]) {
     char hf[refpropcharlength * ncmax], hrf[lengthofreference],
             herr[errormessagelength], hfmix[refpropcharlength];
 
-    EOS_Init();
+    EOS_Init(EOS_MODEL_NIST);
     
     //Exlicitely set the fluid file PATH
     //char *FLD_PATH;  
@@ -809,7 +833,7 @@ int test2(int argc, char* argv[]) {
 //            lengthofreference, errormessagelength);
 //    if (ierr != 0) printf("%s\n", herr);
     
-    EOS_Set();
+    EOS_Set("Nitrogen");
     EOS_Set_Reference_Properties(2495.8110, 119.0734, 1.0);
     EOS_Print_Reference_Properties();
     
