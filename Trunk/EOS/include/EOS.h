@@ -16,6 +16,15 @@ extern "C" {
     #define EOS_EX_THERM_DIM    37
 
     /*!
+    * \brief Equation of State Model Type
+    */
+    enum EOS_MODAL_TYPE {
+        EOS_MODEL_NONE     = -1,   /*!< \brief Equation of State Model Type None. */
+        EOS_MODEL_IDEALGAS =  0,   /*!< \brief Equation of State Model Type Ideal Gas */
+        EOS_MODEL_NIST     =  1    /*!< \brief Equation of State Model Type NIST */
+    };
+    
+    /*!
     * \brief Variable Type
     */
     enum EOS_VARIABLE_TYPE {
@@ -39,11 +48,11 @@ extern "C" {
     };
     
     // Initialize the EOS Data Structure
-    void EOS_Init(void);
+    void EOS_Init(int ivEOSModelType);
     // Finalize the EOS Data Structure
     void EOS_Finalize(void);
     // Setup the NIST with fluids
-    void EOS_Set(void);
+    void EOS_Set(const char* csFluidName);
     void EOS_Get_Fluid_Information(double *dpProperty);
     
     // Set the Reference Property for Fluid : Generic (Reference Density is Computed)
@@ -57,6 +66,39 @@ extern "C" {
     void EOS_Get_Properties(int ivDimIOType, int ivVariableType, double *dpVariableIn, double *dpPropertyOut);
     void EOS_Get_Extended_Properties(int ivDimIOType, int ivVariableType, double *dpVariableIn, double *dpPropertyOut);
     
+    double EOS_Get_Density(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_DensityLiquid(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_DensityVapor(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_Pressure(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_Temperature(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_SpeedSound(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_Mach(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_Entropy(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_Enthalpy(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_InternalEnergy(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_TotalEnthalpy(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_TotalEnergy(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_HeatCapacityCv(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_HeatCapacityCp(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_DPressureDDensity(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_DPressureDTemperature(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_DDensityDTemperature(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_D2PressureDDensity2(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_D2PressureDTemperature2(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_D2PressureDTemperatureDensity(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_DEnthalpyDTemperature_CDensity(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_DEnthalpyDTemperature_CPressure(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_DEnthalpyDDensity_CTemperature(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_DEnthalpyDDensity_CPressure(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_DEnthalpyDPressure_CTemperature(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_DEnthalpyDPressure_CDensity(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_DInternalEnergyDTemperature_CDensity(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_DInternalEnergyDTemperature_CPressure(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_DInternalEnergyDDensity_CTemperature(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_DInternalEnergyDDensity_CPressure(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_DInternalEnergyDPressure_CTemperature(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_Get_DInternalEnergyDPressure_CDensity(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+
     // Variable Transformations
     void EOS_Get_Transformation_Matrix(int ivDimIOType, int ivVarTypeIn, double *dpPropertyIn, int ivVarTypeFrom, int ivVarTypeTo, double **Matrix);
     

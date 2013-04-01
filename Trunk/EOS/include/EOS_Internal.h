@@ -7,26 +7,15 @@
 #ifndef _EOS_INTERNAL_H
 #define	_EOS_INTERNAL_H
 
-
 #ifdef	__cplusplus
 extern "C" {
 #endif
     
     /*!
-    * \brief Thermodynamic Region Type
-    */
-    enum EOS_REG_TYPE {
-        EOS_REG_UNKNOWN                      = 0, /*!< \brief Unknown */
-        EOS_REG_SUPER_CRITICAL_STATE         = 1, /*!< \brief Super Critical State */
-        EOS_REG_SUBCOOOLED_COMPRESSED_LIQUID = 2, /*!< \brief Subcooled Compressed Liquid */
-        EOS_REG_SUPER_HEATED_VAPOR           = 3, /*!< \brief Super Heated Vapor */
-        EOS_REG_MULTIPHASE                   = 4  /*!< \brief Multi-Phase Liquid-Vapor */
-    };
-    
-    /*!
     * \brief Fluid Property Structure
     */
     typedef struct {
+        int    ivEOSModelType;
         char   csFluidName[255];
         double dvTemperature_Crit;
         double dvPressure_Crit;
@@ -44,25 +33,7 @@ extern "C" {
         double dvDensity_Max;
     } EOS_S_FluidInfo;
     
-    /*!
-    * \brief NIST Helper Structure
-    */
-    typedef struct {
-        int    ivNumberComponent;
-        int    ivError;
-        char   csFiles[NISTTHERMO_GEN_STR_LEN*NISTTHERMO_MAX_COMPONENT];
-        char   csFmix[NISTTHERMO_GEN_STR_LEN];
-        char   csRef[NISTTHERMO_REF_STR_LEN];
-        char   csError[NISTTHERMO_GEN_STR_LEN];
-        char   csPath[NISTTHERMO_GEN_STR_LEN];
-        double daX[NISTTHERMO_MAX_COMPONENT];
-        double daXLiq[NISTTHERMO_MAX_COMPONENT];
-        double daXVap[NISTTHERMO_MAX_COMPONENT];
-    } EOS_S_NISTHelper;
-    
     /* Common Shared Data */
-    /* NIST Thermodynamics Input-Output Helpers */
-    extern EOS_S_NISTHelper SogNISTHelper;
     /* Fluid Information */
     extern EOS_S_FluidInfo SogFluidInfo;
     /* Reference Properties */
@@ -88,36 +59,75 @@ extern "C" {
     
     /* Functions */
     void EOS_Internal_Init();
+    void EOS_Internal_Finalize();
     void EOS_Internal_Init_Fluid_Information();
-    void EOS_Internal_Set_NIST_Fluid_Information(int ivComp);
-    void EOS_Internal_Print_NIST_Fluid_Information(int ivComp);
     void EOS_Internal_Init_Reference_Properties();
     
-    double EOS_Internal_Get_SI_To_NIST_Density(double dvDensity);
-    double EOS_Internal_Get_NIST_To_SI_Density(double dvDensity);
-    double EOS_Internal_Get_SI_To_NIST_Pressure(double dvPressure);
-    double EOS_Internal_Get_NIST_To_SI_Pressure(double dvPressure);
+    void   EOS_Internal_Dimensionalize_Variables(int ivVariableType, double *dpVariableIn, double *dpVariableOut);
+    void   EOS_Internal_Dimensionalize_Properties(double *dpPropertyIn, double *dpPropertyOut);
+    void   EOS_Internal_Dimensionalize_Extended_Properties(double *dpPropertyIn, double *dpPropertyOut);
+    double EOS_Internal_Dimensionalize_Density(double dvDensity);
+    double EOS_Internal_Dimensionalize_Pressure(double dvPressure);
+    double EOS_Internal_Dimensionalize_Temperature(double dvTemperature);
+    double EOS_Internal_Dimensionalize_SpeedSound(double dvSpeedSound);
+    double EOS_Internal_Dimensionalize_Entropy(double dvEntropy);
+    double EOS_Internal_Dimensionalize_Enthalpy(double dvEnthalpy);
+    double EOS_Internal_Dimensionalize_InternalEnergy(double dvInternalEnergy);
+    double EOS_Internal_Dimensionalize_TotalEnthalpy(double dvTotalEnthalpy);
+    double EOS_Internal_Dimensionalize_TotalEnergy(double dvTotalEnergy);
+    double EOS_Internal_Dimensionalize_HeatCapacityCv(double dvHeatCapacityCv);
+    double EOS_Internal_Dimensionalize_HeatCapacityCp(double dvHeatCapacityCp);
+    double EOS_Internal_Dimensionalize_DPressureDDensity(double dvDPressureDDensity);
+    double EOS_Internal_Dimensionalize_DPressureDTemperature(double dvDPressureDTemperature);
+    double EOS_Internal_Dimensionalize_DDensityDTemperature(double dvDDensityDTemperature);
+    double EOS_Internal_Dimensionalize_D2PressureDDensity2(double dvD2PressureDDensity2);
+    double EOS_Internal_Dimensionalize_D2PressureDTemperature2(double dvD2PressureDTemperature2);
+    double EOS_Internal_Dimensionalize_D2PressureDTemperatureDensity(double dvD2PressureDTemperatureDensity);
+    double EOS_Internal_Dimensionalize_DEnthalpyDTemperature_CDensity(double dvDEnthalpyDTemperature_CDensity);
+    double EOS_Internal_Dimensionalize_DEnthalpyDTemperature_CPressure(double dvDEnthalpyDTemperature_CPressure);
+    double EOS_Internal_Dimensionalize_DEnthalpyDDensity_CTemperature(double dvDEnthalpyDDensity_CTemperature);
+    double EOS_Internal_Dimensionalize_DEnthalpyDDensity_CPressure(double dvDEnthalpyDDensity_CPressure);
+    double EOS_Internal_Dimensionalize_DEnthalpyDPressure_CTemperature(double dvDEnthalpyDPressure_CTemperature);
+    double EOS_Internal_Dimensionalize_DEnthalpyDPressure_CDensity(double dvDEnthalpyDPressure_CDensity);
+    double EOS_Internal_Dimensionalize_DInternalEnergyDTemperature_CDensity(double dvDInternalEnergyDTemperature_CDensity);
+    double EOS_Internal_Dimensionalize_DInternalEnergyDTemperature_CPressure(double dvDInternalEnergyDTemperature_CPressure);
+    double EOS_Internal_Dimensionalize_DInternalEnergyDDensity_CTemperature(double dvDInternalEnergyDDensity_CTemperature);
+    double EOS_Internal_Dimensionalize_DInternalEnergyDDensity_CPressure(double dvDInternalEnergyDDensity_CPressure);
+    double EOS_Internal_Dimensionalize_DInternalEnergyDPressure_CTemperature(double dvDInternalEnergyDPressure_CTemperature);
+    double EOS_Internal_Dimensionalize_DInternalEnergyDPressure_CDensity(double dvDInternalEnergyDPressure_CDensity);
     
-    void   EOS_Internal_Get_NIST_To_SI_Property(double *dpProperty);
-    void   EOS_Internal_Get_NIST_To_SI_Extended_Property(double *dpProperty);
-    void   EOS_Internal_Get_SI_To_NIST_Property(double *dpProperty);
-    void   EOS_Internal_Get_SI_To_NIST_Extended_Property(double *dpProperty);
-    
-    void EOS_Internal_Dimensionalize_Variables(int ivVariableType, double *dpVariableIn, double *dpVariableOut);
-    void EOS_Internal_NonDimensionalize_Variables(int ivVariableType, double *dpVariableIn, double *dpVariableOut);
-    
-    void EOS_Internal_Dimensionalize_Properties(double *dpPropertyIn, double *dpPropertyOut);
-    void EOS_Internal_NonDimensionalize_Properties(double *dpPropertyIn, double *dpPropertyOut);
-    void EOS_Internal_Dimensionalize_Extended_Properties(double *dpPropertyIn, double *dpPropertyOut);
-    void EOS_Internal_NonDimensionalize_Extended_Properties(double *dpPropertyIn, double *dpPropertyOut);
-    
-    void EOS_Internal_Dimensionalize_DT(double *dpDensity, double *dpTemperature);
-    void EOS_Internal_Dimensionalize_DP(double *dpDensity, double *dpPressure);
-    void EOS_Internal_Dimensionalize_PT(double *dpPressure, double *dpTemperature);
-    
-    void EOS_Internal_NonDimensionalize_Pressure(double *dpPressure);
-    void EOS_Internal_NonDimensionalize_Density(double *dpDensity);
-    void EOS_Internal_NonDimensionalize_Temperature(double *dpTemperature);
+    void   EOS_Internal_NonDimensionalize_Variables(int ivVariableType, double *dpVariableIn, double *dpVariableOut);
+    void   EOS_Internal_NonDimensionalize_Properties(double *dpPropertyIn, double *dpPropertyOut);
+    void   EOS_Internal_NonDimensionalize_Extended_Properties(double *dpPropertyIn, double *dpPropertyOut);
+    double EOS_Internal_NonDimensionalize_Density(double dvDensity);
+    double EOS_Internal_NonDimensionalize_Pressure(double dvPressure);
+    double EOS_Internal_NonDimensionalize_Temperature(double dvTemperature);
+    double EOS_Internal_NonDimensionalize_SpeedSound(double dvSpeedSound);
+    double EOS_Internal_NonDimensionalize_Entropy(double dvEntropy);
+    double EOS_Internal_NonDimensionalize_Enthalpy(double dvEnthalpy);
+    double EOS_Internal_NonDimensionalize_InternalEnergy(double dvInternalEnergy);
+    double EOS_Internal_NonDimensionalize_TotalEnthalpy(double dvTotalEnthalpy);
+    double EOS_Internal_NonDimensionalize_TotalEnergy(double dvTotalEnergy);
+    double EOS_Internal_NonDimensionalize_HeatCapacityCv(double dvHeatCapacityCv);
+    double EOS_Internal_NonDimensionalize_HeatCapacityCp(double dvHeatCapacityCp);
+    double EOS_Internal_NonDimensionalize_DPressureDDensity(double dvDPressureDDensity);
+    double EOS_Internal_NonDimensionalize_DPressureDTemperature(double dvDPressureDTemperature);
+    double EOS_Internal_NonDimensionalize_DDensityDTemperature(double dvDDensityDTemperature);
+    double EOS_Internal_NonDimensionalize_D2PressureDDensity2(double dvD2PressureDDensity2);
+    double EOS_Internal_NonDimensionalize_D2PressureDTemperature2(double dvD2PressureDTemperature2);
+    double EOS_Internal_NonDimensionalize_D2PressureDTemperatureDensity(double dvD2PressureDTemperatureDensity);
+    double EOS_Internal_NonDimensionalize_DEnthalpyDTemperature_CDensity(double dvDEnthalpyDTemperature_CDensity);
+    double EOS_Internal_NonDimensionalize_DEnthalpyDTemperature_CPressure(double dvDEnthalpyDTemperature_CPressure);
+    double EOS_Internal_NonDimensionalize_DEnthalpyDDensity_CTemperature(double dvDEnthalpyDDensity_CTemperature);
+    double EOS_Internal_NonDimensionalize_DEnthalpyDDensity_CPressure(double dvDEnthalpyDDensity_CPressure);
+    double EOS_Internal_NonDimensionalize_DEnthalpyDPressure_CTemperature(double dvDEnthalpyDPressure_CTemperature);
+    double EOS_Internal_NonDimensionalize_DEnthalpyDPressure_CDensity(double dvDEnthalpyDPressure_CDensity);
+    double EOS_Internal_NonDimensionalize_DInternalEnergyDTemperature_CDensity(double dvDInternalEnergyDTemperature_CDensity);
+    double EOS_Internal_NonDimensionalize_DInternalEnergyDTemperature_CPressure(double dvDInternalEnergyDTemperature_CPressure);
+    double EOS_Internal_NonDimensionalize_DInternalEnergyDDensity_CTemperature(double dvDInternalEnergyDDensity_CTemperature);
+    double EOS_Internal_NonDimensionalize_DInternalEnergyDDensity_CPressure(double dvDInternalEnergyDDensity_CPressure);
+    double EOS_Internal_NonDimensionalize_DInternalEnergyDPressure_CTemperature(double dvDInternalEnergyDPressure_CTemperature);
+    double EOS_Internal_NonDimensionalize_DInternalEnergyDPressure_CDensity(double dvDInternalEnergyDPressure_CDensity);
     
 #ifdef	__cplusplus
 }

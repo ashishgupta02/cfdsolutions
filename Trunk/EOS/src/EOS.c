@@ -7,9 +7,9 @@
 #include <string.h>
 #include <math.h>
 
-#include "NISTThermo.h"
-#include "NISTThermo_Extension.h"
 #include "EOS.h"
+#include "EOS_NIST.h"
+#include "EOS_IdealGas.h"
 #include "EOS_Internal.h"
 #include "EOS_Density_Pressure.h"
 #include "EOS_Density_Temperature.h"
@@ -19,65 +19,73 @@
 //------------------------------------------------------------------------------
 //! Initialize EOS
 //------------------------------------------------------------------------------
-void EOS_Init() {
-    int i;
-    char *NIST_PATH;
+void EOS_Init(int ivEOSModelType) {
     
     // Initialize the Internals of EOS library
     EOS_Internal_Init();
     
-    // Get the path of NIST Fluids
-    NIST_PATH = getenv("NIST_PATH");
-    if (NIST_PATH != NULL) { 
-        i = strlen(NIST_PATH);
-        // Make sure that length does not exceed the storage
-        if (i > NISTTHERMO_GEN_STR_LEN)
-            i = NISTTHERMO_GEN_STR_LEN;
-        strncpy(SogNISTHelper.csPath, NIST_PATH, i);
-        SETPATH(SogNISTHelper.csPath, NISTTHERMO_GEN_STR_LEN);
-    } else
-        error("EOS_Init: Environment Variable NIST_PATH Not Found");
+    // Set the EOS Model Type
+    SogFluidInfo.ivEOSModelType = ivEOSModelType;
+    
+    // Setup According to the EOS Model Type
+    switch (ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            EOS_IdealGas_Init();
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            EOS_NIST_Init();
+            break;
+        default:
+            error("EOS_Init:1: Undefined Equation of State Model");
+            break;
+    }
 }
 
 //------------------------------------------------------------------------------
 //! Finalize EOS
 //------------------------------------------------------------------------------
 void EOS_Finalize() {
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            EOS_IdealGas_Finalize();
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            EOS_NIST_Finalize();
+            break;
+        default:
+            error("EOS_Finalize:1: Undefined Equation of State Model");
+            break;
+    }
     
+    // Finalize the Internal EOS Library
+    EOS_Internal_Finalize();
 }
 
 //------------------------------------------------------------------------------
-//! Setup only for pure fluid
+//! Setup only for pure fluid or ideal gas
 //  Improve to handle mixture fluids
 //------------------------------------------------------------------------------
-void EOS_Set() {
-    // Setup for nitrogen for now
-    SogNISTHelper.ivNumberComponent = 1;
-    SogNISTHelper.ivError           = 0;
-    strncpy(SogNISTHelper.csFiles, "nitrogen.fld", 12);
-    strncpy(SogNISTHelper.csFmix, "hmx.bnc", 7);
-    strncpy(SogNISTHelper.csRef, "DEF", 3);
-    strncpy(SogNISTHelper.csError, "Ok", 2);
+void EOS_Set(const char* csFluidName) {
     
-    // Call NISTThermo Setup
-#if defined(WIN32) && !defined(IFORT)
-    SETUP(&SogNISTHelper.ivNumberComponent, SogNISTHelper.csFiles, NISTTHERMO_FILE_STR_LEN, SogNISTHelper.csFmix, NISTTHERMO_GEN_STR_LEN, 
-            SogNISTHelper.csRef, NISTTHERMO_REF_STR_LEN, &SogNISTHelper.ivError, SogNISTHelper.csError, NISTTHERMO_GEN_STR_LEN);
-#else
-    SETUP(&SogNISTHelper.ivNumberComponent, SogNISTHelper.csFiles, SogNISTHelper.csFmix, SogNISTHelper.csRef, &SogNISTHelper.ivError, SogNISTHelper.csError, NISTTHERMO_FILE_STR_LEN, 
-            NISTTHERMO_GEN_STR_LEN, NISTTHERMO_REF_STR_LEN, NISTTHERMO_GEN_STR_LEN);
-#endif
-    if (SogNISTHelper.ivError != 0)
-        error("EOS_Set: %s", SogNISTHelper.csError);
-    
-    // Set the Fluid Info Name
-    strncpy(SogFluidInfo.csFluidName, "nitrogen.fld", 12);
-    
-    // Get the NIST Fluid Information
-    EOS_Internal_Set_NIST_Fluid_Information(SogNISTHelper.ivNumberComponent);
-    
-    // Print the NIST Fluid Information
-    EOS_Internal_Print_NIST_Fluid_Information(SogNISTHelper.ivNumberComponent);
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            EOS_IdealGas_Set();
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            EOS_NIST_Set(csFluidName);
+            break;
+        default:
+            error("EOS_Set:1: Undefined Equation of State Model");
+            break;
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -105,155 +113,21 @@ void EOS_Get_Fluid_Information(double *dpProperty) {
 //  Pressure (Pa), Temperature (K) and Length (m)
 //------------------------------------------------------------------------------
 void EOS_Set_Reference_Properties(double dvPressure, double dvTemperature, double dvLength) {
-    int ivKph, ivRefState;
-    double dvDensity, dvDensityLiq, dvDensityVap, dvPressureNIST;
-    double dvQuality, dvInternalEnergy, dvEnthalpy, dvEntropy, dvCv, dvCp, dvSpeedSound;
-    double daX[NISTTHERMO_MAX_COMPONENT], daXLiq[NISTTHERMO_MAX_COMPONENT], daXVap[NISTTHERMO_MAX_COMPONENT];
-    
-    printf("=============================================================================\n");
-    // Check for Equation of State Validity Bounds
-    if ((dvTemperature <= SogFluidInfo.dvTemperature_Min) || (dvTemperature >= SogFluidInfo.dvTemperature_Max))
-        error("EOS_Set_Reference_Properties:1: Reference Temperature Out of Bounds of Applicability");
-    if (dvPressure >= SogFluidInfo.dvPressure_Max)
-        error("EOS_Set_Reference_Properties:2: Reference Pressure Out of Bounds of Applicability");
-    
-    // Identify the Fluid Thermodynamic Region @ Reference Conditions.
-    ivRefState = EOS_REG_UNKNOWN;
-    // Region: Gas, Liquid or Multi-Phase
-    if ((dvTemperature >= SogFluidInfo.dvTemperature_Crit) && (dvPressure >= SogFluidInfo.dvPressure_Crit)) {
-        // Region: Super Critical State
-        ivRefState = EOS_REG_SUPER_CRITICAL_STATE;
-        info("Reference Properties in Region: Super Critical State");
-    } else if ((dvTemperature < SogFluidInfo.dvTemperature_Crit) && (dvPressure >= SogFluidInfo.dvPressure_Crit)) {
-        // Region: Subcooled Compressed Liquid
-        ivRefState = EOS_REG_SUBCOOOLED_COMPRESSED_LIQUID;
-        info("Reference Properties in Region: Subcooled Compressed Liquid");
-    } else if((dvTemperature > SogFluidInfo.dvTemperature_Crit) && (dvPressure <= SogFluidInfo.dvPressure_Crit)) {
-        // Region: Super Heated Vapor
-        ivRefState = EOS_REG_SUPER_HEATED_VAPOR;
-        info("Reference Properties in Region: Super Heated Vapor");
-    } else if((dvTemperature <= SogFluidInfo.dvTemperature_Crit) && (dvPressure <= SogFluidInfo.dvPressure_Crit)) {
-        // Region: Multiphase Region
-        ivRefState = EOS_REG_MULTIPHASE;
-        info("Reference Properties in Region: Multiphase Region");
-    } else {
-        // Region: Unknown
-        ivRefState = EOS_REG_UNKNOWN;
-        error("EOS_Set_Reference_Properties:3: Reference Temperature and Pressure Belong to UnKnown Fluid State");
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            EOS_IdealGas_Set_Reference_Properties(dvPressure, dvTemperature, dvLength);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            EOS_NIST_Set_Reference_Properties(dvPressure, dvTemperature, dvLength);
+            break;
+        default:
+            error("EOS_Set_Reference_Properties:1: Undefined Equation of State Model");
+            break;
     }
-    
-     // Convert Pressure from SI to NIST
-    dvPressureNIST = EOS_Internal_Get_SI_To_NIST_Pressure(dvPressure);
-    
-    // Compute reference properties based on Fluid State Region
-    if (ivRefState == EOS_REG_MULTIPHASE) {
-        int icount;
-        double tmp, dP, SSp, SSm;
-        
-        // Start the perturbation test on pressure: 0.1% fluctuation
-        dP = 0.001*dvPressureNIST;
-        
-        // Verify if Temperature or Pressure are Saturated Values
-        TPFLSH(&dvTemperature, &dvPressureNIST, daX, &dvDensity, &dvDensityLiq, &dvDensityVap,
-                daXLiq, daXVap, &dvQuality, &dvInternalEnergy, &dvEnthalpy, &dvEntropy, 
-                &dvCv, &dvCp, &dvSpeedSound, &SogNISTHelper.ivError, SogNISTHelper.csError, NISTTHERMO_GEN_STR_LEN);
-        if (SogNISTHelper.ivError != 0)
-            warn("EOS_Set_Reference_Properties:1: %s", SogNISTHelper.csError);
-        // Compute +dP property values
-        dvPressureNIST += dP;
-        TPFLSH(&dvTemperature, &dvPressureNIST, daX, &dvDensity, &dvDensityLiq, &dvDensityVap,
-                daXLiq, daXVap, &dvQuality, &dvInternalEnergy, &dvEnthalpy, &dvEntropy, 
-                &dvCv, &dvCp, &SSp, &SogNISTHelper.ivError, SogNISTHelper.csError, NISTTHERMO_GEN_STR_LEN);
-        if (SogNISTHelper.ivError != 0)
-            warn("EOS_Set_Reference_Properties:2: %s", SogNISTHelper.csError);
-        // Compute -dP property values
-        dvPressureNIST -= 2.0*dP;
-        TPFLSH(&dvTemperature, &dvPressureNIST, daX, &dvDensity, &dvDensityLiq, &dvDensityVap,
-                daXLiq, daXVap, &dvQuality, &dvInternalEnergy, &dvEnthalpy, &dvEntropy, 
-                &dvCv, &dvCp, &SSm, &SogNISTHelper.ivError, SogNISTHelper.csError, NISTTHERMO_GEN_STR_LEN);
-        if (SogNISTHelper.ivError != 0)
-            warn("EOS_Set_Reference_Properties:3: %s", SogNISTHelper.csError);
-        // Compute the change in speed of sound
-        tmp = fabs(SSp - SSm)/dvSpeedSound;
-        dvPressureNIST += dP; /* Original Input Pressure */
-        // If Speed of Sound Changes more then 1%: Adjust the Reference Pressure to Saturated Pressure
-        if (tmp > 0.01) {
-            info("Saturated Reference Condition Detected !");
-            info("Adjusting the Reference Pressure to Saturated Pressure");
-            // Note: This process is not valid for Pseudo Fluids
-            icount = 0;
-            // Get the Saturated Pressure from given Temperature
-            tmp = 0.0;
-            ivKph = 1; /* For Non-Pseudo Fluids ivKph = 1 or 2 have same answer */
-            SATT(&dvTemperature, daX, &ivKph, &dP, &dvDensityLiq, &dvDensityVap,
-                    daXLiq, daXVap, &SogNISTHelper.ivError, SogNISTHelper.csError, NISTTHERMO_GEN_STR_LEN);
-            // Parse the error
-            if (SogNISTHelper.ivError != 0) {
-                warn("EOS_Set_Reference_Properties:4: Unable to Compute Saturated Pressure");
-                warn(":4: %s", SogNISTHelper.csError);
-            }
-            // Compute the change in pressure
-            // If change in pressure is more then 1% register error
-            tmp = fabs(dP - dvPressureNIST)/dvPressureNIST;
-            if (tmp > 0.01)
-                icount++;
-            
-            // Get the Saturated Temperature from given Pressure
-            tmp = 0.0;
-            ivKph = 1; /* For Non-Pseudo Fluids ivKph = 1 or 2 have same answer */
-            SATP(&dvPressureNIST, daX, &ivKph, &tmp, &dvDensityLiq, &dvDensityVap,
-                    daXLiq, daXVap, &SogNISTHelper.ivError, SogNISTHelper.csError, NISTTHERMO_GEN_STR_LEN);
-            // Parse the error
-            if (SogNISTHelper.ivError != 0) {
-                warn("EOS_Set_Reference_Properties:5: Unable to Compute Saturated Temperature");
-                warn(":5: %s", SogNISTHelper.csError);
-            }
-            // Compute the change in Temperature
-            // If change in Temperature is more then 1% register error
-            tmp = fabs(tmp - dvTemperature)/dvTemperature;
-            if (tmp > 0.01)
-                icount++;
-            
-            if (icount >= 1)
-                error("EOS_Set_Reference_Properties:3: Unable to Adjust the Reference Pressure to Saturated Pressure");
-
-            // Finally Adjust the Reference Pressure to Saturated Pressure
-            dvPressureNIST = dP;
-            info("Adjusted Reference Pressure: %10.4f kPa", dvPressureNIST);
-        }
-    }
-    
-    // Get the various properties
-    // All Region: Multi-Phase, Super Heated Compressed Gas, Super Compressed Liquid, Super Heated Gas
-    TPFLSH(&dvTemperature, &dvPressureNIST, daX, &dvDensity, &dvDensityLiq, &dvDensityVap,
-            daXLiq, daXVap, &dvQuality, &dvInternalEnergy, &dvEnthalpy, &dvEntropy, 
-            &dvCv, &dvCp, &dvSpeedSound, &SogNISTHelper.ivError, SogNISTHelper.csError, NISTTHERMO_GEN_STR_LEN);
-    if (SogNISTHelper.ivError != 0)
-        error("EOS_Set_Reference_Properties:4: %s", SogNISTHelper.csError);
-    
-    // Set the Reference Properties in SI Units
-    dvgTemperature_Ref       = dvTemperature;
-    dvgLength_Ref            = dvLength;
-    dvgDensity_Ref           = EOS_Internal_Get_NIST_To_SI_Density(dvDensity);
-    dvgSpeedSound_Ref        = dvSpeedSound;
-    dvgRatioSpecificHeat_Ref = dvCp/dvCv;
-    // Derived Reference Properties
-    dvgPressure_Ref          = dvgDensity_Ref*dvgSpeedSound_Ref*dvgSpeedSound_Ref; // Pressure in Pa
-    dvgVelocity_Ref          = dvgSpeedSound_Ref;
-    dvgMach_Ref              = 1.0;
-    dvgTime_Ref              = dvgLength_Ref/dvgSpeedSound_Ref;
-    dvgEnthalpy_Ref          = dvgSpeedSound_Ref*dvgSpeedSound_Ref;
-    dvgTotalEnthalpy_Ref     = dvgEnthalpy_Ref;
-    dvgInternalEnergy_Ref    = dvgEnthalpy_Ref;
-    dvgTotalEnergy_Ref       = dvgEnthalpy_Ref;
-    dvgGasConstant_Ref       = dvgEnthalpy_Ref/dvgTemperature_Ref;
-    dvgEntropy_Ref           = dvgGasConstant_Ref;
-    dvgHeatCapacityCv_Ref    = dvgGasConstant_Ref;
-    dvgHeatCapacityCp_Ref    = dvgGasConstant_Ref;
-    dvgEntropyConst_Ref      = 1.0;
-    ivgSet_Ref               = 1;
 }
-
 
 //------------------------------------------------------------------------------
 //! Get the Reference Property for Fluid
@@ -293,7 +167,7 @@ void EOS_Print_Reference_Properties() {
     
     printf("=============================================================================\n");
     info("Density_Ref                       = %15.6f kg/m^3", dvgDensity_Ref);
-    info("Pressure_Ref                      = %15.6f kPa",    EOS_Internal_Get_SI_To_NIST_Pressure(dvgPressure_Ref)); // Pressure in kPa
+    info("Pressure_Ref                      = %15.6f kPa",    dvgPressure_Ref/1000.0); // Pressure in kPa
     info("Temperature_Ref                   = %15.6f K",      dvgTemperature_Ref);
     info("Velocity_Ref                      = %15.6f m/s",    dvgVelocity_Ref);
     info("Length_Ref                        = %15.6f m",      dvgLength_Ref);
@@ -305,8 +179,8 @@ void EOS_Print_Reference_Properties() {
     info("InternalEnergy_Ref                = %15.6f J/kg",   dvgInternalEnergy_Ref);
     info("TotalEnthalpy_Ref                 = %15.6f J/kg",   dvgTotalEnthalpy_Ref);
     info("TotalEnergy_Ref                   = %15.6f J/kg",   dvgTotalEnergy_Ref);
-    info("Heat Capacity Cv                  = %15.6f J/kg-K", dvgHeatCapacityCv_Ref);
-    info("Heat Capacity Cp                  = %15.6f J/kg-K", dvgHeatCapacityCp_Ref);
+    info("Heat Capacity Cv_Ref              = %15.6f J/kg-K", dvgHeatCapacityCv_Ref);
+    info("Heat Capacity Cp_Ref              = %15.6f J/kg-K", dvgHeatCapacityCp_Ref);
     info("GasConstant_Ref                   = %15.6f J/kg-K", dvgGasConstant_Ref);
     info("RatioSpecificHeat_Ref             = %15.6f",        dvgRatioSpecificHeat_Ref);
     info("EntropyConst_Ref                  = %15.6f",        dvgEntropyConst_Ref);
@@ -318,169 +192,20 @@ void EOS_Print_Reference_Properties() {
 //! Input and Output property are based on Dimensional Input/Output Type
 //------------------------------------------------------------------------------
 void EOS_Get_Properties(int ivDimIOType, int ivVariableType, double *dpVariableIn, double *dpPropertyOut) {
-    int i;
-    double dvRho, dvRhoL, dvRhoV, dvPressure, dvTemperature;
-    double dvVelocityU, dvVelocityV, dvVelocityW, dvQ2, dvSpeedSound, dvMach;
-    double dvEntropy, dvEnthalpy, dvInternalEnergy, dvTotalEnergy, dvTotalEnthalpy;
-    double dvCv, dvCp;
-    double daVariableDimensional[EOS_NEQUATIONS];
-    double dvRhoNIST, dvRhoLNIST, dvRhoVNIST, dvPressureNIST, dvQualityNIST;
-    
-    // Dimensionalize the Input Properties based on I/O Type
-    switch (ivDimIOType) {
-        // Type Input: Non-Dimensional  Output: Non-Dimensional
-        case EOS_DIMENSIONAL_IO_ND_ND:
-            EOS_Internal_Dimensionalize_Variables(ivVariableType, dpVariableIn, daVariableDimensional);
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            EOS_IdealGas_Get_Properties(ivDimIOType, ivVariableType, dpVariableIn, dpPropertyOut);
             break;
-        // Type Input: Dimensional  Output: Dimensional
-        case EOS_DIMENSIONAL_IO_D_D:
-            for (i = 0; i < EOS_NEQUATIONS; i++)
-                daVariableDimensional[i] = dpVariableIn[i];
-            break;
-        // Type Input: Non-Dimensional  Output: Dimensional
-        case EOS_DIMENSIONAL_IO_ND_D:
-            EOS_Internal_Dimensionalize_Variables(ivVariableType, dpVariableIn, daVariableDimensional);
-            break;
-        // Type Input: Dimensional  Output: Non-Dimensional
-        case EOS_DIMENSIONAL_IO_D_ND:
-            for (i = 0; i < EOS_NEQUATIONS; i++)
-                daVariableDimensional[i] = dpVariableIn[i];
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            EOS_NIST_Get_Properties(ivDimIOType, ivVariableType, dpVariableIn, dpPropertyOut);
             break;
         default:
-            error("EOS_Get_Properties:1: Undefined Dimensional Input/Output -%d", ivDimIOType);
+            error("EOS_Get_Properties:1: Undefined Equation of State Model");
             break;
     }
-    
-    //-START--------------Dimensional Computations------------------------------
-    // Compute Properties Based on Input Variable Types
-    switch(ivVariableType) {
-        // Conservative Variables
-        case EOS_VARIABLE_CON:
-            error("EOS_Get_Properties:2: Conservative Variables Not Implemented");
-            break;
-        // Primitive Variable Formulation Density Velocity Pressure
-        case EOS_VARIABLE_RUP:
-            dvRho       = daVariableDimensional[0];
-            dvVelocityU = daVariableDimensional[1];
-            dvVelocityV = daVariableDimensional[2];
-            dvVelocityW = daVariableDimensional[3];
-            dvPressure  = daVariableDimensional[4];
-            dvQ2        = dvVelocityU*dvVelocityU + dvVelocityV*dvVelocityV + dvVelocityW*dvVelocityW;
-            // Compute NIST compatible values
-            dvRhoNIST      = EOS_Internal_Get_SI_To_NIST_Density(dvRho);
-            dvPressureNIST = EOS_Internal_Get_SI_To_NIST_Pressure(dvPressure);
-            // Compute Thermodynamic Quantities
-            PDEPDFLSH(&dvPressureNIST, &dvRhoNIST, SogNISTHelper.daX, &dvTemperature, &dvRhoLNIST, &dvRhoVNIST,
-                    SogNISTHelper.daXLiq, SogNISTHelper.daXVap, &dvQualityNIST, &dvInternalEnergy, &dvEnthalpy,
-                    &dvEntropy, &dvCv, &dvCp, &dvSpeedSound, &SogNISTHelper.ivError, SogNISTHelper.csError,
-                    NISTTHERMO_GEN_STR_LEN);
-            break;
-        // Primitive Variable Formulation Pressure Velocity Temperature
-        case EOS_VARIABLE_PUT:
-            error("EOS_Get_Properties:3: EOS_VARIABLE_PUT Variables Not Implemented");
-            break;
-        // Primitive Variable Formulation Pressure Velocity Temperature
-        case EOS_VARIABLE_PUS:
-            error("EOS_Get_Properties:4: EOS_VARIABLE_PUS Variables Not Implemented");
-            break;
-        // Primitive Variable Formulation Density Velocity Temperature
-        case EOS_VARIABLE_RUT:
-            dvRho         = daVariableDimensional[0];
-            dvVelocityU   = daVariableDimensional[1];
-            dvVelocityV   = daVariableDimensional[2];
-            dvVelocityW   = daVariableDimensional[3];
-            dvTemperature = daVariableDimensional[4];
-            dvQ2          = dvVelocityU*dvVelocityU + dvVelocityV*dvVelocityV + dvVelocityW*dvVelocityW;
-            // Compute NIST compatible values
-            dvRhoNIST     = EOS_Internal_Get_SI_To_NIST_Density(dvRho);
-            // Compute Thermodynamic Quantities
-            TDETDFLSH(&dvTemperature, &dvRhoNIST, SogNISTHelper.daX, &dvPressureNIST, &dvRhoLNIST, &dvRhoVNIST,
-                    SogNISTHelper.daXLiq, SogNISTHelper.daXVap, &dvQualityNIST, &dvInternalEnergy, &dvEnthalpy,
-                    &dvEntropy, &dvCv, &dvCp, &dvSpeedSound, &SogNISTHelper.ivError, SogNISTHelper.csError,
-                    NISTTHERMO_GEN_STR_LEN);
-            break;
-        default:
-            error("EOS_Get_Properties:5: Undefined Variable Type - %d", ivVariableType);
-            break;
-    }
-    
-    // Properties in NIST Units
-    dpPropertyOut[ 0] = dvRhoNIST;
-    dpPropertyOut[ 1] = dvRhoLNIST;
-    dpPropertyOut[ 2] = dvRhoVNIST;
-    dpPropertyOut[ 3] = dvPressureNIST;
-    dpPropertyOut[ 4] = dvTemperature;
-    dpPropertyOut[ 5] = dvSpeedSound;
-    dpPropertyOut[ 6] = dvEntropy;
-    dpPropertyOut[ 7] = dvEnthalpy;
-    dpPropertyOut[ 8] = dvInternalEnergy;
-    dpPropertyOut[ 9] = dvCv;
-    dpPropertyOut[10] = dvCp;
-    
-    // Convert Properties From NIST to SI units
-    EOS_Internal_Get_NIST_To_SI_Property(dpPropertyOut);
-    
-    // Get the Properties in SI units
-    dvRho            = dpPropertyOut[ 0];
-    dvRhoL           = dpPropertyOut[ 1];
-    dvRhoV           = dpPropertyOut[ 2];
-    dvPressure       = dpPropertyOut[ 3];
-    dvTemperature    = dpPropertyOut[ 4];
-    dvSpeedSound     = dpPropertyOut[ 5];
-    dvEntropy        = dpPropertyOut[ 6];
-    dvEnthalpy       = dpPropertyOut[ 7];
-    dvInternalEnergy = dpPropertyOut[ 8];
-    dvCv             = dpPropertyOut[ 9];
-    dvCp             = dpPropertyOut[10];
-    
-    // Compute the Remaining Properties in SI units
-    dvMach          = sqrt(dvQ2)/dvSpeedSound;
-    dvTotalEnthalpy = dvEnthalpy + 0.5*dvQ2;
-    dvTotalEnergy   = dvInternalEnergy + 0.5*dvQ2;
-    
-    // Update the Output (is Dimensional)
-    dpPropertyOut[ 0] = dvRho;
-    dpPropertyOut[ 1] = dvRhoL;
-    dpPropertyOut[ 2] = dvRhoV;
-    dpPropertyOut[ 3] = dvPressure;
-    dpPropertyOut[ 4] = dvTemperature;
-    dpPropertyOut[ 5] = dvVelocityU;
-    dpPropertyOut[ 6] = dvVelocityV;
-    dpPropertyOut[ 7] = dvVelocityW;
-    dpPropertyOut[ 8] = dvQ2;
-    dpPropertyOut[ 9] = dvSpeedSound;
-    dpPropertyOut[10] = dvMach;
-    dpPropertyOut[11] = dvEntropy;
-    dpPropertyOut[12] = dvEnthalpy;
-    dpPropertyOut[13] = dvInternalEnergy;
-    dpPropertyOut[14] = dvTotalEnthalpy;
-    dpPropertyOut[15] = dvTotalEnergy;
-    dpPropertyOut[16] = dvCv;
-    dpPropertyOut[17] = dvCp;
-    
-    // Dimensionalize the Output Properties based on I/O Type
-    switch (ivDimIOType) {
-        // Type Input: Non-Dimensional  Output: Non-Dimensional
-        case EOS_DIMENSIONAL_IO_ND_ND:
-            EOS_Internal_NonDimensionalize_Properties(dpPropertyOut, dpPropertyOut);
-            break;
-        // Type Input: Dimensional  Output: Dimensional
-        case EOS_DIMENSIONAL_IO_D_D:
-            // Do Nothing Output is Dimensional (SI Units)
-            break;
-        // Type Input: Non-Dimensional  Output: Dimensional
-        case EOS_DIMENSIONAL_IO_ND_D:
-            // Do Nothing Output is Dimensional (SI Units)
-            break;
-        // Type Input: Dimensional  Output: Non-Dimensional
-        case EOS_DIMENSIONAL_IO_D_ND:
-            EOS_Internal_NonDimensionalize_Properties(dpPropertyOut, dpPropertyOut);
-            break;
-        default:
-            error("EOS_Get_Properties:6: Undefined Dimensional Input/Output -%d", ivDimIOType);
-            break;
-    }
-    //-END----------------Dimensional Computations------------------------------
 }
 
 //------------------------------------------------------------------------------
@@ -488,264 +213,792 @@ void EOS_Get_Properties(int ivDimIOType, int ivVariableType, double *dpVariableI
 //! Input and Output property are based on Dimensional Input/Output Type
 //------------------------------------------------------------------------------
 void EOS_Get_Extended_Properties(int ivDimIOType, int ivVariableType, double *dpVariableIn, double *dpPropertyOut) {
-    int i;
-    double dvRho, dvRhoL, dvRhoV, dvPressure, dvTemperature;
-    double dvRhoNIST, dvRhoLNIST, dvRhoVNIST, dvPressureNIST;
-    double dvVelocityU, dvVelocityV, dvVelocityW, dvQ2, dvSpeedSound, dvMach;
-    double dvEntropy, dvEnthalpy, dvInternalEnergy, dvTotalEnergy, dvTotalEnthalpy;
-    double dvCv, dvCp, dvDPDRho, dvDPDT, dvDRhoDT, dvDRhoDP, dvD2PDRho2, dvD2PDT2, dvD2PDTRho;
-    double dvDHdT_Rho, dvDHdT_P, dvDHDRho_T, dvDHDRho_P, dvDHDP_T, dvDHDP_Rho;
-    double dvDEdT_Rho, dvDEdT_P, dvDEDRho_T, dvDEDRho_P, dvDEDP_T, dvDEDP_Rho;
-    double daVariableDimensional[EOS_NEQUATIONS];
-    
-    // Dimensionalize the Input Properties based on I/O Type
-    switch (ivDimIOType) {
-        // Type Input: Non-Dimensional  Output: Non-Dimensional
-        case EOS_DIMENSIONAL_IO_ND_ND:
-            EOS_Internal_Dimensionalize_Variables(ivVariableType, dpVariableIn, daVariableDimensional);
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            EOS_IdealGas_Get_Extended_Properties(ivDimIOType, ivVariableType, dpVariableIn, dpPropertyOut);
             break;
-        // Type Input: Dimensional  Output: Dimensional
-        case EOS_DIMENSIONAL_IO_D_D:
-            for (i = 0; i < EOS_NEQUATIONS; i++)
-                daVariableDimensional[i] = dpVariableIn[i];
-            break;
-        // Type Input: Non-Dimensional  Output: Dimensional
-        case EOS_DIMENSIONAL_IO_ND_D:
-            EOS_Internal_Dimensionalize_Variables(ivVariableType, dpVariableIn, daVariableDimensional);
-            break;
-        // Type Input: Dimensional  Output: Non-Dimensional
-        case EOS_DIMENSIONAL_IO_D_ND:
-            for (i = 0; i < EOS_NEQUATIONS; i++)
-                daVariableDimensional[i] = dpVariableIn[i];
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            EOS_NIST_Get_Extended_Properties(ivDimIOType, ivVariableType, dpVariableIn, dpPropertyOut);
             break;
         default:
-            error("EOS_Get_Properties:1: Undefined Dimensional Input/Output -%d", ivDimIOType);
+            error("EOS_Get_Extended_Properties:1: Undefined Equation of State Model");
+            break;
+    }
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_Density(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_Density(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_Density(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_Density:1: Undefined Equation of State Model");
             break;
     }
     
-    //-START--------------Dimensional Computations------------------------------
-    // Compute Properties Based on Input Variable Types
-    switch(ivVariableType) {
-        // Conservative Variables
-        case EOS_VARIABLE_CON:
-            error("EOS_Get_Extended_Properties:2: Conservative Variables Not Implemented");
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_DensityLiquid(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_DensityLiquid(ivDimIOType, ivVariableType, dpVariableIn);
             break;
-        // Primitive Variable Formulation Density Velocity Pressure
-        case EOS_VARIABLE_RUP:
-            dvRho       = daVariableDimensional[0];
-            dvVelocityU = daVariableDimensional[1];
-            dvVelocityV = daVariableDimensional[2];
-            dvVelocityW = daVariableDimensional[3];
-            dvPressure  = daVariableDimensional[4];
-            dvQ2        = dvVelocityU*dvVelocityU + dvVelocityV*dvVelocityV + dvVelocityW*dvVelocityW;
-            // Compute NIST compatible values
-            dvRhoNIST      = EOS_Internal_Get_SI_To_NIST_Density(dvRho);
-            dvPressureNIST = EOS_Internal_Get_SI_To_NIST_Pressure(dvPressure);
-            // Compute Thermodynamic Extended Quantities
-            PDEPDFLSH2(&dvPressureNIST, &dvRhoNIST, SogNISTHelper.daX, SogNISTHelper.daXLiq, SogNISTHelper.daXVap,
-                    dpPropertyOut, &SogNISTHelper.ivError, SogNISTHelper.csError, NISTTHERMO_GEN_STR_LEN);
-            break;
-        // Primitive Variable Formulation Pressure Velocity Temperature
-        case EOS_VARIABLE_PUT:
-            error("EOS_Get_Extended_Properties:3: EOS_VARIABLE_PUT Variables Not Implemented");
-            break;
-        // Primitive Variable Formulation Pressure Velocity Temperature
-        case EOS_VARIABLE_PUS:
-            error("EOS_Get_Extended_Properties:4: EOS_VARIABLE_PUS Variables Not Implemented");
-            break;
-        // Primitive Variable Formulation Density Velocity Temperature
-        case EOS_VARIABLE_RUT:
-            dvRho         = daVariableDimensional[0];
-            dvVelocityU   = daVariableDimensional[1];
-            dvVelocityV   = daVariableDimensional[2];
-            dvVelocityW   = daVariableDimensional[3];
-            dvTemperature = daVariableDimensional[4];
-            dvQ2          = dvVelocityU*dvVelocityU + dvVelocityV*dvVelocityV + dvVelocityW*dvVelocityW;
-            // Compute NIST compatible values
-            dvRhoNIST     = EOS_Internal_Get_SI_To_NIST_Density(dvRho);
-            // Compute Thermodynamic Quantities
-            TDETDFLSH2(&dvTemperature, &dvRhoNIST, SogNISTHelper.daX, SogNISTHelper.daXLiq, SogNISTHelper.daXVap, 
-                    dpPropertyOut, &SogNISTHelper.ivError, SogNISTHelper.csError, NISTTHERMO_GEN_STR_LEN);
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_DensityLiquid(ivDimIOType, ivVariableType, dpVariableIn);
             break;
         default:
-            error("EOS_Get_Extended_Properties:5: Undefined Variable Type - %d", ivVariableType);
+            error("EOS_Get_DensityLiquid:1: Undefined Equation of State Model");
             break;
     }
     
-    // Properties in NIST units
-    switch (ivVariableType) {
-        // Conservative Variables
-        case EOS_VARIABLE_CON:
-            error("EOS_Get_Extended_Properties:6: Conservative Variables Not Implemented");
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_DensityVapor(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_DensityVapor(ivDimIOType, ivVariableType, dpVariableIn);
             break;
-        // Primitive Variable Formulation Density Velocity Pressure
-        case EOS_VARIABLE_RUP:
-            dvTemperature = dpPropertyOut[0];
-            break;
-        // Primitive Variable Formulation Pressure Velocity Temperature
-        case EOS_VARIABLE_PUT:
-            error("EOS_Get_Extended_Properties:7: EOS_VARIABLE_PUT Variables Not Implemented");
-            break;
-        // Primitive Variable Formulation Pressure Velocity Temperature
-        case EOS_VARIABLE_PUS:
-            error("EOS_Get_Extended_Properties:8: EOS_VARIABLE_PUS Variables Not Implemented");
-            break;
-        // Primitive Variable Formulation Density Velocity Temperature
-        case EOS_VARIABLE_RUT:
-            dvPressureNIST = dpPropertyOut[0];
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_DensityVapor(ivDimIOType, ivVariableType, dpVariableIn);
             break;
         default:
-            error("EOS_Get_Extended_Properties:9: Undefined Variable Type - %d", ivVariableType);
+            error("EOS_Get_DensityVapor:1: Undefined Equation of State Model");
             break;
     }
-    dvRhoLNIST       = dpPropertyOut[1];
-    dvRhoVNIST       = dpPropertyOut[2];
-    dvInternalEnergy = dpPropertyOut[4];
-    dvEnthalpy       = dpPropertyOut[5];
-    dvEntropy        = dpPropertyOut[6];
-    dvCv             = dpPropertyOut[7];
-    dvCp             = dpPropertyOut[8];
-    dvSpeedSound     = dpPropertyOut[9];
-    dvDPDRho         = dpPropertyOut[16];
-    dvDPDT           = dpPropertyOut[17];
-    dvDRhoDT         = dpPropertyOut[18];
-    dvDRhoDP         = dpPropertyOut[19];
-    dvD2PDRho2       = dpPropertyOut[20];
-    dvD2PDT2         = dpPropertyOut[21];
-    dvD2PDTRho       = dpPropertyOut[22];
-    dvDHdT_Rho       = dpPropertyOut[23];
-    dvDHdT_P         = dpPropertyOut[24];
-    dvDHDRho_T       = dpPropertyOut[25];
-    dvDHDRho_P       = dpPropertyOut[26];
-    dvDHDP_T         = dpPropertyOut[27];
-    dvDHDP_Rho       = dpPropertyOut[28];
     
-    // Convert the Properties From NIST to SI units
-    dpPropertyOut[ 0] = dvRhoNIST;
-    dpPropertyOut[ 1] = dvRhoLNIST;
-    dpPropertyOut[ 2] = dvRhoVNIST;
-    dpPropertyOut[ 3] = dvPressureNIST;
-    dpPropertyOut[ 4] = dvTemperature;
-    dpPropertyOut[ 5] = dvSpeedSound;
-    dpPropertyOut[ 6] = dvEntropy;
-    dpPropertyOut[ 7] = dvEnthalpy;
-    dpPropertyOut[ 8] = dvInternalEnergy;
-    dpPropertyOut[ 9] = dvCv;
-    dpPropertyOut[10] = dvCp;
-    dpPropertyOut[11] = dvDPDRho;
-    dpPropertyOut[12] = dvDPDT;
-    dpPropertyOut[13] = dvDRhoDT;
-    dpPropertyOut[14] = dvDRhoDP;
-    dpPropertyOut[15] = dvD2PDRho2;
-    dpPropertyOut[16] = dvD2PDT2;
-    dpPropertyOut[17] = dvD2PDTRho;
-    dpPropertyOut[18] = dvDHdT_Rho;
-    dpPropertyOut[19] = dvDHdT_P;
-    dpPropertyOut[20] = dvDHDRho_T;
-    dpPropertyOut[21] = dvDHDRho_P;
-    dpPropertyOut[22] = dvDHDP_T;
-    dpPropertyOut[23] = dvDHDP_Rho;
-    EOS_Internal_Get_NIST_To_SI_Extended_Property(dpPropertyOut);
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_Pressure(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
     
-    // Get the Properties in SI units
-    dvRho            = dpPropertyOut[ 0];
-    dvRhoL           = dpPropertyOut[ 1];
-    dvRhoV           = dpPropertyOut[ 2];
-    dvPressure       = dpPropertyOut[ 3];
-    dvTemperature    = dpPropertyOut[ 4];
-    dvSpeedSound     = dpPropertyOut[ 5];
-    dvEntropy        = dpPropertyOut[ 6];
-    dvEnthalpy       = dpPropertyOut[ 7];
-    dvInternalEnergy = dpPropertyOut[ 8];
-    dvCv             = dpPropertyOut[ 9];
-    dvCp             = dpPropertyOut[10];
-    dvDPDRho         = dpPropertyOut[11];
-    dvDPDT           = dpPropertyOut[12];
-    dvDRhoDT         = dpPropertyOut[13];
-    dvDRhoDP         = dpPropertyOut[14];
-    dvD2PDRho2       = dpPropertyOut[15];
-    dvD2PDT2         = dpPropertyOut[16];
-    dvD2PDTRho       = dpPropertyOut[17];
-    dvDHdT_Rho       = dpPropertyOut[18];
-    dvDHdT_P         = dpPropertyOut[19];
-    dvDHDRho_T       = dpPropertyOut[20];
-    dvDHDRho_P       = dpPropertyOut[21];
-    dvDHDP_T         = dpPropertyOut[22];
-    dvDHDP_Rho       = dpPropertyOut[23];
-    
-    // Compute the Remaining Properties in SI units
-    dvMach          = sqrt(dvQ2)/dvSpeedSound;
-    dvTotalEnthalpy = dvEnthalpy + 0.5*dvQ2;
-    dvTotalEnergy   = dvInternalEnergy + 0.5*dvQ2;
-    dvDEdT_Rho      = dvDHdT_Rho - dvDPDT/dvRho;
-    dvDEdT_P        = dvDHdT_P + dvPressure*dvDRhoDT/(dvRho*dvRho);
-    dvDEDRho_T      = dvDHDRho_T + dvPressure/(dvRho*dvRho) - dvDPDRho/dvRho;
-    dvDEDRho_P      = dvDHDRho_P + dvPressure/(dvRho*dvRho);
-    dvDEDP_T        = dvDHDP_T - 1.0/dvRho + dvPressure*dvDRhoDP/(dvRho*dvRho);
-    dvDEDP_Rho      = dvDHDP_Rho - 1.0/dvRho;
-    
-    // Update the Output (is Dimensional)
-    dpPropertyOut[ 0] = dvRho;
-    dpPropertyOut[ 1] = dvRhoL;
-    dpPropertyOut[ 2] = dvRhoV;
-    dpPropertyOut[ 3] = dvPressure;
-    dpPropertyOut[ 4] = dvTemperature;
-    dpPropertyOut[ 5] = dvVelocityU;
-    dpPropertyOut[ 6] = dvVelocityV;
-    dpPropertyOut[ 7] = dvVelocityW;
-    dpPropertyOut[ 8] = dvQ2;
-    dpPropertyOut[ 9] = dvSpeedSound;
-    dpPropertyOut[10] = dvMach;
-    dpPropertyOut[11] = dvEntropy;
-    dpPropertyOut[12] = dvEnthalpy;
-    dpPropertyOut[13] = dvInternalEnergy;
-    dpPropertyOut[14] = dvTotalEnthalpy;
-    dpPropertyOut[15] = dvTotalEnergy;
-    dpPropertyOut[16] = dvCv;
-    dpPropertyOut[17] = dvCp;
-    dpPropertyOut[18] = dvDPDRho;
-    dpPropertyOut[19] = dvDPDT;
-    dpPropertyOut[20] = dvDRhoDT;
-    dpPropertyOut[21] = dvDRhoDP;
-    dpPropertyOut[22] = dvD2PDRho2;
-    dpPropertyOut[23] = dvD2PDT2;
-    dpPropertyOut[24] = dvD2PDTRho;
-    dpPropertyOut[25] = dvDHdT_Rho;
-    dpPropertyOut[26] = dvDHdT_P;
-    dpPropertyOut[27] = dvDHDRho_T;
-    dpPropertyOut[28] = dvDHDRho_P;
-    dpPropertyOut[29] = dvDHDP_T;
-    dpPropertyOut[30] = dvDHDP_Rho;
-    dpPropertyOut[31] = dvDEdT_Rho;
-    dpPropertyOut[32] = dvDEdT_P;
-    dpPropertyOut[33] = dvDEDRho_T;
-    dpPropertyOut[34] = dvDEDRho_P;
-    dpPropertyOut[35] = dvDEDP_T;
-    dpPropertyOut[36] = dvDEDP_Rho;
-    
-    // Dimensionalize the Output Properties based on I/O Type
-    switch (ivDimIOType) {
-        // Type Input: Non-Dimensional  Output: Non-Dimensional
-        case EOS_DIMENSIONAL_IO_ND_ND:
-            EOS_Internal_NonDimensionalize_Extended_Properties(dpPropertyOut, dpPropertyOut);
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_Pressure(ivDimIOType, ivVariableType, dpVariableIn);
             break;
-        // Type Input: Dimensional  Output: Dimensional
-        case EOS_DIMENSIONAL_IO_D_D:
-            // Do Nothing Output is Dimensional (SI Units)
-            break;
-        // Type Input: Non-Dimensional  Output: Dimensional
-        case EOS_DIMENSIONAL_IO_ND_D:
-            // Do Nothing Output is Dimensional (SI Units)
-            break;
-        // Type Input: Dimensional  Output: Non-Dimensional
-        case EOS_DIMENSIONAL_IO_D_ND:
-            EOS_Internal_NonDimensionalize_Extended_Properties(dpPropertyOut, dpPropertyOut);
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_Pressure(ivDimIOType, ivVariableType, dpVariableIn);
             break;
         default:
-            error("EOS_Get_Properties:10: Undefined Dimensional Input/Output -%d", ivDimIOType);
+            error("EOS_Get_Pressure:1: Undefined Equation of State Model");
             break;
     }
-    //-END----------------Dimensional Computations------------------------------
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_Temperature(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_Temperature(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_Temperature(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_Temperature:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_SpeedSound(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_SpeedSound(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_SpeedSound(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_SpeedSound:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_Mach(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_Mach(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_Mach(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_Mach:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_Entropy(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_Entropy(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_Entropy(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_Entropy:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_Enthalpy(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_Enthalpy(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_Enthalpy(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_Enthalpy:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_InternalEnergy(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_InternalEnergy(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_InternalEnergy(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_InternalEnergy:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_TotalEnthalpy(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_TotalEnthalpy(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_TotalEnthalpy(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_TotalEnthalpy:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_TotalEnergy(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_TotalEnergy(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_TotalEnergy(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_TotalEnergy:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_HeatCapacityCv(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_HeatCapacityCv(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_HeatCapacityCv(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_HeatCapacityCv:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_HeatCapacityCp(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_HeatCapacityCp(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_HeatCapacityCp(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_HeatCapacityCp:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+// Compute First Derivatives
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_DPressureDDensity(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_DPressureDDensity(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_DPressureDDensity(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_DPressureDDensity:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_DPressureDTemperature(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_DPressureDTemperature(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_DPressureDTemperature(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_DPressureDTemperature:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_DDensityDTemperature(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_DDensityDTemperature(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_DDensityDTemperature(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_DDensityDTemperature:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+// Compute Second Derivatives
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_D2PressureDDensity2(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_D2PressureDDensity2(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_D2PressureDDensity2(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_D2PressureDDensity2:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_D2PressureDTemperature2(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_D2PressureDTemperature2(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_D2PressureDTemperature2(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_D2PressureDTemperature2:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_D2PressureDTemperatureDensity(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_D2PressureDTemperatureDensity(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_D2PressureDTemperatureDensity(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_D2PressureDTemperatureDensity:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+// Enthalpy First Derivatives
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_DEnthalpyDTemperature_CDensity(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_DEnthalpyDTemperature_CDensity(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_DEnthalpyDTemperature_CDensity(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_DEnthalpyDTemperature_CDensity:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_DEnthalpyDTemperature_CPressure(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_DEnthalpyDTemperature_CPressure(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_DEnthalpyDTemperature_CPressure(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_DEnthalpyDTemperature_CPressure:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_DEnthalpyDDensity_CTemperature(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_DEnthalpyDDensity_CTemperature(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_DEnthalpyDDensity_CTemperature(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_DEnthalpyDDensity_CTemperature:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_DEnthalpyDDensity_CPressure(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_DEnthalpyDDensity_CPressure(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_DEnthalpyDDensity_CPressure(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_DEnthalpyDDensity_CPressure:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_DEnthalpyDPressure_CTemperature(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_DEnthalpyDPressure_CTemperature(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_DEnthalpyDPressure_CTemperature(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_DEnthalpyDPressure_CTemperature:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_DEnthalpyDPressure_CDensity(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_DEnthalpyDPressure_CDensity(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_DEnthalpyDPressure_CDensity(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_DEnthalpyDPressure_CDensity:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+// Internal Energy First Derivatives
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_DInternalEnergyDTemperature_CDensity(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_DInternalEnergyDTemperature_CDensity(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_DInternalEnergyDTemperature_CDensity(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_DInternalEnergyDTemperature_CDensity:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_DInternalEnergyDTemperature_CPressure(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_DInternalEnergyDTemperature_CPressure(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_DInternalEnergyDTemperature_CPressure(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_DInternalEnergyDTemperature_CPressure:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_DInternalEnergyDDensity_CTemperature(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_DInternalEnergyDDensity_CTemperature(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_DInternalEnergyDDensity_CTemperature(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_DInternalEnergyDDensity_CTemperature:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_DInternalEnergyDDensity_CPressure(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_DInternalEnergyDDensity_CPressure(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_DInternalEnergyDDensity_CPressure(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_DInternalEnergyDDensity_CPressure:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_DInternalEnergyDPressure_CTemperature(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_DInternalEnergyDPressure_CTemperature(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_DInternalEnergyDPressure_CTemperature(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_DInternalEnergyDPressure_CTemperature:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_DInternalEnergyDPressure_CDensity(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_DInternalEnergyDPressure_CDensity(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_DInternalEnergyDPressure_CDensity(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_DInternalEnergyDPressure_CDensity:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
 }
 
 //------------------------------------------------------------------------------
