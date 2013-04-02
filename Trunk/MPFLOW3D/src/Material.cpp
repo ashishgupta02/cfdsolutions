@@ -204,241 +204,13 @@ void ComputeFarFieldCondition(int Iteration) {
     Outflow_Pressure = NonDim_Pressure - Gauge_Pressure;
 }
 
-
-//------------------------------------------------------------------------------
-//! Compute Equation of State Variables at Face/Edge
-//------------------------------------------------------------------------------
-void Compute_EOS_Variables_Face(double *Q, double nx, double ny, double nz,
-        double &rho, double &pressure, double &temperature,
-        double &velocity_u, double &velocity_v, double &velocity_w, double &q2,
-        double &speed_sound, double &mach, double &ubar, double &total_energy, 
-        double &total_enthalpy) {
-    
-    // Compute the EOS Based on Non Dimensionalization and Variable Type of Q
-    switch (NonDimensionalMethod) {
-        // Default Non Dimensionalization
-        case NONDIMENSIONAL_METHOD_GENERIC:
-            switch (VariableType) {
-                // Conservative Variable Formulation
-                case VARIABLE_CONSERVATIVE:
-                    rho            = Q[0];
-                    velocity_u     = Q[1]/rho;
-                    velocity_v     = Q[2]/rho;
-                    velocity_w     = Q[3]/rho;
-                    total_energy   = Q[4]/rho;
-                    q2             = velocity_u*velocity_u + velocity_v*velocity_v + velocity_w*velocity_w;
-                    pressure       = (Gamma - 1.0)*(rho*total_energy - 0.5*rho*q2);
-                    total_enthalpy = (rho*total_energy + pressure)/rho;
-                    speed_sound    = sqrt((Gamma * pressure) / rho);
-                    mach           = sqrt(q2)/speed_sound;
-                    ubar           = velocity_u*nx + velocity_v*ny + velocity_w*nz;
-                    temperature    = pressure/(NonDim_R*rho);
-                    break;
-                // Primitive Variable Formulation Pressure Velocity Temperature
-                case VARIABLE_PRIMITIVE_PUT:
-                    pressure       = Q[0] + Gauge_Pressure;
-                    velocity_u     = Q[1];
-                    velocity_v     = Q[2];
-                    velocity_w     = Q[3];
-                    temperature    = Q[4];
-                    rho            = pressure/(NonDim_R*temperature);
-                    q2             = velocity_u*velocity_u + velocity_v*velocity_v + velocity_w*velocity_w;
-                    total_energy   = pressure/((Gamma - 1.0)*rho) + 0.5*q2;
-                    total_enthalpy = (rho*total_energy + pressure)/rho;
-                    speed_sound    = sqrt((Gamma * pressure) / rho);
-                    mach           = sqrt(q2)/speed_sound;
-                    ubar           = velocity_u*nx + velocity_v*ny + velocity_w*nz;
-                    pressure       = Q[0]; // Only Perturbation
-                    break;
-                // Primitive Variable Formulation Density Velocity Pressure
-                case VARIABLE_PRIMITIVE_RUP:
-                    rho            = Q[0];
-                    velocity_u     = Q[1];
-                    velocity_v     = Q[2];
-                    velocity_w     = Q[3];
-                    pressure       = Q[4] + Gauge_Pressure;
-                    temperature    = pressure/(NonDim_R*rho);
-                    q2             = velocity_u*velocity_u + velocity_v*velocity_v + velocity_w*velocity_w;
-                    total_energy   = pressure/((Gamma - 1.0)*rho) + 0.5*q2;
-                    total_enthalpy = (rho*total_energy + pressure)/rho;
-                    speed_sound    = sqrt((Gamma * pressure) / rho);
-                    mach           = sqrt(q2)/speed_sound;
-                    ubar           = velocity_u*nx + velocity_v*ny + velocity_w*nz;
-                    pressure       = Q[4]; // Only Perturbation
-                    break;
-                // Primitive Variable Formulation Density Velocity Temperature
-                case VARIABLE_PRIMITIVE_RUT:
-                    rho            = Q[0];
-                    velocity_u     = Q[1];
-                    velocity_v     = Q[2];
-                    velocity_w     = Q[3];
-                    temperature    = Q[4];
-                    pressure       = temperature*NonDim_R*rho;
-                    q2             = velocity_u*velocity_u + velocity_v*velocity_v + velocity_w*velocity_w;
-                    total_energy   = pressure/((Gamma - 1.0)*rho) + 0.5*q2;
-                    total_enthalpy = (rho*total_energy + pressure)/rho;
-                    speed_sound    = sqrt((Gamma * pressure) / rho);
-                    mach           = sqrt(q2)/speed_sound;
-                    ubar           = velocity_u*nx + velocity_v*ny + velocity_w*nz;
-                    break;
-                default:
-                    error("Compute_EOS_Variables_Face: Undefined Variable Type - %d - Error-1", VariableType);
-                    break;
-            }
-            break;
-        // Briley Taylor Whitfield Non Dimensionalization
-        case NONDIMENSIONAL_METHOD_BTW:
-            switch (VariableType) {
-                // Conservative Variable Formulation
-                case VARIABLE_CONSERVATIVE:
-                    rho            = Q[0];
-                    velocity_u     = Q[1]/rho;
-                    velocity_v     = Q[2]/rho;
-                    velocity_w     = Q[3]/rho;
-                    total_energy   = Q[4]/rho;
-                    q2             = velocity_u*velocity_u + velocity_v*velocity_v + velocity_w*velocity_w;
-                    pressure       = rho*(total_energy/(Ref_Mach*Ref_Mach) - 0.5*(Gamma - 1.0)*q2);
-                    total_enthalpy = total_energy + (Gamma - 1.0)*Ref_Mach*Ref_Mach*pressure/rho;
-                    speed_sound    = sqrt((Gamma * pressure) / rho);
-                    mach           = sqrt(q2)/speed_sound;
-                    ubar           = velocity_u*nx + velocity_v*ny + velocity_w*nz;
-                    temperature    = pressure/(NonDim_R*rho);
-                    break;
-                // Primitive Variable Formulation Pressure Velocity Temperature
-                case VARIABLE_PRIMITIVE_PUT:
-                    pressure       = Q[0] + Gauge_Pressure;
-                    velocity_u     = Q[1];
-                    velocity_v     = Q[2];
-                    velocity_w     = Q[3];
-                    temperature    = Q[4];
-                    rho            = pressure/(NonDim_R*temperature);
-                    q2             = velocity_u*velocity_u + velocity_v*velocity_v + velocity_w*velocity_w;
-                    total_energy   = (Ref_Mach*Ref_Mach)*(pressure/rho + 0.5*(Gamma - 1.0)*q2);
-                    total_enthalpy = total_energy + (Gamma - 1.0)*Ref_Mach*Ref_Mach*pressure/rho;
-                    speed_sound    = sqrt((Gamma * pressure) / rho);
-                    mach           = sqrt(q2)/speed_sound;
-                    ubar           = velocity_u*nx + velocity_v*ny + velocity_w*nz;
-                    pressure       = Q[0]; // Only Perturbation
-                    break;
-                // Primitive Variable Formulation Density Velocity Pressure
-                case VARIABLE_PRIMITIVE_RUP:
-                    rho            = Q[0];
-                    velocity_u     = Q[1];
-                    velocity_v     = Q[2];
-                    velocity_w     = Q[3];
-                    pressure       = Q[4] + Gauge_Pressure;
-                    temperature    = pressure/(NonDim_R*rho);
-                    q2             = velocity_u*velocity_u + velocity_v*velocity_v + velocity_w*velocity_w;
-                    total_energy   = (Ref_Mach*Ref_Mach)*(pressure/rho + 0.5*(Gamma - 1.0)*q2);
-                    total_enthalpy = total_energy + (Gamma - 1.0)*Ref_Mach*Ref_Mach*pressure/rho;
-                    speed_sound    = sqrt((Gamma * pressure) / rho);
-                    mach           = sqrt(q2)/speed_sound;
-                    ubar           = velocity_u*nx + velocity_v*ny + velocity_w*nz;
-                    pressure       = Q[4]; // Only Perturbation
-                    break;
-                // Primitive Variable Formulation Density Velocity Temperature
-                case VARIABLE_PRIMITIVE_RUT:
-                    rho            = Q[0];
-                    velocity_u     = Q[1];
-                    velocity_v     = Q[2];
-                    velocity_w     = Q[3];
-                    temperature    = Q[4];
-                    pressure       = temperature*NonDim_R*rho;
-                    q2             = velocity_u*velocity_u + velocity_v*velocity_v + velocity_w*velocity_w;
-                    total_energy   = (Ref_Mach*Ref_Mach)*(pressure/rho + 0.5*(Gamma - 1.0)*q2);
-                    total_enthalpy = total_energy + (Gamma - 1.0)*Ref_Mach*Ref_Mach*pressure/rho;
-                    speed_sound    = sqrt((Gamma * pressure) / rho);
-                    mach           = sqrt(q2)/speed_sound;
-                    ubar           = velocity_u*nx + velocity_v*ny + velocity_w*nz;
-                    break;
-                default:
-                    error("Compute_EOS_Variables_Face: Undefined Variable Type - %d - Error-2", VariableType);
-                    break;
-            }
-            break;
-        // LMRoe Non Dimensionalization
-        case NONDIMENSIONAL_METHOD_LMROE:
-            switch (VariableType) {
-                // Conservative Variable Formulation
-                case VARIABLE_CONSERVATIVE:
-                    rho            = Q[0];
-                    velocity_u     = Q[1]/rho;
-                    velocity_v     = Q[2]/rho;
-                    velocity_w     = Q[3]/rho;
-                    total_energy   = Q[4]/rho;
-                    q2             = velocity_u*velocity_u + velocity_v*velocity_v + velocity_w*velocity_w;
-                    pressure       = (Gamma - 1.0)*rho*(total_energy - 0.5*q2);
-                    total_enthalpy = total_energy + pressure/rho;
-                    speed_sound    = sqrt((Gamma * pressure) / rho);
-                    mach           = sqrt(q2)/speed_sound;
-                    ubar           = velocity_u*nx + velocity_v*ny + velocity_w*nz;
-                    temperature    = pressure/(NonDim_R*rho);
-                    break;
-                // Primitive Variable Formulation Pressure Velocity Temperature
-                case VARIABLE_PRIMITIVE_PUT:
-                    pressure       = Q[0] + Gauge_Pressure;
-                    velocity_u     = Q[1];
-                    velocity_v     = Q[2];
-                    velocity_w     = Q[3];
-                    temperature    = Q[4];
-                    rho            = pressure/(NonDim_R*temperature);
-                    q2             = velocity_u*velocity_u + velocity_v*velocity_v + velocity_w*velocity_w;
-                    total_energy   = pressure/((Gamma - 1.0)*rho) + 0.5*q2;
-                    total_enthalpy = (rho*total_energy + pressure)/rho;
-                    speed_sound    = sqrt((Gamma * pressure) / rho);
-                    mach           = sqrt(q2)/speed_sound;
-                    ubar           = velocity_u*nx + velocity_v*ny + velocity_w*nz;
-                    pressure       = Q[0]; // Only Perturbation
-                    break;
-                // Primitive Variable Formulation Density Velocity Pressure
-                case VARIABLE_PRIMITIVE_RUP:
-                    rho            = Q[0];
-                    velocity_u     = Q[1];
-                    velocity_v     = Q[2];
-                    velocity_w     = Q[3];
-                    pressure       = Q[4] + Gauge_Pressure;
-                    temperature    = pressure/(NonDim_R*rho);
-                    q2             = velocity_u*velocity_u + velocity_v*velocity_v + velocity_w*velocity_w;
-                    total_energy   = pressure/((Gamma - 1.0)*rho) + 0.5*q2;
-                    total_enthalpy = (rho*total_energy + pressure)/rho;
-                    speed_sound    = sqrt((Gamma * pressure) / rho);
-                    mach           = sqrt(q2)/speed_sound;
-                    ubar           = velocity_u*nx + velocity_v*ny + velocity_w*nz;
-                    pressure       = Q[4]; // Only Perturbation
-                    break;
-                // Primitive Variable Formulation Density Velocity Temperature
-                case VARIABLE_PRIMITIVE_RUT:
-                    rho            = Q[0];
-                    velocity_u     = Q[1];
-                    velocity_v     = Q[2];
-                    velocity_w     = Q[3];
-                    temperature    = Q[4];
-                    pressure       = temperature*NonDim_R*rho;
-                    q2             = velocity_u*velocity_u + velocity_v*velocity_v + velocity_w*velocity_w;
-                    total_energy   = pressure/((Gamma - 1.0)*rho) + 0.5*q2;
-                    total_enthalpy = (rho*total_energy + pressure)/rho;
-                    speed_sound    = sqrt((Gamma * pressure) / rho);
-                    mach           = sqrt(q2)/speed_sound;
-                    ubar           = velocity_u*nx + velocity_v*ny + velocity_w*nz;
-                    break;
-                default:
-                    error("Compute_EOS_Variables_Face: Undefined Variable Type - %d - Error-3", VariableType);
-                    break;
-            }
-            break;
-        default:
-            error("Compute_EOS_Variables_Face: Undefined Non Dimensional Method - %d - Error-4", NonDimensionalMethod);
-            break;
-    }
-}
-
 //------------------------------------------------------------------------------
 //! Compute Equation of State Variables at Control Volume
 //------------------------------------------------------------------------------
 void Compute_EOS_Variables_ControlVolume(double *Q,
-        double &rho, double &pressure, double &temperature,
-        double &velocity_u, double &velocity_v, double &velocity_w, double &q2,
-        double &speed_sound, double &mach, double &total_energy, double &total_enthalpy) {
+        double &Rho, double &Pressure, double &Temperature,
+        double &Velocity_U, double &Velocity_V, double &Velocity_W, double &Q2,
+        double &SpeedSound, double &Mach, double &TotalEnergy, double &TotalEnthalpy) {
     
     // Compute the EOS Based on Non Dimensionalization and Variable Type of Q
     switch (NonDimensionalMethod) {
@@ -447,61 +219,61 @@ void Compute_EOS_Variables_ControlVolume(double *Q,
             switch (VariableType) {
                 // Conservative Variable Formulation
                 case VARIABLE_CONSERVATIVE:
-                    rho            = Q[0];
-                    velocity_u     = Q[1]/rho;
-                    velocity_v     = Q[2]/rho;
-                    velocity_w     = Q[3]/rho;
-                    total_energy   = Q[4]/rho;
-                    q2             = velocity_u*velocity_u + velocity_v*velocity_v + velocity_w*velocity_w;
-                    pressure       = (Gamma - 1.0)*(rho*total_energy - 0.5*rho*q2);
-                    total_enthalpy = (rho*total_energy + pressure)/rho;
-                    speed_sound    = sqrt((Gamma * pressure) / rho);
-                    mach           = sqrt(q2)/speed_sound;
-                    temperature    = pressure/(NonDim_R*rho);
+                    Rho           = Q[0];
+                    Velocity_U    = Q[1]/Rho;
+                    Velocity_V    = Q[2]/Rho;
+                    Velocity_W    = Q[3]/Rho;
+                    TotalEnergy   = Q[4]/Rho;
+                    Q2            = Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W;
+                    Pressure      = (Gamma - 1.0)*(Rho*TotalEnergy - 0.5*Rho*Q2);
+                    TotalEnthalpy = (Rho*TotalEnergy + Pressure)/Rho;
+                    SpeedSound    = sqrt((Gamma * Pressure) / Rho);
+                    Mach          = sqrt(Q2)/SpeedSound;
+                    Temperature   = Pressure/(NonDim_R*Rho);
                     break;
                 // Primitive Variable Formulation Pressure Velocity Temperature
                 case VARIABLE_PRIMITIVE_PUT:
-                    pressure       = Q[0] + Gauge_Pressure;
-                    velocity_u     = Q[1];
-                    velocity_v     = Q[2];
-                    velocity_w     = Q[3];
-                    temperature    = Q[4];
-                    rho            = pressure/(NonDim_R*temperature);
-                    q2             = velocity_u*velocity_u + velocity_v*velocity_v + velocity_w*velocity_w;
-                    total_energy   = pressure/((Gamma - 1.0)*rho) + 0.5*q2;
-                    total_enthalpy = (rho*total_energy + pressure)/rho;
-                    speed_sound    = sqrt((Gamma * pressure) / rho);
-                    mach           = sqrt(q2)/speed_sound;
-                    pressure       = Q[0]; // Only Perturbation
+                    Pressure      = Q[0] + Gauge_Pressure;
+                    Velocity_U    = Q[1];
+                    Velocity_V    = Q[2];
+                    Velocity_W    = Q[3];
+                    Temperature   = Q[4];
+                    Rho           = Pressure/(NonDim_R*Temperature);
+                    Q2            = Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W;
+                    TotalEnergy   = Pressure/((Gamma - 1.0)*Rho) + 0.5*Q2;
+                    TotalEnthalpy = (Rho*TotalEnergy + Pressure)/Rho;
+                    SpeedSound    = sqrt((Gamma * Pressure) / Rho);
+                    Mach          = sqrt(Q2)/SpeedSound;
+                    Pressure      = Q[0]; // Only Perturbation
                     break;
                 // Primitive Variable Formulation Density Velocity Pressure
                 case VARIABLE_PRIMITIVE_RUP:
-                    rho            = Q[0];
-                    velocity_u     = Q[1];
-                    velocity_v     = Q[2];
-                    velocity_w     = Q[3];
-                    pressure       = Q[4] + Gauge_Pressure;
-                    temperature    = pressure/(NonDim_R*rho);
-                    q2             = velocity_u*velocity_u + velocity_v*velocity_v + velocity_w*velocity_w;
-                    total_energy   = pressure/((Gamma - 1.0)*rho) + 0.5*q2;
-                    total_enthalpy = (rho*total_energy + pressure)/rho;
-                    speed_sound    = sqrt((Gamma * pressure) / rho);
-                    mach           = sqrt(q2)/speed_sound;
-                    pressure       = Q[4]; // Only Perturbation
+                    Rho           = Q[0];
+                    Velocity_U    = Q[1];
+                    Velocity_V    = Q[2];
+                    Velocity_W    = Q[3];
+                    Pressure      = Q[4] + Gauge_Pressure;
+                    Temperature   = Pressure/(NonDim_R*Rho);
+                    Q2            = Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W;
+                    TotalEnergy   = Pressure/((Gamma - 1.0)*Rho) + 0.5*Q2;
+                    TotalEnthalpy = (Rho*TotalEnergy + Pressure)/Rho;
+                    SpeedSound    = sqrt((Gamma * Pressure) / Rho);
+                    Mach          = sqrt(Q2)/SpeedSound;
+                    Pressure      = Q[4]; // Only Perturbation
                     break;
                 // Primitive Variable Formulation Density Velocity Temperature
                 case VARIABLE_PRIMITIVE_RUT:
-                    rho            = Q[0];
-                    velocity_u     = Q[1];
-                    velocity_v     = Q[2];
-                    velocity_w     = Q[3];
-                    temperature    = Q[4];
-                    pressure       = temperature*NonDim_R*rho;
-                    q2             = velocity_u*velocity_u + velocity_v*velocity_v + velocity_w*velocity_w;
-                    total_energy   = pressure/((Gamma - 1.0)*rho) + 0.5*q2;
-                    total_enthalpy = (rho*total_energy + pressure)/rho;
-                    speed_sound    = sqrt((Gamma * pressure) / rho);
-                    mach           = sqrt(q2)/speed_sound;
+                    Rho           = Q[0];
+                    Velocity_U    = Q[1];
+                    Velocity_V    = Q[2];
+                    Velocity_W    = Q[3];
+                    Temperature   = Q[4];
+                    Pressure      = Temperature*NonDim_R*Rho;
+                    Q2            = Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W;
+                    TotalEnergy   = Pressure/((Gamma - 1.0)*Rho) + 0.5*Q2;
+                    TotalEnthalpy = (Rho*TotalEnergy + Pressure)/Rho;
+                    SpeedSound    = sqrt((Gamma * Pressure) / Rho);
+                    Mach          = sqrt(Q2)/SpeedSound;
                     break;
                 default:
                     error("Compute_EOS_Variables_ControlVolume: Undefined Variable Type - %d - Error-1", VariableType);
@@ -513,61 +285,61 @@ void Compute_EOS_Variables_ControlVolume(double *Q,
             switch (VariableType) {
                 // Conservative Variable Formulation
                 case VARIABLE_CONSERVATIVE:
-                    rho            = Q[0];
-                    velocity_u     = Q[1]/rho;
-                    velocity_v     = Q[2]/rho;
-                    velocity_w     = Q[3]/rho;
-                    total_energy   = Q[4]/rho;
-                    q2             = velocity_u*velocity_u + velocity_v*velocity_v + velocity_w*velocity_w;
-                    pressure       = rho*(total_energy/(Ref_Mach*Ref_Mach) - 0.5*(Gamma - 1.0)*q2);
-                    total_enthalpy = total_energy + (Gamma - 1.0)*Ref_Mach*Ref_Mach*pressure/rho;
-                    speed_sound    = sqrt((Gamma * pressure) / rho);
-                    mach           = sqrt(q2)/speed_sound;
-                    temperature    = pressure/(NonDim_R*rho);
+                    Rho           = Q[0];
+                    Velocity_U    = Q[1]/Rho;
+                    Velocity_V    = Q[2]/Rho;
+                    Velocity_W    = Q[3]/Rho;
+                    TotalEnergy   = Q[4]/Rho;
+                    Q2            = Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W;
+                    Pressure      = Rho*(TotalEnergy/(Ref_Mach*Ref_Mach) - 0.5*(Gamma - 1.0)*Q2);
+                    TotalEnthalpy = TotalEnergy + (Gamma - 1.0)*Ref_Mach*Ref_Mach*Pressure/Rho;
+                    SpeedSound    = sqrt((Gamma * Pressure) / Rho);
+                    Mach          = sqrt(Q2)/SpeedSound;
+                    Temperature   = Pressure/(NonDim_R*Rho);
                     break;
                 // Primitive Variable Formulation Pressure Velocity Temperature
                 case VARIABLE_PRIMITIVE_PUT:
-                    pressure       = Q[0] + Gauge_Pressure;
-                    velocity_u     = Q[1];
-                    velocity_v     = Q[2];
-                    velocity_w     = Q[3];
-                    temperature    = Q[4];
-                    rho            = pressure/(NonDim_R*temperature);
-                    q2             = velocity_u*velocity_u + velocity_v*velocity_v + velocity_w*velocity_w;
-                    total_energy   = (Ref_Mach*Ref_Mach)*(pressure/rho + 0.5*(Gamma - 1.0)*q2);
-                    total_enthalpy = total_energy + (Gamma - 1.0)*Ref_Mach*Ref_Mach*pressure/rho;
-                    speed_sound    = sqrt((Gamma * pressure) / rho);
-                    mach           = sqrt(q2)/speed_sound;
-                    pressure       = Q[0]; // Only Perturbation
+                    Pressure      = Q[0] + Gauge_Pressure;
+                    Velocity_U    = Q[1];
+                    Velocity_V    = Q[2];
+                    Velocity_W    = Q[3];
+                    Temperature   = Q[4];
+                    Rho           = Pressure/(NonDim_R*Temperature);
+                    Q2            = Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W;
+                    TotalEnergy   = (Ref_Mach*Ref_Mach)*(Pressure/Rho + 0.5*(Gamma - 1.0)*Q2);
+                    TotalEnthalpy = TotalEnergy + (Gamma - 1.0)*Ref_Mach*Ref_Mach*Pressure/Rho;
+                    SpeedSound    = sqrt((Gamma * Pressure) / Rho);
+                    Mach          = sqrt(Q2)/SpeedSound;
+                    Pressure      = Q[0]; // Only Perturbation
                     break;
                 // Primitive Variable Formulation Density Velocity Pressure
                 case VARIABLE_PRIMITIVE_RUP:
-                    rho            = Q[0];
-                    velocity_u     = Q[1];
-                    velocity_v     = Q[2];
-                    velocity_w     = Q[3];
-                    pressure       = Q[4] + Gauge_Pressure;
-                    temperature    = pressure/(NonDim_R*rho);
-                    q2             = velocity_u*velocity_u + velocity_v*velocity_v + velocity_w*velocity_w;
-                    total_energy   = (Ref_Mach*Ref_Mach)*(pressure/rho + 0.5*(Gamma - 1.0)*q2);
-                    total_enthalpy = total_energy + (Gamma - 1.0)*Ref_Mach*Ref_Mach*pressure/rho;
-                    speed_sound    = sqrt((Gamma * pressure) / rho);
-                    mach           = sqrt(q2)/speed_sound;
-                    pressure       = Q[4]; // Only Perturbation
+                    Rho           = Q[0];
+                    Velocity_U    = Q[1];
+                    Velocity_V    = Q[2];
+                    Velocity_W    = Q[3];
+                    Pressure      = Q[4] + Gauge_Pressure;
+                    Temperature   = Pressure/(NonDim_R*Rho);
+                    Q2            = Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W;
+                    TotalEnergy   = (Ref_Mach*Ref_Mach)*(Pressure/Rho + 0.5*(Gamma - 1.0)*Q2);
+                    TotalEnthalpy = TotalEnergy + (Gamma - 1.0)*Ref_Mach*Ref_Mach*Pressure/Rho;
+                    SpeedSound    = sqrt((Gamma * Pressure) / Rho);
+                    Mach          = sqrt(Q2)/SpeedSound;
+                    Pressure      = Q[4]; // Only Perturbation
                     break;
                 // Primitive Variable Formulation Density Velocity Temperature
                 case VARIABLE_PRIMITIVE_RUT:
-                    rho            = Q[0];
-                    velocity_u     = Q[1];
-                    velocity_v     = Q[2];
-                    velocity_w     = Q[3];
-                    temperature    = Q[4];
-                    pressure       = temperature*NonDim_R*rho;
-                    q2             = velocity_u*velocity_u + velocity_v*velocity_v + velocity_w*velocity_w;
-                    total_energy   = (Ref_Mach*Ref_Mach)*(pressure/rho + 0.5*(Gamma - 1.0)*q2);
-                    total_enthalpy = total_energy + (Gamma - 1.0)*Ref_Mach*Ref_Mach*pressure/rho;
-                    speed_sound    = sqrt((Gamma * pressure) / rho);
-                    mach           = sqrt(q2)/speed_sound;
+                    Rho           = Q[0];
+                    Velocity_U    = Q[1];
+                    Velocity_V    = Q[2];
+                    Velocity_W    = Q[3];
+                    Temperature   = Q[4];
+                    Pressure      = Temperature*NonDim_R*Rho;
+                    Q2            = Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W;
+                    TotalEnergy   = (Ref_Mach*Ref_Mach)*(Pressure/Rho + 0.5*(Gamma - 1.0)*Q2);
+                    TotalEnthalpy = TotalEnergy + (Gamma - 1.0)*Ref_Mach*Ref_Mach*Pressure/Rho;
+                    SpeedSound    = sqrt((Gamma * Pressure) / Rho);
+                    Mach          = sqrt(Q2)/SpeedSound;
                     break;
                 default:
                     error("Compute_EOS_Variables_ControlVolume: Undefined Variable Type - %d - Error-2", VariableType);
@@ -579,61 +351,61 @@ void Compute_EOS_Variables_ControlVolume(double *Q,
             switch (VariableType) {
                 // Conservative Variable Formulation
                 case VARIABLE_CONSERVATIVE:
-                    rho            = Q[0];
-                    velocity_u     = Q[1]/rho;
-                    velocity_v     = Q[2]/rho;
-                    velocity_w     = Q[3]/rho;
-                    total_energy   = Q[4]/rho;
-                    q2             = velocity_u*velocity_u + velocity_v*velocity_v + velocity_w*velocity_w;
-                    pressure       = (Gamma - 1.0)*rho*(total_energy - 0.5*q2);
-                    total_enthalpy = total_energy + pressure/rho;
-                    speed_sound    = sqrt((Gamma * pressure) / rho);
-                    mach           = sqrt(q2)/speed_sound;
-                    temperature    = pressure/(NonDim_R*rho);
+                    Rho           = Q[0];
+                    Velocity_U    = Q[1]/Rho;
+                    Velocity_V    = Q[2]/Rho;
+                    Velocity_W    = Q[3]/Rho;
+                    TotalEnergy   = Q[4]/Rho;
+                    Q2            = Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W;
+                    Pressure      = (Gamma - 1.0)*Rho*(TotalEnergy - 0.5*Q2);
+                    TotalEnthalpy = TotalEnergy + Pressure/Rho;
+                    SpeedSound    = sqrt((Gamma * Pressure) / Rho);
+                    Mach          = sqrt(Q2)/SpeedSound;
+                    Temperature   = Pressure/(NonDim_R*Rho);
                     break;
                 // Primitive Variable Formulation Pressure Velocity Temperature
                 case VARIABLE_PRIMITIVE_PUT:
-                    pressure       = Q[0] + Gauge_Pressure;
-                    velocity_u     = Q[1];
-                    velocity_v     = Q[2];
-                    velocity_w     = Q[3];
-                    temperature    = Q[4];
-                    rho            = pressure/(NonDim_R*temperature);
-                    q2             = velocity_u*velocity_u + velocity_v*velocity_v + velocity_w*velocity_w;
-                    total_energy   = pressure/((Gamma - 1.0)*rho) + 0.5*q2;
-                    total_enthalpy = (rho*total_energy + pressure)/rho;
-                    speed_sound    = sqrt((Gamma * pressure) / rho);
-                    mach           = sqrt(q2)/speed_sound;
-                    pressure       = Q[0]; // Only Perturbation
+                    Pressure      = Q[0] + Gauge_Pressure;
+                    Velocity_U    = Q[1];
+                    Velocity_V    = Q[2];
+                    Velocity_W    = Q[3];
+                    Temperature   = Q[4];
+                    Rho           = Pressure/(NonDim_R*Temperature);
+                    Q2            = Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W;
+                    TotalEnergy   = Pressure/((Gamma - 1.0)*Rho) + 0.5*Q2;
+                    TotalEnthalpy = (Rho*TotalEnergy + Pressure)/Rho;
+                    SpeedSound    = sqrt((Gamma * Pressure) / Rho);
+                    Mach          = sqrt(Q2)/SpeedSound;
+                    Pressure      = Q[0]; // Only Perturbation
                     break;
                 // Primitive Variable Formulation Density Velocity Pressure
                 case VARIABLE_PRIMITIVE_RUP:
-                    rho            = Q[0];
-                    velocity_u     = Q[1];
-                    velocity_v     = Q[2];
-                    velocity_w     = Q[3];
-                    pressure       = Q[4] + Gauge_Pressure;
-                    temperature    = pressure/(NonDim_R*rho);
-                    q2             = velocity_u*velocity_u + velocity_v*velocity_v + velocity_w*velocity_w;
-                    total_energy   = pressure/((Gamma - 1.0)*rho) + 0.5*q2;
-                    total_enthalpy = (rho*total_energy + pressure)/rho;
-                    speed_sound    = sqrt((Gamma * pressure) / rho);
-                    mach           = sqrt(q2)/speed_sound;
-                    pressure       = Q[4]; // Only Perturbation
+                    Rho           = Q[0];
+                    Velocity_U    = Q[1];
+                    Velocity_V    = Q[2];
+                    Velocity_W    = Q[3];
+                    Pressure      = Q[4] + Gauge_Pressure;
+                    Temperature   = Pressure/(NonDim_R*Rho);
+                    Q2            = Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W;
+                    TotalEnergy   = Pressure/((Gamma - 1.0)*Rho) + 0.5*Q2;
+                    TotalEnthalpy = (Rho*TotalEnergy + Pressure)/Rho;
+                    SpeedSound    = sqrt((Gamma * Pressure) / Rho);
+                    Mach          = sqrt(Q2)/SpeedSound;
+                    Pressure      = Q[4]; // Only Perturbation
                     break;
                 // Primitive Variable Formulation Density Velocity Temperature
                 case VARIABLE_PRIMITIVE_RUT:
-                    rho            = Q[0];
-                    velocity_u     = Q[1];
-                    velocity_v     = Q[2];
-                    velocity_w     = Q[3];
-                    temperature    = Q[4];
-                    pressure       = temperature*NonDim_R*rho;
-                    q2             = velocity_u*velocity_u + velocity_v*velocity_v + velocity_w*velocity_w;
-                    total_energy   = pressure/((Gamma - 1.0)*rho) + 0.5*q2;
-                    total_enthalpy = (rho*total_energy + pressure)/rho;
-                    speed_sound    = sqrt((Gamma * pressure) / rho);
-                    mach           = sqrt(q2)/speed_sound;
+                    Rho           = Q[0];
+                    Velocity_U    = Q[1];
+                    Velocity_V    = Q[2];
+                    Velocity_W    = Q[3];
+                    Temperature   = Q[4];
+                    Pressure      = Temperature*NonDim_R*Rho;
+                    Q2            = Velocity_U*Velocity_U + Velocity_V*Velocity_V + Velocity_W*Velocity_W;
+                    TotalEnergy   = Pressure/((Gamma - 1.0)*Rho) + 0.5*Q2;
+                    TotalEnthalpy = (Rho*TotalEnergy + Pressure)/Rho;
+                    SpeedSound    = sqrt((Gamma * Pressure) / Rho);
+                    Mach          = sqrt(Q2)/SpeedSound;
                     break;
                 default:
                     error("Compute_EOS_Variables_ControlVolume: Undefined Variable Type - %d - Error-3", VariableType);
@@ -644,6 +416,23 @@ void Compute_EOS_Variables_ControlVolume(double *Q,
             error("Compute_EOS_Variables_ControlVolume: Undefined Non Dimensional Method - %d - Error-4", NonDimensionalMethod);
             break;
     }
+}
+
+//------------------------------------------------------------------------------
+//! Compute Equation of State Variables at Face/Edge
+//------------------------------------------------------------------------------
+void Compute_EOS_Variables_Face(double *Q, double nx, double ny, double nz,
+        double &Rho, double &Pressure, double &Temperature,
+        double &Velocity_U, double &Velocity_V, double &Velocity_W, double &Q2,
+        double &SpeedSound, double &Mach, double &Ubar, double &TotalEnergy, 
+        double &TotalEnthalpy) {
+    
+    Compute_EOS_Variables_ControlVolume(Q, Rho, Pressure, Temperature,
+            Velocity_U, Velocity_V, Velocity_W, Q2, SpeedSound, Mach, 
+            TotalEnergy, TotalEnthalpy);
+    
+    // Compute the Ubar
+    Ubar = Velocity_U*nx + Velocity_V*ny + Velocity_W*nz;
 }
 
 //------------------------------------------------------------------------------
