@@ -70,6 +70,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/StegerWarming_Fluxes.o \
 	${OBJECTDIR}/src/Test.o \
 	${OBJECTDIR}/src/Time_Step.o \
+	${OBJECTDIR}/src/Tmp.o \
 	${OBJECTDIR}/src/VanLeer_Fluxes.o
 
 
@@ -275,6 +276,11 @@ ${OBJECTDIR}/src/Time_Step.o: src/Time_Step.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -Iinclude -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Time_Step.o src/Time_Step.cpp
+
+${OBJECTDIR}/src/Tmp.o: src/Tmp.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -Iinclude -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Tmp.o src/Tmp.cpp
 
 ${OBJECTDIR}/src/VanLeer_Fluxes.o: src/VanLeer_Fluxes.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
