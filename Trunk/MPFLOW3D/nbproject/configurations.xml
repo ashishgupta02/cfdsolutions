@@ -66,7 +66,6 @@
       <itemPath>src/StegerWarming_Fluxes.cpp</itemPath>
       <itemPath>src/Test.cpp</itemPath>
       <itemPath>src/Time_Step.cpp</itemPath>
-      <itemPath>src/Tmp.cpp</itemPath>
       <itemPath>src/VanLeer_Fluxes.cpp</itemPath>
       <itemPath>main.cpp</itemPath>
     </logicalFolder>
@@ -88,6 +87,8 @@
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <cTool>
@@ -261,8 +262,6 @@
       <item path="src/Test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Time_Step.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/Tmp.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/VanLeer_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -271,6 +270,8 @@
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <cTool>
@@ -441,8 +442,6 @@
       </item>
       <item path="src/Time_Step.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="src/Tmp.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="src/VanLeer_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
@@ -450,6 +449,8 @@
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>Cygwin_4.x|Cygwin_4.x</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <cTool>
@@ -623,8 +624,6 @@
       <item path="src/Test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Time_Step.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/Tmp.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/VanLeer_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -633,6 +632,8 @@
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>Cygwin_4.x|Cygwin_4.x</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <cTool>
@@ -803,8 +804,6 @@
       </item>
       <item path="src/Time_Step.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="src/Tmp.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="src/VanLeer_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
@@ -812,6 +811,8 @@
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <cTool>
@@ -998,8 +999,6 @@
       </item>
       <item path="src/Time_Step.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="src/Tmp.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="src/VanLeer_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
@@ -1007,6 +1006,8 @@
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <cTool>
@@ -1190,8 +1191,6 @@
       </item>
       <item path="src/Time_Step.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="src/Tmp.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="src/VanLeer_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
@@ -1199,6 +1198,8 @@
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GUPC_x86_64|GNU</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <cTool>
@@ -1372,8 +1373,6 @@
       <item path="src/Test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Time_Step.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/Tmp.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/VanLeer_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -1382,6 +1381,8 @@
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GUPC_x86_64|GNU</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <cTool>
@@ -1552,8 +1553,6 @@
       </item>
       <item path="src/Time_Step.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="src/Tmp.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="src/VanLeer_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
@@ -1561,6 +1560,8 @@
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GUPC_ppc64|GNU</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <cTool>
@@ -1734,8 +1735,6 @@
       <item path="src/Test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Time_Step.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/Tmp.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/VanLeer_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -1744,6 +1743,8 @@
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GUPC_ppc64|GNU</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <cTool>
@@ -1913,8 +1914,6 @@
       <item path="src/Test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Time_Step.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/Tmp.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/VanLeer_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
