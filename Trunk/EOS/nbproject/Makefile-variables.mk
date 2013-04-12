@@ -7,21 +7,37 @@ CND_BASEDIR=`pwd`
 CND_BUILDDIR=build
 CND_DISTDIR=dist
 # Debug configuration
-CND_PLATFORM_Debug=GUPC_x86_64-Linux-x86
-CND_ARTIFACT_DIR_Debug=dist/Debug/GUPC_x86_64-Linux-x86
-CND_ARTIFACT_NAME_Debug=eos
-CND_ARTIFACT_PATH_Debug=dist/Debug/GUPC_x86_64-Linux-x86/eos
-CND_PACKAGE_DIR_Debug=dist/Debug/GUPC_x86_64-Linux-x86/package
-CND_PACKAGE_NAME_Debug=eos.tar
-CND_PACKAGE_PATH_Debug=dist/Debug/GUPC_x86_64-Linux-x86/package/eos.tar
+CND_PLATFORM_Debug=GNU-Linux-x86
+CND_ARTIFACT_DIR_Debug=dist/Debug/GNU-Linux-x86
+CND_ARTIFACT_NAME_Debug=libEOS.so
+CND_ARTIFACT_PATH_Debug=dist/Debug/GNU-Linux-x86/libEOS.so
+CND_PACKAGE_DIR_Debug=dist/Debug/GNU-Linux-x86/package
+CND_PACKAGE_NAME_Debug=libEOS.so.tar
+CND_PACKAGE_PATH_Debug=dist/Debug/GNU-Linux-x86/package/libEOS.so.tar
 # Release configuration
-CND_PLATFORM_Release=GUPC_x86_64-Linux-x86
-CND_ARTIFACT_DIR_Release=dist/Release/GUPC_x86_64-Linux-x86
+CND_PLATFORM_Release=GNU-Linux-x86
+CND_ARTIFACT_DIR_Release=dist/Release/GNU-Linux-x86
 CND_ARTIFACT_NAME_Release=libEOS.so
-CND_ARTIFACT_PATH_Release=dist/Release/GUPC_x86_64-Linux-x86/libEOS.so
-CND_PACKAGE_DIR_Release=dist/Release/GUPC_x86_64-Linux-x86/package
+CND_ARTIFACT_PATH_Release=dist/Release/GNU-Linux-x86/libEOS.so
+CND_PACKAGE_DIR_Release=dist/Release/GNU-Linux-x86/package
 CND_PACKAGE_NAME_Release=libEOS.so.tar
-CND_PACKAGE_PATH_Release=dist/Release/GUPC_x86_64-Linux-x86/package/libEOS.so.tar
+CND_PACKAGE_PATH_Release=dist/Release/GNU-Linux-x86/package/libEOS.so.tar
+# Debug_GUPC_x86_64 configuration
+CND_PLATFORM_Debug_GUPC_x86_64=GUPC_x86_64-Linux-x86
+CND_ARTIFACT_DIR_Debug_GUPC_x86_64=dist/Debug_GUPC_x86_64/GUPC_x86_64-Linux-x86
+CND_ARTIFACT_NAME_Debug_GUPC_x86_64=libEOS.so
+CND_ARTIFACT_PATH_Debug_GUPC_x86_64=dist/Debug_GUPC_x86_64/GUPC_x86_64-Linux-x86/libEOS.so
+CND_PACKAGE_DIR_Debug_GUPC_x86_64=dist/Debug_GUPC_x86_64/GUPC_x86_64-Linux-x86/package
+CND_PACKAGE_NAME_Debug_GUPC_x86_64=libEOS.so.tar
+CND_PACKAGE_PATH_Debug_GUPC_x86_64=dist/Debug_GUPC_x86_64/GUPC_x86_64-Linux-x86/package/libEOS.so.tar
+# Release_GUPC_x86_64 configuration
+CND_PLATFORM_Release_GUPC_x86_64=GUPC_x86_64-Linux-x86
+CND_ARTIFACT_DIR_Release_GUPC_x86_64=dist/Release_GUPC_x86_64/GUPC_x86_64-Linux-x86
+CND_ARTIFACT_NAME_Release_GUPC_x86_64=libEOS.so
+CND_ARTIFACT_PATH_Release_GUPC_x86_64=dist/Release_GUPC_x86_64/GUPC_x86_64-Linux-x86/libEOS.so
+CND_PACKAGE_DIR_Release_GUPC_x86_64=dist/Release_GUPC_x86_64/GUPC_x86_64-Linux-x86/package
+CND_PACKAGE_NAME_Release_GUPC_x86_64=libEOS.so.tar
+CND_PACKAGE_PATH_Release_GUPC_x86_64=dist/Release_GUPC_x86_64/GUPC_x86_64-Linux-x86/package/libEOS.so.tar
 #
 # include compiler specific variables
 #

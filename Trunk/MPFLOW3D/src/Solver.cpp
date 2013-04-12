@@ -348,11 +348,11 @@ void Solver_Set_Initial_Conditions(void) {
     Q5 = new double[nNode + nBNode];
 
     // Compute Far Field Conditions
-    ComputeFarFieldCondition(0);
+    Material_Set_InfinityCondition(0);
     
     // Initialize the variable with reference conditions
     switch (VariableType) {
-        case VARIABLE_CONSERVATIVE:
+        case VARIABLE_CON:
             for (int i = 0; i < (nNode + nBNode); i++) {
                 Q1[i] = Inf_Rho;
                 Q2[i] = Inf_Rho*Inf_U;
@@ -361,16 +361,7 @@ void Solver_Set_Initial_Conditions(void) {
                 Q5[i] = Inf_Rho*Inf_Et;
             }
             break;
-        case VARIABLE_PRIMITIVE_PUT:
-            for (int i = 0; i < (nNode + nBNode); i++) {
-                Q1[i] = Inf_Pressure;
-                Q2[i] = Inf_U;
-                Q3[i] = Inf_V;
-                Q4[i] = Inf_W;
-                Q5[i] = Inf_Temperature;
-            }
-            break;
-        case VARIABLE_PRIMITIVE_RUP:
+         case VARIABLE_RUP:
             for (int i = 0; i < (nNode + nBNode); i++) {
                 Q1[i] = Inf_Rho;
                 Q2[i] = Inf_U;
@@ -379,7 +370,16 @@ void Solver_Set_Initial_Conditions(void) {
                 Q5[i] = Inf_Pressure;
             }
             break;
-         case VARIABLE_PRIMITIVE_RUT:
+        case VARIABLE_PUT:
+            for (int i = 0; i < (nNode + nBNode); i++) {
+                Q1[i] = Inf_Pressure;
+                Q2[i] = Inf_U;
+                Q3[i] = Inf_V;
+                Q4[i] = Inf_W;
+                Q5[i] = Inf_Temperature;
+            }
+            break;
+         case VARIABLE_RUT:
             for (int i = 0; i < (nNode + nBNode); i++) {
                 Q1[i] = Inf_Rho;
                 Q2[i] = Inf_U;

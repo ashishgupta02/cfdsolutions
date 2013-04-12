@@ -50,20 +50,29 @@ extern "C" {
     void EOS_NIST_Set_Fluid_Information(int ivComp);
     void EOS_NIST_Print_Fluid_Information(int ivComp);
     void EOS_NIST_Set_Reference_Properties(double dvPressure, double dvTemperature, double dvLength);
+     
+    double EOS_NIST_Get_NIST_To_SI_Density(double dvDensity);
+    double EOS_NIST_Get_NIST_To_SI_Pressure(double dvPressure);
+    double EOS_NIST_Get_NIST_To_SI_Enthalpy(double dvEnthalpy);
+    double EOS_NIST_Get_NIST_To_SI_Entropy(double dvEntropy);
+    double EOS_NIST_Get_NIST_To_SI_InternalEnergy(double dvInternalEnergy);
+    double EOS_NIST_Get_NIST_To_SI_HeatCapacityCv(double dvHeatCapacityCv);
+    double EOS_NIST_Get_NIST_To_SI_HeatCapacityCp(double dvHeatCapacityCp);
+    void   EOS_NIST_Get_NIST_To_SI_Property(double *dpProperty);
+    void   EOS_NIST_Get_NIST_To_SI_Extended_Property(double *dpProperty);
     
     double EOS_NIST_Get_SI_To_NIST_Density(double dvDensity);
-    double EOS_NIST_Get_NIST_To_SI_Density(double dvDensity);
     double EOS_NIST_Get_SI_To_NIST_Pressure(double dvPressure);
-    double EOS_NIST_Get_NIST_To_SI_Pressure(double dvPressure);
-    
-    void EOS_NIST_Get_NIST_To_SI_Property(double *dpProperty);
-    void EOS_NIST_Get_NIST_To_SI_Extended_Property(double *dpProperty);
-    void EOS_NIST_Get_SI_To_NIST_Property(double *dpProperty);
-    void EOS_NIST_Get_SI_To_NIST_Extended_Property(double *dpProperty);
+    double EOS_NIST_Get_SI_To_NIST_Enthalpy(double dvEnthalpy);
+    double EOS_NIST_Get_SI_To_NIST_Entropy(double dvEntropy);
+    double EOS_NIST_Get_SI_To_NIST_InternalEnergy(double dvInternalEnergy);
+    double EOS_NIST_Get_SI_To_NIST_HeatCapacityCv(double dvHeatCapacityCv);
+    double EOS_NIST_Get_SI_To_NIST_HeatCapacityCp(double dvHeatCapacityCp);
+    void   EOS_NIST_Get_SI_To_NIST_Property(double *dpProperty);
+    void   EOS_NIST_Get_SI_To_NIST_Extended_Property(double *dpProperty);
     
     void EOS_NIST_Get_Properties(int ivDimIOType, int ivVariableType, double *dpVariableIn, double *dpPropertyOut);
     void EOS_NIST_Get_Extended_Properties(int ivDimIOType, int ivVariableType, double *dpVariableIn, double *dpPropertyOut);
-    
     
     double EOS_NIST_Get_Density(int ivDimIOType, int ivVariableType, double *dpVariableIn);
     double EOS_NIST_Get_DensityLiquid(int ivDimIOType, int ivVariableType, double *dpVariableIn);
@@ -98,6 +107,12 @@ extern "C" {
     double EOS_NIST_Get_DInternalEnergyDPressure_CTemperature(int ivDimIOType, int ivVariableType, double *dpVariableIn);
     double EOS_NIST_Get_DInternalEnergyDPressure_CDensity(int ivDimIOType, int ivVariableType, double *dpVariableIn);
 
+    // Compute Additional Properties
+    void   EOS_NIST_Get_PT_Density(int ivDimIOType, double dvPressure, double dvTemperature, double *dpDensityOut);
+    double EOS_NIST_Get_DH_SpeedSound(int ivDimIOType, double dvDensity, double dvEnthalpy);
+    double EOS_NIST_Get_DH_Pressure(int ivDimIOType, double dvDensity, double dvEnthalpy);
+    double EOS_NIST_Get_DH_Temperature(int ivDimIOType, double dvDensity, double dvEnthalpy);
+    
 #ifdef	__cplusplus
 }
 #endif

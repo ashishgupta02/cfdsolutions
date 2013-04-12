@@ -55,6 +55,12 @@ extern "C" {
     double EOS_IdealGas_Get_DInternalEnergyDPressure_CTemperature(int ivDimIOType, int ivVariableType, double *dpVariableIn);
     double EOS_IdealGas_Get_DInternalEnergyDPressure_CDensity(int ivDimIOType, int ivVariableType, double *dpVariableIn);
 
+    // Compute Additional Properties
+    void   EOS_IdealGas_Get_PT_Density(int ivDimIOType, double dvPressure, double dvTemperature, double *dpDensityOut);
+    double EOS_IdealGas_Get_DH_SpeedSound(int ivDimIOType, double dvDensity, double dvEnthalpy);
+    double EOS_IdealGas_Get_DH_Pressure(int ivDimIOType, double dvDensity, double dvEnthalpy);
+    double EOS_IdealGas_Get_DH_Temperature(int ivDimIOType, double dvDensity, double dvEnthalpy);
+    
 #ifdef	__cplusplus
 }
 #endif

@@ -57,9 +57,9 @@ void EOS_IdealGas_Set_Fluid_Information() {
 void EOS_IdealGas_Print_Fluid_Information() {
     printf("=============================================================================\n");
     info("FLUID INFORMATION : %s", SogFluidInfo.csFluidName);
-    printf("=============================================================================\n");
-    info("Molecular Weight                  = %15.6f kg/kmol", SogFluidInfo.dvMolecularWeight);
-    info("Gas Constant                      = %15.6f J/kg-K",  SogFluidInfo.dvGasConstant);
+    printf("-----------------------------------------------------------------------------\n");
+    info("Molecular Weight --------------------------: %15.6f kg/kmol", SogFluidInfo.dvMolecularWeight);
+    info("Gas Constant ------------------------------: %15.6f J/kg-K",  SogFluidInfo.dvGasConstant);
 }
 
 //------------------------------------------------------------------------------
@@ -2898,5 +2898,266 @@ double EOS_IdealGas_Get_DInternalEnergyDPressure_CDensity(int ivDimIOType, int i
     }
     //-END----------------Dimensional Computations------------------------------
     return dvDEDP_Rho;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+void EOS_IdealGas_Get_PT_Density(int ivDimIOType, double dvPressure, double dvTemperature, double *dpDensityOut) {
+    double dvRho, dvR;
+    
+    // Dimensionalize the Input Properties based on I/O Type
+    switch (ivDimIOType) {
+        // Type Input: Non-Dimensional  Output: Non-Dimensional
+        case EOS_DIMENSIONAL_IO_ND_ND:
+            dvPressure    = EOS_Internal_Dimensionalize_Pressure(dvPressure);
+            dvTemperature = EOS_Internal_Dimensionalize_Temperature(dvTemperature);
+            break;
+        // Type Input: Dimensional  Output: Dimensional
+        case EOS_DIMENSIONAL_IO_D_D:
+            // Do Nothing Input is Dimensional (SI Units)
+            break;
+        // Type Input: Non-Dimensional  Output: Dimensional
+        case EOS_DIMENSIONAL_IO_ND_D:
+            dvPressure    = EOS_Internal_Dimensionalize_Pressure(dvPressure);
+            dvTemperature = EOS_Internal_Dimensionalize_Temperature(dvTemperature);
+            break;
+        // Type Input: Dimensional  Output: Non-Dimensional
+        case EOS_DIMENSIONAL_IO_D_ND:
+            // Do Nothing Input is Dimensional (SI Units)
+            break;
+        default:
+            error("EOS_IdealGas_Get_PT_Density:1: Undefined Dimensional Input/Output -%d", ivDimIOType);
+            break;
+    }
+    
+    //-START--------------Dimensional Computations------------------------------
+    dvR   = SogFluidInfo.dvGasConstant;
+    
+    // Compute the EOS Based on Variable Type of dpVariableIn
+    dvRho = dvPressure/(dvR*dvTemperature);
+    
+    // Dimensionalize the Output Properties based on I/O Type
+    switch (ivDimIOType) {
+        // Type Input: Non-Dimensional  Output: Non-Dimensional
+        case EOS_DIMENSIONAL_IO_ND_ND:
+            dvRho = EOS_Internal_NonDimensionalize_Density(dvRho);
+            break;
+        // Type Input: Dimensional  Output: Dimensional
+        case EOS_DIMENSIONAL_IO_D_D:
+            // Do Nothing Output is Dimensional (SI Units)
+            break;
+        // Type Input: Non-Dimensional  Output: Dimensional
+        case EOS_DIMENSIONAL_IO_ND_D:
+            // Do Nothing Output is Dimensional (SI Units)
+            break;
+        // Type Input: Dimensional  Output: Non-Dimensional
+        case EOS_DIMENSIONAL_IO_D_ND:
+            dvRho = EOS_Internal_NonDimensionalize_Density(dvRho);
+            break;
+        default:
+            error("EOS_IdealGas_Get_PT_Density:2: Undefined Dimensional Input/Output -%d", ivDimIOType);
+            break;
+    }
+    //-END----------------Dimensional Computations------------------------------
+    
+    // Set the Output
+    dpDensityOut[0] = dvRho;
+    dpDensityOut[1] = dvRho;
+    dpDensityOut[2] = dvRho;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_IdealGas_Get_DH_SpeedSound(int ivDimIOType, double dvDensity, double dvEnthalpy) {
+    double dvSpeedSound, dvGamma;
+    
+    // Dimensionalize the Input Properties based on I/O Type
+    switch (ivDimIOType) {
+        // Type Input: Non-Dimensional  Output: Non-Dimensional
+        case EOS_DIMENSIONAL_IO_ND_ND:
+            dvDensity  = EOS_Internal_Dimensionalize_Density(dvDensity);
+            dvEnthalpy = EOS_Internal_Dimensionalize_Enthalpy(dvEnthalpy);
+            break;
+        // Type Input: Dimensional  Output: Dimensional
+        case EOS_DIMENSIONAL_IO_D_D:
+            // Do Nothing Input is Dimensional (SI Units)
+            break;
+        // Type Input: Non-Dimensional  Output: Dimensional
+        case EOS_DIMENSIONAL_IO_ND_D:
+            dvDensity  = EOS_Internal_Dimensionalize_Density(dvDensity);
+            dvEnthalpy = EOS_Internal_Dimensionalize_Enthalpy(dvEnthalpy);
+            break;
+        // Type Input: Dimensional  Output: Non-Dimensional
+        case EOS_DIMENSIONAL_IO_D_ND:
+            // Do Nothing Input is Dimensional (SI Units)
+            break;
+        default:
+            error("EOS_IdealGas_Get_DH_SpeedSound:1: Undefined Dimensional Input/Output -%d", ivDimIOType);
+            break;
+    }
+    
+    //-START--------------Dimensional Computations------------------------------
+    dvGamma = dvgRatioSpecificHeat_Ref;
+    
+    // Compute the EOS Based on Variable Type of dpVariableIn
+    dvSpeedSound = (dvGamma - 1.0)*dvEnthalpy;
+    dvSpeedSound = sqrt(dvSpeedSound);
+      
+    // Dimensionalize the Output Properties based on I/O Type
+    switch (ivDimIOType) {
+        // Type Input: Non-Dimensional  Output: Non-Dimensional
+        case EOS_DIMENSIONAL_IO_ND_ND:
+            dvSpeedSound = EOS_Internal_NonDimensionalize_SpeedSound(dvSpeedSound);
+            break;
+        // Type Input: Dimensional  Output: Dimensional
+        case EOS_DIMENSIONAL_IO_D_D:
+            // Do Nothing Output is Dimensional (SI Units)
+            break;
+        // Type Input: Non-Dimensional  Output: Dimensional
+        case EOS_DIMENSIONAL_IO_ND_D:
+            // Do Nothing Output is Dimensional (SI Units)
+            break;
+        // Type Input: Dimensional  Output: Non-Dimensional
+        case EOS_DIMENSIONAL_IO_D_ND:
+            dvSpeedSound = EOS_Internal_NonDimensionalize_SpeedSound(dvSpeedSound);
+            break;
+        default:
+            error("EOS_IdealGas_Get_DH_SpeedSound:2: Undefined Dimensional Input/Output -%d", ivDimIOType);
+            break;
+    }
+    //-END----------------Dimensional Computations------------------------------
+    
+    return dvSpeedSound;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_IdealGas_Get_DH_Pressure(int ivDimIOType, double dvDensity, double dvEnthalpy) {
+    double dvPressure, dvGamma;
+    
+    // Dimensionalize the Input Properties based on I/O Type
+    switch (ivDimIOType) {
+        // Type Input: Non-Dimensional  Output: Non-Dimensional
+        case EOS_DIMENSIONAL_IO_ND_ND:
+            dvDensity  = EOS_Internal_Dimensionalize_Density(dvDensity);
+            dvEnthalpy = EOS_Internal_Dimensionalize_Enthalpy(dvEnthalpy);
+            break;
+        // Type Input: Dimensional  Output: Dimensional
+        case EOS_DIMENSIONAL_IO_D_D:
+            // Do Nothing Input is Dimensional (SI Units)
+            break;
+        // Type Input: Non-Dimensional  Output: Dimensional
+        case EOS_DIMENSIONAL_IO_ND_D:
+            dvDensity  = EOS_Internal_Dimensionalize_Density(dvDensity);
+            dvEnthalpy = EOS_Internal_Dimensionalize_Enthalpy(dvEnthalpy);
+            break;
+        // Type Input: Dimensional  Output: Non-Dimensional
+        case EOS_DIMENSIONAL_IO_D_ND:
+            // Do Nothing Input is Dimensional (SI Units)
+            break;
+        default:
+            error("EOS_IdealGas_Get_DH_Pressure:1: Undefined Dimensional Input/Output -%d", ivDimIOType);
+            break;
+    }
+    
+    //-START--------------Dimensional Computations------------------------------
+    dvGamma = dvgRatioSpecificHeat_Ref;
+    
+    // Compute the EOS Based on Variable Type of dpVariableIn
+    dvPressure = dvDensity*(dvGamma - 1.0)*dvEnthalpy/dvGamma;
+    
+    // Dimensionalize the Output Properties based on I/O Type
+    switch (ivDimIOType) {
+        // Type Input: Non-Dimensional  Output: Non-Dimensional
+        case EOS_DIMENSIONAL_IO_ND_ND:
+            dvPressure = EOS_Internal_NonDimensionalize_Pressure(dvPressure);
+            break;
+        // Type Input: Dimensional  Output: Dimensional
+        case EOS_DIMENSIONAL_IO_D_D:
+            // Do Nothing Output is Dimensional (SI Units)
+            break;
+        // Type Input: Non-Dimensional  Output: Dimensional
+        case EOS_DIMENSIONAL_IO_ND_D:
+            // Do Nothing Output is Dimensional (SI Units)
+            break;
+        // Type Input: Dimensional  Output: Non-Dimensional
+        case EOS_DIMENSIONAL_IO_D_ND:
+            dvPressure = EOS_Internal_NonDimensionalize_Pressure(dvPressure);
+            break;
+        default:
+            error("EOS_IdealGas_Get_DH_Pressure:2: Undefined Dimensional Input/Output -%d", ivDimIOType);
+            break;
+    }
+    //-END----------------Dimensional Computations------------------------------
+    
+    return dvPressure;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_IdealGas_Get_DH_Temperature(int ivDimIOType, double dvDensity, double dvEnthalpy) {
+    double dvTemperature, dvGamma, dvR;
+    
+    // Dimensionalize the Input Properties based on I/O Type
+    switch (ivDimIOType) {
+        // Type Input: Non-Dimensional  Output: Non-Dimensional
+        case EOS_DIMENSIONAL_IO_ND_ND:
+            dvDensity  = EOS_Internal_Dimensionalize_Density(dvDensity);
+            dvEnthalpy = EOS_Internal_Dimensionalize_Enthalpy(dvEnthalpy);
+            break;
+        // Type Input: Dimensional  Output: Dimensional
+        case EOS_DIMENSIONAL_IO_D_D:
+            // Do Nothing Input is Dimensional (SI Units)
+            break;
+        // Type Input: Non-Dimensional  Output: Dimensional
+        case EOS_DIMENSIONAL_IO_ND_D:
+            dvDensity  = EOS_Internal_Dimensionalize_Density(dvDensity);
+            dvEnthalpy = EOS_Internal_Dimensionalize_Enthalpy(dvEnthalpy);
+            break;
+        // Type Input: Dimensional  Output: Non-Dimensional
+        case EOS_DIMENSIONAL_IO_D_ND:
+            // Do Nothing Input is Dimensional (SI Units)
+            break;
+        default:
+            error("EOS_IdealGas_Get_DH_Temperature:1: Undefined Dimensional Input/Output -%d", ivDimIOType);
+            break;
+    }
+    
+    //-START--------------Dimensional Computations------------------------------
+    dvR     = SogFluidInfo.dvGasConstant;
+    dvGamma = dvgRatioSpecificHeat_Ref;
+    
+    // Compute the EOS Based on Variable Type of dpVariableIn
+    dvTemperature = (dvGamma - 1.0)*dvEnthalpy/(dvGamma*dvR);
+    
+    // Dimensionalize the Output Properties based on I/O Type
+    switch (ivDimIOType) {
+        // Type Input: Non-Dimensional  Output: Non-Dimensional
+        case EOS_DIMENSIONAL_IO_ND_ND:
+            dvTemperature = EOS_Internal_NonDimensionalize_Temperature(dvTemperature);
+            break;
+        // Type Input: Dimensional  Output: Dimensional
+        case EOS_DIMENSIONAL_IO_D_D:
+            // Do Nothing Output is Dimensional (SI Units)
+            break;
+        // Type Input: Non-Dimensional  Output: Dimensional
+        case EOS_DIMENSIONAL_IO_ND_D:
+            // Do Nothing Output is Dimensional (SI Units)
+            break;
+        // Type Input: Dimensional  Output: Non-Dimensional
+        case EOS_DIMENSIONAL_IO_D_ND:
+            dvTemperature = EOS_Internal_NonDimensionalize_Temperature(dvTemperature);
+            break;
+        default:
+            error("EOS_IdealGas_Get_DH_Temperature:2: Undefined Dimensional Input/Output -%d", ivDimIOType);
+            break;
+    }
+    //-END----------------Dimensional Computations------------------------------
+    
+    return dvTemperature;
 }
 

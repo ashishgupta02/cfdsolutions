@@ -295,7 +295,7 @@ void Compute_Limiter_PressureCorrection(int node_C, double *Phi_C) {
         Q_C[4]  = Q5[node_C] + Phi_C[4]*(frac*(Q5[nodeid] - Q5[node_C]) + (1.0 - frac)*(Q5x[node_C]*Rx_C + Q5y[node_C]*Ry_C + Q5z[node_C]*Rz_C));
 
         // Compute the Pressure
-        P_C = Get_Pressure(Q_C);
+        P_C = Material_Get_Pressure(Q_C);
         if ((P_C + Gauge_Pressure) < 0.0) {
             for (i = 0; i < 5; i++)
                 Phi_C[i] = 0.0;
@@ -346,7 +346,7 @@ void Compute_Limiter_RoePressureCorrection(int node_L, int node_R, double *Phi_L
     // Apply Pressure Correction on Limiter
     // Compute Roe Variables
     Compute_RoeAverage_Q(Q_L, Q_R, Q_Roe);
-    P_Roe = Get_Pressure(Q_Roe);
+    P_Roe = Material_Get_Pressure(Q_Roe);
     if ((P_Roe + Gauge_Pressure) < 0.0) {
         for (i = 0; i < 5; i++) {
             Phi_L[i] = 0.0;

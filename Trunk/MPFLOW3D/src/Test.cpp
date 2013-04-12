@@ -33,7 +33,9 @@ void Unsteady_Initialization(void) {
     double x0, y0, z0;
     double r, r2, beta, fac1, fac2, fac3;
     double rho0, u0, v0, w0, p0, T0, s0, c0;
-    double T, u, v, w, p, rho;
+    double T, u, v, w, p, rho, et;
+    double daQ[NEQUATIONS];
+    int dvVariableType_Old;
     
     // This domain is 0 < x < xmax; -5 < y < 5; translated in z
     // An isentropic perturbation is being added
@@ -45,7 +47,7 @@ void Unsteady_Initialization(void) {
     z0   = 0.0;  // z location of vortex at time t = 0
     beta = 5.0; // Vortex strength
     rho0 = Inf_Rho;
-    p0   = Inf_Pressure;
+    p0   = Inf_Pressure + Gauge_Pressure;
     T0   = Inf_Temperature;
     c0   = Inf_SpeedSound;
     u0   = Inf_U;
@@ -67,13 +69,24 @@ void Unsteady_Initialization(void) {
         v = v0 + (fac1 * fac3)*(coordXYZ[3*iNode] - x0);
         w = w0;
         p = pow(pow(T/(Gamma), Gamma)/s0, 1.0/(Gamma - 1.0));
-        rho = Get_Rho(p, T);
+        
+        // Compute Density and Total Energy
+        dvVariableType_Old = VariableType;
+        VariableType = VARIABLE_PUT;
+        daQ[0] = p;
+        daQ[1] = u;
+        daQ[2] = v;
+        daQ[3] = w;
+        daQ[4] = T;
+        rho = Material_Get_Density(daQ);
+        et  = Material_Get_TotalEnergy(daQ);
+        VariableType = dvVariableType_Old;
 
         Q1[iNode] = rho;
         Q2[iNode] = rho*u;
         Q3[iNode] = rho*v;
         Q4[iNode] = rho*w;
-        Q5[iNode] = rho*Get_TotalEnergy(rho, p, u, v, w);
+        Q5[iNode] = rho*et;
     }
     
     // Initialize the Ghost Nodes
@@ -358,7 +371,7 @@ int Solver_Steady_Explicit_RungeKutta4(void) {
         }
         
         // Compute Far Field Conditions with Mach Ramping
-        ComputeFarFieldCondition(iter);
+        Material_Set_InfinityCondition(iter);
         
         // Check if First Order Iterations are Required
         SolverOrder = SaveOrder;

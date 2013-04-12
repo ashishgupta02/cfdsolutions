@@ -10,17 +10,25 @@
             <sourceEncoding>UTF-8</sourceEncoding>
             <make-dep-projects>
                 <make-dep-project>../MATH</make-dep-project>
-                <make-dep-project>../../../../Dropbox/CFDSolutions/Trunk/NISTThermo/NISTThermo</make-dep-project>
+                <make-dep-project>../NISTThermo/NISTThermo</make-dep-project>
                 <make-dep-project>../UTILS</make-dep-project>
             </make-dep-projects>
             <sourceRootList/>
             <confList>
                 <confElem>
                     <name>Debug</name>
-                    <type>1</type>
+                    <type>2</type>
                 </confElem>
                 <confElem>
                     <name>Release</name>
+                    <type>2</type>
+                </confElem>
+                <confElem>
+                    <name>Debug_GUPC_x86_64</name>
+                    <type>2</type>
+                </confElem>
+                <confElem>
+                    <name>Release_GUPC_x86_64</name>
                     <type>2</type>
                 </confElem>
             </confList>

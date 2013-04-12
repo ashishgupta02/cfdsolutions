@@ -24,7 +24,7 @@ void RMS_Writer_Init(void) {
     if ((RMS_FP = fopen("Residual.res", "wb")) == NULL)
         error("RMS_Writer_Init: Unable to Write RMS File - Residual.res");
     
-    if (VariableType == VARIABLE_CONSERVATIVE) {
+    if (VariableType == VARIABLE_CON) {
         if (PrecondMethod == PRECOND_METHOD_NONE) {
             fprintf(RMS_FP, "=============================================================================================================================================================================\n");
             fprintf(RMS_FP, "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
@@ -36,7 +36,7 @@ void RMS_Writer_Init(void) {
             fprintf(RMS_FP, " Iter     RMS_RHO    RMS_RHOU    RMS_RHOV    RMS_RHOW       RMS_E     RMS_RES    MIN_TIME    MAX_TIME  MIN_LAMDA1  MAX_LAMDA1  MIN_LAMDA4  MAX_LAMDA4  MIN_LAMDA5  MAX_LAMDA5   MIN_SIGMA   MAX_SIGMA\n");
             fprintf(RMS_FP, "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
         }
-    } else if (VariableType == VARIABLE_PRIMITIVE_PUT) {
+    } else if (VariableType == VARIABLE_PUT) {
         if (PrecondMethod == PRECOND_METHOD_NONE) {
             fprintf(RMS_FP, "=============================================================================================================================================================================\n");
             fprintf(RMS_FP, "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");

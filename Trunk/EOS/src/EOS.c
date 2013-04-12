@@ -166,24 +166,26 @@ void EOS_Print_Reference_Properties() {
         warn("EOS_Print_Reference_Properties:1: Reference Properties are Not Set");
     
     printf("=============================================================================\n");
-    info("Density_Ref                       = %15.6f kg/m^3", dvgDensity_Ref);
-    info("Pressure_Ref                      = %15.6f kPa",    dvgPressure_Ref/1000.0); // Pressure in kPa
-    info("Temperature_Ref                   = %15.6f K",      dvgTemperature_Ref);
-    info("Velocity_Ref                      = %15.6f m/s",    dvgVelocity_Ref);
-    info("Length_Ref                        = %15.6f m",      dvgLength_Ref);
-    info("SpeedSound_Ref                    = %15.6f m/s",    dvgSpeedSound_Ref);
-    info("Mach_Ref                          = %15.6f",        dvgMach_Ref);
-    info("Time_Ref                          = %15.6f s",      dvgTime_Ref);
-    info("Entropy_Ref                       = %15.6f J/kg-K", dvgEntropy_Ref);
-    info("Enthalpy_Ref                      = %15.6f J/kg",   dvgEnthalpy_Ref);
-    info("InternalEnergy_Ref                = %15.6f J/kg",   dvgInternalEnergy_Ref);
-    info("TotalEnthalpy_Ref                 = %15.6f J/kg",   dvgTotalEnthalpy_Ref);
-    info("TotalEnergy_Ref                   = %15.6f J/kg",   dvgTotalEnergy_Ref);
-    info("Heat Capacity Cv_Ref              = %15.6f J/kg-K", dvgHeatCapacityCv_Ref);
-    info("Heat Capacity Cp_Ref              = %15.6f J/kg-K", dvgHeatCapacityCp_Ref);
-    info("GasConstant_Ref                   = %15.6f J/kg-K", dvgGasConstant_Ref);
-    info("RatioSpecificHeat_Ref             = %15.6f",        dvgRatioSpecificHeat_Ref);
-    info("EntropyConst_Ref                  = %15.6f",        dvgEntropyConst_Ref);
+    info("EOS: Reference Properties:");
+    printf("-----------------------------------------------------------------------------\n");
+    info("Density_Ref -------------------------------: %15.6f kg/m^3", dvgDensity_Ref);
+    info("Pressure_Ref ------------------------------: %15.6f kPa",    dvgPressure_Ref/1000.0); // Pressure in kPa
+    info("Temperature_Ref ---------------------------: %15.6f K",      dvgTemperature_Ref);
+    info("Velocity_Ref ------------------------------: %15.6f m/s",    dvgVelocity_Ref);
+    info("Length_Ref --------------------------------: %15.6f m",      dvgLength_Ref);
+    info("SpeedSound_Ref ----------------------------: %15.6f m/s",    dvgSpeedSound_Ref);
+    info("Mach_Ref ----------------------------------: %15.6f",        dvgMach_Ref);
+    info("Time_Ref ----------------------------------: %15.6f s",      dvgTime_Ref);
+    info("Entropy_Ref -------------------------------: %15.6f J/kg-K", dvgEntropy_Ref);
+    info("Enthalpy_Ref ------------------------------: %15.6f J/kg",   dvgEnthalpy_Ref);
+    info("InternalEnergy_Ref ------------------------: %15.6f J/kg",   dvgInternalEnergy_Ref);
+    info("TotalEnthalpy_Ref -------------------------: %15.6f J/kg",   dvgTotalEnthalpy_Ref);
+    info("TotalEnergy_Ref ---------------------------: %15.6f J/kg",   dvgTotalEnergy_Ref);
+    info("Heat Capacity Cv_Ref ----------------------: %15.6f J/kg-K", dvgHeatCapacityCv_Ref);
+    info("Heat Capacity Cp_Ref ----------------------: %15.6f J/kg-K", dvgHeatCapacityCp_Ref);
+    info("GasConstant_Ref ---------------------------: %15.6f J/kg-K", dvgGasConstant_Ref);
+    info("RatioSpecificHeat_Ref ---------------------: %15.6f",        dvgRatioSpecificHeat_Ref);
+    info("EntropyConst_Ref --------------------------: %15.6f",        dvgEntropyConst_Ref);
     printf("=============================================================================\n");
 }
 
@@ -1002,10 +1004,102 @@ double EOS_Get_DInternalEnergyDPressure_CDensity(int ivDimIOType, int ivVariable
 }
 
 //------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+void EOS_Get_PT_Density(int ivDimIOType, double dvPressure, double dvTemperature, double *dpDensity) {
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            EOS_IdealGas_Get_PT_Density(ivDimIOType, dvPressure, dvTemperature, dpDensity);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            EOS_NIST_Get_PT_Density(ivDimIOType, dvPressure, dvTemperature, dpDensity);
+            break;
+        default:
+            error("EOS_Get_PT_Density:1: Undefined Equation of State Model");
+            break;
+    }
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_DH_SpeedSound(int ivDimIOType, double dvDensity, double dvEnthalpy) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_DH_SpeedSound(ivDimIOType, dvDensity, dvEnthalpy);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_DH_SpeedSound(ivDimIOType, dvDensity, dvEnthalpy);
+            break;
+        default:
+            error("EOS_Get_DH_SpeedSound:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_DH_Pressure(int ivDimIOType, double dvDensity, double dvEnthalpy) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_DH_Pressure(ivDimIOType, dvDensity, dvEnthalpy);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_DH_Pressure(ivDimIOType, dvDensity, dvEnthalpy);
+            break;
+        default:
+            error("EOS_Get_DH_Pressure:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_DH_Temperature(int ivDimIOType, double dvDensity, double dvEnthalpy) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_DH_Temperature(ivDimIOType, dvDensity, dvEnthalpy);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_DH_Temperature(ivDimIOType, dvDensity, dvEnthalpy);
+            break;
+        default:
+            error("EOS_Get_DH_Temperature:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
 //! Compute the Transformation Matrix Based on Variable Type Input
 //! All Matrix Output are based on Dimensional Input/Output Type
 //------------------------------------------------------------------------------
-void EOS_Get_Transformation_Matrix(int ivDimIOType, int ivVarTypeIn, double *dpPropertyIn, int ivVarTypeFrom, int ivVarTypeTo, double **Matrix) {
+void EOS_Get_Transformation_Matrix(int ivDimIOType, int ivVarTypeIn, double *dpVariableIn, int ivVarTypeFrom, int ivVarTypeTo, double **Matrix) {
     int i, j;
     
     // Check the Variable Type and Return the proper Transformation Matrix
@@ -1029,7 +1123,7 @@ void EOS_Get_Transformation_Matrix(int ivDimIOType, int ivVarTypeIn, double *dpP
                     case EOS_VARIABLE_CON:
                         switch (ivVarTypeTo) {
                             case EOS_VARIABLE_RUP:
-                                EOS_DP_Get_Transformation_Matrix_CON_To_RUP(ivDimIOType, dpPropertyIn, Matrix);
+                                EOS_DP_Get_Transformation_Matrix_CON_To_RUP(ivDimIOType, dpVariableIn, Matrix);
                                 break;
                             case EOS_VARIABLE_PUT:
                                 error("EOS_Get_Transformation_Matrix:2: Not Implemented For EOS_VARIABLE_PUT");
@@ -1047,7 +1141,7 @@ void EOS_Get_Transformation_Matrix(int ivDimIOType, int ivVarTypeIn, double *dpP
                     case EOS_VARIABLE_RUP:
                         switch (ivVarTypeTo) {
                             case EOS_VARIABLE_CON:
-                                EOS_DP_Get_Transformation_Matrix_RUP_To_CON(ivDimIOType, dpPropertyIn, Matrix);
+                                EOS_DP_Get_Transformation_Matrix_RUP_To_CON(ivDimIOType, dpVariableIn, Matrix);
                                 break;
                             case EOS_VARIABLE_PUT:
                                 error("EOS_Get_Transformation_Matrix:6: Not Implemented For EOS_VARIABLE_PUT");
@@ -1084,7 +1178,7 @@ void EOS_Get_Transformation_Matrix(int ivDimIOType, int ivVarTypeIn, double *dpP
                     case EOS_VARIABLE_CON:
                         switch (ivVarTypeTo) {
                             case EOS_VARIABLE_RUP:
-                                EOS_DT_Get_Transformation_Matrix_CON_To_RUP(ivDimIOType, dpPropertyIn, Matrix);
+                                EOS_DT_Get_Transformation_Matrix_CON_To_RUP(ivDimIOType, dpVariableIn, Matrix);
                                 break;
                             case EOS_VARIABLE_PUT:
                                 error("EOS_Get_Transformation_Matrix:15: Not Implemented For EOS_VARIABLE_PUT");
@@ -1093,7 +1187,7 @@ void EOS_Get_Transformation_Matrix(int ivDimIOType, int ivVarTypeIn, double *dpP
                                 error("EOS_Get_Transformation_Matrix:16: Not Implemented For EOS_VARIABLE_PUS");
                                 break;
                             case EOS_VARIABLE_RUT:
-                                EOS_DT_Get_Transformation_Matrix_CON_To_RUT(ivDimIOType, dpPropertyIn, Matrix);
+                                EOS_DT_Get_Transformation_Matrix_CON_To_RUT(ivDimIOType, dpVariableIn, Matrix);
                                 break;
                             default:
                                 error("EOS_Get_Transformation_Matrix:17: Undefined Variable Type - %d", ivVarTypeTo);
@@ -1111,7 +1205,7 @@ void EOS_Get_Transformation_Matrix(int ivDimIOType, int ivVarTypeIn, double *dpP
                                 error("EOS_Get_Transformation_Matrix:20: Not Implemented For EOS_VARIABLE_PUS");
                                 break;
                             case EOS_VARIABLE_RUT:
-                                EOS_DT_Get_Transformation_Matrix_RUP_To_RUT(ivDimIOType, dpPropertyIn, Matrix);
+                                EOS_DT_Get_Transformation_Matrix_RUP_To_RUT(ivDimIOType, dpVariableIn, Matrix);
                                 break;
                             default:
                                 error("EOS_Get_Transformation_Matrix:21: Undefined Variable Type - %d", ivVarTypeTo);
@@ -1126,10 +1220,10 @@ void EOS_Get_Transformation_Matrix(int ivDimIOType, int ivVarTypeIn, double *dpP
                     case EOS_VARIABLE_RUT:
                         switch (ivVarTypeTo) {
                             case EOS_VARIABLE_CON:
-                                EOS_DT_Get_Transformation_Matrix_RUT_To_CON(ivDimIOType, dpPropertyIn, Matrix);
+                                EOS_DT_Get_Transformation_Matrix_RUT_To_CON(ivDimIOType, dpVariableIn, Matrix);
                                 break;
                             case EOS_VARIABLE_RUP:
-                                EOS_DT_Get_Transformation_Matrix_RUT_To_RUP(ivDimIOType, dpPropertyIn, Matrix);
+                                EOS_DT_Get_Transformation_Matrix_RUT_To_RUP(ivDimIOType, dpVariableIn, Matrix);
                                 break;
                             case EOS_VARIABLE_PUT:
                                 error("EOS_Get_Transformation_Matrix:24: Not Implemented For EOS_VARIABLE_PUT");

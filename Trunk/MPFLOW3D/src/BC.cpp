@@ -142,15 +142,15 @@ int Compute_Precondition_Characteristic_BoundaryCondition_Turkel(double Q_L[NEQU
 
     // Compute Equation of State
     // Physical node: Based on Variable Type Pressure will be Perturbation
-    Compute_EOS_Variables_Face(Q_L, nx, ny, nz, rho_i, p_i, T_i, u_i, v_i, w_i, q2_i, c_i, mach_i, ubar_i, et_i, ht_i);
+    Material_Get_Face_Properties(Q_L, nx, ny, nz, rho_i, p_i, T_i, u_i, v_i, w_i, q2_i, c_i, mach_i, ubar_i, et_i, ht_i);
     
     // Ghost node: Based on Variable Type Pressure will be Perturbation
-    Compute_EOS_Variables_Face(Q_R, nx, ny, nz, rho_b, p_b, T_b, u_b, v_b, w_b, q2_b, c_b, mach_b, ubar_b, et_b, ht_b);
+    Material_Get_Face_Properties(Q_R, nx, ny, nz, rho_b, p_b, T_b, u_b, v_b, w_b, q2_b, c_b, mach_b, ubar_b, et_b, ht_b);
     
     // Average State: Based on Variable Type Pressure will be Perturbation
     for (i = 0; i < NEQUATIONS; i++)
         Q_B[i] = 0.5*(Q_L[i] + Q_R[i]);
-    Compute_EOS_Variables_Face(Q_B, nx, ny, nz, rho, p, T, u, v, w, q2, c, mach, ubar, et, ht);
+    Material_Get_Face_Properties(Q_B, nx, ny, nz, rho, p, T, u, v, w, q2, c, mach, ubar, et, ht);
     
     // Get two nodes of edge
     node_L = bndEdge[BEdgeID].node[0];
@@ -181,7 +181,7 @@ int Compute_Precondition_Characteristic_BoundaryCondition_Turkel(double Q_L[NEQU
                 lQ[3] = Q4[nid];
                 lQ[4] = Q5[nid];
                 // Compute Local Equation of State
-                Compute_EOS_Variables_ControlVolume(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
+                Material_Get_ControlVolume_Properties(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
 
                 // Compute Smoothing Parameters
                 mach_max = MAX(mach_max, lmach);
@@ -224,15 +224,15 @@ int Compute_Precondition_Characteristic_BoundaryCondition_Turkel(double Q_L[NEQU
     alpha = 0.0;
     delta = 0.0;
     switch (PrecondMethod) {
-        case PRECOND_METHOD_ROE_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
+        case PRECOND_METHOD_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
             alpha = 0.0;
             delta = 1.0;
             break;
-        case PRECOND_METHOD_ROE_ERIKSSON: // Roe Eriksson Pre-Conditioner
+        case PRECOND_METHOD_ERIKSSON: // Roe Eriksson Pre-Conditioner
             alpha = 0.0;
             delta = beta;
             break;
-        case PRECOND_METHOD_ROE_TURKEL: // Roe Turkel Pre-Conditioner
+        case PRECOND_METHOD_TURKEL: // Roe Turkel Pre-Conditioner
             alpha = 0.4;
             delta = beta;
             break;
@@ -683,28 +683,28 @@ int Compute_Precondition_Characteristic_BoundaryCondition_Turkel(double Q_L[NEQU
     }
 
     // Conservative Variable Formulation
-    if (VariableType == VARIABLE_CONSERVATIVE) {
-        et_b_n = Get_TotalEnergy(rho_b_n, p_b_n, u_b_n, v_b_n, w_b_n);
+    if (VariableType == VARIABLE_CON) {
+        // Get the Total Energy
+        int ivVarType_Old = VariableType;
+        VariableType = VARIABLE_RUP;
+        Q_B[0] = rho_b_n;
+        Q_B[1] = u_b_n;
+        Q_B[2] = v_b_n;
+        Q_B[3] = w_b_n;
+        Q_B[4] = p_b_n;   // Only Perturbation 
+        et_b_n = Material_Get_TotalEnergy(Q_B);
+        
         // Update the Q's for Ghost Node
         Q_B[0] = rho_b_n;
         Q_B[1] = rho_b_n * u_b_n;
         Q_B[2] = rho_b_n * v_b_n;
         Q_B[3] = rho_b_n * w_b_n;
         Q_B[4] = rho_b_n * et_b_n;
-    }
-    
-    // Primitive Variable Formulation Pressure Velocity Temperature
-    if (VariableType == VARIABLE_PRIMITIVE_PUT) {
-        // Update the Q's for Ghost Node
-        Q_B[0] = p_b_n; // Only Perturbation 
-        Q_B[1] = u_b_n;
-        Q_B[2] = v_b_n;
-        Q_B[3] = w_b_n;
-        Q_B[4] = Get_Temperature(rho_b_n, p_b_n);
+        VariableType = ivVarType_Old;
     }
     
     // Primitive Variable Formulation Density Velocity Pressure
-    if (VariableType == VARIABLE_PRIMITIVE_RUP) {
+    if (VariableType == VARIABLE_RUP) {
         // Update the Q's for Ghost Node
         Q_B[0] = rho_b_n;
         Q_B[1] = u_b_n;
@@ -713,14 +713,42 @@ int Compute_Precondition_Characteristic_BoundaryCondition_Turkel(double Q_L[NEQU
         Q_B[4] = p_b_n;   // Only Perturbation 
     }
     
+    // Primitive Variable Formulation Pressure Velocity Temperature
+    if (VariableType == VARIABLE_PUT) {
+        // Get the Temperature
+        int ivVarType_Old = VariableType;
+        VariableType = VARIABLE_RUP;
+        Q_B[0] = rho_b_n;
+        Q_B[1] = u_b_n;
+        Q_B[2] = v_b_n;
+        Q_B[3] = w_b_n;
+        Q_B[4] = p_b_n;   // Only Perturbation 
+        Q_B[4] = Material_Get_Temperature(Q_B);
+        // Update the Q's for Ghost Node
+        Q_B[0] = p_b_n; // Only Perturbation 
+        Q_B[1] = u_b_n;
+        Q_B[2] = v_b_n;
+        Q_B[3] = w_b_n;
+        VariableType = ivVarType_Old;
+    }
+    
     // Primitive Variable Formulation Density Velocity Temperature
-    if (VariableType == VARIABLE_PRIMITIVE_RUT) {
+    if (VariableType == VARIABLE_RUT) {
+        // Get the Temperature
+        int ivVarType_Old = VariableType;
+        VariableType = VARIABLE_RUP;
+        Q_B[0] = rho_b_n;
+        Q_B[1] = u_b_n;
+        Q_B[2] = v_b_n;
+        Q_B[3] = w_b_n;
+        Q_B[4] = p_b_n;   // Only Perturbation 
+        Q_B[4] = Material_Get_Temperature(Q_B);
         // Update the Q's for Ghost Node
         Q_B[0] = rho_b_n;
         Q_B[1] = u_b_n;
         Q_B[2] = v_b_n;
         Q_B[3] = w_b_n;
-        Q_B[4] = Get_Temperature(rho_b_n, p_b_n);
+        VariableType = ivVarType_Old;
     }
     
     return rvalue;
@@ -761,15 +789,15 @@ int Compute_Characteristic_BoundaryCondition(double Q_L[NEQUATIONS], double Q_R[
 
     // Compute Equation of State
     // Physical node: Based on Variable Type Pressure will be Perturbation
-    Compute_EOS_Variables_Face(Q_L, nx, ny, nz, rho_i, p_i, T_i, u_i, v_i, w_i, q2_i, c_i, mach_i, ubar_i, et_i, ht_i);
+    Material_Get_Face_Properties(Q_L, nx, ny, nz, rho_i, p_i, T_i, u_i, v_i, w_i, q2_i, c_i, mach_i, ubar_i, et_i, ht_i);
     
     // Ghost node: Based on Variable Type Pressure will be Perturbation
-    Compute_EOS_Variables_Face(Q_R, nx, ny, nz, rho_b, p_b, T_b, u_b, v_b, w_b, q2_b, c_b, mach_b, ubar_b, et_b, ht_b);
+    Material_Get_Face_Properties(Q_R, nx, ny, nz, rho_b, p_b, T_b, u_b, v_b, w_b, q2_b, c_b, mach_b, ubar_b, et_b, ht_b);
     
     // Average State: Based on Variable Type Pressure will be Perturbation
     for (i = 0; i < NEQUATIONS; i++)
         Q_B[i] = 0.5*(Q_L[i] + Q_R[i]);
-    Compute_EOS_Variables_Face(Q_B, nx, ny, nz, rho, p, T, u, v, w, q2, c, mach, ubar, et, ht);
+    Material_Get_Face_Properties(Q_B, nx, ny, nz, rho, p, T, u, v, w, q2, c, mach, ubar, et, ht);
     
     //==========================================================================
     // Compute Boundary Condition
@@ -1205,28 +1233,28 @@ int Compute_Characteristic_BoundaryCondition(double Q_L[NEQUATIONS], double Q_R[
     }
 
     // Conservative Variable Formulation
-    if (VariableType == VARIABLE_CONSERVATIVE) {
-        et_b_n = Get_TotalEnergy(rho_b_n, p_b_n, u_b_n, v_b_n, w_b_n);
+    if (VariableType == VARIABLE_CON) {
+        // Get the Total Energy
+        int ivVarType_Old = VariableType;
+        VariableType = VARIABLE_RUP;
+        Q_B[0] = rho_b_n;
+        Q_B[1] = u_b_n;
+        Q_B[2] = v_b_n;
+        Q_B[3] = w_b_n;
+        Q_B[4] = p_b_n;   // Only Perturbation
+        et_b_n = Material_Get_TotalEnergy(Q_B);
+        
         // Update the Q's for Ghost Node
         Q_B[0] = rho_b_n;
         Q_B[1] = rho_b_n * u_b_n;
         Q_B[2] = rho_b_n * v_b_n;
         Q_B[3] = rho_b_n * w_b_n;
         Q_B[4] = rho_b_n * et_b_n;
-    }
-    
-    // Primitive Variable Formulation Pressure Velocity Temperature
-    if (VariableType == VARIABLE_PRIMITIVE_PUT) {
-        // Update the Q's for Ghost Node
-        Q_B[0] = p_b_n; // Only Perturbation 
-        Q_B[1] = u_b_n;
-        Q_B[2] = v_b_n;
-        Q_B[3] = w_b_n;
-        Q_B[4] = Get_Temperature(rho_b_n, p_b_n);
+        VariableType = ivVarType_Old;
     }
     
     // Primitive Variable Formulation Density Velocity Pressure
-    if (VariableType == VARIABLE_PRIMITIVE_RUP) {
+    if (VariableType == VARIABLE_RUP) {
         // Update the Q's for Ghost Node
         Q_B[0] = rho_b_n;
         Q_B[1] = u_b_n;
@@ -1235,14 +1263,42 @@ int Compute_Characteristic_BoundaryCondition(double Q_L[NEQUATIONS], double Q_R[
         Q_B[4] = p_b_n; // Only Perturbation 
     }
     
+    // Primitive Variable Formulation Pressure Velocity Temperature
+    if (VariableType == VARIABLE_PUT) {
+        // Get the Temperature
+        int ivVarType_Old = VariableType;
+        VariableType = VARIABLE_RUP;
+        Q_B[0] = rho_b_n;
+        Q_B[1] = u_b_n;
+        Q_B[2] = v_b_n;
+        Q_B[3] = w_b_n;
+        Q_B[4] = p_b_n;   // Only Perturbation 
+        Q_B[4] = Material_Get_Temperature(Q_B);
+        // Update the Q's for Ghost Node
+        Q_B[0] = p_b_n; // Only Perturbation 
+        Q_B[1] = u_b_n;
+        Q_B[2] = v_b_n;
+        Q_B[3] = w_b_n;
+        VariableType = ivVarType_Old;
+    }
+    
     // Primitive Variable Formulation Density Velocity Temperature
-    if (VariableType == VARIABLE_PRIMITIVE_RUT) {
+    if (VariableType == VARIABLE_RUT) {
+        // Get the Temperature
+        int ivVarType_Old = VariableType;
+        VariableType = VARIABLE_RUP;
+        Q_B[0] = rho_b_n;
+        Q_B[1] = u_b_n;
+        Q_B[2] = v_b_n;
+        Q_B[3] = w_b_n;
+        Q_B[4] = p_b_n;   // Only Perturbation 
+        Q_B[4] = Material_Get_Temperature(Q_B);
         // Update the Q's for Ghost Node
         Q_B[0] = rho_b_n;
         Q_B[1] = u_b_n;
         Q_B[2] = v_b_n;
         Q_B[3] = w_b_n;
-        Q_B[4] = Get_Temperature(rho_b_n, p_b_n);
+        VariableType = ivVarType_Old;
     }
     
     return rvalue;
@@ -1281,15 +1337,15 @@ int Compute_Characteristic_BoundaryCondition_Direct(double Q_L[NEQUATIONS], doub
 
     // Compute Equation of State
     // Physical node: Based on Variable Type Pressure will be Perturbation
-    Compute_EOS_Variables_Face(Q_L, nx, ny, nz, rho_i, p_i, T_i, u_i, v_i, w_i, q2_i, c_i, mach_i, ubar_i, et_i, ht_i);
+    Material_Get_Face_Properties(Q_L, nx, ny, nz, rho_i, p_i, T_i, u_i, v_i, w_i, q2_i, c_i, mach_i, ubar_i, et_i, ht_i);
     
     // Ghost node: Based on Variable Type Pressure will be Perturbation
-    Compute_EOS_Variables_Face(Q_R, nx, ny, nz, rho_b, p_b, T_b, u_b, v_b, w_b, q2_b, c_b, mach_b, ubar_b, et_b, ht_b);
+    Material_Get_Face_Properties(Q_R, nx, ny, nz, rho_b, p_b, T_b, u_b, v_b, w_b, q2_b, c_b, mach_b, ubar_b, et_b, ht_b);
     
     // Average State: Based on Variable Type Pressure will be Perturbation
     for (i = 0; i < NEQUATIONS; i++)
         Q_B[i] = 0.5*(Q_L[i] + Q_R[i]);
-    Compute_EOS_Variables_Face(Q_B, nx, ny, nz, rho, p, T, u, v, w, q2, c, mach, ubar, et, ht);
+    Material_Get_Face_Properties(Q_B, nx, ny, nz, rho, p, T, u, v, w, q2, c, mach, ubar, et, ht);
     
     // Compute Eigenvalues
     lamda1 = ubar;
@@ -1557,28 +1613,28 @@ int Compute_Characteristic_BoundaryCondition_Direct(double Q_L[NEQUATIONS], doub
     }
     
     // Conservative Variable Formulation
-    if (VariableType == VARIABLE_CONSERVATIVE) {
-        et_b_n = Get_TotalEnergy(rho_b_n, p_b_n, u_b_n, v_b_n, w_b_n);
+    if (VariableType == VARIABLE_CON) {
+        // Get the Total Energy
+        int ivVarType_Old = VariableType;
+        VariableType = VARIABLE_RUP;
+        Q_B[0] = rho_b_n;
+        Q_B[1] = u_b_n;
+        Q_B[2] = v_b_n;
+        Q_B[3] = w_b_n;
+        Q_B[4] = p_b_n;   // Only Perturbation 
+        et_b_n = Material_Get_TotalEnergy(Q_B);
+        
         // Update the Q's for Ghost Node
         Q_B[0] = rho_b_n;
         Q_B[1] = rho_b_n * u_b_n;
         Q_B[2] = rho_b_n * v_b_n;
         Q_B[3] = rho_b_n * w_b_n;
         Q_B[4] = rho_b_n * et_b_n;
-    }
-    
-    // Primitive Variable Formulation Pressure Velocity Temperature
-    if (VariableType == VARIABLE_PRIMITIVE_PUT) {
-        // Update the Q's for Ghost Node
-        Q_B[0] = p_b_n; // Only Perturbation 
-        Q_B[1] = u_b_n;
-        Q_B[2] = v_b_n;
-        Q_B[3] = w_b_n;
-        Q_B[4] = Get_Temperature(rho_b_n, p_b_n);
+        VariableType = ivVarType_Old;
     }
     
     // Primitive Variable Formulation Density Velocity Pressure
-    if (VariableType == VARIABLE_PRIMITIVE_RUP) {
+    if (VariableType == VARIABLE_RUP) {
         // Update the Q's for Ghost Node
         Q_B[0] = rho_b_n;
         Q_B[1] = u_b_n;
@@ -1587,14 +1643,42 @@ int Compute_Characteristic_BoundaryCondition_Direct(double Q_L[NEQUATIONS], doub
         Q_B[4] = p_b_n;   // Only Perturbation
     }
     
+    // Primitive Variable Formulation Pressure Velocity Temperature
+    if (VariableType == VARIABLE_PUT) {
+        // Get the Temperature
+        int ivVarType_Old = VariableType;
+        VariableType = VARIABLE_RUP;
+        Q_B[0] = rho_b_n;
+        Q_B[1] = u_b_n;
+        Q_B[2] = v_b_n;
+        Q_B[3] = w_b_n;
+        Q_B[4] = p_b_n;   // Only Perturbation 
+        Q_B[4] = Material_Get_Temperature(Q_B);
+        // Update the Q's for Ghost Node
+        Q_B[0] = p_b_n; // Only Perturbation 
+        Q_B[1] = u_b_n;
+        Q_B[2] = v_b_n;
+        Q_B[3] = w_b_n;
+        VariableType = ivVarType_Old;
+    }
+    
     // Primitive Variable Formulation Density Velocity Temperature
-    if (VariableType == VARIABLE_PRIMITIVE_RUT) {
+    if (VariableType == VARIABLE_RUT) {
+        // Get the Temperature
+        int ivVarType_Old = VariableType;
+        VariableType = VARIABLE_RUP;
+        Q_B[0] = rho_b_n;
+        Q_B[1] = u_b_n;
+        Q_B[2] = v_b_n;
+        Q_B[3] = w_b_n;
+        Q_B[4] = p_b_n;   // Only Perturbation 
+        Q_B[4] = Material_Get_Temperature(Q_B);
         // Update the Q's for Ghost Node
         Q_B[0] = rho_b_n;
         Q_B[1] = u_b_n;
         Q_B[2] = v_b_n;
         Q_B[3] = w_b_n;
-        Q_B[4] = Get_Temperature(rho_b_n, p_b_n);
+        VariableType = ivVarType_Old;
     }
     
     return rvalue;
@@ -1641,22 +1725,22 @@ assert(node_R > node_L);
         case PRECOND_METHOD_NONE: // Roe
             rvalue = Compute_Characteristic_BoundaryCondition(Q_L, Q_R, areavec, BEdgeID, bndEdge[BEdgeID].type, Iteration, Q_B);
             break;
-        case PRECOND_METHOD_ROE_LMFIX: // LMRoe
+        case PRECOND_METHOD_LMFIX: // LMRoe
             rvalue = Compute_Characteristic_BoundaryCondition(Q_L, Q_R, areavec, BEdgeID, bndEdge[BEdgeID].type, Iteration, Q_B);
             break;
-        case PRECOND_METHOD_ROE_THORNBER: // THORNBER
+        case PRECOND_METHOD_THORNBER: // THORNBER
             rvalue = Compute_Characteristic_BoundaryCondition(Q_L, Q_R, areavec, BEdgeID, bndEdge[BEdgeID].type, Iteration, Q_B);
             break;
-        case PRECOND_METHOD_ROE_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
+        case PRECOND_METHOD_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
             rvalue = Compute_Precondition_Characteristic_BoundaryCondition_Turkel(Q_L, Q_R, areavec, BEdgeID, bndEdge[BEdgeID].type, Iteration, Q_B);
             break;
-        case PRECOND_METHOD_ROE_ERIKSSON: // Roe Eriksson Pre-Conditioner
+        case PRECOND_METHOD_ERIKSSON: // Roe Eriksson Pre-Conditioner
             rvalue = Compute_Precondition_Characteristic_BoundaryCondition_Turkel(Q_L, Q_R, areavec, BEdgeID, bndEdge[BEdgeID].type, Iteration, Q_B);
             break;
-        case PRECOND_METHOD_ROE_MERKEL: // Roe Merkel Pre-Conditioner
+        case PRECOND_METHOD_MERKEL: // Roe Merkel Pre-Conditioner
             rvalue = Compute_Precondition_Characteristic_BoundaryCondition_Merkel(Q_L, Q_R, areavec, BEdgeID, bndEdge[BEdgeID].type, Iteration, Q_B);
             break;
-        case PRECOND_METHOD_ROE_TURKEL: // Roe Turkel Pre-Conditioner
+        case PRECOND_METHOD_TURKEL: // Roe Turkel Pre-Conditioner
             rvalue = Compute_Precondition_Characteristic_BoundaryCondition_Turkel(Q_L, Q_R, areavec, BEdgeID, bndEdge[BEdgeID].type, Iteration, Q_B);
             break;
         default:
@@ -1716,22 +1800,22 @@ void Apply_Characteristic_Boundary_Condition(int Iteration) {
             case PRECOND_METHOD_NONE: // Roe
                 rvalue = Compute_Characteristic_BoundaryCondition(Q_L, Q_R, areavec, iBEdge, bndEdge[iBEdge].type, Iteration, Q_B);
                 break;
-            case PRECOND_METHOD_ROE_LMFIX: // LMRoe
+            case PRECOND_METHOD_LMFIX: // LMRoe
                 rvalue = Compute_Characteristic_BoundaryCondition(Q_L, Q_R, areavec, iBEdge, bndEdge[iBEdge].type, Iteration, Q_B);
                 break;
-            case PRECOND_METHOD_ROE_THORNBER: // THORNBER
+            case PRECOND_METHOD_THORNBER: // THORNBER
                 rvalue = Compute_Characteristic_BoundaryCondition(Q_L, Q_R, areavec, iBEdge, bndEdge[iBEdge].type, Iteration, Q_B);
                 break;
-            case PRECOND_METHOD_ROE_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
+            case PRECOND_METHOD_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
                 rvalue = Compute_Precondition_Characteristic_BoundaryCondition_Turkel(Q_L, Q_R, areavec, iBEdge, bndEdge[iBEdge].type, Iteration, Q_B);
                 break;
-            case PRECOND_METHOD_ROE_ERIKSSON: // Roe Eriksson Pre-Conditioner
+            case PRECOND_METHOD_ERIKSSON: // Roe Eriksson Pre-Conditioner
                 rvalue = Compute_Precondition_Characteristic_BoundaryCondition_Turkel(Q_L, Q_R, areavec, iBEdge, bndEdge[iBEdge].type, Iteration, Q_B);
                 break;
-            case PRECOND_METHOD_ROE_MERKEL: // Roe Merkel Pre-Conditioner
+            case PRECOND_METHOD_MERKEL: // Roe Merkel Pre-Conditioner
                 rvalue = Compute_Precondition_Characteristic_BoundaryCondition_Merkel(Q_L, Q_R, areavec, iBEdge, bndEdge[iBEdge].type, Iteration, Q_B);
                 break;
-            case PRECOND_METHOD_ROE_TURKEL: // Roe Turkel Pre-Conditioner
+            case PRECOND_METHOD_TURKEL: // Roe Turkel Pre-Conditioner
                 rvalue = Compute_Precondition_Characteristic_BoundaryCondition_Turkel(Q_L, Q_R, areavec, iBEdge, bndEdge[iBEdge].type, Iteration, Q_B);
                 break;
             default:
