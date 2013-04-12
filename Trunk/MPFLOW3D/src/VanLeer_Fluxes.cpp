@@ -199,8 +199,8 @@ void Compute_VanLeerFlux(int node_L, int node_R, Vector3D areavec, double *Flux_
         }
         
         // Compute Equation of State
-        Compute_EOS_Variables_Face(VanLeer_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
-        Compute_EOS_Variables_Face(VanLeer_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+        Material_Get_Face_Properties(VanLeer_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
+        Material_Get_Face_Properties(VanLeer_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
         p_L += Gauge_Pressure;
         p_R += Gauge_Pressure;
         
@@ -208,7 +208,17 @@ void Compute_VanLeerFlux(int node_L, int node_R, Vector3D areavec, double *Flux_
         rho_avg  = 0.5*(rho_L + rho_R);
         ubar_avg = 0.5*((u_L + u_R)*nx + (v_L + v_R)*ny + (w_L + w_R)*nz);
         p_avg    = 0.5*(p_L + p_R);
-        c_avg    = Get_SpeedSound(rho_avg, p_avg - Gauge_Pressure);
+        // Get the Speed of Sound
+        int ivVarType_Old = VariableType;
+        double daQ[NEQUATIONS];
+        daQ[0] = rho_avg;
+        daQ[1] = 0.5*(u_L + u_R);
+        daQ[2] = 0.5*(v_L + v_R);
+        daQ[3] = 0.5*(w_L + w_R);
+        daQ[4] = p_avg - Gauge_Pressure;
+        VariableType = VARIABLE_RUP;
+        c_avg = Material_Get_SpeedSound(daQ);
+        VariableType = ivVarType_Old;
         
         // Add to Time only if Required
         if (AddTime == TRUE) {

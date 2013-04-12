@@ -191,7 +191,6 @@ void Compute_Transformed_Residual_HLLC(void) {
     double Q[5];
     double res_hllc[5];
     double res_hllc_old[5];
-    double rho, u, v, w, p, T, c, ht, et, q2, mach;
     
     // Multiply by Precondition Matrix and Construct the Flux
     for (inode = 0; inode < nNode; inode++) {
@@ -202,13 +201,9 @@ void Compute_Transformed_Residual_HLLC(void) {
         Q[3] = Q4[inode];
         Q[4] = Q5[inode];
         
-        // Compute Equation of State
-        // Note: Based on VariableType Pressure can be Perturbation of them
-        Compute_EOS_Variables_ControlVolume(Q, rho, p, T, u, v, w, q2, c, mach, et, ht);
-        
-        // Compute Transformation
+        // Compute the Transformation Matrix
         // Mro
-        Compute_Transformation_Matrix(VariableType, VARIABLE_CONSERVATIVE, rho, u, v, w, c, HLLC_M);
+        Material_Get_Transformation_Matrix(Q, VariableType, VARIABLE_CON, HLLC_M);
         
         // Compute Transform Residual
         // Save the Residual
@@ -224,7 +219,7 @@ void Compute_Transformed_Residual_HLLC(void) {
         res_hllc[2] = 0.0;
         res_hllc[3] = 0.0;
         res_hllc[4] = 0.0;
-        MC_Matrix_Mul_Vector(5, 5, HLLC_M, res_hllc_old, res_hllc);
+        MC_Matrix_Mul_Vector(NEQUATIONS, NEQUATIONS, HLLC_M, res_hllc_old, res_hllc);
         Res1[inode] = res_hllc[0];
         Res2[inode] = res_hllc[1];
         Res3[inode] = res_hllc[2];
@@ -263,7 +258,7 @@ void Compute_Steady_Residual_HLLC_Precondition_Turkel(void) {
         
         // Compute Equation of State
         // Note: Based on VariableType Pressure can be Perturbation of them
-        Compute_EOS_Variables_ControlVolume(Q, rho, p, T, u, v, w, q2, c, mach, et, ht);
+        Material_Get_ControlVolume_Properties(Q, rho, p, T, u, v, w, q2, c, mach, et, ht);
         
         //======================================================================
         // Compute Precondition of Convective Flux and Assemble Total Flux
@@ -286,7 +281,7 @@ void Compute_Steady_Residual_HLLC_Precondition_Turkel(void) {
                     lQ[4] = Q5[nid];
                     // Compute Local Equation of State
                     // Note: Based on VariableType Pressure can be Perturbation of them
-                    Compute_EOS_Variables_ControlVolume(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
+                    Material_Get_ControlVolume_Properties(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
 
                     // Compute Smoothing Parameters
                     mach_max = MAX(mach_max, lmach);
@@ -323,15 +318,15 @@ void Compute_Steady_Residual_HLLC_Precondition_Turkel(void) {
         alpha = 0.0;
         delta = 0.0;
         switch (PrecondMethod) {
-            case PRECOND_METHOD_ROE_BTW: // HLLC Briley Taylor Whitfield Pre-Conditioner
+            case PRECOND_METHOD_BTW: // HLLC Briley Taylor Whitfield Pre-Conditioner
                 alpha = 0.0;
                 delta = 1.0;
                 break;
-            case PRECOND_METHOD_ROE_ERIKSSON: // HLLC Eriksson Pre-Conditioner
+            case PRECOND_METHOD_ERIKSSON: // HLLC Eriksson Pre-Conditioner
                 alpha = 0.0;
                 delta = beta;
                 break;
-            case PRECOND_METHOD_ROE_TURKEL: // HLLC Turkel Pre-Conditioner
+            case PRECOND_METHOD_TURKEL: // HLLC Turkel Pre-Conditioner
                 alpha = 0.4;
                 delta = beta;
                 break;
@@ -375,9 +370,9 @@ void Compute_Steady_Residual_HLLC_Precondition_Turkel(void) {
         // STEP 4:
         // Compute Transformation
         // Mrp
-        Compute_Transformation_Matrix(VariableType, PrecondVariableType, rho, u, v, w, c, HLLC_M);
+        Material_Get_Transformation_Matrix(Q, VariableType, PrecondVariableType, HLLC_M);
         // Mpr
-        Compute_Transformation_Matrix(PrecondVariableType, VariableType, rho, u, v, w, c, HLLC_Minv);
+        Material_Get_Transformation_Matrix(Q, PrecondVariableType, VariableType, HLLC_Minv);
         
         // STEP 5:
         // Compute Transformed Precondition Matrix: Mrp.P.Mpr
@@ -414,7 +409,7 @@ void Compute_Flux_HLLC_Original(int node_L, int node_R, Vector3D areavec, double
     int i;
     double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
     double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
-    double rho, u, v, w, ht, c, ubar;
+    double rho, u, v, w, h, ht, c, ubar;
     double sigma, area, nx, ny, nz, maxlambda;
     double omega_L, rhostar_L, rhoustar_L, rhovstar_L, rhowstar_L, rhoetstar_L;
     double omega_R, rhostar_R, rhoustar_R, rhovstar_R, rhowstar_R, rhoetstar_R;
@@ -472,8 +467,8 @@ void Compute_Flux_HLLC_Original(int node_L, int node_R, Vector3D areavec, double
         
         // Compute Equation of State
         // Note: Based on VariableType Pressure can be Perturbation of them
-        Compute_EOS_Variables_Face(HLLC_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
-        Compute_EOS_Variables_Face(HLLC_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+        Material_Get_Face_Properties(HLLC_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
+        Material_Get_Face_Properties(HLLC_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
         
         // ROE AVERAGE VARIABLES
         rho   = sqrt(rho_R * rho_L);
@@ -482,7 +477,8 @@ void Compute_Flux_HLLC_Original(int node_L, int node_R, Vector3D areavec, double
         v     = v_L  + sigma*(v_R  - v_L);
         w     = w_L  + sigma*(w_R  - w_L);
         ht    = ht_L + sigma*(ht_R - ht_L);
-        c     = Get_SpeedSound(u, v, w, ht);
+        h     = ht - 0.5*(u*u + v*v + w*w);
+        c     = Material_Get_DH_SpeedSound(rho, h);
         ubar  = u*nx + v*ny + w*nz;
         
         //======================================================================
@@ -620,7 +616,7 @@ void Compute_Flux_HLLC_Precondition_Turkel(int node_L, int node_R, Vector3D area
     int i, AvgType;
     double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
     double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
-    double rho, u, v, w, ht, c, ubar, q2, mach;
+    double rho, u, v, w, h, ht, c, ubar, q2, mach;
     double sigma, area, nx, ny, nz, maxlambda;
     double omega_L, rhostar_L, rhoustar_L, rhovstar_L, rhowstar_L, rhoetstar_L;
     double omega_R, rhostar_R, rhoustar_R, rhovstar_R, rhowstar_R, rhoetstar_R;
@@ -678,8 +674,8 @@ void Compute_Flux_HLLC_Precondition_Turkel(int node_L, int node_R, Vector3D area
         
         // Compute Equation of State
         // Note: Based on VariableType Pressure can be Perturbation of them
-        Compute_EOS_Variables_Face(HLLC_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
-        Compute_EOS_Variables_Face(HLLC_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+        Material_Get_Face_Properties(HLLC_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
+        Material_Get_Face_Properties(HLLC_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
         
         AvgType = 1;
         if (AvgType == 1) {
@@ -699,7 +695,8 @@ void Compute_Flux_HLLC_Precondition_Turkel(int node_L, int node_R, Vector3D area
             ht    = 0.5*(ht_R + ht_L);
         }
         q2   = u*u + v*v + w*w;
-        c    = Get_SpeedSound(u, v, w, ht);
+        h    = ht - 0.5*(u*u + v*v + w*w);
+        c    = Material_Get_DH_SpeedSound(rho, h);
         ubar = u*nx + v*ny + w*nz;
         mach = sqrt(q2)/c;
         
@@ -733,7 +730,7 @@ void Compute_Flux_HLLC_Precondition_Turkel(int node_L, int node_R, Vector3D area
                     lQ[4] = Q5[nid];
                     // Compute Local Equation of State
                     // Note: Based on VariableType Pressure can be Perturbation of them
-                    Compute_EOS_Variables_ControlVolume(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
+                    Material_Get_ControlVolume_Properties(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
 
                     // Compute Smoothing Parameters
                     lmach_L = MAX(lmach_L, lmach);
@@ -753,7 +750,7 @@ void Compute_Flux_HLLC_Precondition_Turkel(int node_L, int node_R, Vector3D area
                         lQ[4] = Q5[nid];
                         // Compute Local Equation of State
                         // Note: Based on VariableType Pressure can be Perturbation of them
-                        Compute_EOS_Variables_ControlVolume(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
+                        Material_Get_ControlVolume_Properties(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
 
                         // Compute Smoothing Parameters
                         lmach_R = MAX(lmach_R, lmach);
@@ -800,15 +797,15 @@ void Compute_Flux_HLLC_Precondition_Turkel(int node_L, int node_R, Vector3D area
         alpha = 0.0;
         delta = 0.0;
         switch (PrecondMethod) {
-            case PRECOND_METHOD_ROE_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
+            case PRECOND_METHOD_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
                 alpha = 0.0;
                 delta = 1.0;
                 break;
-            case PRECOND_METHOD_ROE_ERIKSSON: // Roe Eriksson Pre-Conditioner
+            case PRECOND_METHOD_ERIKSSON: // Roe Eriksson Pre-Conditioner
                 alpha = 0.0;
                 delta = beta;
                 break;
-            case PRECOND_METHOD_ROE_TURKEL: // Roe Turkel Pre-Conditioner
+            case PRECOND_METHOD_TURKEL: // Roe Turkel Pre-Conditioner
                 alpha = 0.4;
                 delta = beta;
                 break;
@@ -949,24 +946,21 @@ void Compute_Flux_HLLC_Precondition_Turkel(int node_L, int node_R, Vector3D area
 //------------------------------------------------------------------------------
 void Compute_Flux_HLLC(int node_L, int node_R, Vector3D areavec, double *Flux_HLLC, int AddTime) {
     
-    if (NonDimensionalMethod != NONDIMENSIONAL_METHOD_GENERIC)
-        error("Compute_Flux_HLLC: Validated Only with Generic Non-Dimensionalization - %d", NonDimensionalMethod);
-    
     // Compute the Roe Flux for this edge
     switch (PrecondMethod) {
         case PRECOND_METHOD_NONE: // HLLC
             Compute_Flux_HLLC_Original(node_L, node_R, areavec, Flux_HLLC, AddTime);
             break;
-        case PRECOND_METHOD_ROE_BTW: // HLLC Briley Taylor Whitfield Pre-Conditioner
+        case PRECOND_METHOD_BTW: // HLLC Briley Taylor Whitfield Pre-Conditioner
             Compute_Flux_HLLC_Precondition_Turkel(node_L, node_R, areavec, Flux_HLLC, AddTime);
             break;
-        case PRECOND_METHOD_ROE_ERIKSSON: // HLLC Eriksson Pre-Conditioner
+        case PRECOND_METHOD_ERIKSSON: // HLLC Eriksson Pre-Conditioner
             Compute_Flux_HLLC_Precondition_Turkel(node_L, node_R, areavec, Flux_HLLC, AddTime);
             break;
-        case PRECOND_METHOD_ROE_MERKEL: // HLLC Merkel Pre-Conditioner
+        case PRECOND_METHOD_MERKEL: // HLLC Merkel Pre-Conditioner
             Compute_Flux_HLLC_Precondition_Merkel(node_L, node_R, areavec, Flux_HLLC, AddTime);
             break;
-        case PRECOND_METHOD_ROE_TURKEL: // HLLC Turkel Pre-Conditioner
+        case PRECOND_METHOD_TURKEL: // HLLC Turkel Pre-Conditioner
             Compute_Flux_HLLC_Precondition_Turkel(node_L, node_R, areavec, Flux_HLLC, AddTime);
             break;
         default:
@@ -1039,16 +1033,16 @@ void Compute_Residual_HLLC(int AddTime) {
         switch (PrecondMethod) {
             case PRECOND_METHOD_NONE: // HLLC
                 break;
-            case PRECOND_METHOD_ROE_BTW: // HLLC Briley Taylor Whitfield Pre-Conditioner
+            case PRECOND_METHOD_BTW: // HLLC Briley Taylor Whitfield Pre-Conditioner
                 Compute_Steady_Residual_HLLC_Precondition_Turkel();
                 break;
-            case PRECOND_METHOD_ROE_ERIKSSON: // HLLC Eriksson Pre-Conditioner
+            case PRECOND_METHOD_ERIKSSON: // HLLC Eriksson Pre-Conditioner
                 Compute_Steady_Residual_HLLC_Precondition_Turkel();
                 break;
-            case PRECOND_METHOD_ROE_MERKEL: // HLLC Merkel Pre-Conditioner
+            case PRECOND_METHOD_MERKEL: // HLLC Merkel Pre-Conditioner
                 Compute_Steady_Residual_HLLC_Precondition_Merkel();
                 break;
-            case PRECOND_METHOD_ROE_TURKEL: // HLLC Turkel Pre-Conditioner
+            case PRECOND_METHOD_TURKEL: // HLLC Turkel Pre-Conditioner
                 Compute_Steady_Residual_HLLC_Precondition_Turkel();
                 break;
             default:

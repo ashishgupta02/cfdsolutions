@@ -27,6 +27,7 @@ static double *Roe_flux_L       = NULL;
 static double *Roe_flux_R       = NULL;
 static double *Roe_Q_L          = NULL;
 static double *Roe_Q_R          = NULL;
+static double *Roe_Qavg         = NULL;
 static double *Roe_dw           = NULL;
 static double *Roe_dQ           = NULL;
 static double **Roe_A           = NULL;
@@ -54,6 +55,7 @@ void Roe_Init(void) {
         Roe_flux_R = (double *)  malloc(NEQUATIONS*sizeof(double));
         Roe_Q_L    = (double *)  malloc(NEQUATIONS*sizeof(double));
         Roe_Q_R    = (double *)  malloc(NEQUATIONS*sizeof(double));
+        Roe_Qavg   = (double *)  malloc(NEQUATIONS*sizeof(double));
         Roe_dw     = (double *)  malloc(NEQUATIONS*sizeof(double));
         Roe_dQ     = (double *)  malloc(NEQUATIONS*sizeof(double));
         Roe_A      = (double **) malloc(NEQUATIONS*sizeof(double*));
@@ -143,6 +145,7 @@ void Roe_Finalize(void) {
     free(Roe_flux_R);
     free(Roe_Q_L);
     free(Roe_Q_R);
+    free(Roe_Qavg);
     free(Roe_dw);
     free(Roe_dQ);
     free(Roe_A);
@@ -174,6 +177,7 @@ void Roe_Reset(void) {
         Roe_flux_R[i] = 0.0;
         Roe_Q_L[i]    = 0.0;
         Roe_Q_R[i]    = 0.0;
+        Roe_Qavg[i]   = 0.0;
         Roe_dw[i]     = 0.0;
         Roe_dQ[i]     = 0.0;
         for (j = 0; j < NEQUATIONS; j++) {
@@ -197,13 +201,13 @@ void Roe_Reset(void) {
 void Compute_RoeAverage_Q(double *Q_L, double *Q_R, double *Q_Roe) {
     double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, q2_L, T_L, mach_L;
     double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, q2_R, T_R, mach_R;
-    double rho, u, v, w, ht;
+    double rho, u, v, w, h, ht;
     double sigma;
 
     // Compute Equation of State
     // Note: Based on VariableType Pressure can be Perturbation of them
-    Compute_EOS_Variables_ControlVolume(Q_L, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, et_L, ht_L);
-    Compute_EOS_Variables_ControlVolume(Q_R, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, et_R, ht_R);
+    Material_Get_ControlVolume_Properties(Q_L, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, et_L, ht_L);
+    Material_Get_ControlVolume_Properties(Q_R, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, et_R, ht_R);
     
     // ROE AVERAGE VARIABLES
     rho   = sqrt(rho_R * rho_L);
@@ -212,9 +216,10 @@ void Compute_RoeAverage_Q(double *Q_L, double *Q_R, double *Q_Roe) {
     v     = v_L  + sigma*(v_R  - v_L);
     w     = w_L  + sigma*(w_R  - w_L);
     ht    = ht_L + sigma*(ht_R - ht_L);
+    h     = ht - 0.5*(u*u + v*v + w*w);
     
     // Note: Based on VariableType Pressure can be Perturbation of them
-    Compute_Q_From_EOS_Variables(rho, u, v, w, ht, Q_Roe);
+    Material_Get_RUH_To_Q(rho, u, v, w, h, Q_Roe);
 }
 
 //------------------------------------------------------------------------------
@@ -224,7 +229,6 @@ void Compute_RoeAverage_Q(double *Q_L, double *Q_R, double *Q_Roe) {
 //------------------------------------------------------------------------------
 void Compute_Roe_Transformed_Precondition_Matrix_None(int nodeID, int reqInv, double **PrecondMatrix) {
     double Q[5];
-    double rho, u, v, w, p, T, c, ht, et, q2, mach;
     
     // Get the Variables
     Q[0] = Q1[nodeID];
@@ -232,21 +236,17 @@ void Compute_Roe_Transformed_Precondition_Matrix_None(int nodeID, int reqInv, do
     Q[2] = Q3[nodeID];
     Q[3] = Q4[nodeID];
     Q[4] = Q5[nodeID];
-
-    // Compute Equation of State
-    // Note: Based on VariableType Pressure can be Perturbation of them
-    Compute_EOS_Variables_ControlVolume(Q, rho, p, T, u, v, w, q2, c, mach, et, ht);
     
     // Check if Inverse Preconditioner is Requested
     // Note Rho is can be perturb
     if (reqInv == 0) {
         // Compute Transformation
         // Mro
-        Compute_Transformation_Matrix(VariableType, VARIABLE_CONSERVATIVE, rho, u, v, w, c, PrecondMatrix);
+        Material_Get_Transformation_Matrix(Q, VariableType, VARIABLE_CON, PrecondMatrix);
     } else {
         // Compute Transformation
         // Mor
-        Compute_Transformation_Matrix(VARIABLE_CONSERVATIVE, VariableType, rho, u, v, w, c, PrecondMatrix);
+        Material_Get_Transformation_Matrix(Q, VARIABLE_CON, VariableType, PrecondMatrix);
     }
 }
 
@@ -283,7 +283,7 @@ void Compute_Roe_Transformed_Precondition_Matrix_Turkel(int nodeID, int reqInv, 
 
     // Compute Equation of State
     // Note: Based on VariableType Pressure can be Perturbation of them
-    Compute_EOS_Variables_ControlVolume(Q, rho, p, T, u, v, w, q2, c, mach, et, ht);
+    Material_Get_ControlVolume_Properties(Q, rho, p, T, u, v, w, q2, c, mach, et, ht);
 
     //======================================================================
     // Compute Precondition of Convective Flux and Assemble Total Flux
@@ -306,7 +306,7 @@ void Compute_Roe_Transformed_Precondition_Matrix_Turkel(int nodeID, int reqInv, 
                 lQ[4] = Q5[nid];
                 // Compute Local Equation of State
                 // Note: Based on VariableType Pressure can be Perturbation of them
-                Compute_EOS_Variables_ControlVolume(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
+                Material_Get_ControlVolume_Properties(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
 
                 // Compute Smoothing Parameters
                 mach_max = MAX(mach_max, lmach);
@@ -339,15 +339,15 @@ void Compute_Roe_Transformed_Precondition_Matrix_Turkel(int nodeID, int reqInv, 
     alpha = 0.0;
     delta = 0.0;
     switch (PrecondMethod) {
-        case PRECOND_METHOD_ROE_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
+        case PRECOND_METHOD_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
             alpha = 0.0;
             delta = 1.0;
             break;
-        case PRECOND_METHOD_ROE_ERIKSSON: // Roe Eriksson Pre-Conditioner
+        case PRECOND_METHOD_ERIKSSON: // Roe Eriksson Pre-Conditioner
             alpha = 0.0;
             delta = beta;
             break;
-        case PRECOND_METHOD_ROE_TURKEL: // Roe Turkel Pre-Conditioner
+        case PRECOND_METHOD_TURKEL: // Roe Turkel Pre-Conditioner
             alpha = 0.4;
             delta = beta;
             break;
@@ -427,15 +427,15 @@ void Compute_Roe_Transformed_Precondition_Matrix_Turkel(int nodeID, int reqInv, 
     if (reqInv == 0) {
         // Compute Transformation
         // Mrp
-        Compute_Transformation_Matrix(VariableType, PrecondVariableType, rho, u, v, w, c, Roe_M);
+        Material_Get_Transformation_Matrix(Q, VariableType, PrecondVariableType, Roe_M);
         // Mpo
-        Compute_Transformation_Matrix(PrecondVariableType, VARIABLE_CONSERVATIVE, rho, u, v, w, c, Roe_Minv);
+        Material_Get_Transformation_Matrix(Q, PrecondVariableType, VARIABLE_CON, Roe_Minv);
     } else {
         // Compute Transformation
         // Mop
-        Compute_Transformation_Matrix(VARIABLE_CONSERVATIVE, PrecondVariableType, rho, u, v, w, c, Roe_M);
+        Material_Get_Transformation_Matrix(Q, VARIABLE_CON, PrecondVariableType, Roe_M);
         // Mpr
-        Compute_Transformation_Matrix(PrecondVariableType, VariableType, rho, u, v, w, c, Roe_Minv);
+        Material_Get_Transformation_Matrix(Q, PrecondVariableType, VariableType, Roe_Minv);
     }
     
     // STEP 5:
@@ -461,22 +461,22 @@ void Compute_Roe_Transformed_Precondition_Matrix(int nodeID, int reqInv, double 
         case PRECOND_METHOD_NONE: // Roe
             Compute_Roe_Transformed_Precondition_Matrix_None(nodeID, reqInv, PrecondMatrix);
             break;
-        case PRECOND_METHOD_ROE_LMFIX: // LMRoe
+        case PRECOND_METHOD_LMFIX: // LMRoe
             Compute_Roe_Transformed_Precondition_Matrix_None(nodeID, reqInv, PrecondMatrix);
             break;
-        case PRECOND_METHOD_ROE_THORNBER: // THORNBER
+        case PRECOND_METHOD_THORNBER: // THORNBER
             Compute_Roe_Transformed_Precondition_Matrix_None(nodeID, reqInv, PrecondMatrix);
             break;
-        case PRECOND_METHOD_ROE_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
+        case PRECOND_METHOD_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
             Compute_Roe_Transformed_Precondition_Matrix_Turkel(nodeID, reqInv, PrecondMatrix);
             break;
-        case PRECOND_METHOD_ROE_ERIKSSON: // Roe Eriksson Pre-Conditioner
+        case PRECOND_METHOD_ERIKSSON: // Roe Eriksson Pre-Conditioner
             Compute_Roe_Transformed_Precondition_Matrix_Turkel(nodeID, reqInv, PrecondMatrix);
             break;
-        case PRECOND_METHOD_ROE_MERKEL: // Roe Merkel Pre-Conditioner
+        case PRECOND_METHOD_MERKEL: // Roe Merkel Pre-Conditioner
             Compute_Roe_Transformed_Precondition_Matrix_Merkel(nodeID, reqInv, PrecondMatrix);
             break;
-        case PRECOND_METHOD_ROE_TURKEL: // Roe Turkel Pre-Conditioner
+        case PRECOND_METHOD_TURKEL: // Roe Turkel Pre-Conditioner
             Compute_Roe_Transformed_Precondition_Matrix_Turkel(nodeID, reqInv, PrecondMatrix);
             break;
         default:
@@ -495,7 +495,6 @@ void Compute_Transformed_Residual_Roe(void) {
     double res_roe[5];
     double res_roe_conv[5];
     double res_roe_diss[5];
-    double rho, u, v, w, p, T, c, ht, et, q2, mach;
     
     // Multiply by Precondition Matrix and Construct the Flux
     for (inode = 0; inode < nNode; inode++) {
@@ -506,13 +505,9 @@ void Compute_Transformed_Residual_Roe(void) {
         Q[3] = Q4[inode];
         Q[4] = Q5[inode];
         
-        // Compute Equation of State
-        // Note: Based on VariableType Pressure can be Perturbation of them
-        Compute_EOS_Variables_ControlVolume(Q, rho, p, T, u, v, w, q2, c, mach, et, ht);
-        
         // Compute Transformation
         // Mro
-        Compute_Transformation_Matrix(VariableType, VARIABLE_CONSERVATIVE, rho, u, v, w, c, Roe_M);
+        Material_Get_Transformation_Matrix(Q, VariableType, VARIABLE_CON, Roe_M);
         
         // Compute Transform Convective Residual
         // Get the Convective Residual
@@ -589,7 +584,7 @@ void Compute_Steady_Residual_Roe_Precondition_Turkel(void) {
         
         // Compute Equation of State
         // Note: Based on VariableType Pressure can be Perturbation of them
-        Compute_EOS_Variables_ControlVolume(Q, rho, p, T, u, v, w, q2, c, mach, et, ht);
+        Material_Get_ControlVolume_Properties(Q, rho, p, T, u, v, w, q2, c, mach, et, ht);
         
         //======================================================================
         // Compute Precondition of Convective Flux and Assemble Total Flux
@@ -612,7 +607,7 @@ void Compute_Steady_Residual_Roe_Precondition_Turkel(void) {
                     lQ[4] = Q5[nid];
                     // Compute Local Equation of State
                     // Note: Based on VariableType Pressure can be Perturbation of them
-                    Compute_EOS_Variables_ControlVolume(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
+                    Material_Get_ControlVolume_Properties(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
 
                     // Compute Smoothing Parameters
                     mach_max = MAX(mach_max, lmach);
@@ -649,15 +644,15 @@ void Compute_Steady_Residual_Roe_Precondition_Turkel(void) {
         alpha = 0.0;
         delta = 0.0;
         switch (PrecondMethod) {
-            case PRECOND_METHOD_ROE_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
+            case PRECOND_METHOD_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
                 alpha = 0.0;
                 delta = 1.0;
                 break;
-            case PRECOND_METHOD_ROE_ERIKSSON: // Roe Eriksson Pre-Conditioner
+            case PRECOND_METHOD_ERIKSSON: // Roe Eriksson Pre-Conditioner
                 alpha = 0.0;
                 delta = beta;
                 break;
-            case PRECOND_METHOD_ROE_TURKEL: // Roe Turkel Pre-Conditioner
+            case PRECOND_METHOD_TURKEL: // Roe Turkel Pre-Conditioner
                 alpha = 0.4;
                 delta = beta;
                 break;
@@ -701,14 +696,14 @@ void Compute_Steady_Residual_Roe_Precondition_Turkel(void) {
         // STEP 4:
         // Compute Transformation
         // Mrp
-        Compute_Transformation_Matrix(VariableType, PrecondVariableType, rho, u, v, w, c, Roe_M);
+        Material_Get_Transformation_Matrix(Q, VariableType, PrecondVariableType, Roe_M);
         // Mpr
-        Compute_Transformation_Matrix(PrecondVariableType, VariableType, rho, u, v, w, c, Roe_Minv);
+        Material_Get_Transformation_Matrix(Q, PrecondVariableType, VariableType, Roe_Minv);
         
         // STEP 5:
         // Compute Transformed Precondition Matrix: Mrp.P.Mpr
-        MC_Matrix_Mul_Matrix(5, 5, Roe_M, Roe_K, Roe_A);
-        MC_Matrix_Mul_Matrix(5, 5, Roe_A, Roe_Minv, Roe_T);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_M, Roe_K, Roe_A);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_A, Roe_Minv, Roe_T);
         
         // STEP 6:
         // Compute Preconditioned Convective Residual
@@ -724,7 +719,7 @@ void Compute_Steady_Residual_Roe_Precondition_Turkel(void) {
         res_roe[2] = 0.0;
         res_roe[3] = 0.0;
         res_roe[4] = 0.0;
-        MC_Matrix_Mul_Vector(5, 5, Roe_T, res_roe_conv, res_roe);
+        MC_Matrix_Mul_Vector(NEQUATIONS, NEQUATIONS, Roe_T, res_roe_conv, res_roe);
         Res1[inode] = res_roe[0];
         Res2[inode] = res_roe[1];
         Res3[inode] = res_roe[2];
@@ -745,258 +740,13 @@ void Compute_Steady_Residual_Roe_Precondition_Turkel(void) {
         res_roe[2] = 0.0;
         res_roe[3] = 0.0;
         res_roe[4] = 0.0;
-        MC_Matrix_Mul_Vector(5, 5, Roe_T, res_roe_diss, res_roe);
+        MC_Matrix_Mul_Vector(NEQUATIONS, NEQUATIONS, Roe_T, res_roe_diss, res_roe);
         Res1_Diss[inode] = res_roe[0];
         Res2_Diss[inode] = res_roe[1];
         Res3_Diss[inode] = res_roe[2];
         Res4_Diss[inode] = res_roe[3];
         Res5_Diss[inode] = res_roe[4];
     }
-}
-
-//------------------------------------------------------------------------------
-//! Compute Roe Flux Original: One Sided
-// Note: Will only work with conservation variables and generic non-dimensionalization 
-//------------------------------------------------------------------------------
-void Compute_Flux_Roe_OneSided(int node_L, int node_R, Vector3D areavec, double *Flux_Roe_Conv, double *Flux_Roe_Diss, int AddTime) {
-    int i;
-    double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
-    double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
-    double rho, u, v, w, ht, c, ubar, q2, cinv, gm1oc;
-    double l1, l2, l3, l4, l5;
-    double r1, r2, r3, r4, r5;
-    double sigma, area, nx, ny, nz, maxlambda, alpha;
-    
-    // Initialization
-    for (i = 0; i < NEQUATIONS; i++) {
-        Flux_Roe_Conv[i] = 0.0;
-        Flux_Roe_Diss[i] = 0.0;
-    }
-    Roe_Reset();
-    
-    // Only for Physical Nodes
-    if (node_L < nNode) {
-        // Get area vector
-        area = areavec.magnitude();
-        areavec.normalize();
-        nx = areavec.vec[0];
-        ny = areavec.vec[1];
-        nz = areavec.vec[2];
-        
-        // Internal Nodes
-        if (node_R < nNode) {
-            // Make Solution Second Order
-            if (SolverOrder == SOLVER_ORDER_SECOND) {
-                Compute_SecondOrderReconstructQ(node_L, node_R, Roe_Q_L, Roe_Q_R);
-            } else {
-                Roe_Q_L[0] = Q1[node_L];
-                Roe_Q_L[1] = Q2[node_L];
-                Roe_Q_L[2] = Q3[node_L];
-                Roe_Q_L[3] = Q4[node_L];
-                Roe_Q_L[4] = Q5[node_L];
-                Roe_Q_R[0] = Q1[node_R];
-                Roe_Q_R[1] = Q2[node_R];
-                Roe_Q_R[2] = Q3[node_R];
-                Roe_Q_R[3] = Q4[node_R];
-                Roe_Q_R[4] = Q5[node_R];
-            }
-        } else { // Boundary and Ghost Node
-            // Make Solution Second Order
-            // Note: Boundary Residual cannot be made second order
-            // because node_R is ghost node with no physical coordinates value
-            // Hence boundary residual always remains first order
-            // Ghost Edge always remains first order
-            Roe_Q_L[0] = Q1[node_L];
-            Roe_Q_L[1] = Q2[node_L];
-            Roe_Q_L[2] = Q3[node_L];
-            Roe_Q_L[3] = Q4[node_L];
-            Roe_Q_L[4] = Q5[node_L];
-            Roe_Q_R[0] = Q1[node_R];
-            Roe_Q_R[1] = Q2[node_R];
-            Roe_Q_R[2] = Q3[node_R];
-            Roe_Q_R[3] = Q4[node_R];
-            Roe_Q_R[4] = Q5[node_R];
-        }
-        
-        // Compute Equation of State
-        // Note: Based on VariableType Pressure can be Perturbation of them
-        Compute_EOS_Variables_Face(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
-        Compute_EOS_Variables_Face(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
-        
-        // ROE AVERAGE VARIABLES
-        rho   = sqrt(rho_R * rho_L);
-        sigma = rho/(rho_L + rho);
-        u     = u_L  + sigma*(u_R  - u_L);
-        v     = v_L  + sigma*(v_R  - v_L);
-        w     = w_L  + sigma*(w_R  - w_L);
-        ht    = ht_L + sigma*(ht_R - ht_L);
-        c     = Get_SpeedSound(u, v, w, ht);
-        ubar  = u*nx + v*ny + w*nz;
-        q2    = u*u + v*v + w*w;
-        cinv  = 1.0/c;
-        gm1oc = (Gamma - 1.0)*cinv;
-        
-        //======================================================================
-        // Compute Dissipation Flux
-        //======================================================================
-        // STEP 1:
-        // Compute the Eigenvalues of the Dissipation Term |Lambda|
-        // Apply Entropy Fix
-        if (EntropyFix != 0) {
-            Roe_EntropyFix(ubar_L, c_L, ubar_R, c_R, ubar, c, Roe_Eigen);
-        } else {
-            Roe_Eigen[0][0] = fabs(ubar);
-            Roe_Eigen[1][1] = Roe_Eigen[0][0];
-            Roe_Eigen[2][2] = Roe_Eigen[0][0];
-            Roe_Eigen[3][3] = fabs(ubar + c);
-            Roe_Eigen[4][4] = fabs(ubar - c);
-        }
-        
-        // Add to Time only if Required
-        if (AddTime == TRUE) {
-            // Min and Max EigenValue Value
-            MinEigenLamda1 = MIN(MinEigenLamda1, Roe_Eigen[0][0]);
-            MaxEigenLamda1 = MAX(MaxEigenLamda1, Roe_Eigen[0][0]);
-            MinEigenLamda4 = MIN(MinEigenLamda4, Roe_Eigen[3][3]);
-            MaxEigenLamda4 = MAX(MaxEigenLamda4, Roe_Eigen[3][3]);
-            MinEigenLamda5 = MIN(MinEigenLamda5, Roe_Eigen[4][4]);
-            MaxEigenLamda5 = MAX(MaxEigenLamda5, Roe_Eigen[4][4]);
-
-            // Time Computation : Add Max Eigenvalue
-            maxlambda = MAX(Roe_Eigen[0][0], MAX(Roe_Eigen[3][3], Roe_Eigen[4][4]));
-            DeltaT[node_L] += area*maxlambda;
-            if (node_R < nNode)
-                DeltaT[node_R] += area*maxlambda;
-        }
-        
-        // Computations for Variable Relaxation Residual Smoothing
-        if (ResidualSmoothMethod == RESIDUAL_SMOOTH_METHOD_IMPLICIT) {
-            maxlambda = MAX(Roe_Eigen[0][0], MAX(Roe_Eigen[3][3], Roe_Eigen[4][4]));
-            for (i = crs_IA_Node2Node[node_L]; i < crs_IA_Node2Node[node_L + 1]; i++) {
-                // Get the Node ID and Match with node_R
-                if (crs_JA_Node2Node[i] == node_R) {
-                    RM_MaxEigenValue[i] = maxlambda*area;
-                    break;
-                }
-            }
-            RM_SumMaxEigenValue[node_L] += maxlambda*area;
-            // Only Physical Nodes
-            if (node_R < nNode) {
-                for (i = crs_IA_Node2Node[node_R]; i < crs_IA_Node2Node[node_R + 1]; i++) {
-                    // Get the Node ID and Match with node_L
-                    if (crs_JA_Node2Node[i] == node_L) {
-                        RM_MaxEigenValue[i] = maxlambda*area;
-                        break;
-                    }
-                }
-                RM_SumMaxEigenValue[node_R] += maxlambda*area;
-            }
-        }
-        
-        // Wave Traveling From Left to Right
-        if (ubar > 0.0) {
-            // Compute Convective Flux: flux_L 
-            Flux_Roe_Conv[0] = rho_L*ubar_L;
-            Flux_Roe_Conv[1] =   u_L*Flux_Roe_Conv[0] + p_L*nx;
-            Flux_Roe_Conv[2] =   v_L*Flux_Roe_Conv[0] + p_L*ny;
-            Flux_Roe_Conv[3] =   w_L*Flux_Roe_Conv[0] + p_L*nz;
-            Flux_Roe_Conv[4] =  ht_L*Flux_Roe_Conv[0];
-            
-            // Compute the Dissipation Flux
-            // Subsonic
-            if (ubar < c) {
-                // Eigenvalues 1, 2, 3, 4 are positive, 5 is negative
-                // So, compute form the left with the one eigenvector that comes into play
-                
-                // Compute dQ
-                Roe_dQ[0] = rho_R      - rho_L;
-                Roe_dQ[1] = rho_R*u_R  - rho_L*u_L;
-                Roe_dQ[2] = rho_R*v_R  - rho_L*v_L;
-                Roe_dQ[3] = rho_R*w_R  - rho_L*w_L;
-                Roe_dQ[4] = rho_R*et_R - rho_L*et_L;
-                
-                // Get the signed Eigenvalues
-                Roe_Eigen[4][4] = ISIGN(ubar - c)*Roe_Eigen[4][4];
-        
-                l1 = ubar + 0.5*gm1oc*q2;
-                l2 = -nx - gm1oc*u;
-                l3 = -ny - gm1oc*v;
-                l4 = -nz - gm1oc*w;
-                l5 = gm1oc;
-                
-                // multiplicative factor: 0.5/rho (left eigenvectors)
-                //                        rho     (right eigenvectors)
-                //                        eig5    (eigenvalue scaling)
-                alpha = 0.5*(Roe_dQ[0]*l1 + Roe_dQ[1]*l2 + Roe_dQ[2]*l3 + Roe_dQ[3]*l4 + Roe_dQ[4]*l5)*Roe_Eigen[4][4];
-                
-                r1 = cinv;
-                r2 = u*cinv - nx;
-                r3 = v*cinv - ny;
-                r4 = w*cinv - nz;
-                r5 = 0.5*q2*cinv - ubar + 1.0/gm1oc;
-
-                Flux_Roe_Diss[0] = alpha*r1;
-                Flux_Roe_Diss[1] = alpha*r2;
-                Flux_Roe_Diss[2] = alpha*r3;
-                Flux_Roe_Diss[3] = alpha*r4;
-                Flux_Roe_Diss[4] = alpha*r5;
-            }
-        } else { // Wave Traveling From Right to Left
-            // Compute Convective Flux: flux_R
-            Flux_Roe_Conv[0] = rho_R*ubar_R;
-            Flux_Roe_Conv[1] =   u_R*Flux_Roe_Conv[0] + p_R*nx;
-            Flux_Roe_Conv[2] =   v_R*Flux_Roe_Conv[0] + p_R*ny;
-            Flux_Roe_Conv[3] =   w_R*Flux_Roe_Conv[0] + p_R*nz;
-            Flux_Roe_Conv[4] =  ht_R*Flux_Roe_Conv[0];
-            
-            // Compute the Dissipation Flux
-            // Subsonic
-            if (ubar > -c) {
-                // Eigenvalues 4 is positive, 1, 2, 3, 5 are negative
-                // So, compute form the right with the one eigenvector that comes into play
-                
-                // Compute dQ
-                Roe_dQ[0] = rho_R      - rho_L;
-                Roe_dQ[1] = rho_R*u_R  - rho_L*u_L;
-                Roe_dQ[2] = rho_R*v_R  - rho_L*v_L;
-                Roe_dQ[3] = rho_R*w_R  - rho_L*w_L;
-                Roe_dQ[4] = rho_R*et_R - rho_L*et_L;
-                
-                // Get the signed Eigenvalues
-                Roe_Eigen[3][3] = ISIGN(ubar + c)*Roe_Eigen[3][3];
-                
-                l1 = -ubar + 0.5*gm1oc*q2;
-                l2 = nx - gm1oc*u;
-                l3 = ny - gm1oc*v;
-                l4 = nz - gm1oc*w;
-                l5 = gm1oc;
-                
-                // multiplicative factor: 0.5/rho (left eigenvectors)
-                //                        rho     (right eigenvectors)
-                //                        eig4    (eigenvalue scaling)
-                alpha = 0.5*(Roe_dQ[0]*l1 + Roe_dQ[1]*l2 + Roe_dQ[2]*l3 + Roe_dQ[3]*l4 + Roe_dQ[4]*l5)*Roe_Eigen[3][3];
-                
-                r1 = cinv;
-                r2 = u*cinv + nx;
-                r3 = v*cinv + ny;
-                r4 = w*cinv + nz;
-                r5 = 0.5*q2*cinv + ubar + 1.0/gm1oc;
-
-                Flux_Roe_Diss[0] = - alpha*r1;
-                Flux_Roe_Diss[1] = - alpha*r2;
-                Flux_Roe_Diss[2] = - alpha*r3;
-                Flux_Roe_Diss[3] = - alpha*r4;
-                Flux_Roe_Diss[4] = - alpha*r5;
-            }
-        }
-        
-        // Multiply the Roe Flux with Area
-        for (i = 0; i < NEQUATIONS; i++) {
-            Flux_Roe_Conv[i] *= area;
-            Flux_Roe_Diss[i] *= area;
-        }
-    } else
-        error("Compute_Flux_Roe_OneSided: Invalid Node - %d", node_L);
 }
 
 //------------------------------------------------------------------------------
@@ -1008,7 +758,7 @@ void Compute_Flux_Roe_LMFIX(int node_L, int node_R, Vector3D areavec, double *Fl
     int i, maxcount;
     double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
     double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
-    double rho, u, v, w, ht, c, ubar, ubar1, ubar2;
+    double rho, u, v, w, h, ht, c, ubar, ubar1, ubar2;
     double sigma, area, nx, ny, nz, maxlambda;
     double Mach, nmax, fix;
     Vector3D Vn1, Vn2;
@@ -1064,8 +814,8 @@ void Compute_Flux_Roe_LMFIX(int node_L, int node_R, Vector3D areavec, double *Fl
         
         // Compute Equation of State
         // Note: Based on VariableType Pressure can be Perturbation of them
-        Compute_EOS_Variables_Face(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
-        Compute_EOS_Variables_Face(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+        Material_Get_Face_Properties(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
+        Material_Get_Face_Properties(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
         
         // Compute flux_L
         Roe_flux_L[0] = rho_L*ubar_L;
@@ -1088,7 +838,8 @@ void Compute_Flux_Roe_LMFIX(int node_L, int node_R, Vector3D areavec, double *Fl
         v     = v_L  + sigma*(v_R  - v_L);
         w     = w_L  + sigma*(w_R  - w_L);
         ht    = ht_L + sigma*(ht_R - ht_L);
-        c     = Get_SpeedSound(u, v, w, ht);
+        h     = ht - 0.5*(u*u + v*v + w*w);
+        c     = Material_Get_DH_SpeedSound(rho, h);
         ubar  = u*nx + v*ny + w*nz;
         
         //======================================================================
@@ -1232,30 +983,32 @@ void Compute_Flux_Roe_LMFIX(int node_L, int node_R, Vector3D areavec, double *Fl
         Roe_P[4][4] =  0.0              + 0.5*Ep;
         
         // STEP 4:
-        // Compute the Dissipation Flux
-        // Mop
-        Compute_Transformation_Matrix(VARIABLE_CONSERVATIVE, VARIABLE_PRIMITIVE_RUP, rho, u, v, w, c, Roe_M);
-        
-        // Mpr
-        Compute_Transformation_Matrix(VARIABLE_PRIMITIVE_RUP, VariableType, rho, u, v, w, c, Roe_Minv);
-        
-        // Calculate T = Mop*Diss
-        MC_Matrix_Mul_Matrix(5, 5, Roe_M, Roe_P, Roe_T);
-        
-        // Calculate A = T*Mpr
-        MC_Matrix_Mul_Matrix(5, 5, Roe_T, Roe_Minv, Roe_A);
-        
-        // Compute dqr: Based on VariableType
-        Roe_dQ[0] = Roe_Q_R[0] - Roe_Q_L[0];
-        Roe_dQ[1] = Roe_Q_R[1] - Roe_Q_L[1];
-        Roe_dQ[2] = Roe_Q_R[2] - Roe_Q_L[2];
-        Roe_dQ[3] = Roe_Q_R[3] - Roe_Q_L[3];
-        Roe_dQ[4] = Roe_Q_R[4] - Roe_Q_L[4];
-
-        // Compute |A|*dqr
-        MC_Matrix_Mul_Vector(5, 5, Roe_A, Roe_dQ, Roe_fluxA);
+        // Compute average Q
+        // Note: Based on VariableType Pressure can be Perturbation of them
+        Material_Get_RUH_To_Q(rho, u, v, w, h, Roe_Qavg);
         
         // STEP 5:
+        // Compute the Dissipation Flux
+        // Mop
+        Material_Get_Transformation_Matrix(Roe_Qavg, VARIABLE_CON, VARIABLE_RUP, Roe_M);
+        
+        // Mpr
+        Material_Get_Transformation_Matrix(Roe_Qavg, VARIABLE_RUP, VariableType, Roe_Minv);
+        
+        // Calculate T = Mop*Diss
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_M, Roe_P, Roe_T);
+        
+        // Calculate A = T*Mpr
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_T, Roe_Minv, Roe_A);
+        
+        // Compute dqr: Based on VariableType
+        for (i = 0; i < NEQUATIONS; i++)
+            Roe_dQ[i] = Roe_Q_R[i] - Roe_Q_L[i];
+
+        // Compute |A|*dqr
+        MC_Matrix_Mul_Vector(NEQUATIONS, NEQUATIONS, Roe_A, Roe_dQ, Roe_fluxA);
+        
+        // STEP 6:
         // Compute the Convective Flux and Dissipative Flux
         for (i = 0; i < NEQUATIONS; i++) {
             Flux_Roe_Conv[i] = 0.5*(Roe_flux_L[i] + Roe_flux_R[i])*area;
@@ -1272,7 +1025,7 @@ void Compute_Flux_Roe_Thornber(int node_L, int node_R, Vector3D areavec, double 
     int i;
     double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
     double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
-    double rho, u, v, w, ht, c, ubar;
+    double rho, u, v, w, h, ht, c, ubar;
     double sigma, area, nx, ny, nz, maxlambda;
     double Mach, fix, tmp1, tmp2;
     
@@ -1327,8 +1080,8 @@ void Compute_Flux_Roe_Thornber(int node_L, int node_R, Vector3D areavec, double 
         
         // Compute Equation of State
         // Note: Based on VariableType Pressure can be Perturbation of them
-        Compute_EOS_Variables_Face(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
-        Compute_EOS_Variables_Face(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+        Material_Get_Face_Properties(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
+        Material_Get_Face_Properties(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
         
         // Thornber Modification
         Mach = MAX(mach_L, mach_R);
@@ -1351,8 +1104,8 @@ void Compute_Flux_Roe_Thornber(int node_L, int node_R, Vector3D areavec, double 
         
         // Compute Again Equation of State
         // Note: Based on VariableType Pressure can be Perturbation of them
-        Compute_EOS_Variables_Face(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
-        Compute_EOS_Variables_Face(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+        Material_Get_Face_Properties(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
+        Material_Get_Face_Properties(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
         
         // Compute flux_L
         Roe_flux_L[0] = rho_L*ubar_L;
@@ -1375,7 +1128,8 @@ void Compute_Flux_Roe_Thornber(int node_L, int node_R, Vector3D areavec, double 
         v     = v_L  + sigma*(v_R  - v_L);
         w     = w_L  + sigma*(w_R  - w_L);
         ht    = ht_L + sigma*(ht_R - ht_L);
-        c     = Get_SpeedSound(u, v, w, ht);
+        h     = ht - 0.5*(u*u + v*v + w*w);
+        c     = Material_Get_DH_SpeedSound(rho, h);
         ubar  = u*nx + v*ny + w*nz;
         
         //======================================================================
@@ -1473,32 +1227,34 @@ void Compute_Flux_Roe_Thornber(int node_L, int node_R, Vector3D areavec, double 
         Roe_P[4][2] =  0.5*Em*c*rho*ny;
         Roe_P[4][3] =  0.5*Em*c*rho*nz;
         Roe_P[4][4] =  0.0              + 0.5*Ep;
-                
+        
         // STEP 3:
-        // Compute the Dissipation Flux
-        // Mop
-        Compute_Transformation_Matrix(VARIABLE_CONSERVATIVE, VARIABLE_PRIMITIVE_RUP, rho, u, v, w, c, Roe_M);
-        
-        // Mpr
-        Compute_Transformation_Matrix(VARIABLE_PRIMITIVE_RUP, VariableType, rho, u, v, w, c, Roe_Minv);
-        
-        // Calculate T = Mop*Diss
-        MC_Matrix_Mul_Matrix(5, 5, Roe_M, Roe_P, Roe_T);
-        
-        // Calculate A = T*Mpr
-        MC_Matrix_Mul_Matrix(5, 5, Roe_T, Roe_Minv, Roe_A);
-        
-        // Compute dqr: Based on VariableType
-        Roe_dQ[0] = Roe_Q_R[0] - Roe_Q_L[0];
-        Roe_dQ[1] = Roe_Q_R[1] - Roe_Q_L[1];
-        Roe_dQ[2] = Roe_Q_R[2] - Roe_Q_L[2];
-        Roe_dQ[3] = Roe_Q_R[3] - Roe_Q_L[3];
-        Roe_dQ[4] = Roe_Q_R[4] - Roe_Q_L[4];
-
-        // Compute |A|*dqr
-        MC_Matrix_Mul_Vector(5, 5, Roe_A, Roe_dQ, Roe_fluxA);
+        // Compute average Q
+        // Note: Based on VariableType Pressure can be Perturbation of them
+        Material_Get_RUH_To_Q(rho, u, v, w, h, Roe_Qavg);
         
         // STEP 4:
+        // Compute the Dissipation Flux
+        // Mop
+        Material_Get_Transformation_Matrix(Roe_Qavg, VARIABLE_CON, VARIABLE_RUP, Roe_M);
+        
+        // Mpr
+        Material_Get_Transformation_Matrix(Roe_Qavg, VARIABLE_RUP, VariableType, Roe_Minv);
+        
+        // Calculate T = Mop*Diss
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_M, Roe_P, Roe_T);
+        
+        // Calculate A = T*Mpr
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_T, Roe_Minv, Roe_A);
+        
+        // Compute dqr: Based on VariableType
+        for (i = 0; i < NEQUATIONS; i++)
+            Roe_dQ[i] = Roe_Q_R[i] - Roe_Q_L[i];
+
+        // Compute |A|*dqr
+        MC_Matrix_Mul_Vector(NEQUATIONS, NEQUATIONS, Roe_A, Roe_dQ, Roe_fluxA);
+        
+        // STEP 5:
         // Compute the Convective Flux and Dissipative Flux
         for (i = 0; i < NEQUATIONS; i++) {
             Flux_Roe_Conv[i] = 0.5*(Roe_flux_L[i] + Roe_flux_R[i])*area;
@@ -1515,7 +1271,7 @@ void Compute_Flux_Roe_Optimized(int node_L, int node_R, Vector3D areavec, double
     int i;
     double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
     double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
-    double rho, u, v, w, ht, c, ubar;
+    double rho, u, v, w, h, ht, c, ubar;
     double sigma, area, nx, ny, nz, maxlambda;
     
     // Initialization
@@ -1569,8 +1325,8 @@ void Compute_Flux_Roe_Optimized(int node_L, int node_R, Vector3D areavec, double
         
         // Compute Equation of State
         // Note: Based on VariableType Pressure can be Perturbation of them
-        Compute_EOS_Variables_Face(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
-        Compute_EOS_Variables_Face(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+        Material_Get_Face_Properties(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
+        Material_Get_Face_Properties(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
         
         // Compute flux_L
         Roe_flux_L[0] = rho_L*ubar_L;
@@ -1593,7 +1349,8 @@ void Compute_Flux_Roe_Optimized(int node_L, int node_R, Vector3D areavec, double
         v     = v_L  + sigma*(v_R  - v_L);
         w     = w_L  + sigma*(w_R  - w_L);
         ht    = ht_L + sigma*(ht_R - ht_L);
-        c     = Get_SpeedSound(u, v, w, ht);
+        h     = ht - 0.5*(u*u + v*v + w*w);
+        c     = Material_Get_DH_SpeedSound(rho, h);
         ubar  = u*nx + v*ny + w*nz;
         
         //======================================================================
@@ -1693,30 +1450,32 @@ void Compute_Flux_Roe_Optimized(int node_L, int node_R, Vector3D areavec, double
         Roe_P[4][4] =  0.0              + 0.5*Ep;
         
         // STEP 3:
-        // Compute the Dissipation Flux
-        // Mop
-        Compute_Transformation_Matrix(VARIABLE_CONSERVATIVE, VARIABLE_PRIMITIVE_RUP, rho, u, v, w, c, Roe_M);
-        
-        // Mpr
-        Compute_Transformation_Matrix(VARIABLE_PRIMITIVE_RUP, VariableType, rho, u, v, w, c, Roe_Minv);
-        
-        // Calculate T = Mop*Diss
-        MC_Matrix_Mul_Matrix(5, 5, Roe_M, Roe_P, Roe_T);
-        
-        // Calculate A = T*Mpr
-        MC_Matrix_Mul_Matrix(5, 5, Roe_T, Roe_Minv, Roe_A);
-        
-        // Compute dqr: Based on VariableType
-        Roe_dQ[0] = Roe_Q_R[0] - Roe_Q_L[0];
-        Roe_dQ[1] = Roe_Q_R[1] - Roe_Q_L[1];
-        Roe_dQ[2] = Roe_Q_R[2] - Roe_Q_L[2];
-        Roe_dQ[3] = Roe_Q_R[3] - Roe_Q_L[3];
-        Roe_dQ[4] = Roe_Q_R[4] - Roe_Q_L[4];
-
-        // Compute |A|*dqr
-        MC_Matrix_Mul_Vector(5, 5, Roe_A, Roe_dQ, Roe_fluxA);
+        // Compute average Q
+        // Note: Based on VariableType Pressure can be Perturbation of them
+        Material_Get_RUH_To_Q(rho, u, v, w, h, Roe_Qavg);
         
         // STEP 4:
+        // Compute the Dissipation Flux
+        // Mop
+        Material_Get_Transformation_Matrix(Roe_Qavg, VARIABLE_CON, VARIABLE_RUP, Roe_M);
+        
+        // Mpr
+        Material_Get_Transformation_Matrix(Roe_Qavg, VARIABLE_RUP, VariableType, Roe_Minv);
+        
+        // Calculate T = Mop*Diss
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_M, Roe_P, Roe_T);
+        
+        // Calculate A = T*Mpr
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_T, Roe_Minv, Roe_A);
+        
+        // Compute dqr: Based on VariableType
+        for (i = 0; i < NEQUATIONS; i++)
+            Roe_dQ[i] = Roe_Q_R[i] - Roe_Q_L[i];
+
+        // Compute |A|*dqr
+        MC_Matrix_Mul_Vector(NEQUATIONS, NEQUATIONS, Roe_A, Roe_dQ, Roe_fluxA);
+        
+        // STEP 5:
         // Compute the Convective Flux and Dissipative Flux
         for (i = 0; i < NEQUATIONS; i++) {
             Flux_Roe_Conv[i] = 0.5*(Roe_flux_L[i] + Roe_flux_R[i])*area;
@@ -1733,7 +1492,7 @@ void Compute_Flux_Roe_Original(int node_L, int node_R, Vector3D areavec, double 
     int i, j;
     double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
     double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
-    double rho, u, v, w, ht, c, ubar;
+    double rho, u, v, w, h, ht, c, ubar;
     double sigma, area, nx, ny, nz, maxlambda;
     
     // Initialization
@@ -1787,8 +1546,8 @@ void Compute_Flux_Roe_Original(int node_L, int node_R, Vector3D areavec, double 
         
         // Compute Equation of State
         // Note: Based on VariableType Pressure can be Perturbation of them
-        Compute_EOS_Variables_Face(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
-        Compute_EOS_Variables_Face(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+        Material_Get_Face_Properties(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
+        Material_Get_Face_Properties(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
         
         // Compute flux_L
         Roe_flux_L[0] = rho_L*ubar_L;
@@ -1811,7 +1570,8 @@ void Compute_Flux_Roe_Original(int node_L, int node_R, Vector3D areavec, double 
         v     = v_L  + sigma*(v_R  - v_L);
         w     = w_L  + sigma*(w_R  - w_L);
         ht    = ht_L + sigma*(ht_R - ht_L);
-        c     = Get_SpeedSound(u, v, w, ht);
+        h     = ht - 0.5*(u*u + v*v + w*w);
+        c     = Material_Get_DH_SpeedSound(rho, h);
         ubar  = u*nx + v*ny + w*nz;
         
         //======================================================================
@@ -1936,38 +1696,40 @@ void Compute_Flux_Roe_Original(int node_L, int node_R, Vector3D areavec, double 
         Roe_Pinv[4][4] = 1.0/(2.0 * rho * c);
         
         // STEP 4:
+        // Compute average Q
+        // Note: Based on VariableType Pressure can be Perturbation of them
+        Material_Get_RUH_To_Q(rho, u, v, w, h, Roe_Qavg);
+        
+        // STEP 5:
         // Compute the Dissipation Flux
         // Mop
-        Compute_Transformation_Matrix(VARIABLE_CONSERVATIVE, VARIABLE_PRIMITIVE_RUP, rho, u, v, w, c, Roe_M);
+        Material_Get_Transformation_Matrix(Roe_Qavg, VARIABLE_CON, VARIABLE_RUP, Roe_M);
         
         // Mpr
-        Compute_Transformation_Matrix(VARIABLE_PRIMITIVE_RUP, VariableType, rho, u, v, w, c, Roe_Minv);
+        Material_Get_Transformation_Matrix(Roe_Qavg, VARIABLE_RUP, VariableType, Roe_Minv);
         
         // Calculate L = Mop*P
-        MC_Matrix_Mul_Matrix(5, 5, Roe_M, Roe_P, Roe_T);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_M, Roe_P, Roe_T);
         
         // Calculate R = Pinv*Mpr
-        MC_Matrix_Mul_Matrix(5, 5, Roe_Pinv, Roe_Minv, Roe_Tinv);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_Pinv, Roe_Minv, Roe_Tinv);
         
         // Compute |A| = L.|Eigen|.R
-        for (i = 0; i < 5; i++)
-            for (j = 0; j < 5; j++)
+        for (i = 0; i < NEQUATIONS; i++)
+            for (j = 0; j < NEQUATIONS; j++)
                 Roe_P[i][j] = 0.0;
         
-        MC_Matrix_Mul_Matrix(5, 5, Roe_Eigen, Roe_Tinv, Roe_P);
-        MC_Matrix_Mul_Matrix(5, 5, Roe_T, Roe_P, Roe_A);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_Eigen, Roe_Tinv, Roe_P);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_T, Roe_P, Roe_A);
         
         // Compute dqr: Based on VariableType
-        Roe_dQ[0] = Roe_Q_R[0] - Roe_Q_L[0];
-        Roe_dQ[1] = Roe_Q_R[1] - Roe_Q_L[1];
-        Roe_dQ[2] = Roe_Q_R[2] - Roe_Q_L[2];
-        Roe_dQ[3] = Roe_Q_R[3] - Roe_Q_L[3];
-        Roe_dQ[4] = Roe_Q_R[4] - Roe_Q_L[4];
+        for (i = 0; i < NEQUATIONS; i++)
+            Roe_dQ[i] = Roe_Q_R[i] - Roe_Q_L[i];
 
         // Compute |A|*dqr
         MC_Matrix_Mul_Vector(5, 5, Roe_A, Roe_dQ, Roe_fluxA);
         
-        // STEP 5:
+        // STEP 6:
         // Compute the Convective Flux and Dissipative Flux
         for (i = 0; i < NEQUATIONS; i++) {
             Flux_Roe_Conv[i] = 0.5*(Roe_flux_L[i] + Roe_flux_R[i])*area;
@@ -1991,7 +1753,7 @@ void Compute_Flux_Roe_Precondition_Turkel(int node_L, int node_R, Vector3D areav
     int i, j, AvgType;
     double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
     double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
-    double rho, u, v, w, ht, c, ubar, q2, mach;
+    double rho, u, v, w, h, ht, c, ubar, q2, mach;
     double sigma, area, nx, ny, nz, maxlambda;
     
     // Initialization
@@ -2045,8 +1807,8 @@ void Compute_Flux_Roe_Precondition_Turkel(int node_L, int node_R, Vector3D areav
         
         // Compute Equation of State
         // Note: Based on VariableType Pressure can be Perturbation of them
-        Compute_EOS_Variables_Face(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
-        Compute_EOS_Variables_Face(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+        Material_Get_Face_Properties(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
+        Material_Get_Face_Properties(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
         
         // Compute flux_L
         Roe_flux_L[0] = rho_L*ubar_L;
@@ -2081,7 +1843,8 @@ void Compute_Flux_Roe_Precondition_Turkel(int node_L, int node_R, Vector3D areav
         }
         q2   = u*u + v*v + w*w;
         ubar = u*nx + v*ny + w*nz;
-        c    = Get_SpeedSound(u, v, w, ht);
+        h    = ht - 0.5*(u*u + v*v + w*w);
+        c    = Material_Get_DH_SpeedSound(rho, h);
         mach = sqrt(q2)/c;
         
         int nid;
@@ -2114,7 +1877,7 @@ void Compute_Flux_Roe_Precondition_Turkel(int node_L, int node_R, Vector3D areav
                     lQ[4] = Q5[nid];
                     // Compute Local Equation of State
                     // Note: Based on VariableType Pressure can be Perturbation of them
-                    Compute_EOS_Variables_ControlVolume(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
+                    Material_Get_ControlVolume_Properties(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
 
                     // Compute Smoothing Parameters
                     lmach_L = MAX(lmach_L, lmach);
@@ -2134,7 +1897,7 @@ void Compute_Flux_Roe_Precondition_Turkel(int node_L, int node_R, Vector3D areav
                         lQ[4] = Q5[nid];
                         // Compute Local Equation of State
                         // Note: Based on VariableType Pressure can be Perturbation of them
-                        Compute_EOS_Variables_ControlVolume(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
+                        Material_Get_ControlVolume_Properties(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
 
                         // Compute Smoothing Parameters
                         lmach_R = MAX(lmach_R, lmach);
@@ -2182,15 +1945,15 @@ void Compute_Flux_Roe_Precondition_Turkel(int node_L, int node_R, Vector3D areav
         alpha = 0.0;
         delta = 0.0;
         switch (PrecondMethod) {
-            case PRECOND_METHOD_ROE_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
+            case PRECOND_METHOD_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
                 alpha = 0.0;
                 delta = 1.0;
                 break;
-            case PRECOND_METHOD_ROE_ERIKSSON: // Roe Eriksson Pre-Conditioner
+            case PRECOND_METHOD_ERIKSSON: // Roe Eriksson Pre-Conditioner
                 alpha = 0.0;
                 delta = beta;
                 break;
-            case PRECOND_METHOD_ROE_TURKEL: // Roe Turkel Pre-Conditioner
+            case PRECOND_METHOD_TURKEL: // Roe Turkel Pre-Conditioner
                 alpha = 0.4;
                 delta = beta;
                 break;
@@ -2360,41 +2123,43 @@ void Compute_Flux_Roe_Precondition_Turkel(int node_L, int node_R, Vector3D areav
         Roe_Pinv[4][4] = (beta*c*c - alpha*ubar*(cp + ubar*zp))/(2.0*rho*cp*pv3);
         
         // STEP 7:
+        // Compute average Q
+        // Note: Based on VariableType Pressure can be Perturbation of them
+        Material_Get_RUH_To_Q(rho, u, v, w, h, Roe_Qavg);
+        
+        // STEP 8:
         // Compute the Dissipation Flux
         // Mop
-        Compute_Transformation_Matrix(VARIABLE_CONSERVATIVE, PrecondVariableType, rho, u, v, w, c, Roe_M);
+        Material_Get_Transformation_Matrix(Roe_Qavg, VARIABLE_CON, PrecondVariableType, Roe_M);
         
         // Mpr
-        Compute_Transformation_Matrix(PrecondVariableType, VariableType, rho, u, v, w, c, Roe_Minv);
+        Material_Get_Transformation_Matrix(Roe_Qavg, PrecondVariableType, VariableType, Roe_Minv);
         
         // Compute the L = Mop.Kinv.P
-        MC_Matrix_Mul_Matrix(5, 5, Roe_Kinv, Roe_P, Roe_A);
-        MC_Matrix_Mul_Matrix(5, 5, Roe_M, Roe_A, Roe_T);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_Kinv, Roe_P, Roe_A);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_M, Roe_A, Roe_T);
         
         // Compute the R = Pinv.Mpr
-        MC_Matrix_Mul_Matrix(5, 5, Roe_Pinv, Roe_Minv, Roe_Tinv);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_Pinv, Roe_Minv, Roe_Tinv);
         
         // Compute |A| = L.|Eigen|.R
-        for (i = 0; i < 5; i++) {
-            for (j = 0; j < 5; j++) {
+        for (i = 0; i < NEQUATIONS; i++) {
+            for (j = 0; j < NEQUATIONS; j++) {
                 Roe_A[i][j] = 0.0;
                 Roe_P[i][j] = 0.0;
             }
         }
-        MC_Matrix_Mul_Matrix(5, 5, Roe_Eigen, Roe_Tinv, Roe_P);
-        MC_Matrix_Mul_Matrix(5, 5, Roe_T, Roe_P, Roe_A);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_Eigen, Roe_Tinv, Roe_P);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_T, Roe_P, Roe_A);
         
         // Compute dqr: Based on VariableType
-        Roe_dQ[0] = Roe_Q_R[0] - Roe_Q_L[0];
-        Roe_dQ[1] = Roe_Q_R[1] - Roe_Q_L[1];
-        Roe_dQ[2] = Roe_Q_R[2] - Roe_Q_L[2];
-        Roe_dQ[3] = Roe_Q_R[3] - Roe_Q_L[3];
-        Roe_dQ[4] = Roe_Q_R[4] - Roe_Q_L[4];
+        for (i = 0; i < NEQUATIONS; i++)
+            Roe_dQ[i] = Roe_Q_R[i] - Roe_Q_L[i];
         
         // Compute |A|*dqr
-        MC_Matrix_Mul_Vector(5, 5, Roe_A, Roe_dQ, Roe_fluxA);
+        MC_Matrix_Mul_Vector(NEQUATIONS, NEQUATIONS, Roe_A, Roe_dQ, Roe_fluxA);
         
-        // STEP 8:
+        // STEP 9:
         // Compute the Convective Flux and Dissipative Flux
         for (i = 0; i < NEQUATIONS; i++) {
             Flux_Roe_Conv[i] = 0.5*(Roe_flux_L[i] + Roe_flux_R[i])*area;
@@ -2414,7 +2179,7 @@ void Compute_Dissipation_Matrix_Roe_LMFIX(int node_L, int node_R, Vector3D areav
     int maxcount;
     double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
     double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
-    double rho, u, v, w, ht, c, ubar, ubar1, ubar2;
+    double rho, u, v, w, h, ht, c, ubar, ubar1, ubar2;
     double sigma, nx, ny, nz;
     double Mach, nmax, fix;
     Vector3D Vn1, Vn2;
@@ -2445,8 +2210,8 @@ void Compute_Dissipation_Matrix_Roe_LMFIX(int node_L, int node_R, Vector3D areav
         
         // Compute Equation of State
         // Note: Based on VariableType Pressure can be Perturbation of them
-        Compute_EOS_Variables_Face(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
-        Compute_EOS_Variables_Face(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+        Material_Get_Face_Properties(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
+        Material_Get_Face_Properties(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
         
         // ROE AVERAGE VARIABLES
         rho   = sqrt(rho_R * rho_L);
@@ -2455,7 +2220,8 @@ void Compute_Dissipation_Matrix_Roe_LMFIX(int node_L, int node_R, Vector3D areav
         v     = v_L  + sigma*(v_R  - v_L);
         w     = w_L  + sigma*(w_R  - w_L);
         ht    = ht_L + sigma*(ht_R - ht_L);
-        c     = Get_SpeedSound(u, v, w, ht);
+        h     = ht - 0.5*(u*u + v*v + w*w);
+        c     = Material_Get_DH_SpeedSound(rho, h);
         ubar  = u*nx + v*ny + w*nz;
         
         //======================================================================
@@ -2557,17 +2323,23 @@ void Compute_Dissipation_Matrix_Roe_LMFIX(int node_L, int node_R, Vector3D areav
         Roe_A[4][3] =  0.5*Em*c*rho*nz;
         Roe_A[4][4] =  0.0              + 0.5*Ep;
         
+        
         // STEP 4:
+        // Compute average Q
+        // Note: Based on VariableType Pressure can be Perturbation of them
+        Material_Get_RUH_To_Q(rho, u, v, w, h, Roe_Qavg);
+        
+        // STEP 5:
         // Compute the Dissipation Jacobian
         // Mop
-        Compute_Transformation_Matrix(VARIABLE_CONSERVATIVE, VARIABLE_PRIMITIVE_RUP, rho, u, v, w, c, Roe_M);
+        Material_Get_Transformation_Matrix(Roe_Qavg, VARIABLE_CON, VARIABLE_RUP, Roe_M);
         
         // Mpr
-        Compute_Transformation_Matrix(VARIABLE_PRIMITIVE_RUP, VariableType, rho, u, v, w, c, Roe_Minv);
+        Material_Get_Transformation_Matrix(Roe_Qavg, VARIABLE_RUP, VariableType, Roe_Minv);
         
         // Calculate Mop*|A|*Mpr
-        MC_Matrix_Mul_Matrix(5, 5, Roe_M, Roe_A, Roe_T);
-        MC_Matrix_Mul_Matrix(5, 5, Roe_T, Roe_Minv, Dissipation_Matrix_Roe);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_M, Roe_A, Roe_T);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_T, Roe_Minv, Dissipation_Matrix_Roe);
      } else
         error("Compute_Dissipation_Matrix_Roe_LMFIX: Invalid Node - %d", node_L);
 }
@@ -2579,7 +2351,7 @@ void Compute_Dissipation_Matrix_Roe_LMFIX(int node_L, int node_R, Vector3D areav
 void Compute_Dissipation_Matrix_Roe_Thornber(int node_L, int node_R, Vector3D areavec, double **Dissipation_Matrix_Roe) {
     double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
     double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
-    double rho, u, v, w, ht, c, ubar;
+    double rho, u, v, w, h, ht, c, ubar;
     double sigma, nx, ny, nz;
     double Mach, fix, tmp1, tmp2;
     
@@ -2609,8 +2381,8 @@ void Compute_Dissipation_Matrix_Roe_Thornber(int node_L, int node_R, Vector3D ar
         
         // Compute Equation of State
         // Note: Based on VariableType Pressure can be Perturbation of them
-        Compute_EOS_Variables_Face(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
-        Compute_EOS_Variables_Face(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+        Material_Get_Face_Properties(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
+        Material_Get_Face_Properties(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
         
         // Thornber Modification
         Mach = MAX(mach_L, mach_R);
@@ -2633,8 +2405,8 @@ void Compute_Dissipation_Matrix_Roe_Thornber(int node_L, int node_R, Vector3D ar
         
         // Compute Again Equation of State
         // Note: Based on VariableType Pressure can be Perturbation of them
-        Compute_EOS_Variables_Face(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
-        Compute_EOS_Variables_Face(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+        Material_Get_Face_Properties(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
+        Material_Get_Face_Properties(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
         
         // ROE AVERAGE VARIABLES
         rho   = sqrt(rho_R * rho_L);
@@ -2643,7 +2415,8 @@ void Compute_Dissipation_Matrix_Roe_Thornber(int node_L, int node_R, Vector3D ar
         v     = v_L  + sigma*(v_R  - v_L);
         w     = w_L  + sigma*(w_R  - w_L);
         ht    = ht_L + sigma*(ht_R - ht_L);
-        c     = Get_SpeedSound(u, v, w, ht);
+        h     = ht - 0.5*(u*u + v*v + w*w);
+        c     = Material_Get_DH_SpeedSound(rho, h);
         ubar  = u*nx + v*ny + w*nz;
         
         //======================================================================
@@ -2702,16 +2475,21 @@ void Compute_Dissipation_Matrix_Roe_Thornber(int node_L, int node_R, Vector3D ar
         Roe_A[4][4] =  0.0              + 0.5*Ep;
         
         // STEP 3:
+        // Compute average Q
+        // Note: Based on VariableType Pressure can be Perturbation of them
+        Material_Get_RUH_To_Q(rho, u, v, w, h, Roe_Qavg);
+        
+        // STEP 4:
         // Compute the Dissipation Jacobian
         // Mop
-        Compute_Transformation_Matrix(VARIABLE_CONSERVATIVE, VARIABLE_PRIMITIVE_RUP, rho, u, v, w, c, Roe_M);
+        Material_Get_Transformation_Matrix(Roe_Qavg, VARIABLE_CON, VARIABLE_RUP, Roe_M);
         
         // Mpr
-        Compute_Transformation_Matrix(VARIABLE_PRIMITIVE_RUP, VariableType, rho, u, v, w, c, Roe_Minv);
+        Material_Get_Transformation_Matrix(Roe_Qavg, VARIABLE_RUP, VariableType, Roe_Minv);
         
         // Calculate Mop*|A|*Mpr
-        MC_Matrix_Mul_Matrix(5, 5, Roe_M, Roe_A, Roe_T);
-        MC_Matrix_Mul_Matrix(5, 5, Roe_T, Roe_Minv, Dissipation_Matrix_Roe);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_M, Roe_A, Roe_T);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_T, Roe_Minv, Dissipation_Matrix_Roe);
      } else
         error("Compute_Dissipation_Matrix_Roe_Thornber: Invalid Node - %d", node_L);
 }
@@ -2723,7 +2501,7 @@ void Compute_Dissipation_Matrix_Roe_Thornber(int node_L, int node_R, Vector3D ar
 void Compute_Dissipation_Matrix_Roe_Optimized(int node_L, int node_R, Vector3D areavec, double **Dissipation_Matrix_Roe) {
     double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
     double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
-    double rho, u, v, w, ht, c, ubar;
+    double rho, u, v, w, h, ht, c, ubar;
     double sigma, nx, ny, nz;
     
     // Initialization
@@ -2752,8 +2530,8 @@ void Compute_Dissipation_Matrix_Roe_Optimized(int node_L, int node_R, Vector3D a
         
         // Compute Equation of State
         // Note: Based on VariableType Pressure can be Perturbation of them
-        Compute_EOS_Variables_Face(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
-        Compute_EOS_Variables_Face(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+        Material_Get_Face_Properties(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
+        Material_Get_Face_Properties(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
         
         // ROE AVERAGE VARIABLES
         rho   = sqrt(rho_R * rho_L);
@@ -2762,7 +2540,8 @@ void Compute_Dissipation_Matrix_Roe_Optimized(int node_L, int node_R, Vector3D a
         v     = v_L  + sigma*(v_R  - v_L);
         w     = w_L  + sigma*(w_R  - w_L);
         ht    = ht_L + sigma*(ht_R - ht_L);
-        c     = Get_SpeedSound(u, v, w, ht);
+        h     = ht - 0.5*(u*u + v*v + w*w);
+        c     = Material_Get_DH_SpeedSound(rho, h);
         ubar  = u*nx + v*ny + w*nz;
         
         //======================================================================
@@ -2821,16 +2600,21 @@ void Compute_Dissipation_Matrix_Roe_Optimized(int node_L, int node_R, Vector3D a
         Roe_A[4][4] =  0.0              + 0.5*Ep;
         
         // STEP 3:
+        // Compute average Q
+        // Note: Based on VariableType Pressure can be Perturbation of them
+        Material_Get_RUH_To_Q(rho, u, v, w, h, Roe_Qavg);
+        
+        // STEP 4:
         // Compute the Dissipation Jacobian
         // Mop
-        Compute_Transformation_Matrix(VARIABLE_CONSERVATIVE, VARIABLE_PRIMITIVE_RUP, rho, u, v, w, c, Roe_M);
+        Material_Get_Transformation_Matrix(Roe_Qavg, VARIABLE_CON, VARIABLE_RUP, Roe_M);
         
         // Mpr
-        Compute_Transformation_Matrix(VARIABLE_PRIMITIVE_RUP, VariableType, rho, u, v, w, c, Roe_Minv);
+        Material_Get_Transformation_Matrix(Roe_Qavg, VARIABLE_RUP, VariableType, Roe_Minv);
         
         // Calculate Mop*|A|*Mpr
-        MC_Matrix_Mul_Matrix(5, 5, Roe_M, Roe_A, Roe_T);
-        MC_Matrix_Mul_Matrix(5, 5, Roe_T, Roe_Minv, Dissipation_Matrix_Roe);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_M, Roe_A, Roe_T);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_T, Roe_Minv, Dissipation_Matrix_Roe);
      } else
         error("Compute_Dissipation_Matrix_Roe_Optimized: Invalid Node - %d", node_L);
 }
@@ -2842,7 +2626,7 @@ void Compute_Dissipation_Matrix_Roe_Optimized(int node_L, int node_R, Vector3D a
 void Compute_Dissipation_Matrix_Roe_Original(int node_L, int node_R, Vector3D areavec, double **Dissipation_Matrix_Roe) {
     double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
     double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
-    double rho, u, v, w, ht, c, ubar;
+    double rho, u, v, w, h, ht, c, ubar;
     double sigma, nx, ny, nz;
     
     // Initialization
@@ -2871,8 +2655,8 @@ void Compute_Dissipation_Matrix_Roe_Original(int node_L, int node_R, Vector3D ar
         
         // Compute Equation of State
         // Note: Based on VariableType Pressure can be Perturbation of them
-        Compute_EOS_Variables_Face(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
-        Compute_EOS_Variables_Face(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+        Material_Get_Face_Properties(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
+        Material_Get_Face_Properties(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
         
         // ROE AVERAGE VARIABLES
         rho   = sqrt(rho_R * rho_L);
@@ -2881,7 +2665,8 @@ void Compute_Dissipation_Matrix_Roe_Original(int node_L, int node_R, Vector3D ar
         v     = v_L  + sigma*(v_R  - v_L);
         w     = w_L  + sigma*(w_R  - w_L);
         ht    = ht_L + sigma*(ht_R - ht_L);
-        c     = Get_SpeedSound(u, v, w, ht);
+        h     = ht - 0.5*(u*u + v*v + w*w);
+        c     = Material_Get_DH_SpeedSound(rho, h);
         ubar  = u*nx + v*ny + w*nz;
         
         //======================================================================
@@ -2965,22 +2750,27 @@ void Compute_Dissipation_Matrix_Roe_Original(int node_L, int node_R, Vector3D ar
         Roe_Pinv[4][4] = 1.0/(2.0 * rho * c);
         
         // STEP 4:
-        // Compute the Dissipation Flux
+        // Compute average Q
+        // Note: Based on VariableType Pressure can be Perturbation of them
+        Material_Get_RUH_To_Q(rho, u, v, w, h, Roe_Qavg);
+        
+        // STEP 5:
+        // Compute the Dissipation Jacobian
         // Mop
-        Compute_Transformation_Matrix(VARIABLE_CONSERVATIVE, VARIABLE_PRIMITIVE_RUP, rho, u, v, w, c, Roe_M);
+        Material_Get_Transformation_Matrix(Roe_Qavg, VARIABLE_CON, VARIABLE_RUP, Roe_M);
         
         // Mpr
-        Compute_Transformation_Matrix(VARIABLE_PRIMITIVE_RUP, VariableType, rho, u, v, w, c, Roe_Minv);
+        Material_Get_Transformation_Matrix(Roe_Qavg, VARIABLE_RUP, VariableType, Roe_Minv);
         
         // Calculate L = Mop*P
-        MC_Matrix_Mul_Matrix(5, 5, Roe_M, Roe_P, Roe_T);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_M, Roe_P, Roe_T);
         
         // Calculate R = Pinv*Mpr
-        MC_Matrix_Mul_Matrix(5, 5, Roe_Pinv, Roe_Minv, Roe_Tinv);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_Pinv, Roe_Minv, Roe_Tinv);
         
         // Compute |A| = L.|Eigen|.R
-        MC_Matrix_Mul_Matrix(5, 5, Roe_Eigen, Roe_Tinv, Roe_A);
-        MC_Matrix_Mul_Matrix(5, 5, Roe_T, Roe_A, Dissipation_Matrix_Roe);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_Eigen, Roe_Tinv, Roe_A);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_T, Roe_A, Dissipation_Matrix_Roe);
      } else
         error("Compute_Dissipation_Matrix_Roe_Original: Invalid Node - %d", node_L);
 }
@@ -3001,7 +2791,7 @@ void Compute_Dissipation_Matrix_Roe_Precondition_Turkel(int node_L, int node_R, 
     int i, j, AvgType;
     double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
     double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
-    double rho, u, v, w, ht, c, ubar, q2, mach;
+    double rho, u, v, w, h, ht, c, ubar, q2, mach;
     double sigma, nx, ny, nz;
     
     // Initialization
@@ -3030,8 +2820,8 @@ void Compute_Dissipation_Matrix_Roe_Precondition_Turkel(int node_L, int node_R, 
         
         // Compute Equation of State
         // Note: Based on VariableType Pressure can be Perturbation of them
-        Compute_EOS_Variables_Face(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
-        Compute_EOS_Variables_Face(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+        Material_Get_Face_Properties(Roe_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
+        Material_Get_Face_Properties(Roe_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
         
         AvgType = 1;
         if (AvgType == 1) {
@@ -3052,7 +2842,8 @@ void Compute_Dissipation_Matrix_Roe_Precondition_Turkel(int node_L, int node_R, 
         }
         q2   = u*u + v*v + w*w;
         ubar = u*nx + v*ny + w*nz;
-        c    = Get_SpeedSound(u, v, w, ht);
+        h    = ht - 0.5*(u*u + v*v + w*w);
+        c    = Material_Get_DH_SpeedSound(rho, h);
         mach = sqrt(q2)/c;
         
         int nid;
@@ -3085,7 +2876,7 @@ void Compute_Dissipation_Matrix_Roe_Precondition_Turkel(int node_L, int node_R, 
                     lQ[4] = Q5[nid];
                     // Compute Local Equation of State
                     // Note: Based on VariableType Pressure can be Perturbation of them
-                    Compute_EOS_Variables_ControlVolume(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
+                    Material_Get_ControlVolume_Properties(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
 
                     // Compute Smoothing Parameters
                     lmach_L = MAX(lmach_L, lmach);
@@ -3105,7 +2896,7 @@ void Compute_Dissipation_Matrix_Roe_Precondition_Turkel(int node_L, int node_R, 
                         lQ[4] = Q5[nid];
                         // Compute Local Equation of State
                         // Note: Based on VariableType Pressure can be Perturbation of them
-                        Compute_EOS_Variables_ControlVolume(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
+                        Material_Get_ControlVolume_Properties(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
 
                         // Compute Smoothing Parameters
                         lmach_R = MAX(lmach_R, lmach);
@@ -3153,15 +2944,15 @@ void Compute_Dissipation_Matrix_Roe_Precondition_Turkel(int node_L, int node_R, 
         alpha = 0.0;
         delta = 0.0;
         switch (PrecondMethod) {
-            case PRECOND_METHOD_ROE_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
+            case PRECOND_METHOD_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
                 alpha = 0.0;
                 delta = 1.0;
                 break;
-            case PRECOND_METHOD_ROE_ERIKSSON: // Roe Eriksson Pre-Conditioner
+            case PRECOND_METHOD_ERIKSSON: // Roe Eriksson Pre-Conditioner
                 alpha = 0.0;
                 delta = beta;
                 break;
-            case PRECOND_METHOD_ROE_TURKEL: // Roe Turkel Pre-Conditioner
+            case PRECOND_METHOD_TURKEL: // Roe Turkel Pre-Conditioner
                 alpha = 0.4;
                 delta = beta;
                 break;
@@ -3286,28 +3077,33 @@ void Compute_Dissipation_Matrix_Roe_Precondition_Turkel(int node_L, int node_R, 
         Roe_Pinv[4][4] = (beta*c*c - alpha*ubar*(cp + ubar*zp))/(2.0*rho*cp*pv3);
         
         // STEP 7:
-        // Compute the Dissipation Flux
+        // Compute average Q
+        // Note: Based on VariableType Pressure can be Perturbation of them
+        Material_Get_RUH_To_Q(rho, u, v, w, h, Roe_Qavg);
+        
+        // STEP 8:
+        // Compute the Dissipation Jacobian
         // Mop
-        Compute_Transformation_Matrix(VARIABLE_CONSERVATIVE, PrecondVariableType, rho, u, v, w, c, Roe_M);
+        Material_Get_Transformation_Matrix(Roe_Qavg, VARIABLE_CON, PrecondVariableType, Roe_M);
         
         // Mpr
-        Compute_Transformation_Matrix(PrecondVariableType, VariableType, rho, u, v, w, c, Roe_Minv);
+        Material_Get_Transformation_Matrix(Roe_Qavg, PrecondVariableType, VariableType, Roe_Minv);
         
         // Compute the L = Mop.Kinv.P
-        MC_Matrix_Mul_Matrix(5, 5, Roe_Kinv, Roe_P, Roe_A);
-        MC_Matrix_Mul_Matrix(5, 5, Roe_M, Roe_A, Roe_T);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_Kinv, Roe_P, Roe_A);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_M, Roe_A, Roe_T);
         
         // Compute the R = Pinv.Mpr
-        MC_Matrix_Mul_Matrix(5, 5, Roe_Pinv, Roe_Minv, Roe_Tinv);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_Pinv, Roe_Minv, Roe_Tinv);
         
         // Compute |A| = L.|Eigen|.R
-        for (i = 0; i < 5; i++) {
-            for (j = 0; j < 5; j++) {
+        for (i = 0; i < NEQUATIONS; i++) {
+            for (j = 0; j < NEQUATIONS; j++) {
                 Roe_A[i][j] = 0.0;
             }
         }
-        MC_Matrix_Mul_Matrix(5, 5, Roe_Eigen, Roe_Tinv, Roe_A);
-        MC_Matrix_Mul_Matrix(5, 5, Roe_T, Roe_A, Dissipation_Matrix_Roe);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_Eigen, Roe_Tinv, Roe_A);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, Roe_T, Roe_A, Dissipation_Matrix_Roe);
     } else
         error("Compute_Dissipation_Matrix_Roe_Precondition_Turkel: Invalid Node - %d", node_L);
 }
@@ -3322,22 +3118,22 @@ void Compute_Dissipation_Matrix_Roe(int node_L, int node_R, Vector3D areavec, do
         case PRECOND_METHOD_NONE: // Roe
             Compute_Dissipation_Matrix_Roe_Optimized(node_L, node_R, areavec, Dissipation_Matrix_Roe);
             break;
-        case PRECOND_METHOD_ROE_LMFIX: // LMRoe
+        case PRECOND_METHOD_LMFIX: // LMRoe
             Compute_Dissipation_Matrix_Roe_LMFIX(node_L, node_R, areavec, Dissipation_Matrix_Roe);
             break;
-        case PRECOND_METHOD_ROE_THORNBER: // THORNBER
+        case PRECOND_METHOD_THORNBER: // THORNBER
             Compute_Dissipation_Matrix_Roe_Thornber(node_L, node_R, areavec, Dissipation_Matrix_Roe);
             break;
-        case PRECOND_METHOD_ROE_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
+        case PRECOND_METHOD_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
             Compute_Dissipation_Matrix_Roe_Precondition_Turkel(node_L, node_R, areavec, Dissipation_Matrix_Roe);
             break;
-        case PRECOND_METHOD_ROE_ERIKSSON: // Roe Eriksson Pre-Conditioner
+        case PRECOND_METHOD_ERIKSSON: // Roe Eriksson Pre-Conditioner
             Compute_Dissipation_Matrix_Roe_Precondition_Turkel(node_L, node_R, areavec, Dissipation_Matrix_Roe);
             break;
-        case PRECOND_METHOD_ROE_MERKEL: // Roe Merkel Pre-Conditioner
+        case PRECOND_METHOD_MERKEL: // Roe Merkel Pre-Conditioner
             Compute_Dissipation_Matrix_Roe_Precondition_Merkel(node_L, node_R, areavec, Dissipation_Matrix_Roe);
             break;
-        case PRECOND_METHOD_ROE_TURKEL: // Roe Turkel Pre-Conditioner
+        case PRECOND_METHOD_TURKEL: // Roe Turkel Pre-Conditioner
             Compute_Dissipation_Matrix_Roe_Precondition_Turkel(node_L, node_R, areavec, Dissipation_Matrix_Roe);
             break;
         default:
@@ -3356,22 +3152,22 @@ void Compute_Flux_Roe(int node_L, int node_R, Vector3D areavec, double *Flux_Roe
         case PRECOND_METHOD_NONE: // Roe
             Compute_Flux_Roe_Optimized(node_L, node_R, areavec, Flux_Roe_Conv, Flux_Roe_Diss, AddTime);
             break;
-        case PRECOND_METHOD_ROE_LMFIX: // LMRoe
+        case PRECOND_METHOD_LMFIX: // LMRoe
             Compute_Flux_Roe_LMFIX(node_L, node_R, areavec, Flux_Roe_Conv, Flux_Roe_Diss, AddTime);
             break;
-        case PRECOND_METHOD_ROE_THORNBER: // THORNBER
+        case PRECOND_METHOD_THORNBER: // THORNBER
             Compute_Flux_Roe_Thornber(node_L, node_R, areavec, Flux_Roe_Conv, Flux_Roe_Diss, AddTime);
             break;
-        case PRECOND_METHOD_ROE_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
+        case PRECOND_METHOD_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
             Compute_Flux_Roe_Precondition_Turkel(node_L, node_R, areavec, Flux_Roe_Conv, Flux_Roe_Diss, AddTime);
             break;
-        case PRECOND_METHOD_ROE_ERIKSSON: // Roe Eriksson Pre-Conditioner
+        case PRECOND_METHOD_ERIKSSON: // Roe Eriksson Pre-Conditioner
             Compute_Flux_Roe_Precondition_Turkel(node_L, node_R, areavec, Flux_Roe_Conv, Flux_Roe_Diss, AddTime);
             break;
-        case PRECOND_METHOD_ROE_MERKEL: // Roe Merkel Pre-Conditioner
+        case PRECOND_METHOD_MERKEL: // Roe Merkel Pre-Conditioner
             Compute_Flux_Roe_Precondition_Merkel(node_L, node_R, areavec, Flux_Roe_Conv, Flux_Roe_Diss, AddTime);
             break;
-        case PRECOND_METHOD_ROE_TURKEL: // Roe Turkel Pre-Conditioner
+        case PRECOND_METHOD_TURKEL: // Roe Turkel Pre-Conditioner
             Compute_Flux_Roe_Precondition_Turkel(node_L, node_R, areavec, Flux_Roe_Conv, Flux_Roe_Diss, AddTime);
             break;
         default:
@@ -3476,20 +3272,20 @@ void Compute_Residual_Roe(int AddTime) {
         switch (PrecondMethod) {
             case PRECOND_METHOD_NONE: // Roe
                 break;
-            case PRECOND_METHOD_ROE_LMFIX: // LMRoe
+            case PRECOND_METHOD_LMFIX: // LMRoe
                 break;
-            case PRECOND_METHOD_ROE_THORNBER: // THORNBER
+            case PRECOND_METHOD_THORNBER: // THORNBER
                 break;
-            case PRECOND_METHOD_ROE_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
+            case PRECOND_METHOD_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
                 Compute_Steady_Residual_Roe_Precondition_Turkel();
                 break;
-            case PRECOND_METHOD_ROE_ERIKSSON: // Roe Eriksson Pre-Conditioner
+            case PRECOND_METHOD_ERIKSSON: // Roe Eriksson Pre-Conditioner
                 Compute_Steady_Residual_Roe_Precondition_Turkel();
                 break;
-            case PRECOND_METHOD_ROE_MERKEL: // Roe Merkel Pre-Conditioner
+            case PRECOND_METHOD_MERKEL: // Roe Merkel Pre-Conditioner
                 Compute_Steady_Residual_Roe_Precondition_Merkel();
                 break;
-            case PRECOND_METHOD_ROE_TURKEL: // Roe Turkel Pre-Conditioner
+            case PRECOND_METHOD_TURKEL: // Roe Turkel Pre-Conditioner
                 Compute_Steady_Residual_Roe_Precondition_Turkel();
                 break;
             default:

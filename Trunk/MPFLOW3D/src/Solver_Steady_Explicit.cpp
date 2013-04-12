@@ -80,7 +80,7 @@ int Solver_Steady_Explicit_Euler(void) {
         }
         
         // Compute Far Field Conditions with Mach Ramping
-        ComputeFarFieldCondition(iter);
+        Material_Set_InfinityCondition(iter);
         
         // Check if First Order Iterations are Required
         SolverOrder = SaveOrder;
@@ -290,7 +290,7 @@ int Solver_Steady_Explicit_RK4(void) {
         }
         
         // Compute Far Field Conditions with Mach Ramping
-        ComputeFarFieldCondition(iter);
+        Material_Set_InfinityCondition(iter);
         
         // Check if First Order Iterations are Required
         SolverOrder = SaveOrder;
@@ -695,7 +695,7 @@ int Solver_Steady_Explicit_RK5(void) {
         }
         
         // Compute Far Field Conditions with Mach Ramping
-        ComputeFarFieldCondition(iter);
+        Material_Set_InfinityCondition(iter);
         
         // Check if First Order Iterations are Required
         SolverOrder = SaveOrder;

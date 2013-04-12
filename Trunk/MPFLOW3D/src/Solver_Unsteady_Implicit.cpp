@@ -153,7 +153,7 @@ int Solver_Unsteady_Implicit(void) {
             }
 
             // Compute Far Field Conditions with Mach Ramping
-            ComputeFarFieldCondition(iter);
+            Material_Set_InfinityCondition(iter);
 
             // Check if First Order Iterations are Required
             SolverOrder = SaveOrder;

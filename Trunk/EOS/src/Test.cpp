@@ -30,7 +30,7 @@ const int ncmax = 20; // Note: ncmax is the max number of components
 const int numparams = 72;
 const int maxcoefs = 50;
 
-int main(int argc, char* argv[]) {
+int test1(int argc, char* argv[]) {
     // Now use the functions.
 
     // Refprop variables that need to be defined

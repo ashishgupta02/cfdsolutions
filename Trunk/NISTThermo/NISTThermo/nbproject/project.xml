@@ -19,6 +19,14 @@
                     <name>Release</name>
                     <type>2</type>
                 </confElem>
+                <confElem>
+                    <name>Debug_GUPC_x86_64</name>
+                    <type>2</type>
+                </confElem>
+                <confElem>
+                    <name>Release_GUPC_x86_64</name>
+                    <type>2</type>
+                </confElem>
             </confList>
         </data>
     </configuration>

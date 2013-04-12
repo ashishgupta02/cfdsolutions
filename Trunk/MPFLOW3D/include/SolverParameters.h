@@ -134,27 +134,21 @@ static const map<string, FLUX_SCHEME> FluxSchemeMap = CCreateMap<string, FLUX_SC
  */
 enum PRECOND_METHOD {
     PRECOND_METHOD_NONE = -1, /*!< \brief Solver Preconditioning None. */
-    PRECOND_METHOD_ROE_LMFIX = 0, /*!< \brief Solver Preconditioning Roe LMFix */
-    PRECOND_METHOD_ROE_THORNBER = 1, /*!< \brief Solver Preconditioning Roe THORNBER */ 
-    PRECOND_METHOD_ROE_WS = 2, /*!< \brief Solver Preconditioning Roe Weiss-Smith */
-    PRECOND_METHOD_ROE_CV = 3, /*!< \brief Solver Preconditioning Roe Cecile-Voizat */
-    PRECOND_METHOD_ROE_BTW = 4, /*!< \brief Solver Preconditioning Roe Briley Taylor Whitfield */
-    PRECOND_METHOD_ROE_ERIKSSON = 5, /*!< \brief Solver Preconditioning Roe Eriksson */
-    PRECOND_METHOD_ROE_MERKEL = 6, /*!< \brief Solver Preconditioning Roe Merkel */
-    PRECOND_METHOD_ROE_TURKEL = 7, /*!< \brief Solver Preconditioning Roe Turkel*/
-    PRECOND_METHOD_HLLC_LMFIX = 8 /*!< \brief Solver Preconditioning HLLC LMFix. */ 
+    PRECOND_METHOD_LMFIX = 0, /*!< \brief Solver Preconditioning Roe LMFix */
+    PRECOND_METHOD_THORNBER = 1, /*!< \brief Solver Preconditioning Roe THORNBER */ 
+    PRECOND_METHOD_BTW = 2, /*!< \brief Solver Preconditioning Roe Briley Taylor Whitfield */
+    PRECOND_METHOD_ERIKSSON = 3, /*!< \brief Solver Preconditioning Roe Eriksson */
+    PRECOND_METHOD_MERKEL = 4, /*!< \brief Solver Preconditioning Roe Merkel */
+    PRECOND_METHOD_TURKEL = 5 /*!< \brief Solver Preconditioning Roe Turkel*/
 };
 static const map<string, PRECOND_METHOD> PrecondMethodMap = CCreateMap<string, PRECOND_METHOD>
 ("PRECOND_METHOD_NONE", PRECOND_METHOD_NONE)
-("PRECOND_METHOD_ROE_LMFIX", PRECOND_METHOD_ROE_LMFIX)
-("PRECOND_METHOD_ROE_THORNBER", PRECOND_METHOD_ROE_THORNBER)
-("PRECOND_METHOD_ROE_WS", PRECOND_METHOD_ROE_WS)
-("PRECOND_METHOD_ROE_CV", PRECOND_METHOD_ROE_CV)
-("PRECOND_METHOD_ROE_BTW", PRECOND_METHOD_ROE_BTW)
-("PRECOND_METHOD_ROE_ERIKSSON", PRECOND_METHOD_ROE_ERIKSSON)
-("PRECOND_METHOD_ROE_MERKEL", PRECOND_METHOD_ROE_MERKEL)
-("PRECOND_METHOD_ROE_TURKEL", PRECOND_METHOD_ROE_TURKEL)
-("PRECOND_METHOD_HLLC_LMFIX", PRECOND_METHOD_HLLC_LMFIX);
+("PRECOND_METHOD_LMFIX", PRECOND_METHOD_LMFIX)
+("PRECOND_METHOD_THORNBER", PRECOND_METHOD_THORNBER)
+("PRECOND_METHOD_BTW", PRECOND_METHOD_BTW)
+("PRECOND_METHOD_ERIKSSON", PRECOND_METHOD_ERIKSSON)
+("PRECOND_METHOD_MERKEL", PRECOND_METHOD_MERKEL)
+("PRECOND_METHOD_TURKEL", PRECOND_METHOD_TURKEL);
 
 /*!
  * \brief Precondition Type
@@ -285,19 +279,19 @@ static const map<string, JACOBIAN_METHOD> JacobianMethodMap = CCreateMap<string,
  */
 enum VARIABLE_TYPE {
     VARIABLE_NONE = -1, /*!< \brief Variable Type None. */
-    VARIABLE_CONSERVATIVE = 0, /*!< \brief Variable Type Conservative. */
-    VARIABLE_PRIMITIVE_RUP = 1, /*!< \brief Variable Type Density Vecocity Pressure. */
-    VARIABLE_PRIMITIVE_PUT = 2, /*!< \brief Variable Type Presure Velocity Temperature. */
-    VARIABLE_PRIMITIVE_PUS = 3,  /*!< \brief Variable Type Pressure Velocity Entropy. */
-    VARIABLE_PRIMITIVE_RUT = 4 /*!< \brief Variable Type Density Velocity Temperature. */
+    VARIABLE_CON = 0, /*!< \brief Variable Type Conservative. */
+    VARIABLE_RUP = 1, /*!< \brief Variable Type Density Vecocity Pressure. */
+    VARIABLE_PUT = 2, /*!< \brief Variable Type Presure Velocity Temperature. */
+    VARIABLE_PUS = 3,  /*!< \brief Variable Type Pressure Velocity Entropy. */
+    VARIABLE_RUT = 4 /*!< \brief Variable Type Density Velocity Temperature. */
 };
 static const map<string, VARIABLE_TYPE> VariableTypeMap = CCreateMap<string, VARIABLE_TYPE>
 ("VARIABLE_NONE", VARIABLE_NONE)
-("VARIABLE_CONSERVATIVE", VARIABLE_CONSERVATIVE)
-("VARIABLE_PRIMITIVE_RUP", VARIABLE_PRIMITIVE_RUP)
-("VARIABLE_PRIMITIVE_PUT", VARIABLE_PRIMITIVE_PUT)
-("VARIABLE_PRIMITIVE_PUS", VARIABLE_PRIMITIVE_PUS)
-("VARIABLE_PRIMITIVE_RUT", VARIABLE_PRIMITIVE_RUT);
+("VARIABLE_CON", VARIABLE_CON)
+("VARIABLE_RUP", VARIABLE_RUP)
+("VARIABLE_PUT", VARIABLE_PUT)
+("VARIABLE_PUS", VARIABLE_PUS)
+("VARIABLE_RUT", VARIABLE_RUT);
 
 /*!
  * \brief Solver Order
@@ -357,27 +351,15 @@ static const map<string, LIMITER_ORDER> LimiterOrderMap = CCreateMap<string, LIM
  * \brief Material Type
  */
 enum MATERIAL_TYPE {
-    MATERIAL_TYPE_NONE = -1, /*!< \brief Material Type None. */
-    MATERIAL_TYPE_IDEAL_GAS = 0 /*!< \brief Material Type Ideal Gas. */
+    MATERIAL_TYPE_NONE = -1,     /*!< \brief Material Type None. */
+    MATERIAL_TYPE_IDEALGAS = 0,  /*!< \brief Material Type Ideal Gas. */
+    MATERIAL_TYPE_NIST = 1       /*!< \brief Material Type NIST. */
 };
 static const map<string, MATERIAL_TYPE> MaterialTypeMap = CCreateMap<string, MATERIAL_TYPE>
 ("MATERIAL_TYPE_NONE", MATERIAL_TYPE_NONE)
-("MATERIAL_TYPE_IDEAL_GAS", MATERIAL_TYPE_IDEAL_GAS);
+("MATERIAL_TYPE_IDEALGAS", MATERIAL_TYPE_IDEALGAS)
+("MATERIAL_TYPE_NIST", MATERIAL_TYPE_NIST);
 
-/*!
- * \brief Non Dimensionalization Method
- */
-enum NONDIMENSIONAL_METHOD {
-    NONDIMENSIONAL_METHOD_NONE = -1, /*!< \brief Non Dimensional Method None. */
-    NONDIMENSIONAL_METHOD_GENERIC = 0, /*!< \brief Non Dimensional Method Generic. */
-    NONDIMENSIONAL_METHOD_BTW = 1, /*!< \brief Non Dimensional Method Briley Taylor Whitfield. */
-    NONDIMENSIONAL_METHOD_LMROE = 2 /*!< \brief Non Dimensional Method LMRoe. */
-};
-static const map<string, NONDIMENSIONAL_METHOD> NonDimensionalMethodMap = CCreateMap<string, NONDIMENSIONAL_METHOD>
-("NONDIMENSIONAL_METHOD_NONE", NONDIMENSIONAL_METHOD_NONE)
-("NONDIMENSIONAL_METHOD_GENERIC", NONDIMENSIONAL_METHOD_GENERIC)
-("NONDIMENSIONAL_METHOD_BTW", NONDIMENSIONAL_METHOD_BTW)
-("NONDIMENSIONAL_METHOD_LMROE", NONDIMENSIONAL_METHOD_LMROE);
 
 // No of Equations
 #define NEQUATIONS                              5
@@ -451,11 +433,6 @@ extern int    CFL_Ramp;
 extern double CFL_MAX;
 extern double CFL_MIN;
 extern double CFL;
-
-// Mach Ramping
-extern int    Mach_Ramp;
-extern double Mach_MAX;
-extern double Mach_MIN;
 
 // Zero Pressure Gradient No of Iterations
 extern int    ZPGIteration;

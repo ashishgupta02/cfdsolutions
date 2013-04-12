@@ -311,7 +311,7 @@ void VTK_Writer(const char* filename, int verbose) {
     /*****PRINT OUT VARIABLES**************/
     fprintf(fp, "POINT_DATA %d\n", nNode);
     // Conservative Variable Formulation
-    if (VariableType == VARIABLE_CONSERVATIVE) {
+    if (VariableType == VARIABLE_CON) {
 	// Scalar Data Fields
         fprintf(fp, "SCALARS Density double 1\n");
         fprintf(fp, "LOOKUP_TABLE default\n");
@@ -341,7 +341,7 @@ void VTK_Writer(const char* filename, int verbose) {
             Q[2] = Q3[i];
             Q[3] = Q4[i];
             Q[4] = Q5[i];
-            var  = Get_Pressure(Q) + Gauge_Pressure;
+            var  = Material_Get_Pressure(Q) + Gauge_Pressure;
             fprintf(fp, "%22.15e\n", var);
         }
         
@@ -353,7 +353,7 @@ void VTK_Writer(const char* filename, int verbose) {
             Q[2] = Q3[i];
             Q[3] = Q4[i];
             Q[4] = Q5[i];
-            var  = Get_Temperature(Q);
+            var  = Material_Get_Temperature(Q);
             fprintf(fp, "%22.15e\n", var);
         }
 
@@ -365,7 +365,7 @@ void VTK_Writer(const char* filename, int verbose) {
             Q[2] = Q3[i];
             Q[3] = Q4[i];
             Q[4] = Q5[i];
-            var  = Get_Mach(Q);
+            var  = Material_Get_Mach(Q);
             fprintf(fp, "%22.15e\n", var);
         }
         
@@ -383,12 +383,19 @@ void VTK_Writer(const char* filename, int verbose) {
     }
     
     // Primitive Variable Formulation Pressure Velocity Temperature
-    if (VariableType == VARIABLE_PRIMITIVE_PUT) {
+    if (VariableType == VARIABLE_PUT) {
         // Scalar Data Fields
         fprintf(fp, "SCALARS Density double 1\n");
         fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++)
-            fprintf(fp, "%22.15e\n", Get_Rho(Q1[i], Q5[i]));
+        for (i = 0; i < nNode; i++) {
+            Q[0] = Q1[i];
+            Q[1] = Q2[i];
+            Q[2] = Q3[i];
+            Q[3] = Q4[i];
+            Q[4] = Q5[i];
+            var  = Material_Get_Density(Q);
+            fprintf(fp, "%22.15e\n", var);
+        }
 
         fprintf(fp, "SCALARS X_Velocity double 1\n");
         fprintf(fp, "LOOKUP_TABLE default\n");
@@ -423,7 +430,7 @@ void VTK_Writer(const char* filename, int verbose) {
             Q[2] = Q3[i];
             Q[3] = Q4[i];
             Q[4] = Q5[i];
-            var  = Get_Mach(Q);
+            var  = Material_Get_Mach(Q);
             fprintf(fp, "%22.15e\n", var);
         }
         
@@ -441,7 +448,7 @@ void VTK_Writer(const char* filename, int verbose) {
     }
     
     // Primitive Variable Formulation Density Velocity Pressure
-    if (VariableType == VARIABLE_PRIMITIVE_RUP) {
+    if (VariableType == VARIABLE_RUP) {
         // Scalar Data Fields
         fprintf(fp, "SCALARS Density double 1\n");
         fprintf(fp, "LOOKUP_TABLE default\n");
@@ -470,8 +477,15 @@ void VTK_Writer(const char* filename, int verbose) {
         
         fprintf(fp, "SCALARS Temperature double 1\n");
         fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++)
-            fprintf(fp, "%22.15e\n", (Q5[i] + Gauge_Pressure)/(NonDim_R*Q1[i]));
+        for (i = 0; i < nNode; i++) {
+            Q[0] = Q1[i];
+            Q[1] = Q2[i];
+            Q[2] = Q3[i];
+            Q[3] = Q4[i];
+            Q[4] = Q5[i];
+            var  = Material_Get_Temperature(Q);
+            fprintf(fp, "%22.15e\n", var);
+        }
 
         fprintf(fp, "SCALARS Mach double 1\n");
         fprintf(fp, "LOOKUP_TABLE default\n");
@@ -481,7 +495,7 @@ void VTK_Writer(const char* filename, int verbose) {
             Q[2] = Q3[i];
             Q[3] = Q4[i];
             Q[4] = Q5[i];
-            var  = Get_Mach(Q);
+            var  = Material_Get_Mach(Q);
             fprintf(fp, "%22.15e\n", var);
         }
 
@@ -500,7 +514,7 @@ void VTK_Writer(const char* filename, int verbose) {
     }
     
     // Primitive Variable Formulation Density Velocity Pressure
-    if (VariableType == VARIABLE_PRIMITIVE_RUT) {
+    if (VariableType == VARIABLE_RUT) {
         // Scalar Data Fields
         fprintf(fp, "SCALARS Density double 1\n");
         fprintf(fp, "LOOKUP_TABLE default\n");
@@ -524,8 +538,15 @@ void VTK_Writer(const char* filename, int verbose) {
 
         fprintf(fp, "SCALARS Pressure double 1\n");
         fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++)
-            fprintf(fp, "%22.15e\n", Get_Pressure(Q1[i], Q5[i]) + Gauge_Pressure);
+        for (i = 0; i < nNode; i++) {
+            Q[0] = Q1[i];
+            Q[1] = Q2[i];
+            Q[2] = Q3[i];
+            Q[3] = Q4[i];
+            Q[4] = Q5[i];
+            var  = Material_Get_Pressure(Q) + Gauge_Pressure;
+            fprintf(fp, "%22.15e\n", var);
+        }
         
         fprintf(fp, "SCALARS Temperature double 1\n");
         fprintf(fp, "LOOKUP_TABLE default\n");
@@ -540,7 +561,7 @@ void VTK_Writer(const char* filename, int verbose) {
             Q[2] = Q3[i];
             Q[3] = Q4[i];
             Q[4] = Q5[i];
-            var  = Get_Mach(Q);
+            var  = Material_Get_Mach(Q);
             fprintf(fp, "%22.15e\n", var);
         }
         

@@ -85,11 +85,6 @@ double CFL_MAX;
 double CFL_MIN;
 double CFL;
 
-// Mach Ramping
-int    Mach_Ramp;
-double Mach_MAX;
-double Mach_MIN;
-
 // Zero Pressure Gradient No of Iterations
 int    ZPGIteration;
 
@@ -160,9 +155,6 @@ void Solver_Parameters_Init(void) {
     RestartCycle                = 0;
     str_blank(RestartInputFilename);
     str_blank(RestartOutputFilename);
-
-    // Reference and Material Properties
-    Material_Init();
     
     // CFL Conditions
     CFL_Ramp                    = 0;
@@ -170,13 +162,11 @@ void Solver_Parameters_Init(void) {
     CFL_MIN                     = 0.0;
     CFL                         = 0.0;
 
-    // Mach Ramping
-    Mach_Ramp                   = 0;
-    Mach_MAX                    = 0.0;
-    Mach_MIN                    = 0.0;
-
     // Zero Pressure Gradient No of Iterations
     ZPGIteration                = 0;
+    
+    // Material Properties
+    Material_Init();
 }
 
 //------------------------------------------------------------------------------
@@ -390,7 +380,7 @@ void Solver_Parameters_Read(const char *filename) {
             StringToUpperCase(option_name);
             GetOptionNameValue(option_name, VariableType, VariableTypeMap);
             // Check the input
-            if (VariableType == VARIABLE_PRIMITIVE_PUS || VariableType == VARIABLE_NONE)
+            if (VariableType == VARIABLE_PUS || VariableType == VARIABLE_NONE)
                 error("Solver_Parameters_Read: VARIABLE_TYPE=%s is invalid", option_name.c_str());
         }
         
@@ -444,6 +434,7 @@ void Solver_Parameters_Read(const char *filename) {
             Relaxation = atof(option_name.c_str());
         }
         
+        //-------------------Residual Smoother Properties----------------------------
         // Residual Smoother Method
         position = text_line.find("RESIDUAL_SMOOTH_METHOD=", 0);
         if ((position != string::npos) && (position == 0)) {
@@ -487,6 +478,7 @@ void Solver_Parameters_Read(const char *filename) {
             ResidualSmoothRelaxation = atof(option_name.c_str());
         }
         
+        //-------------------Flux Limiter Properties----------------------------
         // Get the Flux Limiter Method
         position = text_line.find("LIMITER_METHOD=", 0);
         if ((position != string::npos) && (position == 0)) {
@@ -538,39 +530,25 @@ void Solver_Parameters_Read(const char *filename) {
             Venkat_KThreshold = atof(option_name.c_str());
         }
         
-        // Get the Non Dimensionalization Method for Computation
-        position = text_line.find("NONDIMENSIONAL_METHOD=", 0);
+        //-------------------Material Properties--------------------------------
+        // Read Material Type
+        position = text_line.find("MATERIAL_TYPE=", 0);
         if ((position != string::npos) && (position == 0)) {
-            text_line.erase(0, 22);
+            text_line.erase(0, 14);
             option_name.assign(text_line);
             StringToUpperCase(option_name);
-            GetOptionNameValue(option_name, NonDimensionalMethod, NonDimensionalMethodMap);
+            GetOptionNameValue(option_name, MaterialType, MaterialTypeMap);
         }
         
-        // Read Gamma
-        position = text_line.find("GAMMA=", 0);
+        // Get the Material Name
+        position = text_line.find("MATERIAL_NAME=", 0);
         if ((position != string::npos) && (position == 0)) {
-            text_line.erase(0, 6);
-            option_name.assign(text_line);
-            Gamma = atof(option_name.c_str());
+            text_line.erase(0, 14);
+            strlength = text_line.copy(MaterialName, text_line.size(), 0);
+            MaterialName[strlength] = '\0';
         }
         
-        // Read Reference Density
-        position = text_line.find("REF_DENSITY=", 0);
-        if ((position != string::npos) && (position == 0)) {
-            text_line.erase(0, 12);
-            option_name.assign(text_line);
-            Ref_Rho = atof(option_name.c_str());
-        }
-        
-        // Read Reference Mach
-        position = text_line.find("REF_MACH=", 0);
-        if ((position != string::npos) && (position == 0)) {
-            text_line.erase(0, 9);
-            option_name.assign(text_line);
-            Ref_Mach = atof(option_name.c_str());
-        }
-        
+        //-------------------Reference Values-----------------------------------
         // Read Reference Pressure
         position = text_line.find("REF_PRESSURE=", 0);
         if ((position != string::npos) && (position == 0)) {
@@ -579,20 +557,102 @@ void Solver_Parameters_Read(const char *filename) {
             Ref_Pressure = atof(option_name.c_str());
         }
         
-        // Read Reference Alpha
-        position = text_line.find("REF_ALPHA=", 0);
+        // Read Reference Temperature
+        position = text_line.find("REF_TEMPERATURE=", 0);
         if ((position != string::npos) && (position == 0)) {
-            text_line.erase(0, 10);
+            text_line.erase(0, 16);
             option_name.assign(text_line);
-            Ref_Alpha = atof(option_name.c_str());
+            Ref_Temperature = atof(option_name.c_str());
         }
         
-        // Read Reference Beta
-        position = text_line.find("REF_BETA=", 0);
+        // Read Reference Temperature
+        position = text_line.find("REF_LENGTH=", 0);
+        if ((position != string::npos) && (position == 0)) {
+            text_line.erase(0, 11);
+            option_name.assign(text_line);
+            Ref_Length = atof(option_name.c_str());
+        }
+        
+        //-------------------Far Field (Infinity) Values------------------------
+        // Read Far Field Flow Pressure
+        position = text_line.find("INF_PRESSURE=", 0);
+        if ((position != string::npos) && (position == 0)) {
+            text_line.erase(0, 13);
+            option_name.assign(text_line);
+            Inf_Pressure = atof(option_name.c_str());
+        }
+        
+        // Read Far Field Flow Temperature
+        position = text_line.find("INF_TEMPERATURE=", 0);
+        if ((position != string::npos) && (position == 0)) {
+            text_line.erase(0, 16);
+            option_name.assign(text_line);
+            Inf_Temperature = atof(option_name.c_str());
+        }
+        
+        // Read Far Field Flow Mach Number
+        position = text_line.find("INF_MACH=", 0);
         if ((position != string::npos) && (position == 0)) {
             text_line.erase(0, 9);
             option_name.assign(text_line);
-            Ref_Beta = atof(option_name.c_str());
+            Inf_Mach = atof(option_name.c_str());
+        }
+        
+        // Read Far Field Mach Ramp
+        position = text_line.find("INF_MACH_RAMP=", 0);
+        if ((position != string::npos) && (position == 0)) {
+            text_line.erase(0, 14);
+            option_name.assign(text_line);
+            Inf_Mach_Ramp = atoi(option_name.c_str());
+        }
+        
+        // Read Far Field Mach Minimum
+        position = text_line.find("INF_MACH_MIN=", 0);
+        if ((position != string::npos) && (position == 0)) {
+            text_line.erase(0, 13);
+            option_name.assign(text_line);
+            Inf_Mach_MIN = atof(option_name.c_str());
+        }
+        
+        // Read Far Field Mach Maximum
+        position = text_line.find("INF_MACH_MAX=", 0);
+        if ((position != string::npos) && (position == 0)) {
+            text_line.erase(0, 13);
+            option_name.assign(text_line);
+            Inf_Mach_MAX = atof(option_name.c_str());
+        }
+        
+        // Read Far Field Flow Angle Alpha
+        position = text_line.find("INF_ALPHA=", 0);
+        if ((position != string::npos) && (position == 0)) {
+            text_line.erase(0, 10);
+            option_name.assign(text_line);
+            Inf_Alpha = atof(option_name.c_str());
+        }
+        
+        // Read Far Field Flow Angle Beta
+        position = text_line.find("INF_BETA=", 0);
+        if ((position != string::npos) && (position == 0)) {
+            text_line.erase(0, 9);
+            option_name.assign(text_line);
+            Inf_Beta = atof(option_name.c_str());
+        }
+        
+        //-------------------Pressure Conditions------------------------
+        // Read Outflow Flow Pressure
+        position = text_line.find("OUTFLOW_PRESSURE=", 0);
+        if ((position != string::npos) && (position == 0)) {
+            text_line.erase(0, 17);
+            option_name.assign(text_line);
+            Outflow_Pressure = atof(option_name.c_str());
+        }
+        
+        // Read Gauge Pressure
+        position = text_line.find("GUAGE_PRESSURE=", 0);
+        if ((position != string::npos) && (position == 0)) {
+            text_line.erase(0, 15);
+            option_name.assign(text_line);
+            Gauge_Pressure = atof(option_name.c_str());
         }
         
         // Read CFL Ramp
@@ -617,30 +677,6 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 8);
             option_name.assign(text_line);
             CFL_MAX = atof(option_name.c_str());
-        }
-        
-        // Read Mach Ramp
-        position = text_line.find("MACH_RAMP=", 0);
-        if ((position != string::npos) && (position == 0)) {
-            text_line.erase(0, 10);
-            option_name.assign(text_line);
-            Mach_Ramp = atoi(option_name.c_str());
-        }
-        
-        // Read Mach Minimum
-        position = text_line.find("MACH_MIN=", 0);
-        if ((position != string::npos) && (position == 0)) {
-            text_line.erase(0, 9);
-            option_name.assign(text_line);
-            Mach_MIN = atof(option_name.c_str());
-        }
-        
-        // Read Mach Maximum
-        position = text_line.find("MACH_MAX=", 0);
-        if ((position != string::npos) && (position == 0)) {
-            text_line.erase(0, 9);
-            option_name.assign(text_line);
-            Mach_MAX = atof(option_name.c_str());
         }
         
         // Read Restart Solution Input Boolean
@@ -674,54 +710,28 @@ void Solver_Parameters_Read(const char *filename) {
     param_file.close();
     
     // Set the Remaining Quantities
-    CFL             = CFL_MIN;
+    CFL = CFL_MIN;
+    PrecondVariableType = VARIABLE_RUP;
     
-    // Reference and Material Properties
-    if (PrecondMethod != PRECOND_METHOD_NONE) {
-        switch (PrecondMethod) {
-            case PRECOND_METHOD_ROE_LMFIX:
-                PrecondVariableType = VARIABLE_PRIMITIVE_RUP;
-                break;
-            case PRECOND_METHOD_ROE_THORNBER:
-                PrecondVariableType = VARIABLE_PRIMITIVE_RUP;
-                break;
-            case PRECOND_METHOD_ROE_BTW:
-                PrecondVariableType = VARIABLE_PRIMITIVE_RUP;
-                break;
-            case PRECOND_METHOD_ROE_ERIKSSON:
-                PrecondVariableType = VARIABLE_PRIMITIVE_RUP;
-                break;
-            case PRECOND_METHOD_ROE_TURKEL:
-                PrecondVariableType = VARIABLE_PRIMITIVE_RUP;
-                break;
-            default:
-                PrecondVariableType = VARIABLE_CONSERVATIVE;
-                break;
-        }
-    } else {
-        PrecondVariableType = VARIABLE_PRIMITIVE_RUP;
+    // Avoid Invalid Infinity Mach Ramping Conditions
+    if (Inf_Mach_MAX != Inf_Mach)
+        Inf_Mach_MAX = Inf_Mach;
+    if (Inf_Mach_Ramp <= 1) {
+        Inf_Mach_MIN  = Inf_Mach;
+        Inf_Mach_Ramp = 1;
+    } else if ((Inf_Mach_MIN <= 0.0) || (Inf_Mach_MIN >= Inf_Mach_MAX)) {
+        Inf_Mach_MIN = Inf_Mach_MAX/((double)(Inf_Mach_Ramp - 1));
     }
-    
-    // Avoid Invalid Mach Ramping Conditions
-    if (Mach_MAX != Ref_Mach)
-        Mach_MAX = Ref_Mach;
-    if (Mach_Ramp <= 1) {
-        Mach_MIN  = Ref_Mach;
-        Mach_Ramp = 1;
-    } else if ((Mach_MIN <= 0.0) || (Mach_MIN >= Mach_MAX)) {
-        Mach_MIN = Mach_MAX/((double)(Mach_Ramp - 1));
-    }
-    
-    // Set the Reference, Non-Dimensional and Material Properties
-    Material_Set_Properties();
 
     int count = 0;
     printf("=============================================================================\n");
-    info("%2d) Mesh Input Filename ------------------: %s", ++count, MeshInputFilename);
-    info("%2d) Boundary Condition Input Filename ----: %s", ++count, BCInputFilename);
-    info("%2d) Solution Output Filename -------------: %s", ++count, SolutionOutputFilename);
-    info("%2d) Restart Input Filename ---------------: %s", ++count, RestartInputFilename);
-    info("%2d) Restart Output Filename --------------: %s", ++count, RestartOutputFilename);
+    info("%2d) Mesh Input Filename ------------------: %s",  ++count, MeshInputFilename);
+    info("%2d) Boundary Condition Input Filename ----: %s",  ++count, BCInputFilename);
+    info("%2d) Solution Output Filename -------------: %s",  ++count, SolutionOutputFilename);
+    info("%2d) Restart Input Filename ---------------: %s",  ++count, RestartInputFilename);
+    info("%2d) Restart Output Filename --------------: %s",  ++count, RestartOutputFilename);
+    printf("-----------------------------------------------------------------------------\n");
+    printf("---INPUT: Solver Properties--------------------------------------------------\n");
     GetOptionValueName(option_name, MeshReorder, SolverBooleanMap);
     info("%2d) Mesh Reorder -------------------------: %s",  ++count, option_name.c_str());
     GetOptionValueName(option_name, SolverMethod, SolverMethodMap);
@@ -757,6 +767,8 @@ void Solver_Parameters_Read(const char *filename) {
     info("%2d) No of First Order Iterations ---------: %d",  ++count, FirstOrderNIteration);
     info("%2d) Physical Delta Time ------------------: %lf", ++count, PhysicalDeltaTime);
     info("%2d) Relaxation Factor --------------------: %lf", ++count, Relaxation);
+    printf("-----------------------------------------------------------------------------\n");
+    printf("---INPUT: Residual Smoother Properties---------------------------------------\n");
     GetOptionValueName(option_name, ResidualSmoothMethod, ResidualSmoothMethodMap);
     info("%2d) Residual Smoother Method -------------: %s",  ++count, option_name.c_str());
     GetOptionValueName(option_name, ResidualSmoothType, ResidualSmoothTypeMap);
@@ -765,6 +777,8 @@ void Solver_Parameters_Read(const char *filename) {
     info("%2d) Residual Smoother Scheme -------------: %s",  ++count, option_name.c_str());
     info("%2d) No of Residual Smoother Iterations ---: %d",  ++count, ResidualSmoothNIteration);
     info("%2d) Residual Smoother Relaxation Factor --: %lf", ++count, ResidualSmoothRelaxation);
+    printf("-----------------------------------------------------------------------------\n");
+    printf("---INPUT: Flux Limiter Properties--------------------------------------------\n");
     GetOptionValueName(option_name, LimiterMethod, LimiterMethodMap);
     info("%2d) Limiter Method  ----------------------: %s",  ++count, option_name.c_str());
     GetOptionValueName(option_name, LimiterSmooth, SolverBooleanMap);
@@ -773,24 +787,44 @@ void Solver_Parameters_Read(const char *filename) {
     info("%2d) Limiter Order ------------------------: %s",  ++count, option_name.c_str());
     info("%2d) Limiter Start Solver Iteration -------: %d",  ++count, LimiterStartSolverIteration);
     info("%2d) Limiter End Solver Iteration ---------: %d",  ++count, LimiterEndSolverIteration);
-    GetOptionValueName(option_name, NonDimensionalMethod, NonDimensionalMethodMap);
-    info("%2d) Non Dimensional Method ---------------: %s",  ++count, option_name.c_str());
     info("%2d) Venkatakrishan Limiter Threshold -----: %lf", ++count, Venkat_KThreshold);
-    info("%2d) Gamma --------------------------------: %lf", ++count, Gamma);
-    info("%2d) Reference Density --------------------: %lf", ++count, Ref_Rho);
-    info("%2d) Reference Mach Number ----------------: %lf", ++count, Ref_Mach);
+    printf("-----------------------------------------------------------------------------\n");
+    printf("---INPUT: Material Type------------------------------------------------------\n");
+    GetOptionValueName(option_name, MaterialType, MaterialTypeMap);
+    info("%2d) Material Type ------------------------: %s",  ++count, option_name.c_str());
+    info("%2d) Material Name ------------------------: %s",  ++count, MaterialName);
+    printf("-----------------------------------------------------------------------------\n");
+    printf("---INPUT: Reference Conditions-----------------------------------------------\n");
     info("%2d) Reference Pressure -------------------: %lf", ++count, Ref_Pressure);
-    info("%2d) Reference Alpha ----------------------: %lf", ++count, Ref_Alpha);
-    info("%2d) Reference Beta -----------------------: %lf", ++count, Ref_Beta);
+    info("%2d) Reference Temperature ----------------: %lf", ++count, Ref_Temperature);
+    info("%2d) Reference Length ---------------------: %lf", ++count, Ref_Length);
+    printf("-----------------------------------------------------------------------------\n");
+    printf("---INPUT: Far Field (Infinity) Conditions------------------------------------\n");
+    info("%2d) Infinity Pressure --------------------: %lf", ++count, Inf_Pressure);
+    info("%2d) Infinity Temperature -----------------: %lf", ++count, Inf_Temperature);
+    info("%2d) Infinity Mach Number -----------------: %lf", ++count, Inf_Mach);
+    info("%2d) Infinity Mach Ramp -------------------: %d",  ++count, Inf_Mach_Ramp);
+    info("%2d) Infinity Mach_Min --------------------: %lf", ++count, Inf_Mach_MIN);
+    info("%2d) Infinity Mach_Max --------------------: %lf", ++count, Inf_Mach_MAX);
+    info("%2d) Infinity Flow Angle Alpha ------------: %lf", ++count, Inf_Alpha);
+    info("%2d) Infinity Flow Angle Beta -------------: %lf", ++count, Inf_Beta);
+    printf("-----------------------------------------------------------------------------\n");
+    printf("---INPUT: Pressure Conditions------------------------------------------------\n");
+    info("%2d) Outflow Pressure ---------------------: %lf", ++count, Outflow_Pressure);
+    info("%2d) Gauge Pressure -----------------------: %lf", ++count, Gauge_Pressure);
+    printf("-----------------------------------------------------------------------------\n");
+    printf("---INPUT: CFL Conditions-----------------------------------------------------\n");
     info("%2d) CFL Ramp -----------------------------: %d",  ++count, CFL_Ramp);
     info("%2d) CFL_Min ------------------------------: %lf", ++count, CFL_MIN);
     info("%2d) CFL_Max ------------------------------: %lf", ++count, CFL_MAX);
-    info("%2d) Mach Ramp ----------------------------: %d",  ++count, Mach_Ramp);
-    info("%2d) Mach_Min -----------------------------: %lf", ++count, Mach_MIN);
-    info("%2d) Mach_Max -----------------------------: %lf", ++count, Mach_MAX);
+    printf("-----------------------------------------------------------------------------\n");
+    printf("---INPUT: Restart Conditions-------------------------------------------------\n");
     info("%2d) Restart Input ------------------------: %d",  ++count, RestartInput);
     info("%2d) Restart Output -----------------------: %d",  ++count, RestartOutput);
     info("%2d) Restart Cycle ------------------------: %d",  ++count, RestartCycle);
+    
+    // Set the Material Properties
+    Material_Set_Properties();
 }
 
 //------------------------------------------------------------------------------

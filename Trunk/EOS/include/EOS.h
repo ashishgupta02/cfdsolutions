@@ -98,9 +98,15 @@ extern "C" {
     double EOS_Get_DInternalEnergyDDensity_CPressure(int ivDimIOType, int ivVariableType, double *dpVariableIn);
     double EOS_Get_DInternalEnergyDPressure_CTemperature(int ivDimIOType, int ivVariableType, double *dpVariableIn);
     double EOS_Get_DInternalEnergyDPressure_CDensity(int ivDimIOType, int ivVariableType, double *dpVariableIn);
-
+    
+    // Compute Additional Properties
+    void   EOS_Get_PT_Density(int ivDimIOType, double dvPressure, double dvTemperature, double *dpDensityOut);
+    double EOS_Get_DH_SpeedSound(int ivDimIOType, double dvDensity, double dvEnthalpy);
+    double EOS_Get_DH_Pressure(int ivDimIOType, double dvDensity, double dvEnthalpy);
+    double EOS_Get_DH_Temperature(int ivDimIOType, double dvDensity, double dvEnthalpy);
+    
     // Variable Transformations
-    void EOS_Get_Transformation_Matrix(int ivDimIOType, int ivVarTypeIn, double *dpPropertyIn, int ivVarTypeFrom, int ivVarTypeTo, double **Matrix);
+    void EOS_Get_Transformation_Matrix(int ivDimIOType, int ivVarTypeIn, double *dpVariableIn, int ivVarTypeFrom, int ivVarTypeTo, double **Matrix);
     
 #ifdef	__cplusplus
 }

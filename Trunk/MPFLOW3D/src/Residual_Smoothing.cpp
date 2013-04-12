@@ -213,7 +213,7 @@ void Residual_Smoothing_Explicit(void) {
                     Q[4] = Q5[inode];
 
                     // Compute Mach Number
-                    mach = Get_Mach(Q);
+                    mach = Material_Get_Mach(Q);
                     if ((mach > 0.01*Ref_Mach) && (mach > 1.0e-5))
                         continue;
                 }
@@ -398,7 +398,7 @@ void Residual_Smoothing_Explicit(void) {
                     Q[4] = Q5[inode];
 
                     // Compute Mach Number
-                    mach = Get_Mach(Q);
+                    mach = Material_Get_Mach(Q);
                     if ((mach > 0.01*Ref_Mach) && (mach > 1.0e-5))
                         continue;
                 }
@@ -510,7 +510,7 @@ void Residual_Smoothing_Implicit(void) {
                     Q[4] = Q5[inode];
 
                     // Compute Mach Number
-                    mach = Get_Mach(Q);
+                    mach = Material_Get_Mach(Q);
                     if ((mach > 0.01*Ref_Mach) && (mach > 1.0e-5))
                         continue;
                 }
@@ -642,7 +642,7 @@ void Residual_Smoothing_Implicit(void) {
                     Q[4] = Q5[inode];
 
                     // Compute Mach Number
-                    mach = Get_Mach(Q);
+                    mach = Material_Get_Mach(Q);
                     if ((mach > 0.01*Ref_Mach) && (mach > 1.0e-5))
                         continue;
                 }

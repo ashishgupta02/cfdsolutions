@@ -233,7 +233,7 @@
         </environment>
       </runprofile>
     </conf>
-    <conf name="Debug_GUPC_x88_64" type="1">
+    <conf name="Debug_GUPC_x86_64" type="1">
       <toolsSet>
         <developmentServer>localhost</developmentServer>
         <platform>2</platform>
