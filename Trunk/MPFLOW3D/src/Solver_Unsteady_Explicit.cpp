@@ -22,56 +22,24 @@
 
 //------------------------------------------------------------------------------
 //! Solver in Unsteady State Mode with Explicit Mode
-//! Dual Time: Euler(tau)-Euler(t) Time Integration
+//! Dual Time: Euler/RK(tau)-Euler/BDF(t) Time Integration
 //------------------------------------------------------------------------------
-int Solver_Unsteady_Explicit_Euler_Euler(void) {
+int Solver_Unsteady_Explicit_RungeKutta(void) {
     return EXIT_SUCCESS;
 }
 
 //------------------------------------------------------------------------------
 //! Solver in Unsteady State Mode with Explicit Mode
-//! Dual Time: Euler(tau)-BDF(t) Time Integration
+//! Dual Time: RK_MJ(tau)-Euler/BDF(t) Time Integration
 //------------------------------------------------------------------------------
-int Solver_Unsteady_Explicit_Euler_BDF(void) {
-    return EXIT_SUCCESS;
-}
-
-//------------------------------------------------------------------------------
-//! Solver in Unsteady State Mode with Explicit Mode
-//! Dual Time: RK4(tau)-Euler(t) Time Integration
-//------------------------------------------------------------------------------
-int Solver_Unsteady_Explicit_RK4_Euler(void) {
-    return EXIT_SUCCESS;
-}
-
-//------------------------------------------------------------------------------
-//! Solver in Unsteady State Mode with Explicit Mode
-//! Dual Time: RK4(tau)-BDF(t) Time Integration
-//------------------------------------------------------------------------------
-int Solver_Unsteady_Explicit_RK4_BDF(void) {
-    return EXIT_SUCCESS;
-}
-
-//------------------------------------------------------------------------------
-//! Solver in Unsteady State Mode with Explicit Mode
-//! Dual Time: RK5(tau)-Euler(t) Time Integration
-//------------------------------------------------------------------------------
-int Solver_Unsteady_Explicit_RK5_Euler(void) {
-    return EXIT_SUCCESS;
-}
-
-//------------------------------------------------------------------------------
-//! Solver in Unsteady State Mode with Explicit Mode
-//! Dual Time: RK5(tau)-BDF(t) Time Integration
-//------------------------------------------------------------------------------
-int Solver_Unsteady_Explicit_RK5_BDF(void) {
+int Solver_Unsteady_Explicit_RungeKutta_Martinelli_Jameson(void) {
     return EXIT_SUCCESS;
 }
 
 //------------------------------------------------------------------------------
 //! Solver in Explicit Unsteady Mode
 //------------------------------------------------------------------------------
-int Solver_Unsteady_Explicit(void) {
+int Solver_Unsteady_Explicit_Todo(void) {
     int AddTime     = FALSE;
     int CheckNAN    = 0;
     int SaveOrder   = 0;
@@ -181,11 +149,11 @@ int Solver_Unsteady_Explicit(void) {
             giter++;
             // Reset Residuals and DeltaT
             for (int i = 0; i < nNode; i++) {
-                Res1[i]      = 0.0;
-                Res2[i]      = 0.0;
-                Res3[i]      = 0.0;
-                Res4[i]      = 0.0;
-                Res5[i]      = 0.0;
+                Res1_Conv[i] = 0.0;
+                Res2_Conv[i] = 0.0;
+                Res3_Conv[i] = 0.0;
+                Res4_Conv[i] = 0.0;
+                Res5_Conv[i] = 0.0;
                 Res1_Diss[i] = 0.0;
                 Res2_Diss[i] = 0.0;
                 Res3_Diss[i] = 0.0;
@@ -247,11 +215,11 @@ int Solver_Unsteady_Explicit(void) {
             // Compute RMS
             RMS[0] = RMS[1] = RMS[2] = RMS[3] = RMS[4] = 0.0;
             for (int i = 0; i < nNode; i++) {
-                RMS[0] += Res1[i]*Res1[i];
-                RMS[1] += Res2[i]*Res2[i];
-                RMS[2] += Res3[i]*Res3[i];
-                RMS[3] += Res4[i]*Res4[i];
-                RMS[4] += Res5[i]*Res5[i];
+                RMS[0] += Res1_Conv[i]*Res1_Conv[i];
+                RMS[1] += Res2_Conv[i]*Res2_Conv[i];
+                RMS[2] += Res3_Conv[i]*Res3_Conv[i];
+                RMS[3] += Res4_Conv[i]*Res4_Conv[i];
+                RMS[4] += Res5_Conv[i]*Res5_Conv[i];
             }
             RMS_Res = RMS[0] + RMS[1] + RMS[2] + RMS[3] + RMS[4];
             RMS_Res = sqrt(RMS_Res/(5.0 * (double)nNode));
@@ -284,11 +252,11 @@ int Solver_Unsteady_Explicit(void) {
                         reta = 0.5*reta;
                     } else // Euler
                         zeta = 1.0 + reta;
-                    Q1[i] -= (eta * Res1[i] + reta*(alpha*Q1[i] - beta*Qn01[i] + theta*Qn11[i]))/zeta;
-                    Q2[i] -= (eta * Res2[i] + reta*(alpha*Q2[i] - beta*Qn02[i] + theta*Qn12[i]))/zeta;
-                    Q3[i] -= (eta * Res3[i] + reta*(alpha*Q3[i] - beta*Qn03[i] + theta*Qn13[i]))/zeta;
-                    Q4[i] -= (eta * Res4[i] + reta*(alpha*Q4[i] - beta*Qn04[i] + theta*Qn14[i]))/zeta;
-                    Q5[i] -= (eta * Res5[i] + reta*(alpha*Q5[i] - beta*Qn05[i] + theta*Qn15[i]))/zeta;
+                    Q1[i] -= (eta * Res1_Conv[i] + reta*(alpha*Q1[i] - beta*Qn01[i] + theta*Qn11[i]))/zeta;
+                    Q2[i] -= (eta * Res2_Conv[i] + reta*(alpha*Q2[i] - beta*Qn02[i] + theta*Qn12[i]))/zeta;
+                    Q3[i] -= (eta * Res3_Conv[i] + reta*(alpha*Q3[i] - beta*Qn03[i] + theta*Qn13[i]))/zeta;
+                    Q4[i] -= (eta * Res4_Conv[i] + reta*(alpha*Q4[i] - beta*Qn04[i] + theta*Qn14[i]))/zeta;
+                    Q5[i] -= (eta * Res5_Conv[i] + reta*(alpha*Q5[i] - beta*Qn05[i] + theta*Qn15[i]))/zeta;
                 }
             }
 
@@ -310,18 +278,18 @@ int Solver_Unsteady_Explicit(void) {
                     } else // Euler
                         zeta = 1.0 + reta;
                     // W1 = W0 - (phi1*dtau/zeta)*(RES0/vol + (0.5/dT)*(alpha*W0 - beta*Qn0 + theta*Qn1))
-                    Q1[i] = W01[i] - phi1*(eta*Res1[i] + reta*(alpha*W01[i] - beta*Qn01[i] + theta*Qn11[i]))/zeta;
-                    Q2[i] = W02[i] - phi1*(eta*Res2[i] + reta*(alpha*W02[i] - beta*Qn02[i] + theta*Qn12[i]))/zeta;
-                    Q3[i] = W03[i] - phi1*(eta*Res3[i] + reta*(alpha*W03[i] - beta*Qn03[i] + theta*Qn13[i]))/zeta;
-                    Q4[i] = W04[i] - phi1*(eta*Res4[i] + reta*(alpha*W04[i] - beta*Qn04[i] + theta*Qn14[i]))/zeta;
-                    Q5[i] = W05[i] - phi1*(eta*Res5[i] + reta*(alpha*W05[i] - beta*Qn05[i] + theta*Qn15[i]))/zeta;
+                    Q1[i] = W01[i] - phi1*(eta*Res1_Conv[i] + reta*(alpha*W01[i] - beta*Qn01[i] + theta*Qn11[i]))/zeta;
+                    Q2[i] = W02[i] - phi1*(eta*Res2_Conv[i] + reta*(alpha*W02[i] - beta*Qn02[i] + theta*Qn12[i]))/zeta;
+                    Q3[i] = W03[i] - phi1*(eta*Res3_Conv[i] + reta*(alpha*W03[i] - beta*Qn03[i] + theta*Qn13[i]))/zeta;
+                    Q4[i] = W04[i] - phi1*(eta*Res4_Conv[i] + reta*(alpha*W04[i] - beta*Qn04[i] + theta*Qn14[i]))/zeta;
+                    Q5[i] = W05[i] - phi1*(eta*Res5_Conv[i] + reta*(alpha*W05[i] - beta*Qn05[i] + theta*Qn15[i]))/zeta;
 
                     // Reset the Residual
-                    Res1[i]      = 0.0;
-                    Res2[i]      = 0.0;
-                    Res3[i]      = 0.0;
-                    Res4[i]      = 0.0;
-                    Res5[i]      = 0.0;
+                    Res1_Conv[i] = 0.0;
+                    Res2_Conv[i] = 0.0;
+                    Res3_Conv[i] = 0.0;
+                    Res4_Conv[i] = 0.0;
+                    Res5_Conv[i] = 0.0;
                     Res1_Diss[i] = 0.0;
                     Res2_Diss[i] = 0.0;
                     Res3_Diss[i] = 0.0;
@@ -354,18 +322,18 @@ int Solver_Unsteady_Explicit(void) {
                         reta = 0.5*reta;
                     } else // Euler
                         zeta = 1.0 + reta;
-                    Q1[i] = W01[i] - phi2*(eta*Res1[i] + reta*(alpha*Q1[i] - beta*Qn01[i] + theta*Qn11[i]))/zeta;
-                    Q2[i] = W02[i] - phi2*(eta*Res2[i] + reta*(alpha*Q2[i] - beta*Qn02[i] + theta*Qn12[i]))/zeta;
-                    Q3[i] = W03[i] - phi2*(eta*Res3[i] + reta*(alpha*Q3[i] - beta*Qn03[i] + theta*Qn13[i]))/zeta;
-                    Q4[i] = W04[i] - phi2*(eta*Res4[i] + reta*(alpha*Q4[i] - beta*Qn04[i] + theta*Qn14[i]))/zeta;
-                    Q5[i] = W05[i] - phi2*(eta*Res5[i] + reta*(alpha*Q5[i] - beta*Qn05[i] + theta*Qn15[i]))/zeta;
+                    Q1[i] = W01[i] - phi2*(eta*Res1_Conv[i] + reta*(alpha*Q1[i] - beta*Qn01[i] + theta*Qn11[i]))/zeta;
+                    Q2[i] = W02[i] - phi2*(eta*Res2_Conv[i] + reta*(alpha*Q2[i] - beta*Qn02[i] + theta*Qn12[i]))/zeta;
+                    Q3[i] = W03[i] - phi2*(eta*Res3_Conv[i] + reta*(alpha*Q3[i] - beta*Qn03[i] + theta*Qn13[i]))/zeta;
+                    Q4[i] = W04[i] - phi2*(eta*Res4_Conv[i] + reta*(alpha*Q4[i] - beta*Qn04[i] + theta*Qn14[i]))/zeta;
+                    Q5[i] = W05[i] - phi2*(eta*Res5_Conv[i] + reta*(alpha*Q5[i] - beta*Qn05[i] + theta*Qn15[i]))/zeta;
 
                     // Reset the Residual
-                    Res1[i]      = 0.0;
-                    Res2[i]      = 0.0;
-                    Res3[i]      = 0.0;
-                    Res4[i]      = 0.0;
-                    Res5[i]      = 0.0;
+                    Res1_Conv[i] = 0.0;
+                    Res2_Conv[i] = 0.0;
+                    Res3_Conv[i] = 0.0;
+                    Res4_Conv[i] = 0.0;
+                    Res5_Conv[i] = 0.0;
                     Res1_Diss[i] = 0.0;
                     Res2_Diss[i] = 0.0;
                     Res3_Diss[i] = 0.0;
@@ -398,18 +366,18 @@ int Solver_Unsteady_Explicit(void) {
                         reta = 0.5*reta;
                     } else // Euler
                         zeta = 1.0 + reta;
-                    Q1[i] = W01[i] - phi3*(eta*Res1[i] + reta*(alpha*Q1[i] - beta*Qn01[i] + theta*Qn11[i]))/zeta;
-                    Q2[i] = W02[i] - phi3*(eta*Res2[i] + reta*(alpha*Q2[i] - beta*Qn02[i] + theta*Qn12[i]))/zeta;
-                    Q3[i] = W03[i] - phi3*(eta*Res3[i] + reta*(alpha*Q3[i] - beta*Qn03[i] + theta*Qn13[i]))/zeta;
-                    Q4[i] = W04[i] - phi3*(eta*Res4[i] + reta*(alpha*Q4[i] - beta*Qn04[i] + theta*Qn14[i]))/zeta;
-                    Q5[i] = W05[i] - phi3*(eta*Res5[i] + reta*(alpha*Q5[i] - beta*Qn05[i] + theta*Qn15[i]))/zeta;
+                    Q1[i] = W01[i] - phi3*(eta*Res1_Conv[i] + reta*(alpha*Q1[i] - beta*Qn01[i] + theta*Qn11[i]))/zeta;
+                    Q2[i] = W02[i] - phi3*(eta*Res2_Conv[i] + reta*(alpha*Q2[i] - beta*Qn02[i] + theta*Qn12[i]))/zeta;
+                    Q3[i] = W03[i] - phi3*(eta*Res3_Conv[i] + reta*(alpha*Q3[i] - beta*Qn03[i] + theta*Qn13[i]))/zeta;
+                    Q4[i] = W04[i] - phi3*(eta*Res4_Conv[i] + reta*(alpha*Q4[i] - beta*Qn04[i] + theta*Qn14[i]))/zeta;
+                    Q5[i] = W05[i] - phi3*(eta*Res5_Conv[i] + reta*(alpha*Q5[i] - beta*Qn05[i] + theta*Qn15[i]))/zeta;
 
                     // Reset the Residual
-                    Res1[i]      = 0.0;
-                    Res2[i]      = 0.0;
-                    Res3[i]      = 0.0;
-                    Res4[i]      = 0.0;
-                    Res5[i]      = 0.0;
+                    Res1_Conv[i] = 0.0;
+                    Res2_Conv[i] = 0.0;
+                    Res3_Conv[i] = 0.0;
+                    Res4_Conv[i] = 0.0;
+                    Res5_Conv[i] = 0.0;
                     Res1_Diss[i] = 0.0;
                     Res2_Diss[i] = 0.0;
                     Res3_Diss[i] = 0.0;
@@ -442,11 +410,11 @@ int Solver_Unsteady_Explicit(void) {
                         reta = 0.5*reta;
                     } else // Euler
                         zeta = 1.0 + reta;
-                    Q1[i] = W01[i] - phi4*(eta*Res1[i] + reta*(alpha*Q1[i] - beta*Qn01[i] + theta*Qn11[i]))/zeta;
-                    Q2[i] = W02[i] - phi4*(eta*Res2[i] + reta*(alpha*Q2[i] - beta*Qn02[i] + theta*Qn12[i]))/zeta;
-                    Q3[i] = W03[i] - phi4*(eta*Res3[i] + reta*(alpha*Q3[i] - beta*Qn03[i] + theta*Qn13[i]))/zeta;
-                    Q4[i] = W04[i] - phi4*(eta*Res4[i] + reta*(alpha*Q4[i] - beta*Qn04[i] + theta*Qn14[i]))/zeta;
-                    Q5[i] = W05[i] - phi4*(eta*Res5[i] + reta*(alpha*Q5[i] - beta*Qn05[i] + theta*Qn15[i]))/zeta;
+                    Q1[i] = W01[i] - phi4*(eta*Res1_Conv[i] + reta*(alpha*Q1[i] - beta*Qn01[i] + theta*Qn11[i]))/zeta;
+                    Q2[i] = W02[i] - phi4*(eta*Res2_Conv[i] + reta*(alpha*Q2[i] - beta*Qn02[i] + theta*Qn12[i]))/zeta;
+                    Q3[i] = W03[i] - phi4*(eta*Res3_Conv[i] + reta*(alpha*Q3[i] - beta*Qn03[i] + theta*Qn13[i]))/zeta;
+                    Q4[i] = W04[i] - phi4*(eta*Res4_Conv[i] + reta*(alpha*Q4[i] - beta*Qn04[i] + theta*Qn14[i]))/zeta;
+                    Q5[i] = W05[i] - phi4*(eta*Res5_Conv[i] + reta*(alpha*Q5[i] - beta*Qn05[i] + theta*Qn15[i]))/zeta;
                 }
             }
         }
@@ -522,3 +490,50 @@ int Solver_Unsteady_Explicit(void) {
     else
         return EXIT_SUCCESS;
 }
+
+//------------------------------------------------------------------------------
+//! Solver in Explicit Unsteady Mode
+//------------------------------------------------------------------------------
+int Solver_Unsteady_Explicit(void) {
+    int rvalue = EXIT_FAILURE;
+    
+    // Select the Explicit Time Integration Method Type
+    switch (TimeIntegrationMethod) {
+        case TIME_INTEGRATION_METHOD_EXPLICIT_EULER_EULER:
+            rvalue = Solver_Unsteady_Explicit_RungeKutta();
+            break;
+        case TIME_INTEGRATION_METHOD_EXPLICIT_RK3_EULER:
+            rvalue = Solver_Unsteady_Explicit_RungeKutta();
+            break;
+        case TIME_INTEGRATION_METHOD_EXPLICIT_RK4_EULER:
+            rvalue = Solver_Unsteady_Explicit_RungeKutta();
+            break;
+        case TIME_INTEGRATION_METHOD_EXPLICIT_RK5_EULER:
+            rvalue = Solver_Unsteady_Explicit_RungeKutta();
+            break;
+        case TIME_INTEGRATION_METHOD_EXPLICIT_RK5_MJ_EULER:
+            rvalue = Solver_Unsteady_Explicit_RungeKutta_Martinelli_Jameson();
+            break;
+        case TIME_INTEGRATION_METHOD_EXPLICIT_EULER_BDF:
+            rvalue = Solver_Unsteady_Explicit_RungeKutta();
+            break;
+        case TIME_INTEGRATION_METHOD_EXPLICIT_RK3_BDF:
+            rvalue = Solver_Unsteady_Explicit_RungeKutta();
+            break;
+        case TIME_INTEGRATION_METHOD_EXPLICIT_RK4_BDF:
+            rvalue = Solver_Unsteady_Explicit_RungeKutta();
+            break;
+        case TIME_INTEGRATION_METHOD_EXPLICIT_RK5_BDF:
+            rvalue = Solver_Unsteady_Explicit_RungeKutta();
+            break;
+        case TIME_INTEGRATION_METHOD_EXPLICIT_RK5_MJ_BDF:
+            rvalue = Solver_Unsteady_Explicit_RungeKutta_Martinelli_Jameson();
+            break;
+        default:
+            error("Solver_Steady_Explicit: Invalid Time Integration Method - %d", TimeIntegrationMethod);
+            break;
+    }
+    
+    return rvalue;
+}
+

@@ -9,9 +9,15 @@
 
 // Custom header files
 #include "Trim_Utils.h"
-#include "MC.h"
-#include "Commons.h"
-#include "Solver.h"
+#include "SolverParameters.h"
+#include "Roe_Fluxes.h"
+#include "HLLC_Fluxes.h"
+#include "VanLeer_Fluxes.h"
+#include "AUSM_Fluxes.h"
+#include "JST_Fluxes.h"
+#include "LDFSS_Fluxes.h"
+#include "Osher_Fluxes.h"
+#include "StegerWarming_Fluxes.h"
 
 //------------------------------------------------------------------------------
 //! Computes the Residual for all Edges Internal and Boundary

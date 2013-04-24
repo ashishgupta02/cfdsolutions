@@ -12,7 +12,8 @@
 
 // Material and Non Dimensionalization Type
 extern int    MaterialType;
-extern int    MaterialDimType;
+extern int    MaterialCompType;
+extern int    MaterialEOS_IO_Type;
 extern char   MaterialName[256];
 
 // Dimensional Properties (SI Units)

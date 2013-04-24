@@ -17,11 +17,11 @@ RANLIB=ranlib
 CC=icc
 CCC=icc
 CXX=icc
-FC=gfortran
+FC=ifort
 AS=as
 
 # Macros
-CND_PLATFORM=GNU-Linux-x86
+CND_PLATFORM=Intel-Linux-x86
 CND_DLIB_EXT=so
 CND_CONF=Release_Intel
 CND_DISTDIR=dist
@@ -37,6 +37,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/main.o \
 	${OBJECTDIR}/src/AUSM_Fluxes.o \
+	${OBJECTDIR}/src/AUSM_Jacobian.o \
 	${OBJECTDIR}/src/Area_Volume.o \
 	${OBJECTDIR}/src/BC.o \
 	${OBJECTDIR}/src/Commons.o \
@@ -44,16 +45,22 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Connectivity_Maps.o \
 	${OBJECTDIR}/src/Cuthill_Mckee_Reorder.o \
 	${OBJECTDIR}/src/DebugSolver.o \
+	${OBJECTDIR}/src/FiniteDifference_Jacobian.o \
+	${OBJECTDIR}/src/Fluxes.o \
 	${OBJECTDIR}/src/Gradient.o \
 	${OBJECTDIR}/src/HLLC_Fluxes.o \
+	${OBJECTDIR}/src/HLLC_Jacobian.o \
 	${OBJECTDIR}/src/HigherOrderReconstructQ.o \
 	${OBJECTDIR}/src/JST_Fluxes.o \
+	${OBJECTDIR}/src/JST_Jacobian.o \
 	${OBJECTDIR}/src/Jacobian.o \
 	${OBJECTDIR}/src/LDFSS_Fluxes.o \
+	${OBJECTDIR}/src/LDFSS_Jacobian.o \
 	${OBJECTDIR}/src/Limiters.o \
 	${OBJECTDIR}/src/Material.o \
 	${OBJECTDIR}/src/MeshIO.o \
 	${OBJECTDIR}/src/Osher_Fluxes.o \
+	${OBJECTDIR}/src/Osher_Jacobian.o \
 	${OBJECTDIR}/src/RMSIO.o \
 	${OBJECTDIR}/src/Residual.o \
 	${OBJECTDIR}/src/Residual_Smoothing.o \
@@ -62,15 +69,18 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Roe_Fluxes.o \
 	${OBJECTDIR}/src/Roe_Jacobian.o \
 	${OBJECTDIR}/src/Solver.o \
+	${OBJECTDIR}/src/SolverDB.o \
 	${OBJECTDIR}/src/SolverParameters.o \
 	${OBJECTDIR}/src/Solver_Steady_Explicit.o \
 	${OBJECTDIR}/src/Solver_Steady_Implicit.o \
 	${OBJECTDIR}/src/Solver_Unsteady_Explicit.o \
 	${OBJECTDIR}/src/Solver_Unsteady_Implicit.o \
 	${OBJECTDIR}/src/StegerWarming_Fluxes.o \
+	${OBJECTDIR}/src/StegerWarming_Jacobian.o \
 	${OBJECTDIR}/src/Test.o \
 	${OBJECTDIR}/src/Time_Step.o \
-	${OBJECTDIR}/src/VanLeer_Fluxes.o
+	${OBJECTDIR}/src/VanLeer_Fluxes.o \
+	${OBJECTDIR}/src/VanLeer_Jacobian.o
 
 
 # C Compiler Flags
@@ -87,15 +97,17 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-L/home/agupta/00-Applications/Lakesite/HPC_LIBS/lib -Wl,-rpath,../UTILS/dist/Release_Intel/GNU-Linux-x86 -L../UTILS/dist/Release_Intel/GNU-Linux-x86 -lUTILS -Wl,-rpath,../MATH/dist/Release_Intel/GNU-Linux-x86 -L../MATH/dist/Release_Intel/GNU-Linux-x86 -lMATH
+LDLIBSOPTIONS=-L/home/agupta/00-Applications/Lakesite/HPC_LIBS/lib -Wl,-rpath,../UTILS/dist/Release_Intel/Intel-Linux-x86 -L../UTILS/dist/Release_Intel/Intel-Linux-x86 -lUTILS -Wl,-rpath,../MATH/dist/Release_Intel/Intel-Linux-x86 -L../MATH/dist/Release_Intel/Intel-Linux-x86 -lMATH -Wl,-rpath,../EOS/dist/Release_Intel/Intel-Linux-x86 -L../EOS/dist/Release_Intel/Intel-Linux-x86 -lEOS
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
 	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/mpflow3d
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/mpflow3d: ../UTILS/dist/Release_Intel/GNU-Linux-x86/libUTILS.so
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/mpflow3d: ../UTILS/dist/Release_Intel/Intel-Linux-x86/libUTILS.so
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/mpflow3d: ../MATH/dist/Release_Intel/GNU-Linux-x86/libMATH.so
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/mpflow3d: ../MATH/dist/Release_Intel/Intel-Linux-x86/libMATH.so
+
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/mpflow3d: ../EOS/dist/Release_Intel/Intel-Linux-x86/libEOS.so
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/mpflow3d: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
@@ -104,187 +116,238 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/mpflow3d: ${OBJECTFILES}
 ${OBJECTDIR}/main.o: main.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
 
 ${OBJECTDIR}/src/AUSM_Fluxes.o: src/AUSM_Fluxes.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AUSM_Fluxes.o src/AUSM_Fluxes.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AUSM_Fluxes.o src/AUSM_Fluxes.cpp
+
+${OBJECTDIR}/src/AUSM_Jacobian.o: src/AUSM_Jacobian.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AUSM_Jacobian.o src/AUSM_Jacobian.cpp
 
 ${OBJECTDIR}/src/Area_Volume.o: src/Area_Volume.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Area_Volume.o src/Area_Volume.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Area_Volume.o src/Area_Volume.cpp
 
 ${OBJECTDIR}/src/BC.o: src/BC.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/BC.o src/BC.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/BC.o src/BC.cpp
 
 ${OBJECTDIR}/src/Commons.o: src/Commons.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Commons.o src/Commons.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Commons.o src/Commons.cpp
 
 ${OBJECTDIR}/src/CompressibleUtils.o: src/CompressibleUtils.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/CompressibleUtils.o src/CompressibleUtils.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/CompressibleUtils.o src/CompressibleUtils.cpp
 
 ${OBJECTDIR}/src/Connectivity_Maps.o: src/Connectivity_Maps.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Connectivity_Maps.o src/Connectivity_Maps.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Connectivity_Maps.o src/Connectivity_Maps.cpp
 
 ${OBJECTDIR}/src/Cuthill_Mckee_Reorder.o: src/Cuthill_Mckee_Reorder.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Cuthill_Mckee_Reorder.o src/Cuthill_Mckee_Reorder.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Cuthill_Mckee_Reorder.o src/Cuthill_Mckee_Reorder.cpp
 
 ${OBJECTDIR}/src/DebugSolver.o: src/DebugSolver.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/DebugSolver.o src/DebugSolver.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/DebugSolver.o src/DebugSolver.cpp
+
+${OBJECTDIR}/src/FiniteDifference_Jacobian.o: src/FiniteDifference_Jacobian.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/FiniteDifference_Jacobian.o src/FiniteDifference_Jacobian.cpp
+
+${OBJECTDIR}/src/Fluxes.o: src/Fluxes.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Fluxes.o src/Fluxes.cpp
 
 ${OBJECTDIR}/src/Gradient.o: src/Gradient.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Gradient.o src/Gradient.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Gradient.o src/Gradient.cpp
 
 ${OBJECTDIR}/src/HLLC_Fluxes.o: src/HLLC_Fluxes.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/HLLC_Fluxes.o src/HLLC_Fluxes.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/HLLC_Fluxes.o src/HLLC_Fluxes.cpp
+
+${OBJECTDIR}/src/HLLC_Jacobian.o: src/HLLC_Jacobian.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/HLLC_Jacobian.o src/HLLC_Jacobian.cpp
 
 ${OBJECTDIR}/src/HigherOrderReconstructQ.o: src/HigherOrderReconstructQ.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/HigherOrderReconstructQ.o src/HigherOrderReconstructQ.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/HigherOrderReconstructQ.o src/HigherOrderReconstructQ.cpp
 
 ${OBJECTDIR}/src/JST_Fluxes.o: src/JST_Fluxes.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/JST_Fluxes.o src/JST_Fluxes.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/JST_Fluxes.o src/JST_Fluxes.cpp
+
+${OBJECTDIR}/src/JST_Jacobian.o: src/JST_Jacobian.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/JST_Jacobian.o src/JST_Jacobian.cpp
 
 ${OBJECTDIR}/src/Jacobian.o: src/Jacobian.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Jacobian.o src/Jacobian.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Jacobian.o src/Jacobian.cpp
 
 ${OBJECTDIR}/src/LDFSS_Fluxes.o: src/LDFSS_Fluxes.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/LDFSS_Fluxes.o src/LDFSS_Fluxes.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/LDFSS_Fluxes.o src/LDFSS_Fluxes.cpp
+
+${OBJECTDIR}/src/LDFSS_Jacobian.o: src/LDFSS_Jacobian.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/LDFSS_Jacobian.o src/LDFSS_Jacobian.cpp
 
 ${OBJECTDIR}/src/Limiters.o: src/Limiters.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Limiters.o src/Limiters.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Limiters.o src/Limiters.cpp
 
 ${OBJECTDIR}/src/Material.o: src/Material.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Material.o src/Material.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Material.o src/Material.cpp
 
 ${OBJECTDIR}/src/MeshIO.o: src/MeshIO.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MeshIO.o src/MeshIO.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MeshIO.o src/MeshIO.cpp
 
 ${OBJECTDIR}/src/Osher_Fluxes.o: src/Osher_Fluxes.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Osher_Fluxes.o src/Osher_Fluxes.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Osher_Fluxes.o src/Osher_Fluxes.cpp
+
+${OBJECTDIR}/src/Osher_Jacobian.o: src/Osher_Jacobian.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Osher_Jacobian.o src/Osher_Jacobian.cpp
 
 ${OBJECTDIR}/src/RMSIO.o: src/RMSIO.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/RMSIO.o src/RMSIO.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/RMSIO.o src/RMSIO.cpp
 
 ${OBJECTDIR}/src/Residual.o: src/Residual.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Residual.o src/Residual.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Residual.o src/Residual.cpp
 
 ${OBJECTDIR}/src/Residual_Smoothing.o: src/Residual_Smoothing.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Residual_Smoothing.o src/Residual_Smoothing.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Residual_Smoothing.o src/Residual_Smoothing.cpp
 
 ${OBJECTDIR}/src/RestartIO.o: src/RestartIO.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/RestartIO.o src/RestartIO.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/RestartIO.o src/RestartIO.cpp
 
 ${OBJECTDIR}/src/Roe_EntropyFix.o: src/Roe_EntropyFix.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Roe_EntropyFix.o src/Roe_EntropyFix.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Roe_EntropyFix.o src/Roe_EntropyFix.cpp
 
 ${OBJECTDIR}/src/Roe_Fluxes.o: src/Roe_Fluxes.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Roe_Fluxes.o src/Roe_Fluxes.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Roe_Fluxes.o src/Roe_Fluxes.cpp
 
 ${OBJECTDIR}/src/Roe_Jacobian.o: src/Roe_Jacobian.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Roe_Jacobian.o src/Roe_Jacobian.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Roe_Jacobian.o src/Roe_Jacobian.cpp
 
 ${OBJECTDIR}/src/Solver.o: src/Solver.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Solver.o src/Solver.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Solver.o src/Solver.cpp
+
+${OBJECTDIR}/src/SolverDB.o: src/SolverDB.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/SolverDB.o src/SolverDB.cpp
 
 ${OBJECTDIR}/src/SolverParameters.o: src/SolverParameters.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/SolverParameters.o src/SolverParameters.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/SolverParameters.o src/SolverParameters.cpp
 
 ${OBJECTDIR}/src/Solver_Steady_Explicit.o: src/Solver_Steady_Explicit.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Solver_Steady_Explicit.o src/Solver_Steady_Explicit.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Solver_Steady_Explicit.o src/Solver_Steady_Explicit.cpp
 
 ${OBJECTDIR}/src/Solver_Steady_Implicit.o: src/Solver_Steady_Implicit.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Solver_Steady_Implicit.o src/Solver_Steady_Implicit.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Solver_Steady_Implicit.o src/Solver_Steady_Implicit.cpp
 
 ${OBJECTDIR}/src/Solver_Unsteady_Explicit.o: src/Solver_Unsteady_Explicit.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Solver_Unsteady_Explicit.o src/Solver_Unsteady_Explicit.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Solver_Unsteady_Explicit.o src/Solver_Unsteady_Explicit.cpp
 
 ${OBJECTDIR}/src/Solver_Unsteady_Implicit.o: src/Solver_Unsteady_Implicit.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Solver_Unsteady_Implicit.o src/Solver_Unsteady_Implicit.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Solver_Unsteady_Implicit.o src/Solver_Unsteady_Implicit.cpp
 
 ${OBJECTDIR}/src/StegerWarming_Fluxes.o: src/StegerWarming_Fluxes.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/StegerWarming_Fluxes.o src/StegerWarming_Fluxes.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/StegerWarming_Fluxes.o src/StegerWarming_Fluxes.cpp
+
+${OBJECTDIR}/src/StegerWarming_Jacobian.o: src/StegerWarming_Jacobian.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/StegerWarming_Jacobian.o src/StegerWarming_Jacobian.cpp
 
 ${OBJECTDIR}/src/Test.o: src/Test.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Test.o src/Test.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Test.o src/Test.cpp
 
 ${OBJECTDIR}/src/Time_Step.o: src/Time_Step.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Time_Step.o src/Time_Step.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Time_Step.o src/Time_Step.cpp
 
 ${OBJECTDIR}/src/VanLeer_Fluxes.o: src/VanLeer_Fluxes.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/VanLeer_Fluxes.o src/VanLeer_Fluxes.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/VanLeer_Fluxes.o src/VanLeer_Fluxes.cpp
+
+${OBJECTDIR}/src/VanLeer_Jacobian.o: src/VanLeer_Jacobian.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -I/home/agupta/00-Applications/Lakesite/HPC_LIBS/include -axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/VanLeer_Jacobian.o src/VanLeer_Jacobian.cpp
 
 # Subprojects
 .build-subprojects:
 	cd ../UTILS && ${MAKE}  -f Makefile CONF=Release_Intel
 	cd ../MATH && ${MAKE}  -f Makefile CONF=Release_Intel
+	cd ../EOS && ${MAKE}  -f Makefile CONF=Release_Intel
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
@@ -295,6 +358,7 @@ ${OBJECTDIR}/src/VanLeer_Fluxes.o: src/VanLeer_Fluxes.cpp
 .clean-subprojects:
 	cd ../UTILS && ${MAKE}  -f Makefile CONF=Release_Intel clean
 	cd ../MATH && ${MAKE}  -f Makefile CONF=Release_Intel clean
+	cd ../EOS && ${MAKE}  -f Makefile CONF=Release_Intel clean
 
 # Enable dependency checking
 .dep.inc: .depcheck-impl

@@ -16,7 +16,7 @@
 void StegerWarming_Init(void);
 void StegerWarming_Finalize(void);
 void StegerWarming_Reset(void);
-void Compute_StegerWarmingFlux(int node_L, int node_R, Vector3D areavec, double *Flux_StegerWarming, int AddTime);
+void Compute_Flux_StegerWarming(int node_L, int node_R, Vector3D areavec, double *Flux_StegerWarming_Conv, double *Flux_StegerWarming_Diss, int AddTime);
 void Compute_Residual_StegerWarming(int AddTime);
 
 #endif	/* _STEGERWARMING_FLUXES_H */

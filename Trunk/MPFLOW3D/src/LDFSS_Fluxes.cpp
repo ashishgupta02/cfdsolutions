@@ -43,7 +43,7 @@ void LDFSS_Reset(void) {
 //------------------------------------------------------------------------------
 //! Compute LDFSS Flux
 //------------------------------------------------------------------------------
-void Compute_LDFSSFlux(int node_L, int node_R, Vector3D areavec, double *Flux_LDFSS, int AddTime) {
+void Compute_Flux_LDFSS(int node_L, int node_R, Vector3D areavec, double *Flux_LDFSS_Conv, double *Flux_LDFSS_Diss, int AddTime) {
     
 }
 

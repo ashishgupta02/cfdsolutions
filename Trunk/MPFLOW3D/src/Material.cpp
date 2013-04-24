@@ -15,7 +15,8 @@
 
 // Material Variables
 int    MaterialType;
-int    MaterialDimType;
+int    MaterialCompType;
+int    MaterialEOS_IO_Type;
 char   MaterialName[256];
 
 // Dimensional Properties (SI Units)
@@ -58,7 +59,8 @@ double Outflow_Pressure;
 void Material_Init(void) {
     // Initialize
     MaterialType        = MATERIAL_TYPE_NONE;
-    MaterialDimType     = EOS_DIMENSIONAL_IO_NONE;
+    MaterialCompType    = MATERIAL_COMP_TYPE_NONE;
+    MaterialEOS_IO_Type = EOS_DIMENSIONAL_IO_NONE;
     str_blank(MaterialName);
     
     // Dimensional Reference Properties
@@ -164,26 +166,40 @@ void Material_Set_Properties(void) {
     info("TotalEnergy_Inf ---------------------------: %15.6f J/kg",   Inf_Et);
     printf("=============================================================================\n");
     
-    //--START Non-Dimensionalization 
-    // Infinity Conditions
-    Inf_Rho         /= Ref_Rho;
-    Inf_Pressure    /= Ref_Pressure;
-    Inf_Temperature /= Ref_Temperature;
-    Inf_U           /= Ref_Velocity;
-    Inf_V           /= Ref_Velocity;
-    Inf_W           /= Ref_Velocity;
-    Inf_SpeedSound  /= Ref_Velocity;
-    Inf_Et          /= Ref_TotalEnergy;
-    // Pressure Conditions
-    Gauge_Pressure   /= Ref_Pressure;
-    Outflow_Pressure /= Ref_Pressure;
-    // Set Computations I/O Mode
-    MaterialDimType   = EOS_DIMENSIONAL_IO_ND_ND;
-    //--END Non-Dimensionalization
+    // Check the Material Computation Type
+    switch (MaterialCompType) {
+        case MATERIAL_COMP_TYPE_NDIM:
+            //--START Non-Dimensionalization 
+            // Infinity Conditions
+            Inf_Rho         /= Ref_Rho;
+            Inf_Pressure    /= Ref_Pressure;
+            Inf_Temperature /= Ref_Temperature;
+            Inf_U           /= Ref_Velocity;
+            Inf_V           /= Ref_Velocity;
+            Inf_W           /= Ref_Velocity;
+            Inf_SpeedSound  /= Ref_Velocity;
+            Inf_Et          /= Ref_TotalEnergy;
+            // Pressure Conditions
+            Gauge_Pressure   /= Ref_Pressure;
+            Outflow_Pressure /= Ref_Pressure;
+            // Set Computations I/O Mode
+            MaterialEOS_IO_Type = EOS_DIMENSIONAL_IO_ND_ND;
+            //--END Non-Dimensionalization
+            break;
+        case MATERIAL_COMP_TYPE_DIM:
+            // Set Computations I/O Mode
+            MaterialEOS_IO_Type = EOS_DIMENSIONAL_IO_D_D;
+            break;
+        default:
+            error("Material_Set_Properties:2: Undefined Material Computation Type - %d", MaterialCompType);
+            break;
+    }
     
     // Set All Pressure be Perturbations
     Inf_Pressure     -= Gauge_Pressure;
     Outflow_Pressure -= Gauge_Pressure;
+    
+    PrecondGlobalMach = Inf_Mach_MAX;
 }
 
 //------------------------------------------------------------------------------
@@ -212,53 +228,85 @@ void Material_Set_InfinityCondition(int Iteration) {
 
 //------------------------------------------------------------------------------
 //! Compute Equation of State Variables at Control Volume
+//! Note: MaterialEOS_IO_Type = EOS_DIMENSIONAL_IO_D_D or EOS_DIMENSIONAL_IO_ND_ND
+//       is only supported. Done to improve the accuracy
 //------------------------------------------------------------------------------
 void Material_Get_ControlVolume_Properties(double *dpVariableIn,
         double &Rho, double &Pressure, double &Temperature,
         double &Velocity_U, double &Velocity_V, double &Velocity_W, double &Q2,
         double &SpeedSound, double &Mach, double &TotalEnergy, double &TotalEnthalpy) {
     double Prop[EOS_THERM_DIM];
+    double daEOSVariable[NEQUATIONS];
+    
+    // This is done to preserve the accuracy of dpVariableIn
+    // if passed directly to EOS functions will result in loss of accuracy
+    for (int i = 0; i < NEQUATIONS; i++)
+        daEOSVariable[i] = dpVariableIn[i];
     
     // Compute the EOS Based on Variable Type of Q
     switch (VariableType) {
         // Conservative Variable Formulation
         case VARIABLE_CON:
-            EOS_Get_Properties(MaterialDimType, EOS_VARIABLE_CON, dpVariableIn, Prop);
+            EOS_Get_Properties(MaterialEOS_IO_Type, EOS_VARIABLE_CON, daEOSVariable, Prop);
+            // Update the variables
+            Rho         = dpVariableIn[0];
+            Velocity_U  = dpVariableIn[1]/Rho;
+            Velocity_V  = dpVariableIn[2]/Rho;
+            Velocity_W  = dpVariableIn[3]/Rho;
+            TotalEnergy = dpVariableIn[4]/Rho;
+            Pressure    = Prop[ 3] - Gauge_Pressure;
+            Temperature = Prop[ 4];
             break;
         // Primitive Variable Formulation Density Velocity Pressure
         case VARIABLE_RUP:
-            dpVariableIn[4] = dpVariableIn[4] + Gauge_Pressure; // Pressure
-            EOS_Get_Properties(MaterialDimType, EOS_VARIABLE_RUP, dpVariableIn, Prop);
+            daEOSVariable[4] += Gauge_Pressure; // Pressure
+            EOS_Get_Properties(MaterialEOS_IO_Type, EOS_VARIABLE_RUP, daEOSVariable, Prop);
+            Rho         = dpVariableIn[0];
+            Velocity_U  = dpVariableIn[1];
+            Velocity_V  = dpVariableIn[2];
+            Velocity_W  = dpVariableIn[3];
+            Pressure    = dpVariableIn[4]; // Perturbation
+            Temperature = Prop[ 4];
+            TotalEnergy = Prop[15];
             break;
         // Primitive Variable Formulation Pressure Velocity Temperature
         case VARIABLE_PUT:
-            dpVariableIn[0] = dpVariableIn[0] + Gauge_Pressure; // Pressure
-            EOS_Get_Properties(MaterialDimType, EOS_VARIABLE_PUT, dpVariableIn, Prop);
+            daEOSVariable[0] += Gauge_Pressure; // Pressure
+            EOS_Get_Properties(MaterialEOS_IO_Type, EOS_VARIABLE_PUT, daEOSVariable, Prop);
+            Pressure    = dpVariableIn[0]; // Perturbation
+            Velocity_U  = dpVariableIn[1];
+            Velocity_V  = dpVariableIn[2];
+            Velocity_W  = dpVariableIn[3];
+            Temperature = dpVariableIn[4];
+            Rho         = Prop[ 0];
+            TotalEnergy = Prop[15];
             break;
         // Primitive Variable Formulation Density Velocity Temperature
         case VARIABLE_RUT:
-            EOS_Get_Properties(MaterialDimType, EOS_VARIABLE_RUT, dpVariableIn, Prop);
+            EOS_Get_Properties(MaterialEOS_IO_Type, EOS_VARIABLE_RUT, daEOSVariable, Prop);
+            Rho         = dpVariableIn[0];
+            Velocity_U  = dpVariableIn[1];
+            Velocity_V  = dpVariableIn[2];
+            Velocity_W  = dpVariableIn[3];
+            Temperature = dpVariableIn[4];
+            Pressure    = Prop[ 3] - Gauge_Pressure;
+            TotalEnergy = Prop[15];
             break;
         default:
             error("Material_Get_ControlVolume_Properties:1: Undefined Variable Type - %d", VariableType);
             break;
     }
     // Update the Variables
-    Rho           = Prop[ 0];
-    Pressure      = Prop[ 3] - Gauge_Pressure;
-    Temperature   = Prop[ 4];
-    Velocity_U    = Prop[ 5];
-    Velocity_V    = Prop[ 6];
-    Velocity_W    = Prop[ 7];
     Q2            = Prop[ 8];
     SpeedSound    = Prop[ 9];
     Mach          = Prop[10];
     TotalEnthalpy = Prop[14];
-    TotalEnergy   = Prop[15];
 }
 
 //------------------------------------------------------------------------------
 //! Compute Equation of State Variables at Face/Edge
+//! Note: MaterialEOS_IO_Type = EOS_DIMENSIONAL_IO_D_D or EOS_DIMENSIONAL_IO_ND_ND
+//       is only supported. Done to improve the accuracy
 //------------------------------------------------------------------------------
 void Material_Get_Face_Properties(double *dpVariableIn, double nx, double ny, double nz,
         double &Rho, double &Pressure, double &Temperature,
@@ -279,25 +327,31 @@ void Material_Get_Face_Properties(double *dpVariableIn, double nx, double ny, do
 //------------------------------------------------------------------------------
 double Material_Get_Density(double *dpVariableIn) {
     double Rho = 0.0;
+    double daEOSVariable[NEQUATIONS];
+    
+    // This is done to preserve the accuracy of dpVariableIn
+    // if passed directly to EOS functions will result in loss of accuracy
+    for (int i = 0; i < NEQUATIONS; i++)
+        daEOSVariable[i] = dpVariableIn[i];
     
     switch (VariableType) {
         // Conservative Variable Formulation
         case VARIABLE_CON:
-            Rho = EOS_Get_Density(MaterialDimType, EOS_VARIABLE_CON, dpVariableIn);
+            Rho = EOS_Get_Density(MaterialEOS_IO_Type, EOS_VARIABLE_CON, daEOSVariable);
             break;
         // Primitive Variable Formulation Density Velocity Pressure
         case VARIABLE_RUP:
-            dpVariableIn[4] = dpVariableIn[4] + Gauge_Pressure; // Pressure
-            Rho = EOS_Get_Density(MaterialDimType, EOS_VARIABLE_RUP, dpVariableIn);
+            daEOSVariable[4] += Gauge_Pressure; // Pressure
+            Rho = EOS_Get_Density(MaterialEOS_IO_Type, EOS_VARIABLE_RUP, daEOSVariable);
             break;
         // Primitive Variable Formulation Pressure Velocity Temperature
         case VARIABLE_PUT:
-            dpVariableIn[0] = dpVariableIn[0] + Gauge_Pressure; // Pressure
-            Rho = EOS_Get_Density(MaterialDimType, EOS_VARIABLE_PUT, dpVariableIn);
+            daEOSVariable[0] += Gauge_Pressure; // Pressure
+            Rho = EOS_Get_Density(MaterialEOS_IO_Type, EOS_VARIABLE_PUT, daEOSVariable);
             break;
         // Primitive Variable Formulation Density Velocity Temperature
         case VARIABLE_RUT:
-            Rho = EOS_Get_Density(MaterialDimType, EOS_VARIABLE_RUT, dpVariableIn);
+            Rho = EOS_Get_Density(MaterialEOS_IO_Type, EOS_VARIABLE_RUT, daEOSVariable);
             break;
         default:
             error("Material_Get_Density:1: Undefined Variable Type - %d", VariableType);
@@ -311,26 +365,32 @@ double Material_Get_Density(double *dpVariableIn) {
 //!
 //------------------------------------------------------------------------------
 double Material_Get_Pressure(double *dpVariableIn) {
-    double Pressure = 0.0;
+    double Pressure     = 0.0;
+    double daEOSVariable[NEQUATIONS];
+    
+    // This is done to preserve the accuracy of dpVariableIn
+    // if passed directly to EOS functions will result in loss of accuracy
+    for (int i = 0; i < NEQUATIONS; i++)
+        daEOSVariable[i] = dpVariableIn[i];
     
     switch (VariableType) {
         // Conservative Variable Formulation
         case VARIABLE_CON:
-            Pressure = EOS_Get_Pressure(MaterialDimType, EOS_VARIABLE_CON, dpVariableIn);
+            Pressure = EOS_Get_Pressure(MaterialEOS_IO_Type, EOS_VARIABLE_CON, daEOSVariable);
             break;
         // Primitive Variable Formulation Density Velocity Pressure
         case VARIABLE_RUP:
-            dpVariableIn[4] = dpVariableIn[4] + Gauge_Pressure; // Pressure
-            Pressure = EOS_Get_Pressure(MaterialDimType, EOS_VARIABLE_RUP, dpVariableIn);
+            daEOSVariable[4] += Gauge_Pressure; // Pressure
+            Pressure = EOS_Get_Pressure(MaterialEOS_IO_Type, EOS_VARIABLE_RUP, daEOSVariable);
             break;
         // Primitive Variable Formulation Pressure Velocity Temperature
         case VARIABLE_PUT:
-            dpVariableIn[0] = dpVariableIn[0] + Gauge_Pressure; // Pressure
-            Pressure = EOS_Get_Pressure(MaterialDimType, EOS_VARIABLE_PUT, dpVariableIn);
+            daEOSVariable[0] += Gauge_Pressure; // Pressure
+            Pressure = EOS_Get_Pressure(MaterialEOS_IO_Type, EOS_VARIABLE_RUP, daEOSVariable);
             break;
         // Primitive Variable Formulation Density Velocity Temperature
         case VARIABLE_RUT:
-            Pressure = EOS_Get_Pressure(MaterialDimType, EOS_VARIABLE_RUT, dpVariableIn);
+            Pressure = EOS_Get_Pressure(MaterialEOS_IO_Type, EOS_VARIABLE_RUT, daEOSVariable);
             break;
         default:
             error("Material_Get_Pressure:1: Undefined Variable Type - %d", VariableType);
@@ -345,25 +405,31 @@ double Material_Get_Pressure(double *dpVariableIn) {
 //------------------------------------------------------------------------------
 double Material_Get_Temperature(double *dpVariableIn) {
     double Temperature = 0.0;
+    double daEOSVariable[NEQUATIONS];
+    
+    // This is done to preserve the accuracy of dpVariableIn
+    // if passed directly to EOS functions will result in loss of accuracy
+    for (int i = 0; i < NEQUATIONS; i++)
+        daEOSVariable[i] = dpVariableIn[i];
     
     switch (VariableType) {
         // Conservative Variable Formulation
         case VARIABLE_CON:
-            Temperature = EOS_Get_Temperature(MaterialDimType, EOS_VARIABLE_CON, dpVariableIn);
+            Temperature = EOS_Get_Temperature(MaterialEOS_IO_Type, EOS_VARIABLE_CON, daEOSVariable);
             break;
         // Primitive Variable Formulation Density Velocity Pressure
         case VARIABLE_RUP:
-            dpVariableIn[4] = dpVariableIn[4] + Gauge_Pressure; // Pressure
-            Temperature = EOS_Get_Temperature(MaterialDimType, EOS_VARIABLE_RUP, dpVariableIn);
+            daEOSVariable[4] += Gauge_Pressure; // Pressure
+            Temperature = EOS_Get_Temperature(MaterialEOS_IO_Type, EOS_VARIABLE_RUP, daEOSVariable);
             break;
         // Primitive Variable Formulation Pressure Velocity Temperature
         case VARIABLE_PUT:
-            dpVariableIn[0] = dpVariableIn[0] + Gauge_Pressure; // Pressure
-            Temperature = EOS_Get_Temperature(MaterialDimType, EOS_VARIABLE_PUT, dpVariableIn);
+            daEOSVariable[0] += Gauge_Pressure; // Pressure
+            Temperature = EOS_Get_Temperature(MaterialEOS_IO_Type, EOS_VARIABLE_PUT, daEOSVariable);
             break;
         // Primitive Variable Formulation Density Velocity Temperature
         case VARIABLE_RUT:
-            Temperature = EOS_Get_Temperature(MaterialDimType, EOS_VARIABLE_RUT, dpVariableIn);
+            Temperature = EOS_Get_Temperature(MaterialEOS_IO_Type, EOS_VARIABLE_RUT, daEOSVariable);
             break;
         default:
             error("Material_Get_Temperature:1: Undefined Variable Type - %d", VariableType);
@@ -378,25 +444,31 @@ double Material_Get_Temperature(double *dpVariableIn) {
 //------------------------------------------------------------------------------
 double Material_Get_Mach(double *dpVariableIn) {
     double Mach = 0.0;
+    double daEOSVariable[NEQUATIONS];
+    
+    // This is done to preserve the accuracy of dpVariableIn
+    // if passed directly to EOS functions will result in loss of accuracy
+    for (int i = 0; i < NEQUATIONS; i++)
+        daEOSVariable[i] = dpVariableIn[i];
     
     switch (VariableType) {
         // Conservative Variable Formulation
         case VARIABLE_CON:
-            Mach = EOS_Get_Mach(MaterialDimType, EOS_VARIABLE_CON, dpVariableIn);
+            Mach = EOS_Get_Mach(MaterialEOS_IO_Type, EOS_VARIABLE_CON, daEOSVariable);
             break;
         // Primitive Variable Formulation Density Velocity Pressure
         case VARIABLE_RUP:
-            dpVariableIn[4] = dpVariableIn[4] + Gauge_Pressure; // Pressure
-            Mach = EOS_Get_Mach(MaterialDimType, EOS_VARIABLE_RUP, dpVariableIn);
+            daEOSVariable[4] += Gauge_Pressure; // Pressure
+            Mach = EOS_Get_Mach(MaterialEOS_IO_Type, EOS_VARIABLE_RUP, daEOSVariable);
             break;
         // Primitive Variable Formulation Pressure Velocity Temperature
         case VARIABLE_PUT:
-            dpVariableIn[0] = dpVariableIn[0] + Gauge_Pressure; // Pressure
-            Mach = EOS_Get_Mach(MaterialDimType, EOS_VARIABLE_PUT, dpVariableIn);
+            daEOSVariable[0] += Gauge_Pressure; // Pressure
+            Mach = EOS_Get_Mach(MaterialEOS_IO_Type, EOS_VARIABLE_PUT, daEOSVariable);
             break;
         // Primitive Variable Formulation Density Velocity Temperature
         case VARIABLE_RUT:
-            Mach = EOS_Get_Mach(MaterialDimType, EOS_VARIABLE_RUT, dpVariableIn);
+            Mach = EOS_Get_Mach(MaterialEOS_IO_Type, EOS_VARIABLE_RUT, daEOSVariable);
             break;
         default:
             error("Material_Get_Mach:1: Undefined Variable Type - %d", VariableType);
@@ -411,25 +483,31 @@ double Material_Get_Mach(double *dpVariableIn) {
 //------------------------------------------------------------------------------
 double Material_Get_TotalEnergy(double *dpVariableIn) {
     double TotalEnergy = 0.0;
+    double daEOSVariable[NEQUATIONS];
+    
+    // This is done to preserve the accuracy of dpVariableIn
+    // if passed directly to EOS functions will result in loss of accuracy
+    for (int i = 0; i < NEQUATIONS; i++)
+        daEOSVariable[i] = dpVariableIn[i];
     
     switch (VariableType) {
         // Conservative Variable Formulation
         case VARIABLE_CON:
-            TotalEnergy = EOS_Get_TotalEnergy(MaterialDimType, EOS_VARIABLE_CON, dpVariableIn);
+            TotalEnergy = EOS_Get_TotalEnergy(MaterialEOS_IO_Type, EOS_VARIABLE_CON, daEOSVariable);
             break;
         // Primitive Variable Formulation Density Velocity Pressure
         case VARIABLE_RUP:
-            dpVariableIn[4] = dpVariableIn[4] + Gauge_Pressure; // Pressure
-            TotalEnergy = EOS_Get_TotalEnergy(MaterialDimType, EOS_VARIABLE_RUP, dpVariableIn);
+            daEOSVariable[4] += Gauge_Pressure; // Pressure
+            TotalEnergy = EOS_Get_TotalEnergy(MaterialEOS_IO_Type, EOS_VARIABLE_RUP, daEOSVariable);
             break;
         // Primitive Variable Formulation Pressure Velocity Temperature
         case VARIABLE_PUT:
-            dpVariableIn[0] = dpVariableIn[0] + Gauge_Pressure; // Pressure
-            TotalEnergy = EOS_Get_TotalEnergy(MaterialDimType, EOS_VARIABLE_PUT, dpVariableIn);
+            daEOSVariable[0] += Gauge_Pressure; // Pressure
+            TotalEnergy = EOS_Get_TotalEnergy(MaterialEOS_IO_Type, EOS_VARIABLE_PUT, daEOSVariable);
             break;
         // Primitive Variable Formulation Density Velocity Temperature
         case VARIABLE_RUT:
-            TotalEnergy = EOS_Get_TotalEnergy(MaterialDimType, EOS_VARIABLE_RUT, dpVariableIn);
+            TotalEnergy = EOS_Get_TotalEnergy(MaterialEOS_IO_Type, EOS_VARIABLE_RUT, daEOSVariable);
             break;
         default:
             error("Material_Get_TotalEnergy:1: Undefined Variable Type - %d", VariableType);
@@ -444,25 +522,31 @@ double Material_Get_TotalEnergy(double *dpVariableIn) {
 //------------------------------------------------------------------------------
 double Material_Get_SpeedSound(double *dpVariableIn) {
     double SpeedSound = 0.0;
+    double daEOSVariable[NEQUATIONS];
+    
+    // This is done to preserve the accuracy of dpVariableIn
+    // if passed directly to EOS functions will result in loss of accuracy
+    for (int i = 0; i < NEQUATIONS; i++)
+        daEOSVariable[i] = dpVariableIn[i];
     
     switch (VariableType) {
         // Conservative Variable Formulation
         case VARIABLE_CON:
-            SpeedSound = EOS_Get_SpeedSound(MaterialDimType, EOS_VARIABLE_CON, dpVariableIn);
+            SpeedSound = EOS_Get_SpeedSound(MaterialEOS_IO_Type, EOS_VARIABLE_CON, daEOSVariable);
             break;
         // Primitive Variable Formulation Density Velocity Pressure
         case VARIABLE_RUP:
-            dpVariableIn[4] = dpVariableIn[4] + Gauge_Pressure; // Pressure
-            SpeedSound = EOS_Get_SpeedSound(MaterialDimType, EOS_VARIABLE_RUP, dpVariableIn);
+            daEOSVariable[4] += Gauge_Pressure; // Pressure
+            SpeedSound = EOS_Get_SpeedSound(MaterialEOS_IO_Type, EOS_VARIABLE_RUP, daEOSVariable);
             break;
         // Primitive Variable Formulation Pressure Velocity Temperature
         case VARIABLE_PUT:
-            dpVariableIn[0] = dpVariableIn[0] + Gauge_Pressure; // Pressure
-            SpeedSound = EOS_Get_SpeedSound(MaterialDimType, EOS_VARIABLE_PUT, dpVariableIn);
+            daEOSVariable[0] += Gauge_Pressure; // Pressure
+            SpeedSound = EOS_Get_SpeedSound(MaterialEOS_IO_Type, EOS_VARIABLE_PUT, daEOSVariable);
             break;
         // Primitive Variable Formulation Density Velocity Temperature
         case VARIABLE_RUT:
-            SpeedSound = EOS_Get_SpeedSound(MaterialDimType, EOS_VARIABLE_RUT, dpVariableIn);
+            SpeedSound = EOS_Get_SpeedSound(MaterialEOS_IO_Type, EOS_VARIABLE_RUT, daEOSVariable);
             break;
         default:
             error("Material_Get_SpeedSound:1: Undefined Variable Type - %d", VariableType);
@@ -478,7 +562,7 @@ double Material_Get_SpeedSound(double *dpVariableIn) {
 double Material_Get_DH_SpeedSound(double dvDensity, double dvEnthalpy) {
     double SpeedSound = 0.0;
     
-    SpeedSound = EOS_Get_DH_SpeedSound(MaterialDimType, dvDensity, dvEnthalpy);
+    SpeedSound = EOS_Get_DH_SpeedSound(MaterialEOS_IO_Type, dvDensity, dvEnthalpy);
     
     return SpeedSound;
 }
@@ -489,7 +573,7 @@ double Material_Get_DH_SpeedSound(double dvDensity, double dvEnthalpy) {
 double Material_Get_DH_Pressure(double dvDensity, double dvEnthalpy) {
     double Pressure = 0.0;
     
-    Pressure = EOS_Get_DH_Pressure(MaterialDimType, dvDensity, dvEnthalpy);
+    Pressure = EOS_Get_DH_Pressure(MaterialEOS_IO_Type, dvDensity, dvEnthalpy);
     
     return Pressure;
 }
@@ -500,7 +584,7 @@ double Material_Get_DH_Pressure(double dvDensity, double dvEnthalpy) {
 double Material_Get_DH_Temperature(double dvDensity, double dvEnthalpy) {
     double Temperature = 0.0;
     
-    Temperature = EOS_Get_DH_Temperature(MaterialDimType, dvDensity, dvEnthalpy);
+    Temperature = EOS_Get_DH_Temperature(MaterialEOS_IO_Type, dvDensity, dvEnthalpy);
     
     return Temperature;
 }
@@ -559,6 +643,13 @@ void Material_Get_RUH_To_Q(double Rho, double Velocity_U, double Velocity_V, dou
 //! Transformation Matrix: Mpr = dqp/dqr
 //------------------------------------------------------------------------------
 void Material_Get_Transformation_Matrix(double *dpVariableIn, int ivVarTypeFrom, int ivVarTypeTo, double **Matrix) {
+    double daEOSVariable[NEQUATIONS];
+    
+    // This is done to preserve the accuracy of dpVariableIn
+    // if passed directly to EOS functions will result in loss of accuracy
+    for (int i = 0; i < NEQUATIONS; i++)
+        daEOSVariable[i] = dpVariableIn[i];
+    
     // Compute the EOS Based on Variable Type of Q
     switch (VariableType) {
         // Conservative Variable Formulation
@@ -567,11 +658,11 @@ void Material_Get_Transformation_Matrix(double *dpVariableIn, int ivVarTypeFrom,
             break;
         // Primitive Variable Formulation Density Velocity Pressure
         case VARIABLE_RUP:
-            dpVariableIn[4] = dpVariableIn[4] + Gauge_Pressure; // Pressure
+            daEOSVariable[4] += Gauge_Pressure; // Pressure
             break;
         // Primitive Variable Formulation Pressure Velocity Temperature
         case VARIABLE_PUT:
-            dpVariableIn[0] = dpVariableIn[0] + Gauge_Pressure; // Pressure
+            daEOSVariable[0] += Gauge_Pressure; // Pressure
             break;
         // Primitive Variable Formulation Density Velocity Temperature
         case VARIABLE_RUT:
@@ -583,6 +674,6 @@ void Material_Get_Transformation_Matrix(double *dpVariableIn, int ivVarTypeFrom,
     }
     
     // Compute the Transformation Matrix
-    EOS_Get_Transformation_Matrix(MaterialDimType, VariableType, dpVariableIn, ivVarTypeFrom, ivVarTypeTo, Matrix);
+    EOS_Get_Transformation_Matrix(MaterialEOS_IO_Type, VariableType, daEOSVariable, ivVarTypeFrom, ivVarTypeTo, Matrix);
 }
 

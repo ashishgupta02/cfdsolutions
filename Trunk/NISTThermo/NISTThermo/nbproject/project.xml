@@ -27,6 +27,22 @@
                     <name>Release_GUPC_x86_64</name>
                     <type>2</type>
                 </confElem>
+                <confElem>
+                    <name>Debug_Intel</name>
+                    <type>2</type>
+                </confElem>
+                <confElem>
+                    <name>Release_Intel</name>
+                    <type>2</type>
+                </confElem>
+                <confElem>
+                    <name>Debug_GUPC_ppc64</name>
+                    <type>2</type>
+                </confElem>
+                <confElem>
+                    <name>Release_GUPC_ppc64</name>
+                    <type>2</type>
+                </confElem>
             </confList>
         </data>
     </configuration>

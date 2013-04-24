@@ -9,16 +9,17 @@
 
 // Custom header files
 #include "Trim_Utils.h"
+#include "MC.h"
+#include "Commons.h"
+#include "DebugSolver.h"
 #include "RestartIO.h"
 #include "MeshIO.h"
-#include "Commons.h"
 #include "Solver.h"
-#include "MC.h"
 #include "Gradient.h"
 #include "CompressibleUtils.h"
 #include "Residual_Smoothing.h"
 #include "Material.h"
-#include "DebugSolver.h"
+#include "Jacobian.h"
 
 
 //------------------------------------------------------------------------------
@@ -32,25 +33,35 @@ int Solver_Steady_Implicit_Euler(void) {
 //! Solver in Implicit Steady State Mode
 //------------------------------------------------------------------------------
 int Solver_Steady_Implicit(void) {
-    int AddTime   = FALSE;
-    int CheckNAN  = 0;
-    int SaveOrder = 0;
+    int AddTime     = FALSE;
+    int CheckNAN    = 0;
+    int SaveOrder   = 0;
+    int SaveRMS     = 0;
     int SaveLimiter = 0;
-    double lrms;
+    double lrms     = 0.0;
+    double scale_RMS[NEQUATIONS], scale_RMS_Res;
+    
+    // Initialize
+    for (int i = 0; i < NEQUATIONS; i++)
+        scale_RMS[i] = 1.0;
+    scale_RMS_Res = 1.0;
     
     // Save Solver Parameters
     SaveOrder   = SolverOrder;
     SaveLimiter = LimiterMethod;
-
+    
+    // Initialize the Jacobian Data Structure
+    Jacobian_Init();
+    
     // Pseduo-Time Loop
     for (int iter = RestartIteration; iter < SolverNIteration; iter++) {
         // Reset Residuals and DeltaT
         for (int i = 0; i < nNode; i++) {
-            Res1[i]      = 0.0;
-            Res2[i]      = 0.0;
-            Res3[i]      = 0.0;
-            Res4[i]      = 0.0;
-            Res5[i]      = 0.0;
+            Res1_Conv[i] = 0.0;
+            Res2_Conv[i] = 0.0;
+            Res3_Conv[i] = 0.0;
+            Res4_Conv[i] = 0.0;
+            Res5_Conv[i] = 0.0;
             Res1_Diss[i] = 0.0;
             Res2_Diss[i] = 0.0;
             Res3_Diss[i] = 0.0;
@@ -73,6 +84,8 @@ int Solver_Steady_Implicit(void) {
         
         // Min and Max Precondition Variable
         if (PrecondMethod != PRECOND_METHOD_NONE) {
+            for (int i = 0; i < nNode; i++)
+                PrecondSigma[i] = 0.0;
             MinPrecondSigma = DBL_MAX;
             MaxPrecondSigma = DBL_MIN;
         }
@@ -108,30 +121,45 @@ int Solver_Steady_Implicit(void) {
         
         // Compute Local Time Stepping
         Compute_DeltaT(iter);
-
+        
+        // Smooth the Residual: DeltaT Computation is required
+        if (ResidualSmoothMethod != RESIDUAL_SMOOTH_METHOD_NONE)
+            Residual_Smoothing();
+        
         // Compute RMS
         RMS[0] = RMS[1] = RMS[2] = RMS[3] = RMS[4] = 0.0;
         for (int i = 0; i < nNode; i++) {
-            RMS[0] += Res1[i]*Res1[i];
-            RMS[1] += Res2[i]*Res2[i];
-            RMS[2] += Res3[i]*Res3[i];
-            RMS[3] += Res4[i]*Res4[i];
-            RMS[4] += Res5[i]*Res5[i];
+            RMS[0] += (Res1_Conv[i] + Res1_Diss[i])*(Res1_Conv[i] + Res1_Diss[i]);
+            RMS[1] += (Res2_Conv[i] + Res2_Diss[i])*(Res2_Conv[i] + Res2_Diss[i]);
+            RMS[2] += (Res3_Conv[i] + Res3_Diss[i])*(Res3_Conv[i] + Res3_Diss[i]);
+            RMS[3] += (Res4_Conv[i] + Res4_Diss[i])*(Res4_Conv[i] + Res4_Diss[i]);
+            RMS[4] += (Res5_Conv[i] + Res5_Diss[i])*(Res5_Conv[i] + Res5_Diss[i]);
         }
         RMS_Res = RMS[0] + RMS[1] + RMS[2] + RMS[3] + RMS[4];
         RMS_Res = sqrt(RMS_Res/(5.0 * (double)nNode));
-        RMS[0] = sqrt(RMS[0]/(double)nNode);
-        RMS[1] = sqrt(RMS[1]/(double)nNode);
-        RMS[2] = sqrt(RMS[2]/(double)nNode);
-        RMS[3] = sqrt(RMS[3]/(double)nNode);
-        RMS[4] = sqrt(RMS[4]/(double)nNode);
-
+        for (int i = 0; i < NEQUATIONS; i++)
+            RMS[i] = sqrt(RMS[i]/(double)nNode);
+        
+        // Normalize the RMS
+        if (SaveRMS == 0) {
+            scale_RMS_Res = 0.0;
+            for (int i = 0; i < NEQUATIONS; i++) {
+                scale_RMS[i] = RMS[i];
+                scale_RMS_Res += RMS[i];
+            }
+            scale_RMS_Res /= NEQUATIONS;
+            SaveRMS = 1;
+        }
+        for (int i = 0; i < NEQUATIONS; i++)
+            RMS[i] /= scale_RMS[i];
+        RMS_Res /= scale_RMS_Res;
+        
         // Write RMS
         RMS_Writer(iter+1, RMS);
         
         // Check for Residual NAN
         if (isnan(RMS_Res)) {
-            info("Solve_Implicit: NAN Encountered ! - Abort");
+            info("Solve_Steady_Implicit: NAN Encountered ! - Abort");
             iter = SolverNIteration + 1;
             CheckNAN = 1;
             VTK_Writer("SolutionBeforeNAN.vtk", 1);;
@@ -142,11 +170,11 @@ int Solver_Steady_Implicit(void) {
         Compute_Jacobian(AddTime, iter);
         
         // Solve for Solution
-        lrms = MC_Iterative_Block_LU_Jacobi_CRS(LinearSolverNIteration, 0, SolverBlockMatrix);
+        lrms = MC_Iterative_Block_LU_Jacobi_CRS(LinearSolverNIteration, 0, SolverBlockMatrix);       
         
         // Check for Linear Solver NAN
         if (isnan(lrms)) {
-            info("Solve_Implicit: Liner Solver Iteration: NAN Encountered ! - Abort");
+            info("Solve_Steady_Implicit: Liner Solver Iteration: NAN Encountered ! - Abort");
             iter = SolverNIteration + 1;
         }
         
@@ -159,6 +187,12 @@ int Solver_Steady_Implicit(void) {
             Q5[i] += Relaxation*SolverBlockMatrix.X[i][4];
         }
 
+        // Precondition Variable Normalize
+        if (PrecondMethod != PRECOND_METHOD_NONE) {
+            for (int i = 0; i < nNode; i++)
+                PrecondSigma[i] /= (crs_IA_Node2Node[i+1] - crs_IA_Node2Node[i]);
+        }
+        
         // Check Cyclic Restart is Requested
         RestartIteration = iter+1;
         Check_Restart(iter);
@@ -168,6 +202,9 @@ int Solver_Steady_Implicit(void) {
         }
     }
 
+    // Finalize the Jacobian Data Structure
+    Jacobian_Finalize();
+    
     // Check if Solution Restart is Requested
     if (RestartOutput && CheckNAN != 1)
         Restart_Writer(RestartOutputFilename, 1);

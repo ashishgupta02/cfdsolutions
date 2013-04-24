@@ -227,7 +227,7 @@ void Compute_RoeAverage_Q(double *Q_L, double *Q_R, double *Q_Roe) {
 //  Note: For reqInv == 0: C = Mro
 //                   else: Cinv = Mor
 //------------------------------------------------------------------------------
-void Compute_Roe_Transformed_Precondition_Matrix_None(int nodeID, int reqInv, double **PrecondMatrix) {
+void Compute_Transformed_Preconditioner_Matrix_Roe_None(int nodeID, int reqInv, double **PrecondMatrix) {
     double Q[5];
     
     // Get the Variables
@@ -238,7 +238,6 @@ void Compute_Roe_Transformed_Precondition_Matrix_None(int nodeID, int reqInv, do
     Q[4] = Q5[nodeID];
     
     // Check if Inverse Preconditioner is Requested
-    // Note Rho is can be perturb
     if (reqInv == 0) {
         // Compute Transformation
         // Mro
@@ -255,8 +254,8 @@ void Compute_Roe_Transformed_Precondition_Matrix_None(int nodeID, int reqInv, do
 //  Note: For reqInv == 0: C = Mrp.K.Mpo
 //                   else: Cinv = Mop.Kinv.Mpr
 //------------------------------------------------------------------------------
-void Compute_Roe_Transformed_Precondition_Matrix_Merkel(int nodeID, int reqInv, double **PrecondMatrix) {
-    error("Compute_Roe_Transformed_Precondition_Matrix_Merkel: Merkel Preconditioner Not Implemented - %d", PrecondMethod);
+void Compute_Transformed_Preconditioner_Matrix_Roe_Merkel(int nodeID, int reqInv, double **PrecondMatrix) {
+    error("Compute_Transformed_Preconditioner_Matrix_Roe_Merkel: Merkel Preconditioner Not Implemented - %d", PrecondMethod);
 }
 
 //------------------------------------------------------------------------------
@@ -264,7 +263,7 @@ void Compute_Roe_Transformed_Precondition_Matrix_Merkel(int nodeID, int reqInv, 
 //  Note: For reqInv == 0: C = Mrp.K.Mpo
 //                   else: Cinv = Mop.Kinv.Mpr
 //------------------------------------------------------------------------------
-void Compute_Roe_Transformed_Precondition_Matrix_Turkel(int nodeID, int reqInv, double **PrecondMatrix) {
+void Compute_Transformed_Preconditioner_Matrix_Roe_Turkel(int nodeID, int reqInv, double **PrecondMatrix) {
     int j, nid;
     double Q[5], lQ[5];
     double rho, u, v, w, p, T, c, ht, et, q2, mach;
@@ -322,15 +321,15 @@ void Compute_Roe_Transformed_Precondition_Matrix_Turkel(int nodeID, int reqInv, 
     beta = 1.0; // Corresponds to no pre-conditioning
     if (PrecondType == PRECOND_TYPE_LOCAL) {
         mach = MAX(mach, mach_max);
-        if (mach < Ref_Mach)
-            beta = 0.5*(mach*mach)/(Ref_Mach*Ref_Mach) - mach/(Ref_Mach) + 1.0;
+        if (mach < PrecondGlobalMach)
+            beta = 0.5*(mach*mach)/(PrecondGlobalMach*PrecondGlobalMach) - mach/(PrecondGlobalMach) + 1.0;
         else
             beta = 0.5;
-        beta = beta*(sqrt(mach*Ref_Mach)+ mach);
+        beta = beta*(sqrt(mach*PrecondGlobalMach)+ mach);
         beta = MIN(1.0, beta);
     }
     if (PrecondType == PRECOND_TYPE_GLOBAL)
-        beta = MIN(1.0, Ref_Mach);
+        beta = MIN(1.0, PrecondGlobalMach);
     
     // Beta is function of M*M
     beta = beta*beta;
@@ -339,20 +338,20 @@ void Compute_Roe_Transformed_Precondition_Matrix_Turkel(int nodeID, int reqInv, 
     alpha = 0.0;
     delta = 0.0;
     switch (PrecondMethod) {
-        case PRECOND_METHOD_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
+        case PRECOND_METHOD_BTW: // Briley Taylor Whitfield Pre-Conditioner
             alpha = 0.0;
             delta = 1.0;
             break;
-        case PRECOND_METHOD_ERIKSSON: // Roe Eriksson Pre-Conditioner
+        case PRECOND_METHOD_ERIKSSON: // Eriksson Pre-Conditioner
             alpha = 0.0;
             delta = beta;
             break;
-        case PRECOND_METHOD_TURKEL: // Roe Turkel Pre-Conditioner
+        case PRECOND_METHOD_TURKEL: // Turkel Pre-Conditioner
             alpha = 0.4;
             delta = beta;
             break;
         default:
-            error("Compute_Roe_Transformed_Precondition_Matrix_Turkel: Invalid Solver Precondition Scheme - %d", PrecondMethod);
+            error("Compute_Transformed_Preconditioner_Matrix_Roe_Turkel: Invalid Solver Precondition Scheme - %d", PrecondMethod);
             break;
     }
     
@@ -455,32 +454,32 @@ void Compute_Roe_Transformed_Precondition_Matrix_Turkel(int nodeID, int reqInv, 
 //  Note: For reqInv == 0: C = Mrp.K.Mpo
 //                   else: Cinv = Mop.Kinv.Mpr
 //------------------------------------------------------------------------------
-void Compute_Roe_Transformed_Precondition_Matrix(int nodeID, int reqInv, double **PrecondMatrix) {
+void Compute_Transformed_Preconditioner_Matrix_Roe(int nodeID, int reqInv, double **PrecondMatrix) {
     // Precondition the Residuals
     switch (PrecondMethod) {
         case PRECOND_METHOD_NONE: // Roe
-            Compute_Roe_Transformed_Precondition_Matrix_None(nodeID, reqInv, PrecondMatrix);
+            Compute_Transformed_Preconditioner_Matrix_Roe_None(nodeID, reqInv, PrecondMatrix);
             break;
         case PRECOND_METHOD_LMFIX: // LMRoe
-            Compute_Roe_Transformed_Precondition_Matrix_None(nodeID, reqInv, PrecondMatrix);
+            Compute_Transformed_Preconditioner_Matrix_Roe_None(nodeID, reqInv, PrecondMatrix);
             break;
         case PRECOND_METHOD_THORNBER: // THORNBER
-            Compute_Roe_Transformed_Precondition_Matrix_None(nodeID, reqInv, PrecondMatrix);
+            Compute_Transformed_Preconditioner_Matrix_Roe_None(nodeID, reqInv, PrecondMatrix);
             break;
-        case PRECOND_METHOD_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
-            Compute_Roe_Transformed_Precondition_Matrix_Turkel(nodeID, reqInv, PrecondMatrix);
+        case PRECOND_METHOD_BTW: // Briley Taylor Whitfield Pre-Conditioner
+            Compute_Transformed_Preconditioner_Matrix_Roe_Turkel(nodeID, reqInv, PrecondMatrix);
             break;
-        case PRECOND_METHOD_ERIKSSON: // Roe Eriksson Pre-Conditioner
-            Compute_Roe_Transformed_Precondition_Matrix_Turkel(nodeID, reqInv, PrecondMatrix);
+        case PRECOND_METHOD_ERIKSSON: // Eriksson Pre-Conditioner
+            Compute_Transformed_Preconditioner_Matrix_Roe_Turkel(nodeID, reqInv, PrecondMatrix);
             break;
-        case PRECOND_METHOD_MERKEL: // Roe Merkel Pre-Conditioner
-            Compute_Roe_Transformed_Precondition_Matrix_Merkel(nodeID, reqInv, PrecondMatrix);
+        case PRECOND_METHOD_MERKEL: // Merkel Pre-Conditioner
+            Compute_Transformed_Preconditioner_Matrix_Roe_Merkel(nodeID, reqInv, PrecondMatrix);
             break;
-        case PRECOND_METHOD_TURKEL: // Roe Turkel Pre-Conditioner
-            Compute_Roe_Transformed_Precondition_Matrix_Turkel(nodeID, reqInv, PrecondMatrix);
+        case PRECOND_METHOD_TURKEL: // Turkel Pre-Conditioner
+            Compute_Transformed_Preconditioner_Matrix_Roe_Turkel(nodeID, reqInv, PrecondMatrix);
             break;
         default:
-            error("Compute_Roe_Transformed_Precondition_Matrix: Invalid Solver Precondition Scheme - %d", PrecondMethod);
+            error("Compute_Transformed_Preconditioner_Matrix_Roe: Invalid Solver Precondition Scheme - %d", PrecondMethod);
             break;
     }
 }
@@ -511,11 +510,11 @@ void Compute_Transformed_Residual_Roe(void) {
         
         // Compute Transform Convective Residual
         // Get the Convective Residual
-        res_roe_conv[0] = Res1[inode];
-        res_roe_conv[1] = Res2[inode];
-        res_roe_conv[2] = Res3[inode];
-        res_roe_conv[3] = Res4[inode];
-        res_roe_conv[4] = Res5[inode];
+        res_roe_conv[0] = Res1_Conv[inode];
+        res_roe_conv[1] = Res2_Conv[inode];
+        res_roe_conv[2] = Res3_Conv[inode];
+        res_roe_conv[3] = Res4_Conv[inode];
+        res_roe_conv[4] = Res5_Conv[inode];
         
         // Finally Compute Transformed Convective Residual
         res_roe[0] = 0.0;
@@ -524,11 +523,11 @@ void Compute_Transformed_Residual_Roe(void) {
         res_roe[3] = 0.0;
         res_roe[4] = 0.0;
         MC_Matrix_Mul_Vector(5, 5, Roe_M, res_roe_conv, res_roe);
-        Res1[inode] = res_roe[0];
-        Res2[inode] = res_roe[1];
-        Res3[inode] = res_roe[2];
-        Res4[inode] = res_roe[3];
-        Res5[inode] = res_roe[4];
+        Res1_Conv[inode] = res_roe[0];
+        Res2_Conv[inode] = res_roe[1];
+        Res3_Conv[inode] = res_roe[2];
+        Res4_Conv[inode] = res_roe[3];
+        Res5_Conv[inode] = res_roe[4];
         
         // Compute Transform Dissipative Residual
         // Get the Dissipative Residual
@@ -623,15 +622,15 @@ void Compute_Steady_Residual_Roe_Precondition_Turkel(void) {
         beta = 1.0; // Corresponds to no pre-conditioning
         if (PrecondType == PRECOND_TYPE_LOCAL) {
             mach = MAX(mach, mach_max);
-            if (mach < Ref_Mach)
-                beta = 0.5*(mach*mach)/(Ref_Mach*Ref_Mach) - mach/(Ref_Mach) + 1.0;
+            if (mach < PrecondGlobalMach)
+                beta = 0.5*(mach*mach)/(PrecondGlobalMach*PrecondGlobalMach) - mach/(PrecondGlobalMach) + 1.0;
             else
                 beta = 0.5;
-            beta = beta*(sqrt(mach*Ref_Mach)+ mach);
+            beta = beta*(sqrt(mach*PrecondGlobalMach)+ mach);
             beta = MIN(1.0, beta);
         }
         if (PrecondType == PRECOND_TYPE_GLOBAL)
-            beta = MIN(1.0, Ref_Mach);
+            beta = MIN(1.0, PrecondGlobalMach);
         
         // Min and Max Precondition Variable
         MinPrecondSigma = MIN(MinPrecondSigma, beta);
@@ -644,15 +643,15 @@ void Compute_Steady_Residual_Roe_Precondition_Turkel(void) {
         alpha = 0.0;
         delta = 0.0;
         switch (PrecondMethod) {
-            case PRECOND_METHOD_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
+            case PRECOND_METHOD_BTW: // Briley Taylor Whitfield Pre-Conditioner
                 alpha = 0.0;
                 delta = 1.0;
                 break;
-            case PRECOND_METHOD_ERIKSSON: // Roe Eriksson Pre-Conditioner
+            case PRECOND_METHOD_ERIKSSON: // Eriksson Pre-Conditioner
                 alpha = 0.0;
                 delta = beta;
                 break;
-            case PRECOND_METHOD_TURKEL: // Roe Turkel Pre-Conditioner
+            case PRECOND_METHOD_TURKEL: // Turkel Pre-Conditioner
                 alpha = 0.4;
                 delta = beta;
                 break;
@@ -708,11 +707,11 @@ void Compute_Steady_Residual_Roe_Precondition_Turkel(void) {
         // STEP 6:
         // Compute Preconditioned Convective Residual
         // Get the Convective Residual
-        res_roe_conv[0] = Res1[inode];
-        res_roe_conv[1] = Res2[inode];
-        res_roe_conv[2] = Res3[inode];
-        res_roe_conv[3] = Res4[inode];
-        res_roe_conv[4] = Res5[inode];
+        res_roe_conv[0] = Res1_Conv[inode];
+        res_roe_conv[1] = Res2_Conv[inode];
+        res_roe_conv[2] = Res3_Conv[inode];
+        res_roe_conv[3] = Res4_Conv[inode];
+        res_roe_conv[4] = Res5_Conv[inode];
         // Finally Compute precondition convective residual
         res_roe[0] = 0.0;
         res_roe[1] = 0.0;
@@ -720,11 +719,11 @@ void Compute_Steady_Residual_Roe_Precondition_Turkel(void) {
         res_roe[3] = 0.0;
         res_roe[4] = 0.0;
         MC_Matrix_Mul_Vector(NEQUATIONS, NEQUATIONS, Roe_T, res_roe_conv, res_roe);
-        Res1[inode] = res_roe[0];
-        Res2[inode] = res_roe[1];
-        Res3[inode] = res_roe[2];
-        Res4[inode] = res_roe[3];
-        Res5[inode] = res_roe[4];
+        Res1_Conv[inode] = res_roe[0];
+        Res2_Conv[inode] = res_roe[1];
+        Res3_Conv[inode] = res_roe[2];
+        Res4_Conv[inode] = res_roe[3];
+        Res5_Conv[inode] = res_roe[4];
         
         // STEP 7:
         // Compute the Preconditioned Dissipative Residual
@@ -1923,20 +1922,21 @@ void Compute_Flux_Roe_Precondition_Turkel(int node_L, int node_R, Vector3D areav
         beta = 1.0; // Corresponds to no pre-conditioning
         if (PrecondType == PRECOND_TYPE_LOCAL) {
             mach = MAX(mach, mach_max);
-            if (mach < Ref_Mach)
-                beta = 0.5*(mach*mach)/(Ref_Mach*Ref_Mach) - mach/(Ref_Mach) + 1.0;
+            if (mach < PrecondGlobalMach)
+                beta = 0.5*(mach*mach)/(PrecondGlobalMach*PrecondGlobalMach) - mach/(PrecondGlobalMach) + 1.0;
             else
                 beta = 0.5;
-            beta = beta*(sqrt(mach*Ref_Mach)+ mach);
+            beta = beta*(sqrt(mach*PrecondGlobalMach)+ mach);
             beta = MIN(1.0, beta);
-            
-            if (node_L < nNode && node_R < nNode) {
-                PrecondSigma[node_L] += beta;
-                PrecondSigma[node_R] += beta;
-            }
         }
         if (PrecondType == PRECOND_TYPE_GLOBAL)
-            beta = MIN(1.0, Ref_Mach);
+            beta = MIN(1.0, PrecondGlobalMach);
+        
+        // Preconditioning Parameter
+        if (node_L < nNode && node_R < nNode) {
+            PrecondSigma[node_L] += beta;
+            PrecondSigma[node_R] += beta;
+        }
         
         // Beta is function of M*M
         beta  = beta*beta;
@@ -1945,15 +1945,15 @@ void Compute_Flux_Roe_Precondition_Turkel(int node_L, int node_R, Vector3D areav
         alpha = 0.0;
         delta = 0.0;
         switch (PrecondMethod) {
-            case PRECOND_METHOD_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
+            case PRECOND_METHOD_BTW: // Briley Taylor Whitfield Pre-Conditioner
                 alpha = 0.0;
                 delta = 1.0;
                 break;
-            case PRECOND_METHOD_ERIKSSON: // Roe Eriksson Pre-Conditioner
+            case PRECOND_METHOD_ERIKSSON: // Eriksson Pre-Conditioner
                 alpha = 0.0;
                 delta = beta;
                 break;
-            case PRECOND_METHOD_TURKEL: // Roe Turkel Pre-Conditioner
+            case PRECOND_METHOD_TURKEL: // Turkel Pre-Conditioner
                 alpha = 0.4;
                 delta = beta;
                 break;
@@ -2922,20 +2922,21 @@ void Compute_Dissipation_Matrix_Roe_Precondition_Turkel(int node_L, int node_R, 
         beta = 1.0; // Corresponds to no pre-conditioning
         if (PrecondType == PRECOND_TYPE_LOCAL) {
             mach = MAX(mach, mach_max);
-            if (mach < Ref_Mach)
-                beta = 0.5*(mach*mach)/(Ref_Mach*Ref_Mach) - mach/(Ref_Mach) + 1.0;
+            if (mach < PrecondGlobalMach)
+                beta = 0.5*(mach*mach)/(PrecondGlobalMach*PrecondGlobalMach) - mach/(PrecondGlobalMach) + 1.0;
             else
                 beta = 0.5;
-            beta = beta*(sqrt(mach*Ref_Mach)+ mach);
+            beta = beta*(sqrt(mach*PrecondGlobalMach)+ mach);
             beta = MIN(1.0, beta);
-            
-            if (node_L < nNode && node_R < nNode) {
-                PrecondSigma[node_L] += beta;
-                PrecondSigma[node_R] += beta;
-            }
         }
         if (PrecondType == PRECOND_TYPE_GLOBAL)
-            beta = MIN(1.0, Ref_Mach);
+            beta = MIN(1.0, PrecondGlobalMach);
+        
+        // Preconditioning Parameter
+        if (node_L < nNode && node_R < nNode) {
+            PrecondSigma[node_L] += beta;
+            PrecondSigma[node_R] += beta;
+        }
         
         // Beta is function of M*M
         beta    = beta*beta;
@@ -2944,15 +2945,15 @@ void Compute_Dissipation_Matrix_Roe_Precondition_Turkel(int node_L, int node_R, 
         alpha = 0.0;
         delta = 0.0;
         switch (PrecondMethod) {
-            case PRECOND_METHOD_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
+            case PRECOND_METHOD_BTW: // Briley Taylor Whitfield Pre-Conditioner
                 alpha = 0.0;
                 delta = 1.0;
                 break;
-            case PRECOND_METHOD_ERIKSSON: // Roe Eriksson Pre-Conditioner
+            case PRECOND_METHOD_ERIKSSON: // Eriksson Pre-Conditioner
                 alpha = 0.0;
                 delta = beta;
                 break;
-            case PRECOND_METHOD_TURKEL: // Roe Turkel Pre-Conditioner
+            case PRECOND_METHOD_TURKEL: // Turkel Pre-Conditioner
                 alpha = 0.4;
                 delta = beta;
                 break;
@@ -3124,16 +3125,16 @@ void Compute_Dissipation_Matrix_Roe(int node_L, int node_R, Vector3D areavec, do
         case PRECOND_METHOD_THORNBER: // THORNBER
             Compute_Dissipation_Matrix_Roe_Thornber(node_L, node_R, areavec, Dissipation_Matrix_Roe);
             break;
-        case PRECOND_METHOD_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
+        case PRECOND_METHOD_BTW: // Briley Taylor Whitfield Pre-Conditioner
             Compute_Dissipation_Matrix_Roe_Precondition_Turkel(node_L, node_R, areavec, Dissipation_Matrix_Roe);
             break;
-        case PRECOND_METHOD_ERIKSSON: // Roe Eriksson Pre-Conditioner
+        case PRECOND_METHOD_ERIKSSON: // Eriksson Pre-Conditioner
             Compute_Dissipation_Matrix_Roe_Precondition_Turkel(node_L, node_R, areavec, Dissipation_Matrix_Roe);
             break;
-        case PRECOND_METHOD_MERKEL: // Roe Merkel Pre-Conditioner
+        case PRECOND_METHOD_MERKEL: // Merkel Pre-Conditioner
             Compute_Dissipation_Matrix_Roe_Precondition_Merkel(node_L, node_R, areavec, Dissipation_Matrix_Roe);
             break;
-        case PRECOND_METHOD_TURKEL: // Roe Turkel Pre-Conditioner
+        case PRECOND_METHOD_TURKEL: // Turkel Pre-Conditioner
             Compute_Dissipation_Matrix_Roe_Precondition_Turkel(node_L, node_R, areavec, Dissipation_Matrix_Roe);
             break;
         default:
@@ -3158,16 +3159,16 @@ void Compute_Flux_Roe(int node_L, int node_R, Vector3D areavec, double *Flux_Roe
         case PRECOND_METHOD_THORNBER: // THORNBER
             Compute_Flux_Roe_Thornber(node_L, node_R, areavec, Flux_Roe_Conv, Flux_Roe_Diss, AddTime);
             break;
-        case PRECOND_METHOD_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
+        case PRECOND_METHOD_BTW: // Briley Taylor Whitfield Pre-Conditioner
             Compute_Flux_Roe_Precondition_Turkel(node_L, node_R, areavec, Flux_Roe_Conv, Flux_Roe_Diss, AddTime);
             break;
-        case PRECOND_METHOD_ERIKSSON: // Roe Eriksson Pre-Conditioner
+        case PRECOND_METHOD_ERIKSSON: // Eriksson Pre-Conditioner
             Compute_Flux_Roe_Precondition_Turkel(node_L, node_R, areavec, Flux_Roe_Conv, Flux_Roe_Diss, AddTime);
             break;
-        case PRECOND_METHOD_MERKEL: // Roe Merkel Pre-Conditioner
+        case PRECOND_METHOD_MERKEL: // Merkel Pre-Conditioner
             Compute_Flux_Roe_Precondition_Merkel(node_L, node_R, areavec, Flux_Roe_Conv, Flux_Roe_Diss, AddTime);
             break;
-        case PRECOND_METHOD_TURKEL: // Roe Turkel Pre-Conditioner
+        case PRECOND_METHOD_TURKEL: // Turkel Pre-Conditioner
             Compute_Flux_Roe_Precondition_Turkel(node_L, node_R, areavec, Flux_Roe_Conv, Flux_Roe_Diss, AddTime);
             break;
         default:
@@ -3204,17 +3205,17 @@ void Compute_Residual_Roe(int AddTime) {
         
         // Convective Term
         // L-Node
-        Res1[node_L] += flux_roe_conv[0];
-        Res2[node_L] += flux_roe_conv[1];
-        Res3[node_L] += flux_roe_conv[2];
-        Res4[node_L] += flux_roe_conv[3];
-        Res5[node_L] += flux_roe_conv[4];
+        Res1_Conv[node_L] += flux_roe_conv[0];
+        Res2_Conv[node_L] += flux_roe_conv[1];
+        Res3_Conv[node_L] += flux_roe_conv[2];
+        Res4_Conv[node_L] += flux_roe_conv[3];
+        Res5_Conv[node_L] += flux_roe_conv[4];
         // R-Node
-        Res1[node_R] -= flux_roe_conv[0];
-        Res2[node_R] -= flux_roe_conv[1];
-        Res3[node_R] -= flux_roe_conv[2];
-        Res4[node_R] -= flux_roe_conv[3];
-        Res5[node_R] -= flux_roe_conv[4];
+        Res1_Conv[node_R] -= flux_roe_conv[0];
+        Res2_Conv[node_R] -= flux_roe_conv[1];
+        Res3_Conv[node_R] -= flux_roe_conv[2];
+        Res4_Conv[node_R] -= flux_roe_conv[3];
+        Res5_Conv[node_R] -= flux_roe_conv[4];
         
         // Dissipation Term
         // L-Node
@@ -3249,11 +3250,11 @@ void Compute_Residual_Roe(int AddTime) {
         
         // Convective Term
         // L-Node
-        Res1[node_L] += flux_roe_conv[0];
-        Res2[node_L] += flux_roe_conv[1];
-        Res3[node_L] += flux_roe_conv[2];
-        Res4[node_L] += flux_roe_conv[3];
-        Res5[node_L] += flux_roe_conv[4];
+        Res1_Conv[node_L] += flux_roe_conv[0];
+        Res2_Conv[node_L] += flux_roe_conv[1];
+        Res3_Conv[node_L] += flux_roe_conv[2];
+        Res4_Conv[node_L] += flux_roe_conv[3];
+        Res5_Conv[node_L] += flux_roe_conv[4];
         
         // Dissipation Term
         // L-Node
@@ -3264,11 +3265,11 @@ void Compute_Residual_Roe(int AddTime) {
         Res5_Diss[node_L] += flux_roe_diss[4];
     }
     
-    // Transform the Residuals into Desired variable Form
-    Compute_Transformed_Residual_Roe();
-    
     // Precondition the Residuals
     if ((SolverMethod == SOLVER_METHOD_STEADY) && (SolverScheme == SOLVER_SCHEME_EXPLICIT)) {
+        // Transform the Residuals into Desired variable Form
+        Compute_Transformed_Residual_Roe();
+        
         switch (PrecondMethod) {
             case PRECOND_METHOD_NONE: // Roe
                 break;
@@ -3276,16 +3277,16 @@ void Compute_Residual_Roe(int AddTime) {
                 break;
             case PRECOND_METHOD_THORNBER: // THORNBER
                 break;
-            case PRECOND_METHOD_BTW: // Roe Briley Taylor Whitfield Pre-Conditioner
+            case PRECOND_METHOD_BTW: // Briley Taylor Whitfield Pre-Conditioner
                 Compute_Steady_Residual_Roe_Precondition_Turkel();
                 break;
-            case PRECOND_METHOD_ERIKSSON: // Roe Eriksson Pre-Conditioner
+            case PRECOND_METHOD_ERIKSSON: // Eriksson Pre-Conditioner
                 Compute_Steady_Residual_Roe_Precondition_Turkel();
                 break;
-            case PRECOND_METHOD_MERKEL: // Roe Merkel Pre-Conditioner
+            case PRECOND_METHOD_MERKEL: // Merkel Pre-Conditioner
                 Compute_Steady_Residual_Roe_Precondition_Merkel();
                 break;
-            case PRECOND_METHOD_TURKEL: // Roe Turkel Pre-Conditioner
+            case PRECOND_METHOD_TURKEL: // Turkel Pre-Conditioner
                 Compute_Steady_Residual_Roe_Precondition_Turkel();
                 break;
             default:
@@ -3296,11 +3297,16 @@ void Compute_Residual_Roe(int AddTime) {
     
     // For now just add both
     for (i = 0; i < nNode; i++) {
-        Res1[i] += Res1_Diss[i];
-        Res2[i] += Res2_Diss[i];
-        Res3[i] += Res3_Diss[i];
-        Res4[i] += Res4_Diss[i];
-        Res5[i] += Res5_Diss[i];
+        Res1_Conv[i] += Res1_Diss[i];
+        Res2_Conv[i] += Res2_Diss[i];
+        Res3_Conv[i] += Res3_Diss[i];
+        Res4_Conv[i] += Res4_Diss[i];
+        Res5_Conv[i] += Res5_Diss[i];
+        Res1_Diss[i] = 0.0;
+        Res2_Diss[i] = 0.0;
+        Res3_Diss[i] = 0.0;
+        Res4_Diss[i] = 0.0;
+        Res5_Diss[i] = 0.0;
     }
 }
 

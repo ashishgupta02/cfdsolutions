@@ -16,62 +16,104 @@
 #include "Material.h"
 #include "Solver.h"
 
+// Static Variable for Speed Up
+static int      RoeJac_DB   = 0;
+static double **RoeJac_dFdL = NULL;
+static double **RoeJac_dFdR = NULL;
+static double **RoeJac_ARoe = NULL;
+
 //------------------------------------------------------------------------------
-//! Computes the Jacobian for all Edges Internal and Boundary
+//! Create Roe Jacobian Data Structure
 //------------------------------------------------------------------------------
-void Compute_Jacobian_Exact_Roe(int AddTime, int Iteration) {
+void RoeJac_Init(void) {
+    int i;
+    double *tmp = NULL;
     
+    // Check if Roe Data Structure is required
+    if (RoeJac_DB == 0) {
+        RoeJac_dFdL = (double **) malloc(NEQUATIONS*sizeof(double*));
+        tmp         = (double *)  malloc(NEQUATIONS*NEQUATIONS*sizeof(double));
+        for (i = 0; i < NEQUATIONS; i++)
+            RoeJac_dFdL[i] = &tmp[i*NEQUATIONS];
+        tmp         = NULL;
+        RoeJac_dFdR = (double **) malloc(NEQUATIONS*sizeof(double*));
+        tmp         = (double *)  malloc(NEQUATIONS*NEQUATIONS*sizeof(double));
+        for (i = 0; i < NEQUATIONS; i++)
+            RoeJac_dFdR[i] = &tmp[i*NEQUATIONS];
+        tmp         = NULL;
+        RoeJac_ARoe = (double **) malloc(NEQUATIONS*sizeof(double*));
+        tmp         = (double *)  malloc(NEQUATIONS*NEQUATIONS*sizeof(double));
+        for (i = 0; i < NEQUATIONS; i++)
+            RoeJac_ARoe[i] = &tmp[i*NEQUATIONS];
+        tmp         = NULL;
+        RoeJac_DB = 1;
+    }
+}
+
+//------------------------------------------------------------------------------
+//! Delete Roe Jacobian Data Structure
+//------------------------------------------------------------------------------
+void RoeJac_Finalize(void) {
+    double *tmp = NULL;
+    
+    tmp = RoeJac_dFdL[0];
+    free(tmp);
+    tmp = RoeJac_dFdR[0];
+    free(tmp);
+    tmp = RoeJac_ARoe[0];
+    free(tmp);
+    tmp = NULL;
+    free(RoeJac_dFdL);
+    free(RoeJac_dFdR);
+    free(RoeJac_ARoe);
+    RoeJac_DB = 0;
+}
+
+//------------------------------------------------------------------------------
+//! Reset Roe Jacobian Data Structure
+//------------------------------------------------------------------------------
+void RoeJac_Reset(void) {
+    int i, j;
+    
+    if (RoeJac_DB == 0)
+        RoeJac_Init();
+    
+    // Initialization
+    for (i = 0; i < NEQUATIONS; i++) {
+        for (j = 0; j < NEQUATIONS; j++) {
+            RoeJac_dFdL[i][j] = 0.0;
+            RoeJac_dFdR[i][j] = 0.0;
+            RoeJac_ARoe[i][j] = 0.0;
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
 //! Computes the Jacobian for all Edges Internal and Boundary
-//! Note: Jacobian is computed using first order Q's
 //------------------------------------------------------------------------------
-void Compute_Jacobian_Approximate_Roe(int AddTime, int Iteration) {
+void Compute_Jacobian_Roe_Exact(int AddTime, int Iteration) {
+    
+}
+
+//------------------------------------------------------------------------------
+//! Computes Roe Jacobian and Build System of Equation: Roe Approximate
+//! Note: Jacobian are computed using first order Q's
+//------------------------------------------------------------------------------
+void Compute_Jacobian_Roe_Approximate(int AddTime, int Iteration) {
     int i, j, k, iNode, iEdge, ibEdge;
     int node_L, node_R;
     int idgn, idgnL, idgnR, ofdgnL, ofdgnR;
-    double area;
-    double **dFdL;
-    double **dFdR;
-    double **ARoe;
+    double area, tmp;
     Vector3D areavec;
     
-    // Create the Helper Matrix
-    dFdL = (double **) malloc(NEQUATIONS*sizeof(double*));
-    dFdR = (double **) malloc(NEQUATIONS*sizeof(double*));
-    ARoe = (double **) malloc(NEQUATIONS*sizeof(double*));
-    for (i = 0; i < NEQUATIONS; i++) {
-        dFdL[i] = (double *) malloc(NEQUATIONS*sizeof(double));
-        dFdR[i] = (double *) malloc(NEQUATIONS*sizeof(double));
-        ARoe[i] = (double *) malloc(NEQUATIONS*sizeof(double));
-    }
+    // Initialize/Reset the Data Structure
+    RoeJac_Reset();
     
     // Initialize the CRS Matrix
     for (i = 0; i < SolverBlockMatrix.DIM; i++) {
         for (j = 0; j < SolverBlockMatrix.Block_nRow; j++) {
             for (k = 0; k < SolverBlockMatrix.Block_nCol; k++)
                 SolverBlockMatrix.A[i][j][k] = 0.0;
-        }
-    }
-    
-    // Copy the Residuals to Block Matrix which is B
-    // And Copy I/DeltaT
-    for (iNode = 0; iNode < nNode; iNode++) {
-        // Get the diagonal location
-        idgn = SolverBlockMatrix.IAU[iNode];
-        // Get the LHS
-        SolverBlockMatrix.B[iNode][0] = -Res1[iNode];
-        SolverBlockMatrix.B[iNode][1] = -Res2[iNode];
-        SolverBlockMatrix.B[iNode][2] = -Res3[iNode];
-        SolverBlockMatrix.B[iNode][3] = -Res4[iNode];
-        SolverBlockMatrix.B[iNode][4] = -Res5[iNode];
-        for (j = 0; j < SolverBlockMatrix.Block_nRow; j++) {
-            if (AddTime == 1) {
-                for (k = 0; k < SolverBlockMatrix.Block_nCol; k++)
-                    if (k == j)
-                        SolverBlockMatrix.A[idgn][j][k] = cVolume[iNode]/DeltaT[iNode];
-            }
         }
     }
     
@@ -110,26 +152,26 @@ void Compute_Jacobian_Approximate_Roe(int AddTime, int Iteration) {
         // Initialize the Helper Matrix
         for (i = 0; i < NEQUATIONS; i++) {
             for (j = 0; j < NEQUATIONS; j++) {
-                dFdL[i][j] = 0.0;
-                dFdR[i][j] = 0.0;
-                ARoe[i][j] = 0.0;
+                RoeJac_dFdL[i][j] = 0.0;
+                RoeJac_dFdR[i][j] = 0.0;
+                RoeJac_ARoe[i][j] = 0.0;
             }
         }
         
-        // Compute dFdL
-        Compute_Flux_Jacobian_Euler_Convective(node_L, areavec, dFdL);
+        // Compute RoeJac_dFdL
+        Compute_Flux_Jacobian_Euler_Convective(node_L, areavec, RoeJac_dFdL);
         
-        // Compute dFdR
-        Compute_Flux_Jacobian_Euler_Convective(node_R, areavec, dFdR);
+        // Compute RoeJac_dFdR
+        Compute_Flux_Jacobian_Euler_Convective(node_R, areavec, RoeJac_dFdR);
         
-        // Compute Roe Jacobian
-        Compute_Dissipation_Matrix_Roe(node_L, node_R, areavec, ARoe);
+        // Compute Dissipation Matrix Roe
+        Compute_Dissipation_Matrix_Roe(node_L, node_R, areavec, RoeJac_ARoe);
         
         // Finally Compute the dFlux/dQ_L and dFlux/dQ_R
         for (i = 0; i < NEQUATIONS; i++) {
             for (j = 0; j < NEQUATIONS; j++) {
-                dFdL[i][j] = 0.5*(dFdL[i][j] + ARoe[i][j])*area;
-                dFdR[i][j] = 0.5*(dFdR[i][j] - ARoe[i][j])*area;
+                RoeJac_dFdL[i][j] = 0.5*(RoeJac_dFdL[i][j] + RoeJac_ARoe[i][j])*area;
+                RoeJac_dFdR[i][j] = 0.5*(RoeJac_dFdR[i][j] - RoeJac_ARoe[i][j])*area;
             }
         }
         
@@ -137,11 +179,11 @@ void Compute_Jacobian_Approximate_Roe(int AddTime, int Iteration) {
         for (i = 0; i < NEQUATIONS; i++) {
             for (j = 0; j < NEQUATIONS; j++) {
                 // Diagonal
-                SolverBlockMatrix.A[idgnL][i][j] += dFdL[i][j];
-                SolverBlockMatrix.A[idgnR][i][j] -= dFdR[i][j];
+                SolverBlockMatrix.A[idgnL][i][j] += RoeJac_dFdL[i][j];
+                SolverBlockMatrix.A[idgnR][i][j] -= RoeJac_dFdR[i][j];
                 // Off-Diagonal
-                SolverBlockMatrix.A[ofdgnL][i][j] += dFdR[i][j];
-                SolverBlockMatrix.A[ofdgnR][i][j] -= dFdL[i][j];
+                SolverBlockMatrix.A[ofdgnL][i][j] += RoeJac_dFdR[i][j];
+                SolverBlockMatrix.A[ofdgnR][i][j] -= RoeJac_dFdL[i][j];
             }
         }
     }
@@ -163,614 +205,63 @@ void Compute_Jacobian_Approximate_Roe(int AddTime, int Iteration) {
         // Initialize the Helper Matrix - Only Physical
         for (i = 0; i < NEQUATIONS; i++) {
             for (j = 0; j < NEQUATIONS; j++) {
-                dFdL[i][j] = 0.0;
-                ARoe[i][j] = 0.0;
+                RoeJac_dFdL[i][j] = 0.0;
+                RoeJac_ARoe[i][j] = 0.0;
             }
         }
         
-        // Compute dFdL
-        Compute_Flux_Jacobian_Euler_Convective(node_L, areavec, dFdL);
+        // Compute RoeJac_dFdL
+        Compute_Flux_Jacobian_Euler_Convective(node_L, areavec, RoeJac_dFdL);
         
-        // Compute Roe Jacobian
-        Compute_Dissipation_Matrix_Roe(node_L, node_R, areavec, ARoe);
+        // Compute Dissipation Matrix Roe
+        Compute_Dissipation_Matrix_Roe(node_L, node_R, areavec, RoeJac_ARoe);
+        
         
         // Finally Compute the dFlux/dQ_L
         for (i = 0; i < NEQUATIONS; i++) {
             for (j = 0; j < NEQUATIONS; j++)
-                dFdL[i][j] = 0.5*(dFdL[i][j] + ARoe[i][j])*area;
+                RoeJac_dFdL[i][j] = 0.5*(RoeJac_dFdL[i][j] + RoeJac_ARoe[i][j])*area;
         }
         
         // Update the Diagonal Term of Physical Node Only
         for (i = 0; i < NEQUATIONS; i++) {
             for (j = 0; j < NEQUATIONS; j++)
-                SolverBlockMatrix.A[idgnL][i][j] += dFdL[i][j];
-        }
-    }
-    
-    // Delete the Helper Matrix
-    for (i = 0; i < NEQUATIONS; i++) {
-        free(ARoe[i]);
-        free(dFdL[i]);
-        free(dFdR[i]);
-    }
-    free(ARoe);
-    free(dFdL);
-    free(dFdR);
-}
-
-//------------------------------------------------------------------------------
-//! Computes the Jacobian for all Edges Internal and Boundary
-//! Note Currently Internal Edges works : Forward, Backward or Central
-//! Boundary Edges Only Central -- Some more research needed.
-//! Note: Jacobian is computed using first order Q's
-//------------------------------------------------------------------------------
-void Compute_Jacobian_FiniteDifference_Roe(int AddTime, int Iteration) {
-    int i, j, k, iNode, iEdge, ibEdge;
-    int node_L, node_R;
-    int idgn, idgnL, idgnR, ofdgnL, ofdgnR;
-    double Q_L[NEQUATIONS];
-    double Q_R[NEQUATIONS];
-    double FluxP_Conv[NEQUATIONS];
-    double FluxP_Diss[NEQUATIONS];
-    double FluxM_Conv[NEQUATIONS];
-    double FluxM_Diss[NEQUATIONS];
-    double dFdL[NEQUATIONS][NEQUATIONS];
-    double dFdR[NEQUATIONS][NEQUATIONS];
-    Vector3D areavec;
-    double eps = 1.0E-8;
-    int FiniteDifference = JacobianMethod;
-    double Coeff = 0.5;
-    
-    // Initialize the CRS Matrix
-    for (i = 0; i < SolverBlockMatrix.DIM; i++) {
-        for (j = 0; j < SolverBlockMatrix.Block_nRow; j++) {
-            for (k = 0; k < SolverBlockMatrix.Block_nCol; k++)
-                SolverBlockMatrix.A[i][j][k] = 0.0;
+                SolverBlockMatrix.A[idgnL][i][j] += RoeJac_dFdL[i][j];
         }
     }
     
     // Copy the Residuals to Block Matrix which is B
-    // And Copy I/DeltaT
+    // And Copy Cinv/DeltaT
     for (iNode = 0; iNode < nNode; iNode++) {
-        // Get the diagonal location
-        idgn = SolverBlockMatrix.IAU[iNode];
         // Get the LHS
-        SolverBlockMatrix.B[iNode][0] = -Res1[iNode];
-        SolverBlockMatrix.B[iNode][1] = -Res2[iNode];
-        SolverBlockMatrix.B[iNode][2] = -Res3[iNode];
-        SolverBlockMatrix.B[iNode][3] = -Res4[iNode];
-        SolverBlockMatrix.B[iNode][4] = -Res5[iNode];
-        for (j = 0; j < SolverBlockMatrix.Block_nRow; j++) {
-            if (AddTime == TRUE) {
+        SolverBlockMatrix.B[iNode][0] = -(Res1_Conv[iNode] + Res1_Diss[iNode]);
+        SolverBlockMatrix.B[iNode][1] = -(Res2_Conv[iNode] + Res2_Diss[iNode]);
+        SolverBlockMatrix.B[iNode][2] = -(Res3_Conv[iNode] + Res3_Diss[iNode]);
+        SolverBlockMatrix.B[iNode][3] = -(Res4_Conv[iNode] + Res4_Diss[iNode]);
+        SolverBlockMatrix.B[iNode][4] = -(Res5_Conv[iNode] + Res5_Diss[iNode]);
+        
+        if (AddTime == TRUE) {
+            // Get the diagonal location
+            idgn = SolverBlockMatrix.IAU[iNode];
+            // Initialize the Helper Matrix
+            for (i = 0; i < NEQUATIONS; i++)
+                for (j = 0; j < NEQUATIONS; j++)
+                    RoeJac_ARoe[i][j] = 0.0;
+
+            // Compute the Transformation Matrix: Cinv = Binv.A
+            Compute_Transformed_Preconditioner_Matrix_Roe(iNode, 1, RoeJac_ARoe);
+
+            // Scale the Diagonal Matrix
+            tmp = cVolume[iNode]/DeltaT[iNode];
+            for (i = 0; i < NEQUATIONS; i++)
+                for (j = 0; j < NEQUATIONS; j++)
+                    RoeJac_ARoe[i][j] *= tmp;
+
+            // Add to the Diagonal SOE
+            for (j = 0; j < SolverBlockMatrix.Block_nRow; j++) {
                 for (k = 0; k < SolverBlockMatrix.Block_nCol; k++)
-                    if (k == j)
-                        SolverBlockMatrix.A[idgn][j][k] = cVolume[iNode]/DeltaT[iNode];
+                        SolverBlockMatrix.A[idgn][j][k] += RoeJac_ARoe[j][k];
             }
-        }
-    }
-    
-    // Check if Alternating
-    if (FiniteDifference == JACOBIAN_METHOD_ALTERNATE) {
-        if (Iteration%2 == 0)
-            FiniteDifference = JACOBIAN_METHOD_FORWARD;
-        else
-            FiniteDifference = JACOBIAN_METHOD_BACKWARD;
-    }
-    
-    // Set the value of Coeff based on Finite Difference Method
-    if (FiniteDifference == JACOBIAN_METHOD_CENTRAL) // Central
-        Coeff =  0.5;
-    else // Forward or Backward
-        Coeff =  1.0;
-    
-    // Internal Edges
-    for (iEdge = 0; iEdge < nEdge; iEdge++) {
-        // Get two nodes of edge
-        node_L = intEdge[iEdge].node[0];
-        node_R = intEdge[iEdge].node[1];
-        
-        // Get area vector
-        areavec = intEdge[iEdge].areav;
-        
-        // Backup the Copy of Q_L and Q_R
-        // Left
-        Q_L[0] = Q1[node_L];
-        Q_L[1] = Q2[node_L];
-        Q_L[2] = Q3[node_L];
-        Q_L[3] = Q4[node_L];
-        Q_L[4] = Q5[node_L];
-        // Right
-        Q_R[0] = Q1[node_R];
-        Q_R[1] = Q2[node_R];
-        Q_R[2] = Q3[node_R];
-        Q_R[3] = Q4[node_R];
-        Q_R[4] = Q5[node_R];
-        
-        // Get the diagonal Locations
-        idgnL = SolverBlockMatrix.IAU[node_L];
-        idgnR = SolverBlockMatrix.IAU[node_R];
-        
-        // Get the Off-Diagonal Locations
-        // node_L: ofdgnL-> node_R;
-        // node_R: ofdgnR-> node_L;
-        ofdgnL = -1;
-        for (i = SolverBlockMatrix.IA[node_L]; i < SolverBlockMatrix.IA[node_L+1]; i++) {
-            if (SolverBlockMatrix.JA[i] == node_R) {
-                ofdgnL = i;
-                break;
-            }
-        }
-        ofdgnR = -1;
-        for (i = SolverBlockMatrix.IA[node_R]; i < SolverBlockMatrix.IA[node_R+1]; i++) {
-            if (SolverBlockMatrix.JA[i] == node_L) {
-                ofdgnR = i;
-                break;
-            }
-        }
-        
-        // Initialize the Helper Matrix
-        for (i = 0; i < NEQUATIONS; i++) {
-            for (j = 0; j < NEQUATIONS; j++) {
-                dFdL[i][j] = 0.0;
-                dFdR[i][j] = 0.0;
-            }
-        }
-        
-        // ---------------------------------------------------------------------
-        // - Left Node ---------------------------------------------------------
-        // -- Q1 ---------------------------------------------------------------
-        // Now Perturb the Left Node Q1 +eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) // Central or Forward
-            Q1[node_L] = Q_L[0] + eps;
-        else
-            Q1[node_L] = Q_L[0];
-        // Based on Finite Difference Method, One Sided Do only once
-        Compute_Flux_Roe(node_L, node_R, areavec, FluxP_Conv, FluxP_Diss, FALSE);
-        
-        // Now Perturb the Left Node Q1 -eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD))  // Central or Backward
-            Q1[node_L] = Q_L[0] - eps;
-        else
-            Q1[node_L] = Q_L[0];
-        // Based on Finite Difference Method, One Sided Do only once
-        Compute_Flux_Roe(node_L, node_R, areavec, FluxM_Conv, FluxM_Diss, FALSE);
-        
-        for (i = 0; i < NEQUATIONS; i++)
-            dFdL[i][0] = Coeff*((FluxP_Conv[i] + FluxP_Diss[i]) - (FluxM_Conv[i] + FluxM_Diss[i]))/eps;
-        // Reset the Q1
-        Q1[node_L] = Q_L[0];
-        
-        // -- Q2 ---------------------------------------------------------------
-        // Now Perturb the Left Node Q2 +eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
-            Q2[node_L] = Q_L[1] + eps;
-            Compute_Flux_Roe(node_L, node_R, areavec, FluxP_Conv, FluxP_Diss, FALSE);
-        }
-        
-        // Now Perturb the Left Node Q2 -eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
-            Q2[node_L] = Q_L[1] - eps;
-            Compute_Flux_Roe(node_L, node_R, areavec, FluxM_Conv, FluxM_Diss, FALSE);
-        }
-        
-        for (i = 0; i < NEQUATIONS; i++)
-            dFdL[i][1] = Coeff*((FluxP_Conv[i] + FluxP_Diss[i]) - (FluxM_Conv[i] + FluxM_Diss[i]))/eps;
-        // Reset the Q2
-        Q2[node_L] = Q_L[1];
-        
-        // -- Q3 ---------------------------------------------------------------
-        // Now Perturb the Left Node Q3 +eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
-            Q3[node_L] = Q_L[2] + eps;
-            Compute_Flux_Roe(node_L, node_R, areavec, FluxP_Conv, FluxP_Diss, FALSE);
-        }
-        
-        // Now Perturb the Left Node Q3 -eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
-            Q3[node_L] = Q_L[2] - eps;
-            Compute_Flux_Roe(node_L, node_R, areavec, FluxM_Conv, FluxM_Diss, FALSE);
-        }
-        
-        for (i = 0; i < NEQUATIONS; i++)
-            dFdL[i][2] = Coeff*((FluxP_Conv[i] + FluxP_Diss[i]) - (FluxM_Conv[i] + FluxM_Diss[i]))/eps;
-        // Reset the Q3
-        Q3[node_L] = Q_L[2];
-        
-        // -- Q4 ---------------------------------------------------------------
-        // Now Perturb the Left Node Q4 +eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
-            Q4[node_L] = Q_L[3] + eps;
-            Compute_Flux_Roe(node_L, node_R, areavec, FluxP_Conv, FluxP_Diss, FALSE);
-        }
-        
-        // Now Perturb the Left Node Q4 -eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
-            Q4[node_L] = Q_L[3] - eps;
-            Compute_Flux_Roe(node_L, node_R, areavec, FluxM_Conv, FluxM_Diss, FALSE);
-        }
-        
-        for (i = 0; i < NEQUATIONS; i++)
-            dFdL[i][3] = Coeff*((FluxP_Conv[i] + FluxP_Diss[i]) - (FluxM_Conv[i] + FluxM_Diss[i]))/eps;
-        // Reset the Q4
-        Q4[node_L] = Q_L[3];
-        
-        // -- Q5 ---------------------------------------------------------------
-        // Now Perturb the Left Node Q5 +eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
-            Q5[node_L] = Q_L[4] + eps;
-            Compute_Flux_Roe(node_L, node_R, areavec, FluxP_Conv, FluxP_Diss, FALSE);
-        }
-        
-        // Now Perturb the Left Node Q5 -eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
-            Q5[node_L] = Q_L[4] - eps;
-            Compute_Flux_Roe(node_L, node_R, areavec, FluxM_Conv, FluxM_Diss, FALSE);
-        }
-        
-        for (i = 0; i < NEQUATIONS; i++)
-            dFdL[i][4] = Coeff*((FluxP_Conv[i] + FluxP_Diss[i]) - (FluxM_Conv[i] + FluxM_Diss[i]))/eps;
-        // Reset the Q5
-        Q5[node_L] = Q_L[4];
-        
-        // ---------------------------------------------------------------------
-        // - Right Node --------------------------------------------------------
-        // ---------------------------------------------------------------------
-        // -- Q1 --
-        // Now Perturb the Right Node Q1 +eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) // Central or Forward
-            Q1[node_R] = Q_R[0] + eps;
-        else
-            Q1[node_R] = Q_R[0];
-        // Based on Finite Difference Method, One Sided Do only once
-        Compute_Flux_Roe(node_L, node_R, areavec, FluxP_Conv, FluxP_Diss, FALSE);
-        
-        // Now Perturb the Right Node Q1 -eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) // Central or Backward
-            Q1[node_R] = Q_R[0] - eps;
-        else
-            Q1[node_R] = Q_R[0];
-        // Based on Finite Difference Method, One Sided Do only once
-        Compute_Flux_Roe(node_L, node_R, areavec, FluxM_Conv, FluxM_Diss, FALSE);
-        
-        for (i = 0; i < NEQUATIONS; i++)
-            dFdR[i][0] = Coeff*((FluxP_Conv[i] + FluxP_Diss[i]) - (FluxM_Conv[i] + FluxM_Diss[i]))/eps;
-        // Reset the Q1
-        Q1[node_R] = Q_R[0];
-        
-        // -- Q2 ---------------------------------------------------------------
-        // Now Perturb the Right Node Q2 +eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
-            Q2[node_R] = Q_R[1] + eps;
-            Compute_Flux_Roe(node_L, node_R, areavec, FluxP_Conv, FluxP_Diss, FALSE);
-        }
-        
-        // Now Perturb the Right Node Q2 -eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
-            Q2[node_R] = Q_R[1] - eps;
-            Compute_Flux_Roe(node_L, node_R, areavec, FluxM_Conv, FluxM_Diss, FALSE);
-        }
-        
-        for (i = 0; i < NEQUATIONS; i++)
-            dFdR[i][1] = Coeff*((FluxP_Conv[i] + FluxP_Diss[i]) - (FluxM_Conv[i] + FluxM_Diss[i]))/eps;
-        // Reset the Q2
-        Q2[node_R] = Q_R[1];
-        
-        // -- Q3 ---------------------------------------------------------------
-        // Now Perturb the Right Node Q3 +eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
-            Q3[node_R] = Q_R[2] + eps;
-            Compute_Flux_Roe(node_L, node_R, areavec, FluxP_Conv, FluxP_Diss, FALSE);
-        }
-        
-        // Now Perturb the Right Node Q3 -eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
-            Q3[node_R] = Q_R[2] - eps;
-            Compute_Flux_Roe(node_L, node_R, areavec, FluxM_Conv, FluxM_Diss, FALSE);
-        }
-        
-        for (i = 0; i < NEQUATIONS; i++)
-            dFdR[i][2] = Coeff*((FluxP_Conv[i] + FluxP_Diss[i]) - (FluxM_Conv[i] + FluxM_Diss[i]))/eps;
-        // Reset the Q3
-        Q3[node_R] = Q_R[2];
-        
-        // -- Q4 ---------------------------------------------------------------
-        // Now Perturb the Right Node Q4 +eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
-            Q4[node_R] = Q_R[3] + eps;
-            Compute_Flux_Roe(node_L, node_R, areavec, FluxP_Conv, FluxP_Diss, FALSE);
-        }
-        
-        // Now Perturb the Right Node Q4 -eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
-            Q4[node_R] = Q_R[3] - eps;
-            Compute_Flux_Roe(node_L, node_R, areavec, FluxM_Conv, FluxM_Diss, FALSE);
-        }
-        
-        for (i = 0; i < NEQUATIONS; i++)
-            dFdR[i][3] = Coeff*((FluxP_Conv[i] + FluxP_Diss[i]) - (FluxM_Conv[i] + FluxM_Diss[i]))/eps;
-        // Reset the Q4
-        Q4[node_R] = Q_R[3];
-        
-        // -- Q5 ---------------------------------------------------------------
-        // Now Perturb the Right Node Q5 +eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
-            Q5[node_R] = Q_R[4] + eps;
-            Compute_Flux_Roe(node_L, node_R, areavec, FluxP_Conv, FluxP_Diss, FALSE);
-        }
-        
-        // Now Perturb the Right Node Q5 -eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
-            Q5[node_R] = Q_R[4] - eps;
-            Compute_Flux_Roe(node_L, node_R, areavec, FluxM_Conv, FluxM_Diss, FALSE);
-        }
-        
-        for (i = 0; i < NEQUATIONS; i++)
-            dFdR[i][4] = Coeff*((FluxP_Conv[i] + FluxP_Diss[i]) - (FluxM_Conv[i] + FluxM_Diss[i]))/eps;
-        // Reset the Q5
-        Q5[node_R] = Q_R[4];
-        
-        // Update the Diagonal and Off-Diagonal Terms
-        for (i = 0; i < NEQUATIONS; i++) {
-            for (j = 0; j < NEQUATIONS; j++) {
-                // Diagonal
-                SolverBlockMatrix.A[idgnL][i][j] += dFdL[i][j];
-                SolverBlockMatrix.A[idgnR][i][j] -= dFdR[i][j];
-                // Off-Diagonal
-                SolverBlockMatrix.A[ofdgnL][i][j] += dFdR[i][j];
-                SolverBlockMatrix.A[ofdgnR][i][j] -= dFdL[i][j];
-            }
-        }
-    }
-    
-    // Note: Currently Forcing Boundary Contribution as Central
-    // More Research has to be done for Forward and Backward to work here
-    FiniteDifference = JACOBIAN_METHOD_CENTRAL;
-    Coeff = 0.5;
-    // Boundary Edges
-    for (ibEdge = 0; ibEdge < nBEdge; ibEdge++) {
-        // Get two nodes of edge
-        node_L = bndEdge[ibEdge].node[0];
-        node_R = bndEdge[ibEdge].node[1];
-        
-        // Get area vector
-        areavec = bndEdge[ibEdge].areav;
-        
-        // Backup the Copy of Q_L and Q_R
-        // Left - Physical
-        Q_L[0] = Q1[node_L];
-        Q_L[1] = Q2[node_L];
-        Q_L[2] = Q3[node_L];
-        Q_L[3] = Q4[node_L];
-        Q_L[4] = Q5[node_L];
-        // Right - Ghost
-        Q_R[0] = Q1[node_R];
-        Q_R[1] = Q2[node_R];
-        Q_R[2] = Q3[node_R];
-        Q_R[3] = Q4[node_R];
-        Q_R[4] = Q5[node_R];
-        
-        // Get the diagonal Locations - Only Physical
-        // No diagonal and off-diagonal locations exists for Ghost Nodes
-        idgnL = SolverBlockMatrix.IAU[node_L];
-        
-        // Initialize the Helper Matrix - Only Physical
-        for (i = 0; i < NEQUATIONS; i++) {
-            for (j = 0; j < NEQUATIONS; j++)
-                dFdL[i][j] = 0.0;
-        }
-        
-        // ---------------------------------------------------------------------
-        // Left Node - Physical ------------------------------------------------
-        // -- Q1 ---------------------------------------------------------------
-        // Now Perturb the Left Node Q1 +eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
-            Q1[node_L] = Q_L[0] + eps;
-            // Update the Boundary Condition Ghost Node 
-            Apply_Boundary_Condition(ibEdge, Iteration);
-        } else {
-            Q1[node_L] = Q_L[0];
-        }
-        // Based on Finite Difference Method, One Sided Do only once
-        Compute_Flux_Roe(node_L, node_R, areavec, FluxP_Conv, FluxP_Diss, FALSE);
-        // Reset the Ghost Node Values
-        Q1[node_R] = Q_R[0];
-        Q2[node_R] = Q_R[1];
-        Q3[node_R] = Q_R[2];
-        Q4[node_R] = Q_R[3];
-        Q5[node_R] = Q_R[4];
-        
-        // Now Perturb the Left Node Q1 -eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
-            Q1[node_L] = Q_L[0] - eps;
-            // Update the Boundary Condition Ghost Node 
-            Apply_Boundary_Condition(ibEdge, Iteration);
-        } else {
-            Q1[node_L] = Q_L[0];
-        }
-        // Based on Finite Difference Method, One Sided Do only once
-        Compute_Flux_Roe(node_L, node_R, areavec, FluxM_Conv, FluxM_Diss, FALSE);
-        // Reset the Ghost Node Values
-        Q1[node_R] = Q_R[0];
-        Q2[node_R] = Q_R[1];
-        Q3[node_R] = Q_R[2];
-        Q4[node_R] = Q_R[3];
-        Q5[node_R] = Q_R[4];
-        
-        for (i = 0; i < NEQUATIONS; i++)
-            dFdL[i][0] = Coeff*((FluxP_Conv[i] + FluxP_Diss[i]) - (FluxM_Conv[i] + FluxM_Diss[i]))/eps;
-        // Reset the Q1
-        Q1[node_L] = Q_L[0];
-        
-        // -- Q2 ---------------------------------------------------------------
-        // Now Perturb the Left Node Q2 +eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
-            Q2[node_L] = Q_L[1] + eps;
-            // Update the Boundary Condition Ghost Node 
-            Apply_Boundary_Condition(ibEdge, Iteration);
-            Compute_Flux_Roe(node_L, node_R, areavec, FluxP_Conv, FluxP_Diss, FALSE);
-            // Reset the Ghost Node Values
-            Q1[node_R] = Q_R[0];
-            Q2[node_R] = Q_R[1];
-            Q3[node_R] = Q_R[2];
-            Q4[node_R] = Q_R[3];
-            Q5[node_R] = Q_R[4];
-        }
-        
-        // Now Perturb the Left Node Q2 -eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
-            Q2[node_L] = Q_L[1] - eps;
-            // Update the Boundary Condition Ghost Node 
-            Apply_Boundary_Condition(ibEdge, Iteration);
-            Compute_Flux_Roe(node_L, node_R, areavec, FluxM_Conv, FluxM_Diss, FALSE);
-            // Reset the Ghost Node Values
-            Q1[node_R] = Q_R[0];
-            Q2[node_R] = Q_R[1];
-            Q3[node_R] = Q_R[2];
-            Q4[node_R] = Q_R[3];
-            Q5[node_R] = Q_R[4];
-        }
-        
-        for (i = 0; i < NEQUATIONS; i++)
-            dFdL[i][1] = Coeff*((FluxP_Conv[i] + FluxP_Diss[i]) - (FluxM_Conv[i] + FluxM_Diss[i]))/eps;
-        // Reset the Q2
-        Q2[node_L] = Q_L[1];
-        
-        // -- Q3 ---------------------------------------------------------------
-        // Now Perturb the Left Node Q3 +eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
-            Q3[node_L] = Q_L[2] + eps;
-            // Update the Boundary Condition Ghost Node 
-            Apply_Boundary_Condition(ibEdge, Iteration);
-            Compute_Flux_Roe(node_L, node_R, areavec, FluxP_Conv, FluxP_Diss, FALSE);
-            // Reset the Ghost Node Values
-            Q1[node_R] = Q_R[0];
-            Q2[node_R] = Q_R[1];
-            Q3[node_R] = Q_R[2];
-            Q4[node_R] = Q_R[3];
-            Q5[node_R] = Q_R[4];
-        }
-        
-        // Now Perturb the Left Node Q3 -eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
-            Q3[node_L] = Q_L[2] - eps;
-            // Update the Boundary Condition Ghost Node 
-            Apply_Boundary_Condition(ibEdge, Iteration);
-            Compute_Flux_Roe(node_L, node_R, areavec, FluxM_Conv, FluxM_Diss, FALSE);
-            // Reset the Ghost Node Values
-            Q1[node_R] = Q_R[0];
-            Q2[node_R] = Q_R[1];
-            Q3[node_R] = Q_R[2];
-            Q4[node_R] = Q_R[3];
-            Q5[node_R] = Q_R[4];
-        }
-        
-        for (i = 0; i < NEQUATIONS; i++)
-            dFdL[i][2] = Coeff*((FluxP_Conv[i] + FluxP_Diss[i]) - (FluxM_Conv[i] + FluxM_Diss[i]))/eps;
-        // Reset the Q3
-        Q3[node_L] = Q_L[2];
-        
-        // -- Q4 ---------------------------------------------------------------
-        // Now Perturb the Left Node Q4 +eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
-            Q4[node_L] = Q_L[3] + eps;
-            // Update the Boundary Condition Ghost Node 
-            Apply_Boundary_Condition(ibEdge, Iteration);
-            Compute_Flux_Roe(node_L, node_R, areavec, FluxP_Conv, FluxP_Diss, FALSE);
-            // Reset the Ghost Node Values
-            Q1[node_R] = Q_R[0];
-            Q2[node_R] = Q_R[1];
-            Q3[node_R] = Q_R[2];
-            Q4[node_R] = Q_R[3];
-            Q5[node_R] = Q_R[4];
-        }
-        
-        // Now Perturb the Left Node Q4 -eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
-            Q4[node_L] = Q_L[3] - eps;
-            // Update the Boundary Condition Ghost Node 
-            Apply_Boundary_Condition(ibEdge, Iteration);
-            Compute_Flux_Roe(node_L, node_R, areavec, FluxM_Conv, FluxM_Diss, FALSE);
-            // Reset the Ghost Node Values
-            Q1[node_R] = Q_R[0];
-            Q2[node_R] = Q_R[1];
-            Q3[node_R] = Q_R[2];
-            Q4[node_R] = Q_R[3];
-            Q5[node_R] = Q_R[4];
-        }
-        
-        for (i = 0; i < NEQUATIONS; i++)
-            dFdL[i][3] = Coeff*((FluxP_Conv[i] + FluxP_Diss[i]) - (FluxM_Conv[i] + FluxM_Diss[i]))/eps;
-        // Reset the Q4
-        Q4[node_L] = Q_L[3];
-        
-        // -- Q5 ---------------------------------------------------------------
-        // Now Perturb the Left Node Q5 +eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_FORWARD)) { // Central or Forward
-            Q5[node_L] = Q_L[4] + eps;
-            // Update the Boundary Condition Ghost Node 
-            Apply_Boundary_Condition(ibEdge, Iteration);
-            Compute_Flux_Roe(node_L, node_R, areavec, FluxP_Conv, FluxP_Diss, FALSE);
-            // Reset the Ghost Node Values
-            Q1[node_R] = Q_R[0];
-            Q2[node_R] = Q_R[1];
-            Q3[node_R] = Q_R[2];
-            Q4[node_R] = Q_R[3];
-            Q5[node_R] = Q_R[4];
-        }
-        
-        // Now Perturb the Left Node Q5 -eps
-        if ((FiniteDifference == JACOBIAN_METHOD_CENTRAL) || (FiniteDifference == JACOBIAN_METHOD_BACKWARD)) { // Central or Backward
-            Q5[node_L] = Q_L[4] - eps;
-            // Update the Boundary Condition Ghost Node 
-            Apply_Boundary_Condition(ibEdge, Iteration);
-            Compute_Flux_Roe(node_L, node_R, areavec, FluxM_Conv, FluxM_Diss, FALSE);
-            // Reset the Ghost Node Values
-            Q1[node_R] = Q_R[0];
-            Q2[node_R] = Q_R[1];
-            Q3[node_R] = Q_R[2];
-            Q4[node_R] = Q_R[3];
-            Q5[node_R] = Q_R[4];
-        }
-        
-        for (i = 0; i < NEQUATIONS; i++)
-            dFdL[i][4] = Coeff*((FluxP_Conv[i] + FluxP_Diss[i]) - (FluxM_Conv[i] + FluxM_Diss[i]))/eps;
-        // Reset the Q5
-        Q5[node_L] = Q_L[4];
-        
-        // Update the Diagonal Term of Physical Node Only
-        for (i = 0; i < NEQUATIONS; i++) {
-            for (j = 0; j < NEQUATIONS; j++)
-                SolverBlockMatrix.A[idgnL][i][j] += dFdL[i][j];
         }
     }
 }
-
-//------------------------------------------------------------------------------
-//! Computes the Jacobian for all Edges Internal and Boundary
-//------------------------------------------------------------------------------
-void Compute_Jacobian_Roe(int AddTime, int Iteration) {
-    switch (JacobianMethod) {
-        case JACOBIAN_METHOD_CENTRAL:
-            Compute_Jacobian_FiniteDifference_Roe(AddTime, Iteration);
-            break;
-        case JACOBIAN_METHOD_FORWARD:
-            Compute_Jacobian_FiniteDifference_Roe(AddTime, Iteration);
-            break;
-        case JACOBIAN_METHOD_BACKWARD:
-            Compute_Jacobian_FiniteDifference_Roe(AddTime, Iteration);
-            break;
-        case JACOBIAN_METHOD_ALTERNATE:
-            Compute_Jacobian_FiniteDifference_Roe(AddTime, Iteration);
-            break;
-        case JACOBIAN_METHOD_APPROX:
-            Compute_Jacobian_Approximate_Roe(AddTime, Iteration);
-            break;
-        case JACOBIAN_METHOD_EXACT:
-            Compute_Jacobian_Exact_Roe(AddTime, Iteration);
-            break;
-        default:
-            error("Compute_Jacobian_Roe: Invalid Jacobian Method - %d", JacobianMethod);
-            break;
-    }
-}
-

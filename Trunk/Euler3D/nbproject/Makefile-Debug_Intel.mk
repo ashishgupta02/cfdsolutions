@@ -88,15 +88,15 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-L/home/agupta/00-Applications/Lakesite/HPC_LIBS/lib -Wl,-rpath,../MATH/dist/Debug_Intel/GNU-Linux-x86 -L../MATH/dist/Debug_Intel/GNU-Linux-x86 -lMATH -Wl,-rpath,../UTILS/dist/Debug_Intel/GNU-Linux-x86 -L../UTILS/dist/Debug_Intel/GNU-Linux-x86 -lUTILS
+LDLIBSOPTIONS=-L/home/agupta/00-Applications/Lakesite/HPC_LIBS/lib -Wl,-rpath,../MATH/dist/Debug_Intel/ -L../MATH/dist/Debug_Intel/ -lMATH -Wl,-rpath,../UTILS/dist/Debug_Intel/ -L../UTILS/dist/Debug_Intel/ -lUTILS
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
 	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d: ../MATH/dist/Debug_Intel/GNU-Linux-x86/libMATH.so
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d: ../MATH/dist/Debug_Intel//libMATH.so
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d: ../UTILS/dist/Debug_Intel/GNU-Linux-x86/libUTILS.so
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d: ../UTILS/dist/Debug_Intel//libUTILS.so
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}

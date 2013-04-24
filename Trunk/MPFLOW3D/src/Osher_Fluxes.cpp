@@ -43,7 +43,7 @@ void Osher_Reset(void) {
 //------------------------------------------------------------------------------
 //! Compute Osher Flux
 //------------------------------------------------------------------------------
-void Compute_OsherFlux(int node_L, int node_R, Vector3D areavec, double *Flux_Osher, int AddTime) {
+void Compute_Flux_Osher(int node_L, int node_R, Vector3D areavec, double *Flux_Osher_Conv, double *Flux_Osher_Diss, int AddTime) {
     
 }
 

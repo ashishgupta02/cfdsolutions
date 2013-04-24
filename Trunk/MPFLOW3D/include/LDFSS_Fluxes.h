@@ -16,7 +16,7 @@
 void LDFSS_Init(void);
 void LDFSS_Finalize(void);
 void LDFSS_Reset(void);
-void Compute_LDFSSFlux(int node_L, int node_R, Vector3D areavec, double *Flux_LDFSS, int AddTime);
+void Compute_Flux_LDFSS(int node_L, int node_R, Vector3D areavec, double *Flux_LDFSS_Conv, double *Flux_LDFSS_Diss, int AddTime);
 void Compute_Residual_LDFSS(int AddTime);
 
 #endif	/* _LDFSS_FLUXES_H */

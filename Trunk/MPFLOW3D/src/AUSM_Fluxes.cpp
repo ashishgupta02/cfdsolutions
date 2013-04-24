@@ -43,7 +43,7 @@ void AUSM_Reset(void) {
 //------------------------------------------------------------------------------
 //! Compute AUSM Flux
 //------------------------------------------------------------------------------
-void Compute_AUSMFlux(int node_L, int node_R, Vector3D areavec, double *Flux_AUSM, int AddTime) {
+void Compute_Flux_AUSM(int node_L, int node_R, Vector3D areavec, double *Flux_AUSM_Conv, double *Flux_AUSM_Diss, int AddTime) {
     
 }
 

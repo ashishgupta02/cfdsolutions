@@ -20,8 +20,6 @@
 #include "Material.h"
 #include "DebugSolver.h"
 
-int SolverIteration;
-
 // Local Time
 double *DeltaT;
 double MinDeltaT;
@@ -56,11 +54,11 @@ double *Q5y;
 double *Q5z;
 
 // Residuals (Convective and Dissipative)
-double *Res1;
-double *Res2;
-double *Res3;
-double *Res4;
-double *Res5;
+double *Res1_Conv;
+double *Res2_Conv;
+double *Res3_Conv;
+double *Res4_Conv;
+double *Res5_Conv;
 
 double *Res1_Diss;
 double *Res2_Diss;
@@ -133,11 +131,11 @@ void Solver_Init(void) {
     Q5z             = NULL;
     
     // Residuals (Convective and Dissipative)
-    Res1            = NULL;
-    Res2            = NULL;
-    Res3            = NULL;
-    Res4            = NULL;
-    Res5            = NULL;
+    Res1_Conv       = NULL;
+    Res2_Conv       = NULL;
+    Res3_Conv       = NULL;
+    Res4_Conv       = NULL;
+    Res5_Conv       = NULL;
 
     Res1_Diss       = NULL;
     Res2_Diss       = NULL;
@@ -280,21 +278,21 @@ void Solver_Finalize(void) {
     Limiter_Phi5 = NULL;
     
     // Residuals (Convective and Dissipative)
-    if (Res1 != NULL)
-        delete[] Res1;
-    if (Res2 != NULL)
-        delete[] Res2;
-    if (Res3 != NULL)
-        delete[] Res3;
-    if (Res4 != NULL)
-        delete[] Res4;
-    if (Res5 != NULL)
-        delete[] Res5;
-    Res1 = NULL;
-    Res2 = NULL;
-    Res3 = NULL;
-    Res4 = NULL;
-    Res5 = NULL;
+    if (Res1_Conv != NULL)
+        delete[] Res1_Conv;
+    if (Res2_Conv != NULL)
+        delete[] Res2_Conv;
+    if (Res3_Conv != NULL)
+        delete[] Res3_Conv;
+    if (Res4_Conv != NULL)
+        delete[] Res4_Conv;
+    if (Res5_Conv != NULL)
+        delete[] Res5_Conv;
+    Res1_Conv = NULL;
+    Res2_Conv = NULL;
+    Res3_Conv = NULL;
+    Res4_Conv = NULL;
+    Res5_Conv = NULL;
 
     if (Res1_Diss != NULL)
         delete[] Res1_Diss;
@@ -435,17 +433,17 @@ void Solver_Set_Initial_Conditions(void) {
     }
     
     // Allocate  Memory to Store Residuals (Convective and Dissipative)
-    Res1 = new double[nNode];
-    Res2 = new double[nNode];
-    Res3 = new double[nNode];
-    Res4 = new double[nNode];
-    Res5 = new double[nNode];
+    Res1_Conv = new double[nNode];
+    Res2_Conv = new double[nNode];
+    Res3_Conv = new double[nNode];
+    Res4_Conv = new double[nNode];
+    Res5_Conv = new double[nNode];
     for (int i = 0; i < nNode; i++) {
-        Res1[i] = 0.0;
-        Res2[i] = 0.0;
-        Res3[i] = 0.0;
-        Res4[i] = 0.0;
-        Res5[i] = 0.0;
+        Res1_Conv[i] = 0.0;
+        Res2_Conv[i] = 0.0;
+        Res3_Conv[i] = 0.0;
+        Res4_Conv[i] = 0.0;
+        Res5_Conv[i] = 0.0;
     }
     
     Res1_Diss = new double[nNode];

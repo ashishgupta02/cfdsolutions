@@ -182,11 +182,11 @@ void Residual_Smoothing_Explicit(void) {
             // Compute based on Residual Smoothing Scheme
             if (ResidualSmoothScheme == RESIDUAL_SMOOTH_SCHEME_CONVECTIVE_DISSIPATION) {
                 // Convective Terms
-                Res1[inode] = DeltaT[inode]*Res1[inode];
-                Res2[inode] = DeltaT[inode]*Res2[inode];
-                Res3[inode] = DeltaT[inode]*Res3[inode];
-                Res4[inode] = DeltaT[inode]*Res4[inode];
-                Res5[inode] = DeltaT[inode]*Res5[inode];
+                Res1_Conv[inode] = DeltaT[inode]*Res1_Conv[inode];
+                Res2_Conv[inode] = DeltaT[inode]*Res2_Conv[inode];
+                Res3_Conv[inode] = DeltaT[inode]*Res3_Conv[inode];
+                Res4_Conv[inode] = DeltaT[inode]*Res4_Conv[inode];
+                Res5_Conv[inode] = DeltaT[inode]*Res5_Conv[inode];
             }
             // Dissipation Terms
             Res1_Diss[inode] = DeltaT[inode]*Res1_Diss[inode];
@@ -214,7 +214,7 @@ void Residual_Smoothing_Explicit(void) {
 
                     // Compute Mach Number
                     mach = Material_Get_Mach(Q);
-                    if ((mach > 0.01*Ref_Mach) && (mach > 1.0e-5))
+                    if ((mach > 0.01*Inf_Mach) && (mach > 1.0e-5))
                         continue;
                 }
                 
@@ -222,11 +222,11 @@ void Residual_Smoothing_Explicit(void) {
                 // Compute based on Residual Smoothing Scheme
                 if (ResidualSmoothScheme == RESIDUAL_SMOOTH_SCHEME_CONVECTIVE_DISSIPATION) {
                     // Convective Term
-                    RM_Res_Conv[NEQUATIONS*inode + 0] = Coeff1*Res1[inode];
-                    RM_Res_Conv[NEQUATIONS*inode + 1] = Coeff1*Res2[inode];
-                    RM_Res_Conv[NEQUATIONS*inode + 2] = Coeff1*Res3[inode];
-                    RM_Res_Conv[NEQUATIONS*inode + 3] = Coeff1*Res4[inode];
-                    RM_Res_Conv[NEQUATIONS*inode + 4] = Coeff1*Res5[inode];
+                    RM_Res_Conv[NEQUATIONS*inode + 0] = Coeff1*Res1_Conv[inode];
+                    RM_Res_Conv[NEQUATIONS*inode + 1] = Coeff1*Res2_Conv[inode];
+                    RM_Res_Conv[NEQUATIONS*inode + 2] = Coeff1*Res3_Conv[inode];
+                    RM_Res_Conv[NEQUATIONS*inode + 3] = Coeff1*Res4_Conv[inode];
+                    RM_Res_Conv[NEQUATIONS*inode + 4] = Coeff1*Res5_Conv[inode];
                 }
                 // Dissipative Term
                 RM_Res_Diss[NEQUATIONS*inode + 0] = Coeff1*Res1_Diss[inode];
@@ -239,11 +239,11 @@ void Residual_Smoothing_Explicit(void) {
                     // Compute based on Residual Smoothing Scheme
                     if (ResidualSmoothScheme == RESIDUAL_SMOOTH_SCHEME_CONVECTIVE_DISSIPATION) {
                         // Convective Term
-                        RM_Res_Conv[NEQUATIONS*inode + 0] += Coeff2*Res1[nid];
-                        RM_Res_Conv[NEQUATIONS*inode + 1] += Coeff2*Res2[nid];
-                        RM_Res_Conv[NEQUATIONS*inode + 2] += Coeff2*Res3[nid];
-                        RM_Res_Conv[NEQUATIONS*inode + 3] += Coeff2*Res4[nid];
-                        RM_Res_Conv[NEQUATIONS*inode + 4] += Coeff2*Res5[nid];
+                        RM_Res_Conv[NEQUATIONS*inode + 0] += Coeff2*Res1_Conv[nid];
+                        RM_Res_Conv[NEQUATIONS*inode + 1] += Coeff2*Res2_Conv[nid];
+                        RM_Res_Conv[NEQUATIONS*inode + 2] += Coeff2*Res3_Conv[nid];
+                        RM_Res_Conv[NEQUATIONS*inode + 3] += Coeff2*Res4_Conv[nid];
+                        RM_Res_Conv[NEQUATIONS*inode + 4] += Coeff2*Res5_Conv[nid];
                     }
                     // Dissipative Term
                     RM_Res_Diss[NEQUATIONS*inode + 0] += Coeff2*Res1_Diss[nid];
@@ -255,11 +255,11 @@ void Residual_Smoothing_Explicit(void) {
                 // Compute based on Residual Smoothing Scheme
                 if (ResidualSmoothScheme == RESIDUAL_SMOOTH_SCHEME_CONVECTIVE_DISSIPATION) {
                     // Convective Term
-                    Res1[inode] = RM_Res_Conv[NEQUATIONS*inode + 0];
-                    Res2[inode] = RM_Res_Conv[NEQUATIONS*inode + 1];
-                    Res3[inode] = RM_Res_Conv[NEQUATIONS*inode + 2];
-                    Res4[inode] = RM_Res_Conv[NEQUATIONS*inode + 3];
-                    Res5[inode] = RM_Res_Conv[NEQUATIONS*inode + 4];
+                    Res1_Conv[inode] = RM_Res_Conv[NEQUATIONS*inode + 0];
+                    Res2_Conv[inode] = RM_Res_Conv[NEQUATIONS*inode + 1];
+                    Res3_Conv[inode] = RM_Res_Conv[NEQUATIONS*inode + 2];
+                    Res4_Conv[inode] = RM_Res_Conv[NEQUATIONS*inode + 3];
+                    Res5_Conv[inode] = RM_Res_Conv[NEQUATIONS*inode + 4];
                 }
                 // Dissipative Term
                 Res1_Diss[inode] = RM_Res_Diss[NEQUATIONS*inode + 0];
@@ -275,11 +275,11 @@ void Residual_Smoothing_Explicit(void) {
             // Compute based on Residual Smoothing Scheme
             if (ResidualSmoothScheme == RESIDUAL_SMOOTH_SCHEME_CONVECTIVE_DISSIPATION) {
                 // Convective Term
-                Res1[inode] = Res1[inode]/DeltaT[inode];
-                Res2[inode] = Res2[inode]/DeltaT[inode];
-                Res3[inode] = Res3[inode]/DeltaT[inode];
-                Res4[inode] = Res4[inode]/DeltaT[inode];
-                Res5[inode] = Res5[inode]/DeltaT[inode];
+                Res1_Conv[inode] = Res1_Conv[inode]/DeltaT[inode];
+                Res2_Conv[inode] = Res2_Conv[inode]/DeltaT[inode];
+                Res3_Conv[inode] = Res3_Conv[inode]/DeltaT[inode];
+                Res4_Conv[inode] = Res4_Conv[inode]/DeltaT[inode];
+                Res5_Conv[inode] = Res5_Conv[inode]/DeltaT[inode];
             }
             // Dissipative Term
             Res1_Diss[inode] = Res1_Diss[inode]/DeltaT[inode];
@@ -301,11 +301,11 @@ void Residual_Smoothing_Explicit(void) {
             // Compute based on Residual Smoothing Scheme
             if (ResidualSmoothScheme == RESIDUAL_SMOOTH_SCHEME_CONVECTIVE_DISSIPATION) {
                 // Convective Term
-                Res1[inode] = DeltaT[inode]*Res1[inode];
-                Res2[inode] = DeltaT[inode]*Res2[inode];
-                Res3[inode] = DeltaT[inode]*Res3[inode];
-                Res4[inode] = DeltaT[inode]*Res4[inode];
-                Res5[inode] = DeltaT[inode]*Res5[inode];
+                Res1_Conv[inode] = DeltaT[inode]*Res1_Conv[inode];
+                Res2_Conv[inode] = DeltaT[inode]*Res2_Conv[inode];
+                Res3_Conv[inode] = DeltaT[inode]*Res3_Conv[inode];
+                Res4_Conv[inode] = DeltaT[inode]*Res4_Conv[inode];
+                Res5_Conv[inode] = DeltaT[inode]*Res5_Conv[inode];
             }
             // Dissipation Terms
             Res1_Diss[inode] = DeltaT[inode]*Res1_Diss[inode];
@@ -349,11 +349,11 @@ void Residual_Smoothing_Explicit(void) {
                     // Compute based on Residual Smoothing Scheme
                     if (ResidualSmoothScheme == RESIDUAL_SMOOTH_SCHEME_CONVECTIVE_DISSIPATION) {
                         // Convective Term
-                        RM_Res_Conv[NEQUATIONS*node_L + 0] += area*Res1[node_R];
-                        RM_Res_Conv[NEQUATIONS*node_L + 1] += area*Res2[node_R];
-                        RM_Res_Conv[NEQUATIONS*node_L + 2] += area*Res3[node_R];
-                        RM_Res_Conv[NEQUATIONS*node_L + 3] += area*Res4[node_R];
-                        RM_Res_Conv[NEQUATIONS*node_L + 4] += area*Res5[node_R];
+                        RM_Res_Conv[NEQUATIONS*node_L + 0] += area*Res1_Conv[node_R];
+                        RM_Res_Conv[NEQUATIONS*node_L + 1] += area*Res2_Conv[node_R];
+                        RM_Res_Conv[NEQUATIONS*node_L + 2] += area*Res3_Conv[node_R];
+                        RM_Res_Conv[NEQUATIONS*node_L + 3] += area*Res4_Conv[node_R];
+                        RM_Res_Conv[NEQUATIONS*node_L + 4] += area*Res5_Conv[node_R];
                     }
                     // Dissipation Terms
                     RM_Res_Diss[NEQUATIONS*node_L + 0] += area*Res1_Diss[node_R];
@@ -368,11 +368,11 @@ void Residual_Smoothing_Explicit(void) {
                     // Compute based on Residual Smoothing Scheme
                     if (ResidualSmoothScheme == RESIDUAL_SMOOTH_SCHEME_CONVECTIVE_DISSIPATION) {
                         // Convective Term
-                        RM_Res_Conv[NEQUATIONS*node_R + 0] += area*Res1[node_L];
-                        RM_Res_Conv[NEQUATIONS*node_R + 1] += area*Res2[node_L];
-                        RM_Res_Conv[NEQUATIONS*node_R + 2] += area*Res3[node_L];
-                        RM_Res_Conv[NEQUATIONS*node_R + 3] += area*Res4[node_L];
-                        RM_Res_Conv[NEQUATIONS*node_R + 4] += area*Res5[node_L];
+                        RM_Res_Conv[NEQUATIONS*node_R + 0] += area*Res1_Conv[node_L];
+                        RM_Res_Conv[NEQUATIONS*node_R + 1] += area*Res2_Conv[node_L];
+                        RM_Res_Conv[NEQUATIONS*node_R + 2] += area*Res3_Conv[node_L];
+                        RM_Res_Conv[NEQUATIONS*node_R + 3] += area*Res4_Conv[node_L];
+                        RM_Res_Conv[NEQUATIONS*node_R + 4] += area*Res5_Conv[node_L];
                     }
                     // Dissipation Terms
                     RM_Res_Diss[NEQUATIONS*node_R + 0] += area*Res1_Diss[node_L];
@@ -399,7 +399,7 @@ void Residual_Smoothing_Explicit(void) {
 
                     // Compute Mach Number
                     mach = Material_Get_Mach(Q);
-                    if ((mach > 0.01*Ref_Mach) && (mach > 1.0e-5))
+                    if ((mach > 0.01*Inf_Mach) && (mach > 1.0e-5))
                         continue;
                 }
                 
@@ -407,11 +407,11 @@ void Residual_Smoothing_Explicit(void) {
                 // Compute based on Residual Smoothing Scheme
                 if (ResidualSmoothScheme == RESIDUAL_SMOOTH_SCHEME_CONVECTIVE_DISSIPATION) {
                     // Convective Term
-                    Res1[inode] = Coeff1*Res1[inode] + Coeff2*RM_Res_Conv[NEQUATIONS*inode + 0];
-                    Res2[inode] = Coeff1*Res2[inode] + Coeff2*RM_Res_Conv[NEQUATIONS*inode + 1];
-                    Res3[inode] = Coeff1*Res3[inode] + Coeff2*RM_Res_Conv[NEQUATIONS*inode + 2];
-                    Res4[inode] = Coeff1*Res4[inode] + Coeff2*RM_Res_Conv[NEQUATIONS*inode + 3];
-                    Res5[inode] = Coeff1*Res5[inode] + Coeff2*RM_Res_Conv[NEQUATIONS*inode + 4];
+                    Res1_Conv[inode] = Coeff1*Res1_Conv[inode] + Coeff2*RM_Res_Conv[NEQUATIONS*inode + 0];
+                    Res2_Conv[inode] = Coeff1*Res2_Conv[inode] + Coeff2*RM_Res_Conv[NEQUATIONS*inode + 1];
+                    Res3_Conv[inode] = Coeff1*Res3_Conv[inode] + Coeff2*RM_Res_Conv[NEQUATIONS*inode + 2];
+                    Res4_Conv[inode] = Coeff1*Res4_Conv[inode] + Coeff2*RM_Res_Conv[NEQUATIONS*inode + 3];
+                    Res5_Conv[inode] = Coeff1*Res5_Conv[inode] + Coeff2*RM_Res_Conv[NEQUATIONS*inode + 4];
                 }
                 // Dissipation Terms
                 Res1_Diss[inode] = Coeff1*Res1_Diss[inode] + Coeff2*RM_Res_Diss[NEQUATIONS*inode + 0];
@@ -427,11 +427,11 @@ void Residual_Smoothing_Explicit(void) {
             // Compute based on Residual Smoothing Scheme
             if (ResidualSmoothScheme == RESIDUAL_SMOOTH_SCHEME_CONVECTIVE_DISSIPATION) {
                 // Convective Term
-                Res1[inode] = Res1[inode]/DeltaT[inode];
-                Res2[inode] = Res2[inode]/DeltaT[inode];
-                Res3[inode] = Res3[inode]/DeltaT[inode];
-                Res4[inode] = Res4[inode]/DeltaT[inode];
-                Res5[inode] = Res5[inode]/DeltaT[inode];
+                Res1_Conv[inode] = Res1_Conv[inode]/DeltaT[inode];
+                Res2_Conv[inode] = Res2_Conv[inode]/DeltaT[inode];
+                Res3_Conv[inode] = Res3_Conv[inode]/DeltaT[inode];
+                Res4_Conv[inode] = Res4_Conv[inode]/DeltaT[inode];
+                Res5_Conv[inode] = Res5_Conv[inode]/DeltaT[inode];
             }
             // Dissipation Term
             Res1_Diss[inode] = Res1_Diss[inode]/DeltaT[inode];
@@ -458,17 +458,17 @@ void Residual_Smoothing_Implicit(void) {
             // Compute based on Residual Smoothing Scheme
             if (ResidualSmoothScheme == RESIDUAL_SMOOTH_SCHEME_CONVECTIVE_DISSIPATION) {
                 // Convective Term
-                Res1[inode] = DeltaT[inode]*Res1[inode];
-                Res2[inode] = DeltaT[inode]*Res2[inode];
-                Res3[inode] = DeltaT[inode]*Res3[inode];
-                Res4[inode] = DeltaT[inode]*Res4[inode];
-                Res5[inode] = DeltaT[inode]*Res5[inode];
+                Res1_Conv[inode] = DeltaT[inode]*Res1_Conv[inode];
+                Res2_Conv[inode] = DeltaT[inode]*Res2_Conv[inode];
+                Res3_Conv[inode] = DeltaT[inode]*Res3_Conv[inode];
+                Res4_Conv[inode] = DeltaT[inode]*Res4_Conv[inode];
+                Res5_Conv[inode] = DeltaT[inode]*Res5_Conv[inode];
 
-                RM_Res_Conv_Old[NEQUATIONS*inode + 0] = Res1[inode];
-                RM_Res_Conv_Old[NEQUATIONS*inode + 1] = Res2[inode];
-                RM_Res_Conv_Old[NEQUATIONS*inode + 2] = Res3[inode];
-                RM_Res_Conv_Old[NEQUATIONS*inode + 3] = Res4[inode];
-                RM_Res_Conv_Old[NEQUATIONS*inode + 4] = Res5[inode];
+                RM_Res_Conv_Old[NEQUATIONS*inode + 0] = Res1_Conv[inode];
+                RM_Res_Conv_Old[NEQUATIONS*inode + 1] = Res2_Conv[inode];
+                RM_Res_Conv_Old[NEQUATIONS*inode + 2] = Res3_Conv[inode];
+                RM_Res_Conv_Old[NEQUATIONS*inode + 3] = Res4_Conv[inode];
+                RM_Res_Conv_Old[NEQUATIONS*inode + 4] = Res5_Conv[inode];
             }
             // Dissipation Term
             Res1_Diss[inode] = DeltaT[inode]*Res1_Diss[inode];
@@ -511,7 +511,7 @@ void Residual_Smoothing_Implicit(void) {
 
                     // Compute Mach Number
                     mach = Material_Get_Mach(Q);
-                    if ((mach > 0.01*Ref_Mach) && (mach > 1.0e-5))
+                    if ((mach > 0.01*Inf_Mach) && (mach > 1.0e-5))
                         continue;
                 }
                 
@@ -519,11 +519,11 @@ void Residual_Smoothing_Implicit(void) {
                 // Compute based on Residual Smoothing Scheme
                 if (ResidualSmoothScheme == RESIDUAL_SMOOTH_SCHEME_CONVECTIVE_DISSIPATION) {
                     // Convective Term
-                    RM_Res_Conv[NEQUATIONS*inode + 0] = Res1[inode];
-                    RM_Res_Conv[NEQUATIONS*inode + 1] = Res2[inode];
-                    RM_Res_Conv[NEQUATIONS*inode + 2] = Res3[inode];
-                    RM_Res_Conv[NEQUATIONS*inode + 3] = Res4[inode];
-                    RM_Res_Conv[NEQUATIONS*inode + 4] = Res5[inode];
+                    RM_Res_Conv[NEQUATIONS*inode + 0] = Res1_Conv[inode];
+                    RM_Res_Conv[NEQUATIONS*inode + 1] = Res2_Conv[inode];
+                    RM_Res_Conv[NEQUATIONS*inode + 2] = Res3_Conv[inode];
+                    RM_Res_Conv[NEQUATIONS*inode + 3] = Res4_Conv[inode];
+                    RM_Res_Conv[NEQUATIONS*inode + 4] = Res5_Conv[inode];
                 }
                 // Dissipation Term
                 RM_Res_Diss[NEQUATIONS*inode + 0] = Res1_Diss[inode];
@@ -577,11 +577,11 @@ void Residual_Smoothing_Implicit(void) {
             // Compute based on Residual Smoothing Scheme
             if (ResidualSmoothScheme == RESIDUAL_SMOOTH_SCHEME_CONVECTIVE_DISSIPATION) {
                 // Convective Term
-                Res1[inode] = RM_Res_Conv_Old[NEQUATIONS*inode + 0]/DeltaT[inode];
-                Res2[inode] = RM_Res_Conv_Old[NEQUATIONS*inode + 1]/DeltaT[inode];
-                Res3[inode] = RM_Res_Conv_Old[NEQUATIONS*inode + 2]/DeltaT[inode];
-                Res4[inode] = RM_Res_Conv_Old[NEQUATIONS*inode + 3]/DeltaT[inode];
-                Res5[inode] = RM_Res_Conv_Old[NEQUATIONS*inode + 4]/DeltaT[inode];
+                Res1_Conv[inode] = RM_Res_Conv_Old[NEQUATIONS*inode + 0]/DeltaT[inode];
+                Res2_Conv[inode] = RM_Res_Conv_Old[NEQUATIONS*inode + 1]/DeltaT[inode];
+                Res3_Conv[inode] = RM_Res_Conv_Old[NEQUATIONS*inode + 2]/DeltaT[inode];
+                Res4_Conv[inode] = RM_Res_Conv_Old[NEQUATIONS*inode + 3]/DeltaT[inode];
+                Res5_Conv[inode] = RM_Res_Conv_Old[NEQUATIONS*inode + 4]/DeltaT[inode];
             }
             // Dissipation Term
             Res1_Diss[inode] = RM_Res_Diss_Old[NEQUATIONS*inode + 0]/DeltaT[inode];
@@ -599,17 +599,17 @@ void Residual_Smoothing_Implicit(void) {
             // Compute based on Residual Smoothing Scheme
             if (ResidualSmoothScheme == RESIDUAL_SMOOTH_SCHEME_CONVECTIVE_DISSIPATION) {
                 // Convective Term
-                Res1[inode] = DeltaT[inode]*Res1[inode];
-                Res2[inode] = DeltaT[inode]*Res2[inode];
-                Res3[inode] = DeltaT[inode]*Res3[inode];
-                Res4[inode] = DeltaT[inode]*Res4[inode];
-                Res5[inode] = DeltaT[inode]*Res5[inode];
+                Res1_Conv[inode] = DeltaT[inode]*Res1_Conv[inode];
+                Res2_Conv[inode] = DeltaT[inode]*Res2_Conv[inode];
+                Res3_Conv[inode] = DeltaT[inode]*Res3_Conv[inode];
+                Res4_Conv[inode] = DeltaT[inode]*Res4_Conv[inode];
+                Res5_Conv[inode] = DeltaT[inode]*Res5_Conv[inode];
 
-                RM_Res_Conv_Old[NEQUATIONS*inode + 0] = Res1[inode];
-                RM_Res_Conv_Old[NEQUATIONS*inode + 1] = Res2[inode];
-                RM_Res_Conv_Old[NEQUATIONS*inode + 2] = Res3[inode];
-                RM_Res_Conv_Old[NEQUATIONS*inode + 3] = Res4[inode];
-                RM_Res_Conv_Old[NEQUATIONS*inode + 4] = Res5[inode];
+                RM_Res_Conv_Old[NEQUATIONS*inode + 0] = Res1_Conv[inode];
+                RM_Res_Conv_Old[NEQUATIONS*inode + 1] = Res2_Conv[inode];
+                RM_Res_Conv_Old[NEQUATIONS*inode + 2] = Res3_Conv[inode];
+                RM_Res_Conv_Old[NEQUATIONS*inode + 3] = Res4_Conv[inode];
+                RM_Res_Conv_Old[NEQUATIONS*inode + 4] = Res5_Conv[inode];
             }
             // Dissipation Term
             Res1_Diss[inode] = DeltaT[inode]*Res1_Diss[inode];
@@ -643,7 +643,7 @@ void Residual_Smoothing_Implicit(void) {
 
                     // Compute Mach Number
                     mach = Material_Get_Mach(Q);
-                    if ((mach > 0.01*Ref_Mach) && (mach > 1.0e-5))
+                    if ((mach > 0.01*Inf_Mach) && (mach > 1.0e-5))
                         continue;
                 }
                 
@@ -651,11 +651,11 @@ void Residual_Smoothing_Implicit(void) {
                 // Compute based on Residual Smoothing Scheme
                 if (ResidualSmoothScheme == RESIDUAL_SMOOTH_SCHEME_CONVECTIVE_DISSIPATION) {
                     // Convective Term
-                    RM_Res_Conv[NEQUATIONS*inode + 0] = Res1[inode];
-                    RM_Res_Conv[NEQUATIONS*inode + 1] = Res2[inode];
-                    RM_Res_Conv[NEQUATIONS*inode + 2] = Res3[inode];
-                    RM_Res_Conv[NEQUATIONS*inode + 3] = Res4[inode];
-                    RM_Res_Conv[NEQUATIONS*inode + 4] = Res5[inode];
+                    RM_Res_Conv[NEQUATIONS*inode + 0] = Res1_Conv[inode];
+                    RM_Res_Conv[NEQUATIONS*inode + 1] = Res2_Conv[inode];
+                    RM_Res_Conv[NEQUATIONS*inode + 2] = Res3_Conv[inode];
+                    RM_Res_Conv[NEQUATIONS*inode + 3] = Res4_Conv[inode];
+                    RM_Res_Conv[NEQUATIONS*inode + 4] = Res5_Conv[inode];
                 }
                 // Dissipation Term
                 RM_Res_Diss[NEQUATIONS*inode + 0] = Res1_Diss[inode];
@@ -707,11 +707,11 @@ void Residual_Smoothing_Implicit(void) {
             // Compute based on Residual Smoothing Scheme
             if (ResidualSmoothScheme == RESIDUAL_SMOOTH_SCHEME_CONVECTIVE_DISSIPATION) {
                 // Convective Term
-                Res1[inode] = RM_Res_Conv_Old[NEQUATIONS*inode + 0]/DeltaT[inode];
-                Res2[inode] = RM_Res_Conv_Old[NEQUATIONS*inode + 1]/DeltaT[inode];
-                Res3[inode] = RM_Res_Conv_Old[NEQUATIONS*inode + 2]/DeltaT[inode];
-                Res4[inode] = RM_Res_Conv_Old[NEQUATIONS*inode + 3]/DeltaT[inode];
-                Res5[inode] = RM_Res_Conv_Old[NEQUATIONS*inode + 4]/DeltaT[inode];
+                Res1_Conv[inode] = RM_Res_Conv_Old[NEQUATIONS*inode + 0]/DeltaT[inode];
+                Res2_Conv[inode] = RM_Res_Conv_Old[NEQUATIONS*inode + 1]/DeltaT[inode];
+                Res3_Conv[inode] = RM_Res_Conv_Old[NEQUATIONS*inode + 2]/DeltaT[inode];
+                Res4_Conv[inode] = RM_Res_Conv_Old[NEQUATIONS*inode + 3]/DeltaT[inode];
+                Res5_Conv[inode] = RM_Res_Conv_Old[NEQUATIONS*inode + 4]/DeltaT[inode];
             }
             // Dissipation Term
             Res1_Diss[inode] = RM_Res_Diss_Old[NEQUATIONS*inode + 0]/DeltaT[inode];
