@@ -212,29 +212,41 @@ static const map<string, RESIDUAL_SMOOTH_SCHEME> ResidualSmoothSchemeMap = CCrea
 enum TIME_INTEGRATION_METHOD {
     TIME_INTEGRATION_METHOD_NONE = -1, /*!< \brief Time Integration Method None. */
     TIME_INTEGRATION_METHOD_EXPLICIT_EULER = 0, /*!< \brief Time Integration Method Explicit Euler. */
-    TIME_INTEGRATION_METHOD_EXPLICIT_RK4 = 1, /*!< \brief Time Integration Method Explicit RK4. */
-    TIME_INTEGRATION_METHOD_EXPLICIT_RK5 = 2, /*!< \brief Time Integration Method Explicit RK5. */
-    TIME_INTEGRATION_METHOD_EXPLICIT_EULER_EULER = 3, /*!< \brief Time Integration Method Explicit Dual Time Euler Euler. */
-    TIME_INTEGRATION_METHOD_EXPLICIT_EULER_BDF = 4, /*!< \brief Time Integration Method Explicit Dual Time Euler BDF. */
-    TIME_INTEGRATION_METHOD_EXPLICIT_RK4_EULER = 5, /*!< \brief Time Integration Method Explicit Dual Time RK4 Euler. */
-    TIME_INTEGRATION_METHOD_EXPLICIT_RK4_BDF = 6, /*!< \brief Time Integration Method Explicit Dual Time RK4 BDF. */
-    TIME_INTEGRATION_METHOD_EXPLICIT_RK5_EULER = 7, /*!< \brief Time Integration Method Explicit Dual Time RK5 Euler. */
-    TIME_INTEGRATION_METHOD_EXPLICIT_RK5_BDF = 8, /*!< \brief Time Integration Method Explicit Dual Time RK5 BDF. */
-    TIME_INTEGRATION_METHOD_IMPLICIT_EULER = 9, /*!< \brief Time Integration Method Implicit Euler Newton. */
-    TIME_INTEGRATION_METHOD_IMPLICIT_EULER_EULER = 10, /*!< \brief Time Integration Method Implicit Dual Time Euler Euler Newton. */
-    TIME_INTEGRATION_METHOD_IMPLICIT_EULER_BDF = 11 /*!< \brief Time Integration Method Implicit Dual Time Euler BDF Newton. */
+    TIME_INTEGRATION_METHOD_EXPLICIT_RK3 = 1, /*!< \brief Time Integration Method Explicit RK4. */
+    TIME_INTEGRATION_METHOD_EXPLICIT_RK4 = 2, /*!< \brief Time Integration Method Explicit RK4. */
+    TIME_INTEGRATION_METHOD_EXPLICIT_RK5 = 3, /*!< \brief Time Integration Method Explicit RK5. */
+    TIME_INTEGRATION_METHOD_EXPLICIT_RK5_MJ = 4, /*!< \brief Time Integration Method Explicit RK5 Martinelli and Jameson */
+    TIME_INTEGRATION_METHOD_EXPLICIT_EULER_EULER = 5, /*!< \brief Time Integration Method Explicit Dual Time Euler Euler. */
+    TIME_INTEGRATION_METHOD_EXPLICIT_RK3_EULER = 6, /*!< \brief Time Integration Method Explicit Dual Time RK3 Euler. */
+    TIME_INTEGRATION_METHOD_EXPLICIT_RK4_EULER = 7, /*!< \brief Time Integration Method Explicit Dual Time RK4 Euler. */
+    TIME_INTEGRATION_METHOD_EXPLICIT_RK5_EULER = 8, /*!< \brief Time Integration Method Explicit Dual Time RK5 Euler. */
+    TIME_INTEGRATION_METHOD_EXPLICIT_RK5_MJ_EULER = 9, /*!< \brief Time Integration Method Explicit Dual Time RK5 Martinelli and Jameson Euler. */
+    TIME_INTEGRATION_METHOD_EXPLICIT_EULER_BDF = 10, /*!< \brief Time Integration Method Explicit Dual Time Euler BDF. */
+    TIME_INTEGRATION_METHOD_EXPLICIT_RK3_BDF = 11, /*!< \brief Time Integration Method Explicit Dual Time RK3 BDF. */
+    TIME_INTEGRATION_METHOD_EXPLICIT_RK4_BDF = 12, /*!< \brief Time Integration Method Explicit Dual Time RK4 BDF. */
+    TIME_INTEGRATION_METHOD_EXPLICIT_RK5_BDF = 13, /*!< \brief Time Integration Method Explicit Dual Time RK5 BDF. */
+    TIME_INTEGRATION_METHOD_EXPLICIT_RK5_MJ_BDF = 14, /*!< \brief Time Integration Method Explicit Dual Time RK5 Martinelli and Jameson BDF. */
+    TIME_INTEGRATION_METHOD_IMPLICIT_EULER = 15, /*!< \brief Time Integration Method Implicit Euler Newton. */
+    TIME_INTEGRATION_METHOD_IMPLICIT_EULER_EULER = 16, /*!< \brief Time Integration Method Implicit Dual Time Euler Euler Newton. */
+    TIME_INTEGRATION_METHOD_IMPLICIT_EULER_BDF = 17 /*!< \brief Time Integration Method Implicit Dual Time Euler BDF Newton. */
 };
 static const map<string, TIME_INTEGRATION_METHOD> TimeIntegrationMethodMap = CCreateMap<string, TIME_INTEGRATION_METHOD>
 ("TIME_INTEGRATION_METHOD_NONE", TIME_INTEGRATION_METHOD_NONE)
 ("TIME_INTEGRATION_METHOD_EXPLICIT_EULER", TIME_INTEGRATION_METHOD_EXPLICIT_EULER)
+("TIME_INTEGRATION_METHOD_EXPLICIT_RK3", TIME_INTEGRATION_METHOD_EXPLICIT_RK3)
 ("TIME_INTEGRATION_METHOD_EXPLICIT_RK4", TIME_INTEGRATION_METHOD_EXPLICIT_RK4)
 ("TIME_INTEGRATION_METHOD_EXPLICIT_RK5", TIME_INTEGRATION_METHOD_EXPLICIT_RK5)
+("TIME_INTEGRATION_METHOD_EXPLICIT_RK5_MJ", TIME_INTEGRATION_METHOD_EXPLICIT_RK5_MJ)
 ("TIME_INTEGRATION_METHOD_EXPLICIT_EULER_EULER", TIME_INTEGRATION_METHOD_EXPLICIT_EULER_EULER)
-("TIME_INTEGRATION_METHOD_EXPLICIT_EULER_BDF", TIME_INTEGRATION_METHOD_EXPLICIT_EULER_BDF)
+("TIME_INTEGRATION_METHOD_EXPLICIT_RK3_EULER", TIME_INTEGRATION_METHOD_EXPLICIT_RK3_EULER)
 ("TIME_INTEGRATION_METHOD_EXPLICIT_RK4_EULER", TIME_INTEGRATION_METHOD_EXPLICIT_RK4_EULER)
-("TIME_INTEGRATION_METHOD_EXPLICIT_RK4_BDF", TIME_INTEGRATION_METHOD_EXPLICIT_RK4_BDF)
 ("TIME_INTEGRATION_METHOD_EXPLICIT_RK5_EULER", TIME_INTEGRATION_METHOD_EXPLICIT_RK5_EULER)
+("TIME_INTEGRATION_METHOD_EXPLICIT_RK5_MJ_EULER", TIME_INTEGRATION_METHOD_EXPLICIT_RK5_MJ_EULER)
+("TIME_INTEGRATION_METHOD_EXPLICIT_EULER_BDF", TIME_INTEGRATION_METHOD_EXPLICIT_EULER_BDF)
+("TIME_INTEGRATION_METHOD_EXPLICIT_RK3_BDF", TIME_INTEGRATION_METHOD_EXPLICIT_RK3_BDF)
+("TIME_INTEGRATION_METHOD_EXPLICIT_RK4_BDF", TIME_INTEGRATION_METHOD_EXPLICIT_RK4_BDF)
 ("TIME_INTEGRATION_METHOD_EXPLICIT_RK5_BDF", TIME_INTEGRATION_METHOD_EXPLICIT_RK5_BDF)
+("TIME_INTEGRATION_METHOD_EXPLICIT_RK5_MJ_BDF", TIME_INTEGRATION_METHOD_EXPLICIT_RK5_MJ_BDF)
 ("TIME_INTEGRATION_METHOD_IMPLICIT_EULER", TIME_INTEGRATION_METHOD_IMPLICIT_EULER)
 ("TIME_INTEGRATION_METHOD_IMPLICIT_EULER_EULER", TIME_INTEGRATION_METHOD_IMPLICIT_EULER_EULER)
 ("TIME_INTEGRATION_METHOD_IMPLICIT_EULER_BDF", TIME_INTEGRATION_METHOD_IMPLICIT_EULER_BDF);
@@ -360,6 +372,18 @@ static const map<string, MATERIAL_TYPE> MaterialTypeMap = CCreateMap<string, MAT
 ("MATERIAL_TYPE_IDEALGAS", MATERIAL_TYPE_IDEALGAS)
 ("MATERIAL_TYPE_NIST", MATERIAL_TYPE_NIST);
 
+/*!
+ * \brief Material Computation Type
+ */
+enum MATERIAL_COMP_TYPE {
+    MATERIAL_COMP_TYPE_NONE = -1,  /*!< \brief Material Dimensional Computation Type None. */
+    MATERIAL_COMP_TYPE_NDIM = 0,     /*!< \brief Material Non-Dimensional Computation. */
+    MATERIAL_COMP_TYPE_DIM = 1       /*!< \brief Material Dimensional Computation */
+};
+static const map<string, MATERIAL_COMP_TYPE> MaterialCompTypeMap = CCreateMap<string, MATERIAL_COMP_TYPE>
+("MATERIAL_COMP_TYPE_NONE", MATERIAL_COMP_TYPE_NONE)
+("MATERIAL_COMP_TYPE_NDIM", MATERIAL_COMP_TYPE_NDIM)
+("MATERIAL_COMP_TYPE_DIM", MATERIAL_COMP_TYPE_DIM);
 
 // No of Equations
 #define NEQUATIONS                              5
@@ -414,10 +438,11 @@ extern double Venkat_KThreshold;
 extern int EntropyFix;
 
 // Precondition Variables
-extern int  PrecondMethod;    /* Roe_LMFix, Roe_WS, Roe_CV, Roe_CV_Org, Roe_BTW */
-extern int  PrecondType;
-extern int  PrecondSmooth;
-extern int  PrecondVariableType;
+extern int    PrecondMethod;
+extern int    PrecondType;
+extern int    PrecondSmooth;
+extern int    PrecondVariableType;
+extern double PrecondGlobalMach;
 
 // Restart Parameters
 extern int  RestartInput;

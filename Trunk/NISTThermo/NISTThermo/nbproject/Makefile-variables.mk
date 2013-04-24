@@ -38,6 +38,38 @@ CND_ARTIFACT_PATH_Release_GUPC_x86_64=dist/Release_GUPC_x86_64/GUPC_x86_64-Linux
 CND_PACKAGE_DIR_Release_GUPC_x86_64=dist/Release_GUPC_x86_64/GUPC_x86_64-Linux-x86/package
 CND_PACKAGE_NAME_Release_GUPC_x86_64=libNISTThermo.so.tar
 CND_PACKAGE_PATH_Release_GUPC_x86_64=dist/Release_GUPC_x86_64/GUPC_x86_64-Linux-x86/package/libNISTThermo.so.tar
+# Debug_Intel configuration
+CND_PLATFORM_Debug_Intel=Intel-Linux-x86
+CND_ARTIFACT_DIR_Debug_Intel=dist/Debug_Intel/Intel-Linux-x86
+CND_ARTIFACT_NAME_Debug_Intel=libNISTThermo.so
+CND_ARTIFACT_PATH_Debug_Intel=dist/Debug_Intel/Intel-Linux-x86/libNISTThermo.so
+CND_PACKAGE_DIR_Debug_Intel=dist/Debug_Intel/Intel-Linux-x86/package
+CND_PACKAGE_NAME_Debug_Intel=libNISTThermo.so.tar
+CND_PACKAGE_PATH_Debug_Intel=dist/Debug_Intel/Intel-Linux-x86/package/libNISTThermo.so.tar
+# Release_Intel configuration
+CND_PLATFORM_Release_Intel=Intel-Linux-x86
+CND_ARTIFACT_DIR_Release_Intel=dist/Release_Intel/Intel-Linux-x86
+CND_ARTIFACT_NAME_Release_Intel=libNISTThermo.so
+CND_ARTIFACT_PATH_Release_Intel=dist/Release_Intel/Intel-Linux-x86/libNISTThermo.so
+CND_PACKAGE_DIR_Release_Intel=dist/Release_Intel/Intel-Linux-x86/package
+CND_PACKAGE_NAME_Release_Intel=libNISTThermo.so.tar
+CND_PACKAGE_PATH_Release_Intel=dist/Release_Intel/Intel-Linux-x86/package/libNISTThermo.so.tar
+# Debug_GUPC_ppc64 configuration
+CND_PLATFORM_Debug_GUPC_ppc64=GUPC_ppc64-Linux-x86
+CND_ARTIFACT_DIR_Debug_GUPC_ppc64=dist/Debug_GUPC_ppc64/GUPC_ppc64-Linux-x86
+CND_ARTIFACT_NAME_Debug_GUPC_ppc64=libNISTThermo.so
+CND_ARTIFACT_PATH_Debug_GUPC_ppc64=dist/Debug_GUPC_ppc64/GUPC_ppc64-Linux-x86/libNISTThermo.so
+CND_PACKAGE_DIR_Debug_GUPC_ppc64=dist/Debug_GUPC_ppc64/GUPC_ppc64-Linux-x86/package
+CND_PACKAGE_NAME_Debug_GUPC_ppc64=libNISTThermo.so.tar
+CND_PACKAGE_PATH_Debug_GUPC_ppc64=dist/Debug_GUPC_ppc64/GUPC_ppc64-Linux-x86/package/libNISTThermo.so.tar
+# Release_GUPC_ppc64 configuration
+CND_PLATFORM_Release_GUPC_ppc64=GUPC_ppc64-Linux-x86
+CND_ARTIFACT_DIR_Release_GUPC_ppc64=dist/Release_GUPC_ppc64/GUPC_ppc64-Linux-x86
+CND_ARTIFACT_NAME_Release_GUPC_ppc64=libNISTThermo.so
+CND_ARTIFACT_PATH_Release_GUPC_ppc64=dist/Release_GUPC_ppc64/GUPC_ppc64-Linux-x86/libNISTThermo.so
+CND_PACKAGE_DIR_Release_GUPC_ppc64=dist/Release_GUPC_ppc64/GUPC_ppc64-Linux-x86/package
+CND_PACKAGE_NAME_Release_GUPC_ppc64=libNISTThermo.so.tar
+CND_PACKAGE_PATH_Release_GUPC_ppc64=dist/Release_GUPC_ppc64/GUPC_ppc64-Linux-x86/package/libNISTThermo.so.tar
 #
 # include compiler specific variables
 #

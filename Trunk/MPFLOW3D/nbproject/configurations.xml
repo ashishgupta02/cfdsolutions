@@ -12,6 +12,7 @@
       <itemPath>include/Gradient.h</itemPath>
       <itemPath>include/HLLC_Fluxes.h</itemPath>
       <itemPath>include/JST_Fluxes.h</itemPath>
+      <itemPath>include/Jacobian.h</itemPath>
       <itemPath>include/LDFSS_Fluxes.h</itemPath>
       <itemPath>include/Material.h</itemPath>
       <itemPath>include/MeshIO.h</itemPath>
@@ -20,6 +21,7 @@
       <itemPath>include/RestartIO.h</itemPath>
       <itemPath>include/Roe_Fluxes.h</itemPath>
       <itemPath>include/Solver.h</itemPath>
+      <itemPath>include/SolverDB.h</itemPath>
       <itemPath>include/SolverParameters.h</itemPath>
       <itemPath>include/SolverUtils.h</itemPath>
       <itemPath>include/StegerWarming_Fluxes.h</itemPath>
@@ -33,6 +35,7 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>src/AUSM_Fluxes.cpp</itemPath>
+      <itemPath>src/AUSM_Jacobian.cpp</itemPath>
       <itemPath>src/Area_Volume.cpp</itemPath>
       <itemPath>src/BC.cpp</itemPath>
       <itemPath>src/Commons.cpp</itemPath>
@@ -40,16 +43,22 @@
       <itemPath>src/Connectivity_Maps.cpp</itemPath>
       <itemPath>src/Cuthill_Mckee_Reorder.cpp</itemPath>
       <itemPath>src/DebugSolver.cpp</itemPath>
+      <itemPath>src/FiniteDifference_Jacobian.cpp</itemPath>
+      <itemPath>src/Fluxes.cpp</itemPath>
       <itemPath>src/Gradient.cpp</itemPath>
       <itemPath>src/HLLC_Fluxes.cpp</itemPath>
+      <itemPath>src/HLLC_Jacobian.cpp</itemPath>
       <itemPath>src/HigherOrderReconstructQ.cpp</itemPath>
       <itemPath>src/JST_Fluxes.cpp</itemPath>
+      <itemPath>src/JST_Jacobian.cpp</itemPath>
       <itemPath>src/Jacobian.cpp</itemPath>
       <itemPath>src/LDFSS_Fluxes.cpp</itemPath>
+      <itemPath>src/LDFSS_Jacobian.cpp</itemPath>
       <itemPath>src/Limiters.cpp</itemPath>
       <itemPath>src/Material.cpp</itemPath>
       <itemPath>src/MeshIO.cpp</itemPath>
       <itemPath>src/Osher_Fluxes.cpp</itemPath>
+      <itemPath>src/Osher_Jacobian.cpp</itemPath>
       <itemPath>src/RMSIO.cpp</itemPath>
       <itemPath>src/Residual.cpp</itemPath>
       <itemPath>src/Residual_Smoothing.cpp</itemPath>
@@ -58,15 +67,18 @@
       <itemPath>src/Roe_Fluxes.cpp</itemPath>
       <itemPath>src/Roe_Jacobian.cpp</itemPath>
       <itemPath>src/Solver.cpp</itemPath>
+      <itemPath>src/SolverDB.cpp</itemPath>
       <itemPath>src/SolverParameters.cpp</itemPath>
       <itemPath>src/Solver_Steady_Explicit.cpp</itemPath>
       <itemPath>src/Solver_Steady_Implicit.cpp</itemPath>
       <itemPath>src/Solver_Unsteady_Explicit.cpp</itemPath>
       <itemPath>src/Solver_Unsteady_Implicit.cpp</itemPath>
       <itemPath>src/StegerWarming_Fluxes.cpp</itemPath>
+      <itemPath>src/StegerWarming_Jacobian.cpp</itemPath>
       <itemPath>src/Test.cpp</itemPath>
       <itemPath>src/Time_Step.cpp</itemPath>
       <itemPath>src/VanLeer_Fluxes.cpp</itemPath>
+      <itemPath>src/VanLeer_Jacobian.cpp</itemPath>
       <itemPath>main.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -183,6 +195,8 @@
       </item>
       <item path="include/JST_Fluxes.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/Jacobian.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/LDFSS_Fluxes.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Material.h" ex="false" tool="3" flavor2="0">
@@ -199,6 +213,8 @@
       </item>
       <item path="include/Solver.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/SolverDB.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/SolverParameters.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SolverUtils.h" ex="false" tool="3" flavor2="0">
@@ -210,6 +226,8 @@
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/AUSM_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/AUSM_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Area_Volume.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -225,17 +243,27 @@
       </item>
       <item path="src/DebugSolver.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/FiniteDifference_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Gradient.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/HLLC_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/HLLC_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/HigherOrderReconstructQ.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/JST_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/JST_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/LDFSS_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/LDFSS_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Limiters.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -244,6 +272,8 @@
       <item path="src/MeshIO.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Osher_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Osher_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/RMSIO.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -261,6 +291,8 @@
       </item>
       <item path="src/Solver.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/SolverDB.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/SolverParameters.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Solver_Steady_Explicit.cpp" ex="false" tool="1" flavor2="0">
@@ -273,11 +305,15 @@
       </item>
       <item path="src/StegerWarming_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/StegerWarming_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Time_Step.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/VanLeer_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/VanLeer_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="Debug" type="1">
@@ -376,6 +412,8 @@
       </item>
       <item path="include/JST_Fluxes.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/Jacobian.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/LDFSS_Fluxes.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Material.h" ex="false" tool="3" flavor2="0">
@@ -392,6 +430,8 @@
       </item>
       <item path="include/Solver.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/SolverDB.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/SolverParameters.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SolverUtils.h" ex="false" tool="3" flavor2="0">
@@ -403,6 +443,8 @@
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/AUSM_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/AUSM_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Area_Volume.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -418,17 +460,27 @@
       </item>
       <item path="src/DebugSolver.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/FiniteDifference_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Gradient.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/HLLC_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/HLLC_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/HigherOrderReconstructQ.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/JST_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/JST_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/LDFSS_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/LDFSS_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Limiters.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -437,6 +489,8 @@
       <item path="src/MeshIO.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Osher_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Osher_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/RMSIO.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -454,6 +508,8 @@
       </item>
       <item path="src/Solver.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/SolverDB.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/SolverParameters.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Solver_Steady_Explicit.cpp" ex="false" tool="1" flavor2="0">
@@ -466,11 +522,15 @@
       </item>
       <item path="src/StegerWarming_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/StegerWarming_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Time_Step.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/VanLeer_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/VanLeer_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="Release_Cygwin" type="1">
@@ -559,6 +619,8 @@
       </item>
       <item path="include/JST_Fluxes.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/Jacobian.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/LDFSS_Fluxes.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Material.h" ex="false" tool="3" flavor2="0">
@@ -575,6 +637,8 @@
       </item>
       <item path="include/Solver.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/SolverDB.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/SolverParameters.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SolverUtils.h" ex="false" tool="3" flavor2="0">
@@ -586,6 +650,8 @@
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/AUSM_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/AUSM_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Area_Volume.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -601,17 +667,27 @@
       </item>
       <item path="src/DebugSolver.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/FiniteDifference_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Gradient.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/HLLC_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/HLLC_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/HigherOrderReconstructQ.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/JST_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/JST_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/LDFSS_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/LDFSS_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Limiters.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -620,6 +696,8 @@
       <item path="src/MeshIO.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Osher_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Osher_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/RMSIO.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -637,6 +715,8 @@
       </item>
       <item path="src/Solver.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/SolverDB.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/SolverParameters.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Solver_Steady_Explicit.cpp" ex="false" tool="1" flavor2="0">
@@ -649,11 +729,15 @@
       </item>
       <item path="src/StegerWarming_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/StegerWarming_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Time_Step.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/VanLeer_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/VanLeer_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="Debug_Cygwin" type="1">
@@ -738,6 +822,8 @@
       </item>
       <item path="include/JST_Fluxes.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/Jacobian.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/LDFSS_Fluxes.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Material.h" ex="false" tool="3" flavor2="0">
@@ -754,6 +840,8 @@
       </item>
       <item path="include/Solver.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/SolverDB.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/SolverParameters.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SolverUtils.h" ex="false" tool="3" flavor2="0">
@@ -765,6 +853,8 @@
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/AUSM_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/AUSM_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Area_Volume.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -780,17 +870,27 @@
       </item>
       <item path="src/DebugSolver.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/FiniteDifference_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Gradient.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/HLLC_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/HLLC_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/HigherOrderReconstructQ.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/JST_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/JST_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/LDFSS_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/LDFSS_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Limiters.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -799,6 +899,8 @@
       <item path="src/MeshIO.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Osher_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Osher_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/RMSIO.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -816,6 +918,8 @@
       </item>
       <item path="src/Solver.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/SolverDB.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/SolverParameters.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Solver_Steady_Explicit.cpp" ex="false" tool="1" flavor2="0">
@@ -828,17 +932,21 @@
       </item>
       <item path="src/StegerWarming_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/StegerWarming_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Time_Step.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/VanLeer_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/VanLeer_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
     </conf>
     <conf name="Release_Intel" type="1">
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
-        <compilerSet>GNU|GNU</compilerSet>
+        <compilerSet>Intel|Intel</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
@@ -850,6 +958,7 @@
             <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
+            <pElem>../EOS/include</pElem>
             <pElem>include</pElem>
             <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/include</pElem>
           </incDir>
@@ -866,6 +975,7 @@
             <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
+            <pElem>../EOS/include</pElem>
             <pElem>include</pElem>
             <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/include</pElem>
           </incDir>
@@ -913,6 +1023,18 @@
                             OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.so">
               </makeArtifact>
             </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../EOS"
+                            CT="2"
+                            CN="Release_Intel"
+                            AC="false"
+                            BL="true"
+                            WD="../EOS"
+                            BC="${MAKE}  -f Makefile CONF=Release_Intel"
+                            CC="${MAKE}  -f Makefile CONF=Release_Intel clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libEOS.${CND_DLIB_EXT}">
+              </makeArtifact>
+            </linkerLibProjectItem>
           </linkerLibItems>
           <commandLine>-lstdc++ -lmpi</commandLine>
         </linkerTool>
@@ -933,6 +1055,8 @@
       </item>
       <item path="include/JST_Fluxes.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/Jacobian.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/LDFSS_Fluxes.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Material.h" ex="false" tool="3" flavor2="0">
@@ -949,6 +1073,8 @@
       </item>
       <item path="include/Solver.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/SolverDB.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/SolverParameters.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SolverUtils.h" ex="false" tool="3" flavor2="0">
@@ -960,6 +1086,8 @@
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/AUSM_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/AUSM_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Area_Volume.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -975,17 +1103,27 @@
       </item>
       <item path="src/DebugSolver.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/FiniteDifference_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Gradient.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/HLLC_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/HLLC_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/HigherOrderReconstructQ.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/JST_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/JST_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/LDFSS_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/LDFSS_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Limiters.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -994,6 +1132,8 @@
       <item path="src/MeshIO.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Osher_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Osher_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/RMSIO.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -1011,6 +1151,8 @@
       </item>
       <item path="src/Solver.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/SolverDB.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/SolverParameters.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Solver_Steady_Explicit.cpp" ex="false" tool="1" flavor2="0">
@@ -1023,17 +1165,21 @@
       </item>
       <item path="src/StegerWarming_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/StegerWarming_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Time_Step.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/VanLeer_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/VanLeer_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
     </conf>
     <conf name="Debug_Intel" type="1">
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
-        <compilerSet>GNU|GNU</compilerSet>
+        <compilerSet>Intel|Intel</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
@@ -1044,6 +1190,7 @@
             <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
+            <pElem>../EOS/include</pElem>
             <pElem>include</pElem>
             <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/include</pElem>
           </incDir>
@@ -1059,6 +1206,7 @@
             <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
+            <pElem>../EOS/include</pElem>
             <pElem>include</pElem>
             <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/include</pElem>
           </incDir>
@@ -1105,6 +1253,18 @@
                             OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
               </makeArtifact>
             </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../EOS"
+                            CT="2"
+                            CN="Debug_Intel"
+                            AC="false"
+                            BL="true"
+                            WD="../EOS"
+                            BC="${MAKE}  -f Makefile CONF=Debug_Intel"
+                            CC="${MAKE}  -f Makefile CONF=Debug_Intel clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libEOS.${CND_DLIB_EXT}">
+              </makeArtifact>
+            </linkerLibProjectItem>
           </linkerLibItems>
           <commandLine>-lstdc++ -lmpi</commandLine>
         </linkerTool>
@@ -1125,6 +1285,8 @@
       </item>
       <item path="include/JST_Fluxes.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/Jacobian.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/LDFSS_Fluxes.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Material.h" ex="false" tool="3" flavor2="0">
@@ -1141,6 +1303,8 @@
       </item>
       <item path="include/Solver.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/SolverDB.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/SolverParameters.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SolverUtils.h" ex="false" tool="3" flavor2="0">
@@ -1152,6 +1316,8 @@
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/AUSM_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/AUSM_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Area_Volume.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -1167,17 +1333,27 @@
       </item>
       <item path="src/DebugSolver.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/FiniteDifference_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Gradient.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/HLLC_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/HLLC_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/HigherOrderReconstructQ.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/JST_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/JST_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/LDFSS_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/LDFSS_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Limiters.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -1186,6 +1362,8 @@
       <item path="src/MeshIO.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Osher_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Osher_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/RMSIO.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -1203,6 +1381,8 @@
       </item>
       <item path="src/Solver.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/SolverDB.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/SolverParameters.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Solver_Steady_Explicit.cpp" ex="false" tool="1" flavor2="0">
@@ -1215,11 +1395,15 @@
       </item>
       <item path="src/StegerWarming_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/StegerWarming_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Time_Step.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/VanLeer_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/VanLeer_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="Release_GUPC_x86_64" type="1">
@@ -1322,6 +1506,8 @@
       </item>
       <item path="include/JST_Fluxes.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/Jacobian.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/LDFSS_Fluxes.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Material.h" ex="false" tool="3" flavor2="0">
@@ -1338,6 +1524,8 @@
       </item>
       <item path="include/Solver.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/SolverDB.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/SolverParameters.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SolverUtils.h" ex="false" tool="3" flavor2="0">
@@ -1349,6 +1537,8 @@
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/AUSM_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/AUSM_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Area_Volume.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -1364,17 +1554,27 @@
       </item>
       <item path="src/DebugSolver.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/FiniteDifference_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Gradient.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/HLLC_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/HLLC_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/HigherOrderReconstructQ.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/JST_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/JST_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/LDFSS_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/LDFSS_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Limiters.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -1383,6 +1583,8 @@
       <item path="src/MeshIO.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Osher_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Osher_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/RMSIO.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -1400,6 +1602,8 @@
       </item>
       <item path="src/Solver.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/SolverDB.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/SolverParameters.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Solver_Steady_Explicit.cpp" ex="false" tool="1" flavor2="0">
@@ -1412,11 +1616,15 @@
       </item>
       <item path="src/StegerWarming_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/StegerWarming_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Time_Step.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/VanLeer_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/VanLeer_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="Debug_GUPC_x86_64" type="1">
@@ -1515,6 +1723,8 @@
       </item>
       <item path="include/JST_Fluxes.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/Jacobian.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/LDFSS_Fluxes.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Material.h" ex="false" tool="3" flavor2="0">
@@ -1531,6 +1741,8 @@
       </item>
       <item path="include/Solver.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/SolverDB.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/SolverParameters.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SolverUtils.h" ex="false" tool="3" flavor2="0">
@@ -1542,6 +1754,8 @@
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/AUSM_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/AUSM_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Area_Volume.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -1557,17 +1771,27 @@
       </item>
       <item path="src/DebugSolver.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/FiniteDifference_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Gradient.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/HLLC_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/HLLC_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/HigherOrderReconstructQ.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/JST_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/JST_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/LDFSS_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/LDFSS_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Limiters.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -1576,6 +1800,8 @@
       <item path="src/MeshIO.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Osher_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Osher_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/RMSIO.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -1593,6 +1819,8 @@
       </item>
       <item path="src/Solver.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/SolverDB.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/SolverParameters.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Solver_Steady_Explicit.cpp" ex="false" tool="1" flavor2="0">
@@ -1605,17 +1833,21 @@
       </item>
       <item path="src/StegerWarming_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/StegerWarming_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Time_Step.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/VanLeer_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/VanLeer_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="Release_GUPC_ppc64" type="1">
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
-        <compilerSet>GNU|GNU</compilerSet>
+        <compilerSet>GUPC_ppc64|GNU</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
@@ -1627,6 +1859,7 @@
             <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
+            <pElem>../EOS/include</pElem>
             <pElem>include</pElem>
           </incDir>
           <warningLevel>2</warningLevel>
@@ -1638,6 +1871,7 @@
             <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
+            <pElem>../EOS/include</pElem>
             <pElem>include</pElem>
           </incDir>
           <commandLine>-Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer</commandLine>
@@ -1678,6 +1912,18 @@
                             OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.so">
               </makeArtifact>
             </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../EOS"
+                            CT="2"
+                            CN="Release_GUPC_ppc64"
+                            AC="false"
+                            BL="true"
+                            WD="../EOS"
+                            BC="${MAKE}  -f Makefile CONF=Release_GUPC_ppc64"
+                            CC="${MAKE}  -f Makefile CONF=Release_GUPC_ppc64 clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libEOS.${CND_DLIB_EXT}">
+              </makeArtifact>
+            </linkerLibProjectItem>
           </linkerLibItems>
           <commandLine>-lstdc++ -lm</commandLine>
         </linkerTool>
@@ -1698,6 +1944,8 @@
       </item>
       <item path="include/JST_Fluxes.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/Jacobian.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/LDFSS_Fluxes.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Material.h" ex="false" tool="3" flavor2="0">
@@ -1714,6 +1962,8 @@
       </item>
       <item path="include/Solver.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/SolverDB.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/SolverParameters.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SolverUtils.h" ex="false" tool="3" flavor2="0">
@@ -1725,6 +1975,8 @@
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/AUSM_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/AUSM_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Area_Volume.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -1740,17 +1992,27 @@
       </item>
       <item path="src/DebugSolver.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/FiniteDifference_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Gradient.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/HLLC_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/HLLC_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/HigherOrderReconstructQ.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/JST_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/JST_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/LDFSS_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/LDFSS_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Limiters.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -1759,6 +2021,8 @@
       <item path="src/MeshIO.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Osher_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Osher_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/RMSIO.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -1776,6 +2040,8 @@
       </item>
       <item path="src/Solver.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/SolverDB.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/SolverParameters.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Solver_Steady_Explicit.cpp" ex="false" tool="1" flavor2="0">
@@ -1788,17 +2054,21 @@
       </item>
       <item path="src/StegerWarming_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/StegerWarming_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Time_Step.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/VanLeer_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/VanLeer_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="Debug_GUPC_ppc64" type="1">
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
-        <compilerSet>GUPC_x86_64|GNU</compilerSet>
+        <compilerSet>GUPC_ppc64|GNU</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
@@ -1809,6 +2079,7 @@
             <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
+            <pElem>../EOS/include</pElem>
             <pElem>include</pElem>
           </incDir>
           <warningLevel>2</warningLevel>
@@ -1819,6 +2090,7 @@
             <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>../MATH/include</pElem>
+            <pElem>../EOS/include</pElem>
             <pElem>include</pElem>
           </incDir>
           <commandLine>-Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer</commandLine>
@@ -1857,6 +2129,18 @@
                             OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.so">
               </makeArtifact>
             </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../EOS"
+                            CT="2"
+                            CN="Debug_GUPC_ppc64"
+                            AC="false"
+                            BL="true"
+                            WD="../EOS"
+                            BC="${MAKE}  -f Makefile CONF=Debug_GUPC_ppc64"
+                            CC="${MAKE}  -f Makefile CONF=Debug_GUPC_ppc64 clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libEOS.${CND_DLIB_EXT}">
+              </makeArtifact>
+            </linkerLibProjectItem>
           </linkerLibItems>
           <commandLine>-lstdc++ -lm</commandLine>
         </linkerTool>
@@ -1877,6 +2161,8 @@
       </item>
       <item path="include/JST_Fluxes.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/Jacobian.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/LDFSS_Fluxes.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Material.h" ex="false" tool="3" flavor2="0">
@@ -1893,6 +2179,8 @@
       </item>
       <item path="include/Solver.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/SolverDB.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/SolverParameters.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SolverUtils.h" ex="false" tool="3" flavor2="0">
@@ -1904,6 +2192,8 @@
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/AUSM_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/AUSM_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Area_Volume.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -1919,17 +2209,27 @@
       </item>
       <item path="src/DebugSolver.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/FiniteDifference_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Gradient.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/HLLC_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/HLLC_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/HigherOrderReconstructQ.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/JST_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/JST_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/LDFSS_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/LDFSS_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Limiters.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -1938,6 +2238,8 @@
       <item path="src/MeshIO.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Osher_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Osher_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/RMSIO.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -1955,6 +2257,8 @@
       </item>
       <item path="src/Solver.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/SolverDB.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/SolverParameters.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Solver_Steady_Explicit.cpp" ex="false" tool="1" flavor2="0">
@@ -1967,11 +2271,15 @@
       </item>
       <item path="src/StegerWarming_Fluxes.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/StegerWarming_Jacobian.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Time_Step.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/VanLeer_Fluxes.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/VanLeer_Jacobian.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
   </confs>

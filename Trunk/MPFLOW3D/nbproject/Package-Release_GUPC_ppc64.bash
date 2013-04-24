@@ -6,7 +6,7 @@
 
 # Macros
 TOP=`pwd`
-CND_PLATFORM=GNU-Linux-x86
+CND_PLATFORM=GUPC_ppc64-Linux-x86
 CND_CONF=Release_GUPC_ppc64
 CND_DISTDIR=dist
 CND_BUILDDIR=build

@@ -9,16 +9,17 @@
 
 // Custom header files
 #include "Trim_Utils.h"
+#include "MC.h"
+#include "Commons.h"
+#include "DebugSolver.h"
 #include "RestartIO.h"
 #include "MeshIO.h"
-#include "Commons.h"
 #include "Solver.h"
-#include "MC.h"
 #include "Gradient.h"
 #include "CompressibleUtils.h"
 #include "Residual_Smoothing.h"
 #include "Material.h"
-#include "DebugSolver.h"
+#include "Jacobian.h"
 
 //------------------------------------------------------------------------------
 //! Solver in Unsteady State Mode with Implicit Mode
@@ -121,11 +122,11 @@ int Solver_Unsteady_Implicit(void) {
             giter++;
             // Reset Residuals and DeltaT
             for (int i = 0; i < nNode; i++) {
-                Res1[i]      = 0.0;
-                Res2[i]      = 0.0;
-                Res3[i]      = 0.0;
-                Res4[i]      = 0.0;
-                Res5[i]      = 0.0;
+                Res1_Conv[i] = 0.0;
+                Res2_Conv[i] = 0.0;
+                Res3_Conv[i] = 0.0;
+                Res4_Conv[i] = 0.0;
+                Res5_Conv[i] = 0.0;
                 Res1_Diss[i] = 0.0;
                 Res2_Diss[i] = 0.0;
                 Res3_Diss[i] = 0.0;

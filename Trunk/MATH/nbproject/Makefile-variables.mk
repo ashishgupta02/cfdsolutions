@@ -39,21 +39,21 @@ CND_PACKAGE_DIR_Debug_Cygwin=dist/Debug_Cygwin/Cygwin_4.x-Windows/package
 CND_PACKAGE_NAME_Debug_Cygwin=libMATH.dll.tar
 CND_PACKAGE_PATH_Debug_Cygwin=dist/Debug_Cygwin/Cygwin_4.x-Windows/package/libMATH.dll.tar
 # Release_Intel configuration
-CND_PLATFORM_Release_Intel=GNU-Linux-x86
-CND_ARTIFACT_DIR_Release_Intel=dist/Release_Intel/GNU-Linux-x86
+CND_PLATFORM_Release_Intel=Intel-Linux-x86
+CND_ARTIFACT_DIR_Release_Intel=dist/Release_Intel/Intel-Linux-x86
 CND_ARTIFACT_NAME_Release_Intel=libMATH.so
-CND_ARTIFACT_PATH_Release_Intel=dist/Release_Intel/GNU-Linux-x86/libMATH.so
-CND_PACKAGE_DIR_Release_Intel=dist/Release_Intel/GNU-Linux-x86/package
+CND_ARTIFACT_PATH_Release_Intel=dist/Release_Intel/Intel-Linux-x86/libMATH.so
+CND_PACKAGE_DIR_Release_Intel=dist/Release_Intel/Intel-Linux-x86/package
 CND_PACKAGE_NAME_Release_Intel=libMATH.so.tar
-CND_PACKAGE_PATH_Release_Intel=dist/Release_Intel/GNU-Linux-x86/package/libMATH.so.tar
+CND_PACKAGE_PATH_Release_Intel=dist/Release_Intel/Intel-Linux-x86/package/libMATH.so.tar
 # Debug_Intel configuration
-CND_PLATFORM_Debug_Intel=GNU-Linux-x86
-CND_ARTIFACT_DIR_Debug_Intel=dist/Debug_Intel/GNU-Linux-x86
+CND_PLATFORM_Debug_Intel=Intel-Linux-x86
+CND_ARTIFACT_DIR_Debug_Intel=dist/Debug_Intel/Intel-Linux-x86
 CND_ARTIFACT_NAME_Debug_Intel=libMATH.so
-CND_ARTIFACT_PATH_Debug_Intel=dist/Debug_Intel/GNU-Linux-x86/libMATH.so
-CND_PACKAGE_DIR_Debug_Intel=dist/Debug_Intel/GNU-Linux-x86/package
+CND_ARTIFACT_PATH_Debug_Intel=dist/Debug_Intel/Intel-Linux-x86/libMATH.so
+CND_PACKAGE_DIR_Debug_Intel=dist/Debug_Intel/Intel-Linux-x86/package
 CND_PACKAGE_NAME_Debug_Intel=libMATH.so.tar
-CND_PACKAGE_PATH_Debug_Intel=dist/Debug_Intel/GNU-Linux-x86/package/libMATH.so.tar
+CND_PACKAGE_PATH_Debug_Intel=dist/Debug_Intel/Intel-Linux-x86/package/libMATH.so.tar
 # Release_GUPC_x86_64 configuration
 CND_PLATFORM_Release_GUPC_x86_64=GUPC_x86_64-Linux-x86
 CND_ARTIFACT_DIR_Release_GUPC_x86_64=dist/Release_GUPC_x86_64/GUPC_x86_64-Linux-x86

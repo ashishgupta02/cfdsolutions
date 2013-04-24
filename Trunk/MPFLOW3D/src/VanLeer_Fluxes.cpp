@@ -141,7 +141,7 @@ void VanLeer_Reset(void) {
 //------------------------------------------------------------------------------
 //! Compute VanLeer Flux
 //------------------------------------------------------------------------------
-void Compute_VanLeerFlux(int node_L, int node_R, Vector3D areavec, double *Flux_VanLeer, int AddTime) {
+void Compute_Flux_VanLeer(int node_L, int node_R, Vector3D areavec, double *Flux_VanLeer, int AddTime) {
     int i;
     double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
     double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
@@ -313,7 +313,7 @@ void Compute_VanLeerFlux(int node_L, int node_R, Vector3D areavec, double *Flux_
         Flux_VanLeer[3] = (fluxp4 + fluxm4)*area;
         Flux_VanLeer[4] = (fluxp5 + fluxm5)*area;
     } else
-        error("Compute_VanLeerFlux: Invalid Node - %d", node_L);
+        error("Compute_Flux_VanLeer: Invalid Node - %d", node_L);
 }
 
 //------------------------------------------------------------------------------
@@ -335,20 +335,20 @@ void Compute_Residual_VanLeer(int AddTime) {
         areavec = intEdge[i].areav;
         
         // Compute the VanLeer Flux for this edge
-        Compute_VanLeerFlux(node_L, node_R, areavec, flux_vanleer, AddTime);
+        Compute_Flux_VanLeer(node_L, node_R, areavec, flux_vanleer, AddTime);
         
         // Compute for LHS
-        Res1[node_L] += flux_vanleer[0];
-        Res2[node_L] += flux_vanleer[1];
-        Res3[node_L] += flux_vanleer[2];
-        Res4[node_L] += flux_vanleer[3];
-        Res5[node_L] += flux_vanleer[4];
+        Res1_Conv[node_L] += flux_vanleer[0];
+        Res2_Conv[node_L] += flux_vanleer[1];
+        Res3_Conv[node_L] += flux_vanleer[2];
+        Res4_Conv[node_L] += flux_vanleer[3];
+        Res5_Conv[node_L] += flux_vanleer[4];
 
-        Res1[node_R] -= flux_vanleer[0];
-        Res2[node_R] -= flux_vanleer[1];
-        Res3[node_R] -= flux_vanleer[2];
-        Res4[node_R] -= flux_vanleer[3];
-        Res5[node_R] -= flux_vanleer[4];
+        Res1_Conv[node_R] -= flux_vanleer[0];
+        Res2_Conv[node_R] -= flux_vanleer[1];
+        Res3_Conv[node_R] -= flux_vanleer[2];
+        Res4_Conv[node_R] -= flux_vanleer[3];
+        Res5_Conv[node_R] -= flux_vanleer[4];
     }
 
     // Boundary Edges
@@ -361,14 +361,14 @@ void Compute_Residual_VanLeer(int AddTime) {
         areavec = bndEdge[i].areav;
         
         // Compute the VanLeer Flux for this edge
-        Compute_VanLeerFlux(node_L, node_R, areavec, flux_vanleer, AddTime);
+        Compute_Flux_VanLeer(node_L, node_R, areavec, flux_vanleer, AddTime);
         
         // Compute for LHS
-        Res1[node_L] += flux_vanleer[0];
-        Res2[node_L] += flux_vanleer[1];
-        Res3[node_L] += flux_vanleer[2];
-        Res4[node_L] += flux_vanleer[3];
-        Res5[node_L] += flux_vanleer[4];
+        Res1_Conv[node_L] += flux_vanleer[0];
+        Res2_Conv[node_L] += flux_vanleer[1];
+        Res3_Conv[node_L] += flux_vanleer[2];
+        Res4_Conv[node_L] += flux_vanleer[3];
+        Res5_Conv[node_L] += flux_vanleer[4];
     }
     
     // Precondition and Transform the Residual in Conservative or Primitive Form

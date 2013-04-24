@@ -37,6 +37,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/main.o \
 	${OBJECTDIR}/src/AUSM_Fluxes.o \
+	${OBJECTDIR}/src/AUSM_Jacobian.o \
 	${OBJECTDIR}/src/Area_Volume.o \
 	${OBJECTDIR}/src/BC.o \
 	${OBJECTDIR}/src/Commons.o \
@@ -44,16 +45,22 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Connectivity_Maps.o \
 	${OBJECTDIR}/src/Cuthill_Mckee_Reorder.o \
 	${OBJECTDIR}/src/DebugSolver.o \
+	${OBJECTDIR}/src/FiniteDifference_Jacobian.o \
+	${OBJECTDIR}/src/Fluxes.o \
 	${OBJECTDIR}/src/Gradient.o \
 	${OBJECTDIR}/src/HLLC_Fluxes.o \
+	${OBJECTDIR}/src/HLLC_Jacobian.o \
 	${OBJECTDIR}/src/HigherOrderReconstructQ.o \
 	${OBJECTDIR}/src/JST_Fluxes.o \
+	${OBJECTDIR}/src/JST_Jacobian.o \
 	${OBJECTDIR}/src/Jacobian.o \
 	${OBJECTDIR}/src/LDFSS_Fluxes.o \
+	${OBJECTDIR}/src/LDFSS_Jacobian.o \
 	${OBJECTDIR}/src/Limiters.o \
 	${OBJECTDIR}/src/Material.o \
 	${OBJECTDIR}/src/MeshIO.o \
 	${OBJECTDIR}/src/Osher_Fluxes.o \
+	${OBJECTDIR}/src/Osher_Jacobian.o \
 	${OBJECTDIR}/src/RMSIO.o \
 	${OBJECTDIR}/src/Residual.o \
 	${OBJECTDIR}/src/Residual_Smoothing.o \
@@ -62,15 +69,18 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Roe_Fluxes.o \
 	${OBJECTDIR}/src/Roe_Jacobian.o \
 	${OBJECTDIR}/src/Solver.o \
+	${OBJECTDIR}/src/SolverDB.o \
 	${OBJECTDIR}/src/SolverParameters.o \
 	${OBJECTDIR}/src/Solver_Steady_Explicit.o \
 	${OBJECTDIR}/src/Solver_Steady_Implicit.o \
 	${OBJECTDIR}/src/Solver_Unsteady_Explicit.o \
 	${OBJECTDIR}/src/Solver_Unsteady_Implicit.o \
 	${OBJECTDIR}/src/StegerWarming_Fluxes.o \
+	${OBJECTDIR}/src/StegerWarming_Jacobian.o \
 	${OBJECTDIR}/src/Test.o \
 	${OBJECTDIR}/src/Time_Step.o \
-	${OBJECTDIR}/src/VanLeer_Fluxes.o
+	${OBJECTDIR}/src/VanLeer_Fluxes.o \
+	${OBJECTDIR}/src/VanLeer_Jacobian.o
 
 
 # C Compiler Flags
@@ -113,6 +123,11 @@ ${OBJECTDIR}/src/AUSM_Fluxes.o: src/AUSM_Fluxes.cpp
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AUSM_Fluxes.o src/AUSM_Fluxes.cpp
 
+${OBJECTDIR}/src/AUSM_Jacobian.o: src/AUSM_Jacobian.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/AUSM_Jacobian.o src/AUSM_Jacobian.cpp
+
 ${OBJECTDIR}/src/Area_Volume.o: src/Area_Volume.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
@@ -148,6 +163,16 @@ ${OBJECTDIR}/src/DebugSolver.o: src/DebugSolver.cpp
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/DebugSolver.o src/DebugSolver.cpp
 
+${OBJECTDIR}/src/FiniteDifference_Jacobian.o: src/FiniteDifference_Jacobian.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/FiniteDifference_Jacobian.o src/FiniteDifference_Jacobian.cpp
+
+${OBJECTDIR}/src/Fluxes.o: src/Fluxes.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Fluxes.o src/Fluxes.cpp
+
 ${OBJECTDIR}/src/Gradient.o: src/Gradient.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
@@ -157,6 +182,11 @@ ${OBJECTDIR}/src/HLLC_Fluxes.o: src/HLLC_Fluxes.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/HLLC_Fluxes.o src/HLLC_Fluxes.cpp
+
+${OBJECTDIR}/src/HLLC_Jacobian.o: src/HLLC_Jacobian.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/HLLC_Jacobian.o src/HLLC_Jacobian.cpp
 
 ${OBJECTDIR}/src/HigherOrderReconstructQ.o: src/HigherOrderReconstructQ.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -168,6 +198,11 @@ ${OBJECTDIR}/src/JST_Fluxes.o: src/JST_Fluxes.cpp
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/JST_Fluxes.o src/JST_Fluxes.cpp
 
+${OBJECTDIR}/src/JST_Jacobian.o: src/JST_Jacobian.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/JST_Jacobian.o src/JST_Jacobian.cpp
+
 ${OBJECTDIR}/src/Jacobian.o: src/Jacobian.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
@@ -177,6 +212,11 @@ ${OBJECTDIR}/src/LDFSS_Fluxes.o: src/LDFSS_Fluxes.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/LDFSS_Fluxes.o src/LDFSS_Fluxes.cpp
+
+${OBJECTDIR}/src/LDFSS_Jacobian.o: src/LDFSS_Jacobian.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/LDFSS_Jacobian.o src/LDFSS_Jacobian.cpp
 
 ${OBJECTDIR}/src/Limiters.o: src/Limiters.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -197,6 +237,11 @@ ${OBJECTDIR}/src/Osher_Fluxes.o: src/Osher_Fluxes.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Osher_Fluxes.o src/Osher_Fluxes.cpp
+
+${OBJECTDIR}/src/Osher_Jacobian.o: src/Osher_Jacobian.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Osher_Jacobian.o src/Osher_Jacobian.cpp
 
 ${OBJECTDIR}/src/RMSIO.o: src/RMSIO.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -238,6 +283,11 @@ ${OBJECTDIR}/src/Solver.o: src/Solver.cpp
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Solver.o src/Solver.cpp
 
+${OBJECTDIR}/src/SolverDB.o: src/SolverDB.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/SolverDB.o src/SolverDB.cpp
+
 ${OBJECTDIR}/src/SolverParameters.o: src/SolverParameters.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
@@ -268,6 +318,11 @@ ${OBJECTDIR}/src/StegerWarming_Fluxes.o: src/StegerWarming_Fluxes.cpp
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/StegerWarming_Fluxes.o src/StegerWarming_Fluxes.cpp
 
+${OBJECTDIR}/src/StegerWarming_Jacobian.o: src/StegerWarming_Jacobian.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/StegerWarming_Jacobian.o src/StegerWarming_Jacobian.cpp
+
 ${OBJECTDIR}/src/Test.o: src/Test.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
@@ -282,6 +337,11 @@ ${OBJECTDIR}/src/VanLeer_Fluxes.o: src/VanLeer_Fluxes.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
 	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/VanLeer_Fluxes.o src/VanLeer_Fluxes.cpp
+
+${OBJECTDIR}/src/VanLeer_Jacobian.o: src/VanLeer_Jacobian.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -I.. -I../UTILS/include -I../MATH/include -I../EOS/include -Iinclude -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/VanLeer_Jacobian.o src/VanLeer_Jacobian.cpp
 
 # Subprojects
 .build-subprojects:

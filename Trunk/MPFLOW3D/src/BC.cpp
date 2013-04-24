@@ -203,15 +203,15 @@ int Compute_Precondition_Characteristic_BoundaryCondition_Turkel(double Q_L[NEQU
     beta = 1.0; // Corresponds to no pre-conditioning
     if (PrecondType == PRECOND_TYPE_LOCAL) {
         mach = MAX(mach, mach_max);
-        if (mach < Ref_Mach)
-            beta = 0.5*(mach*mach)/(Ref_Mach*Ref_Mach) - mach/(Ref_Mach) + 1.0;
+        if (mach < PrecondGlobalMach)
+            beta = 0.5*(mach*mach)/(PrecondGlobalMach*PrecondGlobalMach) - mach/(PrecondGlobalMach) + 1.0;
         else
             beta = 0.5;
-        beta = beta*(sqrt(mach*Ref_Mach)+ mach);
+        beta = beta*(sqrt(mach*PrecondGlobalMach)+ mach);
         beta = MIN(1.0, beta);
     }
     if (PrecondType == PRECOND_TYPE_GLOBAL)
-        beta = MIN(1.0, Ref_Mach);
+        beta = MIN(1.0, PrecondGlobalMach);
 
     // Min and Max Precondition Variable
     MinPrecondSigma = MIN(MinPrecondSigma, beta);

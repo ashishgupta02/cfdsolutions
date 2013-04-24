@@ -69,6 +69,7 @@ int    PrecondMethod;
 int    PrecondType;
 int    PrecondSmooth;
 int    PrecondVariableType;
+double PrecondGlobalMach;
 
 // Restart Parameters
 int    RestartInput;
@@ -111,7 +112,6 @@ void Solver_Parameters_Init(void) {
     SolverMethod                = SOLVER_METHOD_NONE;
     SolverScheme                = SOLVER_SCHEME_NONE;
     FluxScheme                  = FLUX_SCHEME_NONE;
-    PrecondMethod               = PRECOND_METHOD_NONE;
     TimeIntegrationType         = TIME_INTEGRATION_TYPE_NONE;
     TimeIntegrationMethod       = TIME_INTEGRATION_METHOD_NONE;
     BCMethod                    = BC_METHOD_NONE;
@@ -144,9 +144,11 @@ void Solver_Parameters_Init(void) {
     EntropyFix                  = 0;
     
     // Precondition Variables
+    PrecondMethod               = PRECOND_METHOD_NONE;
     PrecondSmooth               = 0;
     PrecondType                 = PRECOND_TYPE_NONE;
     PrecondVariableType         = VARIABLE_NONE;
+    PrecondGlobalMach           = 0.0;
     
     // Restart Parameters
     RestartInput                = 0;
@@ -548,6 +550,15 @@ void Solver_Parameters_Read(const char *filename) {
             MaterialName[strlength] = '\0';
         }
         
+        // Read Material Type
+        position = text_line.find("MATERIAL_COMP_TYPE=", 0);
+        if ((position != string::npos) && (position == 0)) {
+            text_line.erase(0, 19);
+            option_name.assign(text_line);
+            StringToUpperCase(option_name);
+            GetOptionNameValue(option_name, MaterialCompType, MaterialCompTypeMap);
+        }
+        
         //-------------------Reference Values-----------------------------------
         // Read Reference Pressure
         position = text_line.find("REF_PRESSURE=", 0);
@@ -793,6 +804,8 @@ void Solver_Parameters_Read(const char *filename) {
     GetOptionValueName(option_name, MaterialType, MaterialTypeMap);
     info("%2d) Material Type ------------------------: %s",  ++count, option_name.c_str());
     info("%2d) Material Name ------------------------: %s",  ++count, MaterialName);
+    GetOptionValueName(option_name, MaterialCompType, MaterialCompTypeMap);
+    info("%2d) Material Computation Type ------------: %s",  ++count, option_name.c_str());
     printf("-----------------------------------------------------------------------------\n");
     printf("---INPUT: Reference Conditions-----------------------------------------------\n");
     info("%2d) Reference Pressure -------------------: %lf", ++count, Ref_Pressure);

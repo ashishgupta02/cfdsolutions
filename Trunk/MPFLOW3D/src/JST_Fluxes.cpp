@@ -43,7 +43,7 @@ void JST_Reset(void) {
 //------------------------------------------------------------------------------
 //! Compute JST Flux
 //------------------------------------------------------------------------------
-void Compute_JSTFlux(int node_L, int node_R, Vector3D areavec, double *Flux_JST, int AddTime) {
+void Compute_Flux_JST(int node_L, int node_R, Vector3D areavec, double *Flux_JST_Conv, double *Flux_JST_Diss, int AddTime) {
     
 }
 

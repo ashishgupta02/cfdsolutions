@@ -23,8 +23,6 @@
 #include "Osher_Fluxes.h"
 #include "StegerWarming_Fluxes.h"
 
-extern int SolverIteration;
-
 // Conservative or Primitive Variables
 extern double *Q1; /* rho,    P   */
 extern double *Q2; /* rho*u,  u   */
@@ -54,11 +52,11 @@ extern double *Q5y;
 extern double *Q5z;
 
 // Residuals (Convective and Dissipative)
-extern double *Res1;
-extern double *Res2;
-extern double *Res3;
-extern double *Res4;
-extern double *Res5;
+extern double *Res1_Conv;
+extern double *Res2_Conv;
+extern double *Res3_Conv;
+extern double *Res4_Conv;
+extern double *Res5_Conv;
 
 extern double *Res1_Diss;
 extern double *Res2_Diss;
@@ -108,6 +106,8 @@ int  Solver_Steady_Explicit(void);
 int  Solver_Steady_Implicit(void);
 int  Solver_Unsteady_Explicit(void);
 int  Solver_Unsteady_Implicit(void);
+void Compute_Flux(int node_L, int node_R, Vector3D areavec, double *Flux_Conv, double *Flux_Diss, int AddTime);
+void Compute_Transformed_Preconditioner_Matrix(int nodeID, int reqInv, double **PrecondMatrix);
 void Compute_Residual(int AddTime);
 void Unsteady_Initialization(void);
 
@@ -115,7 +115,6 @@ void Unsteady_Initialization(void);
 void Create_CRS_SolverBlockMatrix(void);
 void Delete_CRS_SolverBlockMatrix(void);
 int  Solve_Implicit(void);
-void Compute_Jacobian(int AddTime, int Iteration);
 
 // Time Stepping
 void Compute_DeltaT(int Iteration);

@@ -14,6 +14,7 @@
 #include "Solver.h"
 #include "SolverParameters.h"
 #include "CompressibleUtils.h"
+#include "EOS.h"
 
 //------------------------------------------------------------------------------
 //! Compute Euler Convective Flux
@@ -61,9 +62,9 @@ void Compute_Flux_Euler_Convective(int node_ID, Vector3D areavec, double *Flux) 
 //! Compute Euler Flux Convective Jacobian
 //! Note: Q is always first order
 //------------------------------------------------------------------------------
-void Compute_Flux_Jacobian_Euler_Convective(double *Q, Vector3D areavec, double **Jacobian_Conv) {
+void Compute_Flux_Jacobian_Euler_Convective_IdealGas(double *Q, Vector3D areavec, double **Jacobian_Conv) {
     double nx, ny, nz;
-    
+    double PressureSave = 0.0;
     areavec.normalize();
     nx = areavec.vec[0];
     ny = areavec.vec[1];
@@ -74,11 +75,13 @@ void Compute_Flux_Jacobian_Euler_Convective(double *Q, Vector3D areavec, double 
         case VARIABLE_CON:
             // Do Nothing
             break;
-        case VARIABLE_PUT:
-            Q[0] += Gauge_Pressure;
-            break;
         case VARIABLE_RUP:
+            PressureSave = Q[4];
             Q[4] += Gauge_Pressure;
+            break;
+        case VARIABLE_PUT:
+            PressureSave = Q[0];
+            Q[0] += Gauge_Pressure;
             break;
         case VARIABLE_RUT:
             break;
@@ -119,6 +122,39 @@ void Compute_Flux_Jacobian_Euler_Convective(double *Q, Vector3D areavec, double 
             Jacobian_Conv[4][3] = (-2.0*(Gamma - 1.0)*Q[3]*(Q[1]*nx + Q[2]*ny + Q[3]*nz) + nz*(2.0*Gamma*Q[0]*Q[4] - (Gamma - 1.0)*(Q[1]*Q[1] + Q[2]*Q[2] + Q[3]*Q[3])))/(2.0*Q[0]*Q[0]);
             Jacobian_Conv[4][4] = Gamma*(Q[1]*nx + Q[2]*ny + Q[3]*nz)/Q[0];
             break;
+        // Primitive Variable Formulation Density Velocity Pressure
+        case VARIABLE_RUP:
+            // Row:0
+            Jacobian_Conv[0][0] = Q[1]*nx + Q[2]*ny + Q[3]*nz;
+            Jacobian_Conv[0][1] = Q[0]*nx;
+            Jacobian_Conv[0][2] = Q[0]*ny;
+            Jacobian_Conv[0][3] = Q[0]*nz;
+            Jacobian_Conv[0][4] = 0.0;
+            // Row:1
+            Jacobian_Conv[1][0] = Q[1]*(Q[1]*nx + Q[2]*ny + Q[3]*nz);
+            Jacobian_Conv[1][1] = Q[0]*(2.0*Q[1]*nx + Q[2]*ny + Q[3]*nz);
+            Jacobian_Conv[1][2] = Q[0]*Q[1]*ny;
+            Jacobian_Conv[1][3] = Q[0]*Q[1]*nz;
+            Jacobian_Conv[1][4] = nx;
+            // Row:2
+            Jacobian_Conv[2][0] = Q[2]*(Q[1]*nx + Q[2]*ny + Q[3]*nz);
+            Jacobian_Conv[2][1] = Q[0]*Q[2]*nx;
+            Jacobian_Conv[2][2] = Q[0]*(Q[1]*nx + 2.0*Q[2]*ny + Q[3]*nz);
+            Jacobian_Conv[2][3] = Q[0]*Q[2]*nz;
+            Jacobian_Conv[2][4] = ny;
+            // Row:3
+            Jacobian_Conv[3][0] = Q[3]*(Q[1]*nx + Q[2]*ny + Q[3]*nz);;
+            Jacobian_Conv[3][1] = Q[0]*Q[3]*nx;
+            Jacobian_Conv[3][2] = Q[0]*Q[3]*ny;
+            Jacobian_Conv[3][3] = Q[0]*(Q[1]*nx + Q[2]*ny + 2.0*Q[3]*nz);
+            Jacobian_Conv[3][4] = nz;
+            // Row:4
+            Jacobian_Conv[4][0] = 0.5*(Q[1]*nx + Q[2]*ny + Q[3]*nz)*(Q[1]*Q[1] + Q[2]*Q[2] + Q[3]*Q[3]);
+            Jacobian_Conv[4][1] = (2.0*(Gamma - 1.0)*Q[0]*Q[1]*(Q[1]*nx + Q[2]*ny + Q[3]*nz) + nx*((Gamma - 1.0)*Q[0]*(Q[1]*Q[1] + Q[2]*Q[2] + Q[3]*Q[3]) + 2.0*Gamma*Q[4]))/(2.0*(Gamma - 1.0));
+            Jacobian_Conv[4][2] = (2.0*(Gamma - 1.0)*Q[0]*Q[2]*(Q[1]*nx + Q[2]*ny + Q[3]*nz) + ny*((Gamma - 1.0)*Q[0]*(Q[1]*Q[1] + Q[2]*Q[2] + Q[3]*Q[3]) + 2.0*Gamma*Q[4]))/(2.0*(Gamma - 1.0));
+            Jacobian_Conv[4][3] = (2.0*(Gamma - 1.0)*Q[0]*Q[3]*(Q[1]*nx + Q[2]*ny + Q[3]*nz) + nz*((Gamma - 1.0)*Q[0]*(Q[1]*Q[1] + Q[2]*Q[2] + Q[3]*Q[3]) + 2.0*Gamma*Q[4]))/(2.0*(Gamma - 1.0));
+            Jacobian_Conv[4][4] = Gamma*(Q[1]*nx + Q[2]*ny + Q[3]*nz)/(Gamma - 1.0);
+            break;
         // Primitive Variable Formulation Pressure Velocity Temperature
         case VARIABLE_PUT:
             // Row:0
@@ -151,39 +187,6 @@ void Compute_Flux_Jacobian_Euler_Convective(double *Q, Vector3D areavec, double 
             Jacobian_Conv[4][2] = (Q[0]*(Q[2]*(Q[1]*nx + Q[2]*ny + Q[3]*nz) + 0.5*ny*(Q[1]*Q[1] + Q[2]*Q[2] + Q[3]*Q[3] + 2.0*Q[4]*Gamma/(Gamma - 1.0))))/Q[4];
             Jacobian_Conv[4][3] = (Q[0]*(Q[3]*(Q[1]*nx + Q[2]*ny + Q[3]*nz) + 0.5*nz*(Q[1]*Q[1] + Q[2]*Q[2] + Q[3]*Q[3] + 2.0*Q[4]*Gamma/(Gamma - 1.0))))/Q[4];
             Jacobian_Conv[4][4] = -Q[0]*(Q[1]*nx + Q[2]*ny + Q[3]*nz)*(Q[1]*Q[1] + Q[2]*Q[2] + Q[3]*Q[3])/(2.0*Q[4]*Q[4]);
-            break;
-        // Primitive Variable Formulation Density Velocity Pressure
-        case VARIABLE_RUP:
-            // Row:0
-            Jacobian_Conv[0][0] = Q[1]*nx + Q[2]*ny + Q[3]*nz;
-            Jacobian_Conv[0][1] = Q[0]*nx;
-            Jacobian_Conv[0][2] = Q[0]*ny;
-            Jacobian_Conv[0][3] = Q[0]*nz;
-            Jacobian_Conv[0][4] = 0.0;
-            // Row:1
-            Jacobian_Conv[1][0] = Q[1]*(Q[1]*nx + Q[2]*ny + Q[3]*nz);
-            Jacobian_Conv[1][1] = Q[0]*(2.0*Q[1]*nx + Q[2]*ny + Q[3]*nz);
-            Jacobian_Conv[1][2] = Q[0]*Q[1]*ny;
-            Jacobian_Conv[1][3] = Q[0]*Q[1]*nz;
-            Jacobian_Conv[1][4] = nx;
-            // Row:2
-            Jacobian_Conv[2][0] = Q[2]*(Q[1]*nx + Q[2]*ny + Q[3]*nz);
-            Jacobian_Conv[2][1] = Q[0]*Q[2]*nx;
-            Jacobian_Conv[2][2] = Q[0]*(Q[1]*nx + 2.0*Q[2]*ny + Q[3]*nz);
-            Jacobian_Conv[2][3] = Q[0]*Q[2]*nz;
-            Jacobian_Conv[2][4] = ny;
-            // Row:3
-            Jacobian_Conv[3][0] = Q[3]*(Q[1]*nx + Q[2]*ny + Q[3]*nz);;
-            Jacobian_Conv[3][1] = Q[0]*Q[3]*nx;
-            Jacobian_Conv[3][2] = Q[0]*Q[3]*ny;
-            Jacobian_Conv[3][3] = Q[0]*(Q[1]*nx + Q[2]*ny + 2.0*Q[3]*nz);;
-            Jacobian_Conv[3][4] = nz;
-            // Row:4
-            Jacobian_Conv[4][0] = 0.5*(Q[1]*nx + Q[2]*ny + Q[3]*nz)*(Q[1]*Q[1] + Q[2]*Q[2] + Q[3]*Q[3]);
-            Jacobian_Conv[4][1] = (2.0*(Gamma - 1.0)*Q[0]*Q[1]*(Q[1]*nx + Q[2]*ny + Q[3]*nz) + nx*((Gamma - 1.0)*Q[0]*(Q[1]*Q[1] + Q[2]*Q[2] + Q[3]*Q[3]) + 2.0*Gamma*Q[4]))/(2.0*(Gamma - 1.0));
-            Jacobian_Conv[4][2] = (2.0*(Gamma - 1.0)*Q[0]*Q[2]*(Q[1]*nx + Q[2]*ny + Q[3]*nz) + ny*((Gamma - 1.0)*Q[0]*(Q[1]*Q[1] + Q[2]*Q[2] + Q[3]*Q[3]) + 2.0*Gamma*Q[4]))/(2.0*(Gamma - 1.0));
-            Jacobian_Conv[4][3] = (2.0*(Gamma - 1.0)*Q[0]*Q[3]*(Q[1]*nx + Q[2]*ny + Q[3]*nz) + nz*((Gamma - 1.0)*Q[0]*(Q[1]*Q[1] + Q[2]*Q[2] + Q[3]*Q[3]) + 2.0*Gamma*Q[4]))/(2.0*(Gamma - 1.0));
-            Jacobian_Conv[4][4] = Gamma*(Q[1]*nx + Q[2]*ny + Q[3]*nz)/(Gamma - 1.0);
             break;
         // Primitive Variable Formulation Density Velocity Temperature
         case VARIABLE_RUT:
@@ -219,7 +222,7 @@ void Compute_Flux_Jacobian_Euler_Convective(double *Q, Vector3D areavec, double 
             Jacobian_Conv[4][4] = Q[0]*(Q[1]*nx + Q[2]*ny + Q[3]*nz)*Gamma/(Gamma - 1.0);
             break;
         default:
-            error("Compute_Flux_Jacobian_Euler_Convective: Undefined Variable Type - %d - Error-3", VariableType);
+            error("Compute_Flux_Jacobian_Euler_Convective_IdealGas: Undefined Variable Type - %d - Error-3", VariableType);
             break;
     }
     
@@ -228,13 +231,142 @@ void Compute_Flux_Jacobian_Euler_Convective(double *Q, Vector3D areavec, double 
         case VARIABLE_CON:
             // Do Nothing
             break;
-        case VARIABLE_PUT:
-            Q[0] -= Gauge_Pressure;
-            break;
         case VARIABLE_RUP:
-            Q[4] -= Gauge_Pressure;
+            Q[4] = PressureSave;
+            break;
+        case VARIABLE_PUT:
+            Q[0] = PressureSave;
             break;
         case VARIABLE_RUT:
+            break;
+    }
+}
+
+//------------------------------------------------------------------------------
+//! Compute Euler Flux Convective Jacobian
+//! Note: Q is always first order
+//------------------------------------------------------------------------------
+void Compute_Flux_Jacobian_Euler_Convective_NIST(double *Q, Vector3D areavec, double **Jacobian_Conv) {
+    double nx, ny, nz;
+    double Ubar = 0.0;
+    double Prop[EOS_EX_THERM_DIM];
+    double daEOSVariable[NEQUATIONS];
+    areavec.normalize();
+    nx = areavec.vec[0];
+    ny = areavec.vec[1];
+    nz = areavec.vec[2];
+    
+    // This is done to preserve the accuracy of dpVariableIn
+    // if passed directly to EOS functions will result in loss of accuracy
+    for (int i = 0; i < NEQUATIONS; i++)
+        daEOSVariable[i] = Q[i];
+    
+    // Compute the Jacobian Based on Non Dimensionalization and Variable Type of Q
+    switch (VariableType) {
+        // Conservative Variable Formulation
+        case VARIABLE_CON:
+            error("Compute_Flux_Jacobian_Euler_Convective_NIST:1: Conservative Variable Type Not Implemented");
+            break;
+        // Primitive Variable Formulation Density Velocity Pressure
+        case VARIABLE_RUP:
+            daEOSVariable[4] += Gauge_Pressure; // Pressure
+            EOS_Get_Extended_Properties(MaterialEOS_IO_Type, EOS_VARIABLE_RUP, daEOSVariable, Prop);
+            
+            Ubar = Q[1]*nx + Q[2]*ny + Q[3]*nz;
+            // Row:0
+            Jacobian_Conv[0][0] = Ubar;
+            Jacobian_Conv[0][1] = Q[0]*nx;
+            Jacobian_Conv[0][2] = Q[0]*ny;
+            Jacobian_Conv[0][3] = Q[0]*nz;
+            Jacobian_Conv[0][4] = 0.0;
+            // Row:1
+            Jacobian_Conv[1][0] = Q[1]*Ubar;
+            Jacobian_Conv[1][1] = Q[0]*(Ubar + Q[1]*nx);
+            Jacobian_Conv[1][2] = Q[0]*Q[1]*ny;
+            Jacobian_Conv[1][3] = Q[0]*Q[1]*nz;
+            Jacobian_Conv[1][4] = nx;
+            // Row:2
+            Jacobian_Conv[2][0] = Q[2]*Ubar;
+            Jacobian_Conv[2][1] = Q[0]*Q[2]*nx;
+            Jacobian_Conv[2][2] = Q[0]*(Ubar + Q[2]*ny);
+            Jacobian_Conv[2][3] = Q[0]*Q[2]*nz;
+            Jacobian_Conv[2][4] = ny;
+            // Row:3
+            Jacobian_Conv[3][0] = Q[3]*Ubar;
+            Jacobian_Conv[3][1] = Q[0]*Q[3]*nx;
+            Jacobian_Conv[3][2] = Q[0]*Q[3]*ny;
+            Jacobian_Conv[3][3] = Q[0]*(Ubar + Q[3]*nz);
+            Jacobian_Conv[3][4] = nz;
+            // Row:4
+            Jacobian_Conv[4][0] = Ubar*(Prop[15] + Q[0]*Prop[34]);
+            Jacobian_Conv[4][1] = (Q[0]*Prop[15] + Prop[3])*nx + Q[0]*Q[1]*Ubar; // Pressure is not a perturbation
+            Jacobian_Conv[4][2] = (Q[0]*Prop[15] + Prop[3])*ny + Q[0]*Q[2]*Ubar; // Pressure is not a perturbation
+            Jacobian_Conv[4][3] = (Q[0]*Prop[15] + Prop[3])*nz + Q[0]*Q[3]*Ubar; // Pressure is not a perturbation
+            Jacobian_Conv[4][4] = Ubar*(1.0 + Q[0]*Prop[36]);
+            break;
+        // Primitive Variable Formulation Pressure Velocity Temperature
+        case VARIABLE_PUT:
+            error("Compute_Flux_Jacobian_Euler_Convective_NIST:2: PUT Variable Type Not Implemented");
+            break;
+        // Primitive Variable Formulation Density Velocity Temperature
+        case VARIABLE_RUT:
+            EOS_Get_Extended_Properties(MaterialEOS_IO_Type, EOS_VARIABLE_RUT, daEOSVariable, Prop);
+            
+            Ubar = Q[1]*nx + Q[2]*ny + Q[3]*nz;
+            // Row:0
+            Jacobian_Conv[0][0] = Ubar;
+            Jacobian_Conv[0][1] = Q[0]*nx;
+            Jacobian_Conv[0][2] = Q[0]*ny;
+            Jacobian_Conv[0][3] = Q[0]*nz;
+            Jacobian_Conv[0][4] = 0.0;
+            // Row:1
+            Jacobian_Conv[1][0] = Q[1]*Ubar + Prop[18]*nx;
+            Jacobian_Conv[1][1] = Q[0]*(Ubar + Q[1]*nx);
+            Jacobian_Conv[1][2] = Q[0]*Q[1]*ny;
+            Jacobian_Conv[1][3] = Q[0]*Q[1]*nz;
+            Jacobian_Conv[1][4] = Prop[19]*nx;
+            // Row:2
+            Jacobian_Conv[2][0] = Q[2]*Ubar + Prop[18]*ny;
+            Jacobian_Conv[2][1] = Q[0]*Q[2]*nx;
+            Jacobian_Conv[2][2] = Q[0]*(Ubar + Q[2]*ny);
+            Jacobian_Conv[2][3] = Q[0]*Q[2]*nz;
+            Jacobian_Conv[2][4] = Prop[19]*ny;
+            // Row:3
+            Jacobian_Conv[3][0] = Q[3]*Ubar + Prop[18]*nz;
+            Jacobian_Conv[3][1] = Q[0]*Q[3]*nx;
+            Jacobian_Conv[3][2] = Q[0]*Q[3]*ny;
+            Jacobian_Conv[3][3] = Q[0]*(Ubar + Q[3]*nz);
+            Jacobian_Conv[3][4] = Prop[19]*nz;
+            // Row:4
+            Jacobian_Conv[4][0] = Ubar*(Prop[15] + Q[0]*Prop[33] + Prop[18]);
+            Jacobian_Conv[4][1] = (Q[0]*Prop[15] + Prop[3])*nx + Q[0]*Q[1]*Ubar;
+            Jacobian_Conv[4][2] = (Q[0]*Prop[15] + Prop[3])*ny + Q[0]*Q[2]*Ubar;
+            Jacobian_Conv[4][3] = (Q[0]*Prop[15] + Prop[3])*nz + Q[0]*Q[3]*Ubar;
+            Jacobian_Conv[4][4] = Ubar*(Q[0]*Prop[31] + Prop[19]);
+            break;
+        default:
+            error("Compute_Flux_Jacobian_Euler_Convective_NIST:3: Undefined Variable Type - %d - Error-3", VariableType);
+            break;
+    }
+    
+}
+
+//------------------------------------------------------------------------------
+//! Compute Euler Convective Jacobian
+//! Note: Q is always first order
+//------------------------------------------------------------------------------
+void Compute_Flux_Jacobian_Euler_Convective(double *Q, Vector3D areavec, double **Jacobian_Conv) {
+    // Compute the Flux Jacobian of Convective Term
+    // Material Type
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEALGAS:
+            Compute_Flux_Jacobian_Euler_Convective_IdealGas(Q, areavec, Jacobian_Conv);
+            break;
+        case MATERIAL_TYPE_NIST:
+            Compute_Flux_Jacobian_Euler_Convective_NIST(Q, areavec, Jacobian_Conv);
+            break;
+        default:
+            error("Compute_Flux_Jacobian_Euler_Convective:1: Undefined Material Type - %d", MaterialType);
             break;
     }
 }
@@ -254,5 +386,17 @@ void Compute_Flux_Jacobian_Euler_Convective(int node_ID, Vector3D areavec, doubl
     Q[4] = Q5[node_ID];
     
     // Compute the Flux Jacobian of Convective Term
-    Compute_Flux_Jacobian_Euler_Convective(Q, areavec, Jacobian_Conv);
+    // Material Type
+    switch (MaterialType) {
+        case MATERIAL_TYPE_IDEALGAS:
+            Compute_Flux_Jacobian_Euler_Convective_IdealGas(Q, areavec, Jacobian_Conv);
+            break;
+        case MATERIAL_TYPE_NIST:
+            Compute_Flux_Jacobian_Euler_Convective_NIST(Q, areavec, Jacobian_Conv);
+            break;
+        default:
+            error("Compute_Flux_Jacobian_Euler_Convective:1: Undefined Material Type - %d", MaterialType);
+            break;
+    }
 }
+

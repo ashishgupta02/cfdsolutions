@@ -65,7 +65,7 @@ void Restart_Writer(const char* filename, int verbose) {
     fwrite(&nBNode, sizeof(int), 1, fp);
 
     // No of Variables
-    var = 5;
+    var = NEQUATIONS;
     fwrite(&var, sizeof(int), 1, fp);
 
     // Write the restart variables
@@ -79,19 +79,6 @@ void Restart_Writer(const char* filename, int verbose) {
             fwrite(&Q5[i], sizeof (double), 1, fp);
         }
     }
-    // Primitive Variable Formulation Pressure Velocity Temperature
-    if (VariableType == VARIABLE_PUT) {
-        double p, T;
-        for (i = 0; i < (nNode + nBNode); i++) {
-            p = Q1[i] + Gauge_Pressure;
-            T = Q5[i];
-            fwrite(&p, sizeof (double), 1, fp);
-            fwrite(&Q2[i], sizeof (double), 1, fp);
-            fwrite(&Q3[i], sizeof (double), 1, fp);
-            fwrite(&Q4[i], sizeof (double), 1, fp);
-            fwrite(&T, sizeof (double), 1, fp);
-        }
-    }
     // Primitive Variable Formulation Density Velocity Pressure
     if (VariableType == VARIABLE_RUP) {
         double p;
@@ -102,6 +89,28 @@ void Restart_Writer(const char* filename, int verbose) {
             fwrite(&Q3[i], sizeof (double), 1, fp);
             fwrite(&Q4[i], sizeof (double), 1, fp);
             fwrite(&p, sizeof (double), 1, fp);
+        }
+    }
+    // Primitive Variable Formulation Pressure Velocity Temperature
+    if (VariableType == VARIABLE_PUT) {
+        double p;
+        for (i = 0; i < (nNode + nBNode); i++) {
+            p = Q1[i] + Gauge_Pressure;
+            fwrite(&p, sizeof (double), 1, fp);
+            fwrite(&Q2[i], sizeof (double), 1, fp);
+            fwrite(&Q3[i], sizeof (double), 1, fp);
+            fwrite(&Q4[i], sizeof (double), 1, fp);
+            fwrite(&Q5[i], sizeof (double), 1, fp);
+        }
+    }
+    // Primitive Variable Formulation Density Velocity Temperature
+    if (VariableType == VARIABLE_RUT) {
+        for (i = 0; i < (nNode + nBNode); i++) {
+            fwrite(&Q1[i], sizeof (double), 1, fp);
+            fwrite(&Q2[i], sizeof (double), 1, fp);
+            fwrite(&Q3[i], sizeof (double), 1, fp);
+            fwrite(&Q4[i], sizeof (double), 1, fp);
+            fwrite(&Q5[i], sizeof (double), 1, fp);
         }
     }
     fclose(fp);
@@ -123,7 +132,7 @@ void Restart_Reader(const char* filename) {
 
     // Restart Iteration
     sdum = fread(&RestartIteration, sizeof(int), 1, fp);
-
+    
     // No of Physical Nodes
     var = 0;
     sdum = fread(&var, sizeof(int), 1, fp);
@@ -151,17 +160,6 @@ void Restart_Reader(const char* filename) {
             sdum = fread(&Q5[i], sizeof (double), 1, fp);
         }
     }
-    // Primitive Variable Formulation Pressure Velocity Temperature
-    if (VariableType == VARIABLE_PUT) {
-        for (i = 0; i < (nNode + nBNode); i++) {
-            sdum = fread(&Q1[i], sizeof (double), 1, fp);
-            Q1[i] -= Gauge_Pressure;
-            sdum = fread(&Q2[i], sizeof (double), 1, fp);
-            sdum = fread(&Q3[i], sizeof (double), 1, fp);
-            sdum = fread(&Q4[i], sizeof (double), 1, fp);
-            sdum = fread(&Q5[i], sizeof (double), 1, fp);
-        }
-    }
     // Primitive Variable Formulation Density Velocity Pressure
     if (VariableType == VARIABLE_RUP) {
         for (i = 0; i < (nNode + nBNode); i++) {
@@ -173,7 +171,28 @@ void Restart_Reader(const char* filename) {
             Q5[i] -= Gauge_Pressure;
         }
     }
+    // Primitive Variable Formulation Pressure Velocity Temperature
+    if (VariableType == VARIABLE_PUT) {
+        for (i = 0; i < (nNode + nBNode); i++) {
+            sdum = fread(&Q1[i], sizeof (double), 1, fp);
+            Q1[i] -= Gauge_Pressure;
+            sdum = fread(&Q2[i], sizeof (double), 1, fp);
+            sdum = fread(&Q3[i], sizeof (double), 1, fp);
+            sdum = fread(&Q4[i], sizeof (double), 1, fp);
+            sdum = fread(&Q5[i], sizeof (double), 1, fp);
+        }
+    }
+    // Primitive Variable Formulation Density Velocity Temperature
+    if (VariableType == VARIABLE_RUT) {
+        for (i = 0; i < (nNode + nBNode); i++) {
+            sdum = fread(&Q1[i], sizeof (double), 1, fp);
+            sdum = fread(&Q2[i], sizeof (double), 1, fp);
+            sdum = fread(&Q3[i], sizeof (double), 1, fp);
+            sdum = fread(&Q4[i], sizeof (double), 1, fp);
+            sdum = fread(&Q5[i], sizeof (double), 1, fp);
+        }
+    }
     fclose(fp);
+    sdum++; // Done to remove compiler un-used warning
 }
-
 

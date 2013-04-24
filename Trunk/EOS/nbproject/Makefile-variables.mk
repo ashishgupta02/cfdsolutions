@@ -38,6 +38,38 @@ CND_ARTIFACT_PATH_Release_GUPC_x86_64=dist/Release_GUPC_x86_64/GUPC_x86_64-Linux
 CND_PACKAGE_DIR_Release_GUPC_x86_64=dist/Release_GUPC_x86_64/GUPC_x86_64-Linux-x86/package
 CND_PACKAGE_NAME_Release_GUPC_x86_64=libEOS.so.tar
 CND_PACKAGE_PATH_Release_GUPC_x86_64=dist/Release_GUPC_x86_64/GUPC_x86_64-Linux-x86/package/libEOS.so.tar
+# Debug_Intel configuration
+CND_PLATFORM_Debug_Intel=Intel-Linux-x86
+CND_ARTIFACT_DIR_Debug_Intel=dist/Debug_Intel/Intel-Linux-x86
+CND_ARTIFACT_NAME_Debug_Intel=libEOS.so
+CND_ARTIFACT_PATH_Debug_Intel=dist/Debug_Intel/Intel-Linux-x86/libEOS.so
+CND_PACKAGE_DIR_Debug_Intel=dist/Debug_Intel/Intel-Linux-x86/package
+CND_PACKAGE_NAME_Debug_Intel=libEOS.so.tar
+CND_PACKAGE_PATH_Debug_Intel=dist/Debug_Intel/Intel-Linux-x86/package/libEOS.so.tar
+# Release_Intel configuration
+CND_PLATFORM_Release_Intel=Intel-Linux-x86
+CND_ARTIFACT_DIR_Release_Intel=dist/Release_Intel/Intel-Linux-x86
+CND_ARTIFACT_NAME_Release_Intel=libEOS.so
+CND_ARTIFACT_PATH_Release_Intel=dist/Release_Intel/Intel-Linux-x86/libEOS.so
+CND_PACKAGE_DIR_Release_Intel=dist/Release_Intel/Intel-Linux-x86/package
+CND_PACKAGE_NAME_Release_Intel=libEOS.so.tar
+CND_PACKAGE_PATH_Release_Intel=dist/Release_Intel/Intel-Linux-x86/package/libEOS.so.tar
+# Debug_GUPC_ppc64 configuration
+CND_PLATFORM_Debug_GUPC_ppc64=GUPC_ppc64-Linux-x86
+CND_ARTIFACT_DIR_Debug_GUPC_ppc64=dist/Debug_GUPC_ppc64/GUPC_ppc64-Linux-x86
+CND_ARTIFACT_NAME_Debug_GUPC_ppc64=libEOS.so
+CND_ARTIFACT_PATH_Debug_GUPC_ppc64=dist/Debug_GUPC_ppc64/GUPC_ppc64-Linux-x86/libEOS.so
+CND_PACKAGE_DIR_Debug_GUPC_ppc64=dist/Debug_GUPC_ppc64/GUPC_ppc64-Linux-x86/package
+CND_PACKAGE_NAME_Debug_GUPC_ppc64=libEOS.so.tar
+CND_PACKAGE_PATH_Debug_GUPC_ppc64=dist/Debug_GUPC_ppc64/GUPC_ppc64-Linux-x86/package/libEOS.so.tar
+# Release_GUPC_ppc64 configuration
+CND_PLATFORM_Release_GUPC_ppc64=GUPC_ppc64-Linux-x86
+CND_ARTIFACT_DIR_Release_GUPC_ppc64=dist/Release_GUPC_ppc64/GUPC_ppc64-Linux-x86
+CND_ARTIFACT_NAME_Release_GUPC_ppc64=libEOS.so
+CND_ARTIFACT_PATH_Release_GUPC_ppc64=dist/Release_GUPC_ppc64/GUPC_ppc64-Linux-x86/libEOS.so
+CND_PACKAGE_DIR_Release_GUPC_ppc64=dist/Release_GUPC_ppc64/GUPC_ppc64-Linux-x86/package
+CND_PACKAGE_NAME_Release_GUPC_ppc64=libEOS.so.tar
+CND_PACKAGE_PATH_Release_GUPC_ppc64=dist/Release_GUPC_ppc64/GUPC_ppc64-Linux-x86/package/libEOS.so.tar
 #
 # include compiler specific variables
 #

@@ -23,16 +23,21 @@ void DebugNAN(void) {
     List DebugBNode;
     FILE *fp;
     
+    // Physical Nodes
     for (i = 0; i < nNode; i++) {
         tmp = Q1[i] + Q2[i] + Q3[i] + Q4[i] + Q5[i];
         if (!isfinite(tmp))
             DebugNode.Add_To_List(i);
-        tmp = Res1[i] + Res2[i] + Res3[i] + Res4[i] + Res5[i];
+        tmp = Res1_Conv[i] + Res2_Conv[i] + Res3_Conv[i] + Res4_Conv[i] + Res5_Conv[i];
+        if (!isfinite(tmp))
+            DebugNode.Add_To_List(i);
+        tmp = Res1_Diss[i] + Res2_Diss[i] + Res3_Diss[i] + Res4_Diss[i] + Res5_Diss[i];
         if (!isfinite(tmp))
             DebugNode.Add_To_List(i);
     }
     DebugNode.RemoveDuplicates();
 
+    // Ghost Nodes
     for (i = nNode; i < (nNode + nBNode); i++) {
         tmp = Q1[i] + Q2[i] + Q3[i] + Q4[i] + Q5[i];
         if (!isfinite(tmp))

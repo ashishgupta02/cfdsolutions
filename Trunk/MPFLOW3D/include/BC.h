@@ -5,6 +5,8 @@
  * Package:     Multi-Phase Computational Fluid Dynamics Flow Solver
  ******************************************************************************/
 
+#include "License.h"
+
 #ifndef _BC_H
 #define	_BC_H
 
