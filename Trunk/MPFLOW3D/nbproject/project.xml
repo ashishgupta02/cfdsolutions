@@ -13,6 +13,7 @@
                 <make-dep-project>../../../../Dropbox/CFDSolutions/Trunk/MATH</make-dep-project>
                 <make-dep-project>../MATH</make-dep-project>
                 <make-dep-project>../EOS</make-dep-project>
+                <make-dep-project>../NISTThermo/NISTThermo</make-dep-project>
                 <make-dep-project>../../../../Dropbox/CFDSolutions/Trunk/UTILS</make-dep-project>
                 <make-dep-project>../UTILS</make-dep-project>
             </make-dep-projects>
@@ -35,11 +36,11 @@
                     <type>1</type>
                 </confElem>
                 <confElem>
-                    <name>Release_Intel</name>
+                    <name>Release_Intel_MPI</name>
                     <type>1</type>
                 </confElem>
                 <confElem>
-                    <name>Debug_Intel</name>
+                    <name>Debug_Intel_MPI</name>
                     <type>1</type>
                 </confElem>
                 <confElem>
@@ -56,6 +57,14 @@
                 </confElem>
                 <confElem>
                     <name>Debug_GUPC_ppc64</name>
+                    <type>1</type>
+                </confElem>
+                <confElem>
+                    <name>Release_Intel</name>
+                    <type>1</type>
+                </confElem>
+                <confElem>
+                    <name>Debug_Intel</name>
                     <type>1</type>
                 </confElem>
             </confList>

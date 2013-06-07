@@ -223,7 +223,7 @@ void UGrid_Reader(const char* filename) {
 void VTK_Writer(const char* filename, int verbose) {
     int i, j;
     FILE *fp;
-    double var, Q[5];
+    double var;
     
     if (verbose == 1)
         info("Writing VTK Solution File %s", filename);
@@ -311,406 +311,157 @@ void VTK_Writer(const char* filename, int verbose) {
     
     /*****PRINT OUT VARIABLES**************/
     fprintf(fp, "POINT_DATA %d\n", nNode);
-    // Conservative Variable Formulation
-    if (VariableType == VARIABLE_CON) {
-	// Scalar Data Fields
-        fprintf(fp, "SCALARS Density double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            var = Q1[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_Density(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
-        
-        fprintf(fp, "SCALARS X_Velocity double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            var = Q2[i] / Q1[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_SpeedSound(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
+    
+    // Scalar Data Fields
+    fprintf(fp, "SCALARS Density double 1\n");
+    fprintf(fp, "LOOKUP_TABLE default\n");
+    for (i = 0; i < nNode; i++) {
+        var = CogSolver.CpNodeDB[i].Get_Density();
+        if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
+            var = EOS_Internal_Dimensionalize_Density(var);
+        fprintf(fp, "%22.15e\n", var);
+    }
 
-        fprintf(fp, "SCALARS Y_Velocity double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            var = Q3[i] / Q1[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_SpeedSound(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
-        
-        fprintf(fp, "SCALARS Z_Velocity double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            var = Q4[i] / Q1[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_SpeedSound(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
-        
-        fprintf(fp, "SCALARS Pressure double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            Q[0] = Q1[i];
-            Q[1] = Q2[i];
-            Q[2] = Q3[i];
-            Q[3] = Q4[i];
-            Q[4] = Q5[i];
-            var  = Material_Get_Pressure(Q) + Gauge_Pressure;
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var  = EOS_Internal_Dimensionalize_Pressure(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
-        
-        fprintf(fp, "SCALARS Temperature double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            Q[0] = Q1[i];
-            Q[1] = Q2[i];
-            Q[2] = Q3[i];
-            Q[3] = Q4[i];
-            Q[4] = Q5[i];
-            var  = Material_Get_Temperature(Q);
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var  = EOS_Internal_Dimensionalize_Temperature(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
+    fprintf(fp, "SCALARS Density_Liquid double 1\n");
+    fprintf(fp, "LOOKUP_TABLE default\n");
+    for (i = 0; i < nNode; i++) {
+        var = CogSolver.CpNodeDB[i].Get_Density_Liquid();
+        if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
+            var = EOS_Internal_Dimensionalize_Density(var);
+        fprintf(fp, "%22.15e\n", var);
+    }
 
-        fprintf(fp, "SCALARS Mach double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            Q[0] = Q1[i];
-            Q[1] = Q2[i];
-            Q[2] = Q3[i];
-            Q[3] = Q4[i];
-            Q[4] = Q5[i];
-            var  = Material_Get_Mach(Q);
-            fprintf(fp, "%22.15e\n", var);
-        }
-        
-        if (PrecondMethod != PRECOND_METHOD_NONE) {
-            fprintf(fp, "SCALARS Sigma double 1\n");
-            fprintf(fp, "LOOKUP_TABLE default\n");
-            for (i = 0; i < nNode; i++)
-                fprintf(fp, "%22.15e\n", PrecondSigma[i]);
-        }
-        
-        // Vector Data Fields
-        fprintf(fp, "VECTORS Velocity double \n");
-        for (i = 0; i < nNode; i++) {
-            var = Q2[i] / Q1[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_SpeedSound(var);
-            fprintf(fp, "%22.15e \t", var);
-            var = Q3[i] / Q1[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_SpeedSound(var);
-            fprintf(fp, "%22.15e \t", var);
-            var = Q4[i] / Q1[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_SpeedSound(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
+    fprintf(fp, "SCALARS Density_Vapor double 1\n");
+    fprintf(fp, "LOOKUP_TABLE default\n");
+    for (i = 0; i < nNode; i++) {
+        var = CogSolver.CpNodeDB[i].Get_Density_Vapor();
+        if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
+            var = EOS_Internal_Dimensionalize_Density(var);
+        fprintf(fp, "%22.15e\n", var);
+    }
+
+    fprintf(fp, "SCALARS X_Velocity double 1\n");
+    fprintf(fp, "LOOKUP_TABLE default\n");
+    for (i = 0; i < nNode; i++) {
+        var = CogSolver.CpNodeDB[i].Get_Velocity_U();
+        if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
+            var = EOS_Internal_Dimensionalize_SpeedSound(var);
+        fprintf(fp, "%22.15e\n", var);
+    }
+
+    fprintf(fp, "SCALARS Y_Velocity double 1\n");
+    fprintf(fp, "LOOKUP_TABLE default\n");
+    for (i = 0; i < nNode; i++) {
+        var = CogSolver.CpNodeDB[i].Get_Velocity_V();
+        if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
+            var = EOS_Internal_Dimensionalize_SpeedSound(var);
+        fprintf(fp, "%22.15e\n", var);
+    }
+
+    fprintf(fp, "SCALARS Z_Velocity double 1\n");
+    fprintf(fp, "LOOKUP_TABLE default\n");
+    for (i = 0; i < nNode; i++) {
+        var = CogSolver.CpNodeDB[i].Get_Velocity_W();
+        if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
+            var = EOS_Internal_Dimensionalize_SpeedSound(var);
+        fprintf(fp, "%22.15e\n", var);
+    }
+
+    fprintf(fp, "SCALARS Pressure double 1\n");
+    fprintf(fp, "LOOKUP_TABLE default\n");
+    for (i = 0; i < nNode; i++) {
+        var = CogSolver.CpNodeDB[i].Get_Pressure() + Gauge_Pressure;
+        if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
+            var  = EOS_Internal_Dimensionalize_Pressure(var);
+        fprintf(fp, "%22.15e\n", var);
+    }
+
+    fprintf(fp, "SCALARS Temperature double 1\n");
+    fprintf(fp, "LOOKUP_TABLE default\n");
+    for (i = 0; i < nNode; i++) {
+        var = CogSolver.CpNodeDB[i].Get_Temperature();
+        if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
+            var  = EOS_Internal_Dimensionalize_Temperature(var);
+        fprintf(fp, "%22.15e\n", var);
+    }
+
+    fprintf(fp, "SCALARS Mach double 1\n");
+    fprintf(fp, "LOOKUP_TABLE default\n");
+    for (i = 0; i < nNode; i++) {
+        var = CogSolver.CpNodeDB[i].Get_Mach();
+        fprintf(fp, "%22.15e\n", var);
     }
     
-    // Primitive Variable Formulation Density Velocity Pressure
-    if (VariableType == VARIABLE_RUP) {
-        // Scalar Data Fields
-        fprintf(fp, "SCALARS Density double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            var = Q1[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_Density(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
-
-        fprintf(fp, "SCALARS X_Velocity double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            var = Q2[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_SpeedSound(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
-
-        fprintf(fp, "SCALARS Y_Velocity double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            var = Q3[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_SpeedSound(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
-
-        fprintf(fp, "SCALARS Z_Velocity double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            var = Q4[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_SpeedSound(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
-
-        fprintf(fp, "SCALARS Pressure double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            var  = Q5[i] + Gauge_Pressure;
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var  = EOS_Internal_Dimensionalize_Pressure(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
-        
-        fprintf(fp, "SCALARS Temperature double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            Q[0] = Q1[i];
-            Q[1] = Q2[i];
-            Q[2] = Q3[i];
-            Q[3] = Q4[i];
-            Q[4] = Q5[i];
-            var  = Material_Get_Temperature(Q);
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var  = EOS_Internal_Dimensionalize_Temperature(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
-
-        fprintf(fp, "SCALARS Mach double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            Q[0] = Q1[i];
-            Q[1] = Q2[i];
-            Q[2] = Q3[i];
-            Q[3] = Q4[i];
-            Q[4] = Q5[i];
-            var  = Material_Get_Mach(Q);
-            fprintf(fp, "%22.15e\n", var);
-        }
-
-        if (PrecondMethod != PRECOND_METHOD_NONE) {
-            fprintf(fp, "SCALARS Sigma double 1\n");
-            fprintf(fp, "LOOKUP_TABLE default\n");
-            for (i = 0; i < nNode; i++)
-                fprintf(fp, "%22.15e\n", PrecondSigma[i]);
-        }
-        
-        // Vector Data Fields
-        fprintf(fp, "VECTORS Velocity double \n");
-        for (i = 0; i < nNode; i++) {
-            var = Q2[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_SpeedSound(var);
-            fprintf(fp, "%22.15e \t", var);
-            var = Q3[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_SpeedSound(var);
-            fprintf(fp, "%22.15e \t", var);
-            var = Q4[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_SpeedSound(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
+    double daQ[NEQUATIONS];
+    fprintf(fp, "SCALARS Quality double 1\n");
+    fprintf(fp, "LOOKUP_TABLE default\n");
+    for (i = 0; i < nNode; i++) {
+        daQ[0] = Q1[i];
+        daQ[1] = Q2[i];
+        daQ[2] = Q3[i];
+        daQ[3] = Q4[i];
+        daQ[4] = Q5[i];
+        var = Material_Get_Quality(daQ);
+        fprintf(fp, "%22.15e\n", var);
     }
     
-    // Primitive Variable Formulation Pressure Velocity Temperature
-    if (VariableType == VARIABLE_PUT) {
-        // Scalar Data Fields
-        fprintf(fp, "SCALARS Density double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            Q[0] = Q1[i];
-            Q[1] = Q2[i];
-            Q[2] = Q3[i];
-            Q[3] = Q4[i];
-            Q[4] = Q5[i];
-            var  = Material_Get_Density(Q);
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var  = EOS_Internal_Dimensionalize_Density(var);
-            fprintf(fp, "%22.15e\n", var);
+    double drhol, drhov;
+    fprintf(fp, "SCALARS Void_Fraction double 1\n");
+    fprintf(fp, "LOOKUP_TABLE default\n");
+    for (i = 0; i < nNode; i++) {
+        daQ[0] = Q1[i];
+        daQ[1] = Q2[i];
+        daQ[2] = Q3[i];
+        daQ[3] = Q4[i];
+        daQ[4] = Q5[i];
+        var   = Material_Get_Quality(daQ);
+        drhol = CogSolver.CpNodeDB[i].Get_Density_Liquid();
+        drhov = CogSolver.CpNodeDB[i].Get_Density_Vapor();
+        // Subcooled compressed liquid or Saturated liquid
+        if (var <= 0.0)
+            var = 0.0;
+        // Super heated Vapor and other states
+        if (var >= 1.0)
+            var = 1.0;
+        // Calculate void fraction
+        if (var <= 0.00000001)
+            var = 1.0;
+        else {
+            var = 1.0 + ((1.0 - var)/var)*(drhov/drhol);
+            var = 1.0/var;
         }
-
-        fprintf(fp, "SCALARS X_Velocity double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            var = Q2[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_SpeedSound(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
-        
-        fprintf(fp, "SCALARS Y_Velocity double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            var = Q3[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_SpeedSound(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
-        
-        fprintf(fp, "SCALARS Z_Velocity double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            var = Q4[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_SpeedSound(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
-        
-        fprintf(fp, "SCALARS Pressure double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            var  = Q1[i] + Gauge_Pressure;
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var  = EOS_Internal_Dimensionalize_Pressure(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
-        
-        fprintf(fp, "SCALARS Temperature double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            var = Q5[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var  = EOS_Internal_Dimensionalize_Temperature(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
-        
-        fprintf(fp, "SCALARS Mach double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            Q[0] = Q1[i];
-            Q[1] = Q2[i];
-            Q[2] = Q3[i];
-            Q[3] = Q4[i];
-            Q[4] = Q5[i];
-            var  = Material_Get_Mach(Q);
-            fprintf(fp, "%22.15e\n", var);
-        }
-        
-        if (PrecondMethod != PRECOND_METHOD_NONE) {
-            fprintf(fp, "SCALARS Sigma double 1\n");
-            fprintf(fp, "LOOKUP_TABLE default\n");
-            for (i = 0; i < nNode; i++)
-                fprintf(fp, "%22.15e\n", PrecondSigma[i]);
-        }
-        
-        // Vector Data Fields
-        fprintf(fp, "VECTORS Velocity double \n");
-        for (i = 0; i < nNode; i++) {
-            var = Q2[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_SpeedSound(var);
-            fprintf(fp, "%22.15e \t", var);
-            var = Q3[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_SpeedSound(var);
-            fprintf(fp, "%22.15e \t", var);
-            var = Q4[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_SpeedSound(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
+        fprintf(fp, "%22.15e\n", var);
     }
     
-    
-    // Primitive Variable Formulation Density Velocity Pressure
-    if (VariableType == VARIABLE_RUT) {
-        // Scalar Data Fields
-        fprintf(fp, "SCALARS Density double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            var = Q1[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_Density(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
+    fprintf(fp, "SCALARS TimeStep double 1\n");
+    fprintf(fp, "LOOKUP_TABLE default\n");
+    for (i = 0; i < nNode; i++) {
+        var = DeltaT[i];
+        fprintf(fp, "%22.15e\n", var);
+    }
 
-        fprintf(fp, "SCALARS X_Velocity double 1\n");
+    if (PrecondMethod != PRECOND_METHOD_NONE) {
+        fprintf(fp, "SCALARS Sigma double 1\n");
         fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            var = Q2[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_SpeedSound(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
+        for (i = 0; i < nNode; i++)
+            fprintf(fp, "%22.15e\n", PrecondSigma[i]);
+    }
 
-        fprintf(fp, "SCALARS Y_Velocity double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            var = Q3[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_SpeedSound(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
-
-        fprintf(fp, "SCALARS Z_Velocity double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            var = Q4[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_SpeedSound(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
-
-        fprintf(fp, "SCALARS Pressure double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            Q[0] = Q1[i];
-            Q[1] = Q2[i];
-            Q[2] = Q3[i];
-            Q[3] = Q4[i];
-            Q[4] = Q5[i];
-            var  = Material_Get_Pressure(Q) + Gauge_Pressure;
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var  = EOS_Internal_Dimensionalize_Pressure(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
-        
-        fprintf(fp, "SCALARS Temperature double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            var = Q5[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var  = EOS_Internal_Dimensionalize_Temperature(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
-
-        fprintf(fp, "SCALARS Mach double 1\n");
-        fprintf(fp, "LOOKUP_TABLE default\n");
-        for (i = 0; i < nNode; i++) {
-            Q[0] = Q1[i];
-            Q[1] = Q2[i];
-            Q[2] = Q3[i];
-            Q[3] = Q4[i];
-            Q[4] = Q5[i];
-            var  = Material_Get_Mach(Q);
-            fprintf(fp, "%22.15e\n", var);
-        }
-        
-        if (PrecondMethod != PRECOND_METHOD_NONE) {
-            fprintf(fp, "SCALARS Sigma double 1\n");
-            fprintf(fp, "LOOKUP_TABLE default\n");
-            for (i = 0; i < nNode; i++)
-                fprintf(fp, "%22.15e\n", PrecondSigma[i]);
-        }
-        
-        // Vector Data Fields
-        fprintf(fp, "VECTORS Velocity double \n");
-        for (i = 0; i < nNode; i++) {
-            var = Q2[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_SpeedSound(var);
-            fprintf(fp, "%22.15e \t", var);
-            var = Q3[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_SpeedSound(var);
-            fprintf(fp, "%22.15e \t", var);
-            var = Q4[i];
-            if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
-                var = EOS_Internal_Dimensionalize_SpeedSound(var);
-            fprintf(fp, "%22.15e\n", var);
-        }
+    // Vector Data Fields
+    fprintf(fp, "VECTORS Velocity double \n");
+    for (i = 0; i < nNode; i++) {
+        var = CogSolver.CpNodeDB[i].Get_Velocity_U();
+        if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
+            var = EOS_Internal_Dimensionalize_SpeedSound(var);
+        fprintf(fp, "%22.15e \t", var);
+        var = CogSolver.CpNodeDB[i].Get_Velocity_V();
+        if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
+            var = EOS_Internal_Dimensionalize_SpeedSound(var);
+        fprintf(fp, "%22.15e \t", var);
+        var = CogSolver.CpNodeDB[i].Get_Velocity_W();
+        if (MaterialCompType == MATERIAL_COMP_TYPE_NDIM)
+            var = EOS_Internal_Dimensionalize_SpeedSound(var);
+        fprintf(fp, "%22.15e\n", var);
     }
     
     fclose(fp);

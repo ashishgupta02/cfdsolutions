@@ -19,6 +19,7 @@
 
 // Static Variable for Speed Up (if any)
 static int     HLLC_DB           = 0;
+static int     HLLC_BCType       = BC_TYPE_NONE;
 static double *HLLC_fluxA        = NULL;
 static double *HLLC_flux_L       = NULL;
 static double *HLLC_flux_R       = NULL;
@@ -187,25 +188,16 @@ void HLLC_Reset(void) {
 //  Note: For reqInv == 0: C = Mro
 //                   else: Cinv = Mor
 //------------------------------------------------------------------------------
-void Compute_Transformed_Preconditioner_Matrix_HLLC_None(int nodeID, int reqInv, double **PrecondMatrix) {
-    double Q[5];
-    
-    // Get the Variables
-    Q[0] = Q1[nodeID];
-    Q[1] = Q2[nodeID];
-    Q[2] = Q3[nodeID];
-    Q[3] = Q4[nodeID];
-    Q[4] = Q5[nodeID];
-    
+void Compute_Transformed_Preconditioner_Matrix_HLLC_None(int nodeID, int reqInv, double **PrecondMatrix) {    
     // Check if Inverse Preconditioner is Requested
     if (reqInv == 0) {
         // Compute Transformation
         // Mro
-        Material_Get_Transformation_Matrix(Q, VariableType, VARIABLE_CON, PrecondMatrix);
+        Material_Get_Transformation_Matrix(nodeID, VariableType, VARIABLE_CON, PrecondMatrix);
     } else {
         // Compute Transformation
         // Mor
-        Material_Get_Transformation_Matrix(Q, VARIABLE_CON, VariableType, PrecondMatrix);
+        Material_Get_Transformation_Matrix(nodeID, VARIABLE_CON, VariableType, PrecondMatrix);
     }
 }
 
@@ -225,24 +217,16 @@ void Compute_Transformed_Preconditioner_Matrix_HLLC_Merkel(int nodeID, int reqIn
 //------------------------------------------------------------------------------
 void Compute_Transformed_Preconditioner_Matrix_HLLC_Turkel(int nodeID, int reqInv, double **PrecondMatrix) {
     int j, nid;
-    double Q[5], lQ[5];
-    double rho, u, v, w, p, T, c, ht, et, q2, mach;
-    double lrho, lu, lv, lw, lp, lT, lc, lht, let, lq2, lmach;
+    double rho, rhol, rhov, u, v, w, p, T, c, ht, et, q2, mach;
+    double lp, lmach;
     double dp_max, mach_max;
     
     // Initialization
     HLLC_Reset();
-    
-    // Get the Variables
-    Q[0] = Q1[nodeID];
-    Q[1] = Q2[nodeID];
-    Q[2] = Q3[nodeID];
-    Q[3] = Q4[nodeID];
-    Q[4] = Q5[nodeID];
 
     // Compute Equation of State
     // Note: Based on VariableType Pressure can be Perturbation of them
-    Material_Get_ControlVolume_Properties(Q, rho, p, T, u, v, w, q2, c, mach, et, ht);
+    CogSolver.CpNodeDB[nodeID].Get_Properties(rho, rhol, rhov, p, T, u, v, w, q2, c, mach, et, ht);
 
     //======================================================================
     // Compute Precondition of Convective Flux and Assemble Total Flux
@@ -257,15 +241,10 @@ void Compute_Transformed_Preconditioner_Matrix_HLLC_Turkel(int nodeID, int reqIn
         if (PrecondSmooth != 0) {
             for (j = crs_IA_Node2Node[nodeID]; j < crs_IA_Node2Node[nodeID+1]; j++) {
                 nid   = crs_JA_Node2Node[j];
-                // Get the local Q's
-                lQ[0] = Q1[nid];
-                lQ[1] = Q2[nid];
-                lQ[2] = Q3[nid];
-                lQ[3] = Q4[nid];
-                lQ[4] = Q5[nid];
-                // Compute Local Equation of State
+                
                 // Note: Based on VariableType Pressure can be Perturbation of them
-                Material_Get_ControlVolume_Properties(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
+                lp    = CogSolver.CpNodeDB[nid].Get_Pressure();
+                lmach = CogSolver.CpNodeDB[nid].Get_Mach();
 
                 // Compute Smoothing Parameters
                 mach_max = MAX(mach_max, lmach);
@@ -286,6 +265,10 @@ void Compute_Transformed_Preconditioner_Matrix_HLLC_Turkel(int nodeID, int reqIn
         else
             beta = 0.5;
         beta = beta*(sqrt(mach*PrecondGlobalMach)+ mach);
+        beta = MIN(1.0, beta);
+    }
+    if (PrecondType == PRECOND_TYPE_URLOCAL) {
+        beta = MAX(mach, mach_max);
         beta = MIN(1.0, beta);
     }
     if (PrecondType == PRECOND_TYPE_GLOBAL)
@@ -386,27 +369,27 @@ void Compute_Transformed_Preconditioner_Matrix_HLLC_Turkel(int nodeID, int reqIn
     if (reqInv == 0) {
         // Compute Transformation
         // Mrp
-        Material_Get_Transformation_Matrix(Q, VariableType, PrecondVariableType, HLLC_M);
+        Material_Get_Transformation_Matrix(nodeID, VariableType, PrecondVariableType, HLLC_M);
         // Mpo
-        Material_Get_Transformation_Matrix(Q, PrecondVariableType, VARIABLE_CON, HLLC_Minv);
+        Material_Get_Transformation_Matrix(nodeID, PrecondVariableType, VARIABLE_CON, HLLC_Minv);
     } else {
         // Compute Transformation
         // Mop
-        Material_Get_Transformation_Matrix(Q, VARIABLE_CON, PrecondVariableType, HLLC_M);
+        Material_Get_Transformation_Matrix(nodeID, VARIABLE_CON, PrecondVariableType, HLLC_M);
         // Mpr
-        Material_Get_Transformation_Matrix(Q, PrecondVariableType, VariableType, HLLC_Minv);
+        Material_Get_Transformation_Matrix(nodeID, PrecondVariableType, VariableType, HLLC_Minv);
     }
     
     // STEP 5:
     // Check if Inverse Preconditioner is Requested
     if (reqInv == 0) {
         // Compute Transformed Precondition Matrix: Mrp.K.Mpo
-        MC_Matrix_Mul_Matrix(5, 5, HLLC_M, HLLC_K, HLLC_A);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, HLLC_M, HLLC_K, HLLC_A);
     } else {
         // Compute Transformed Inverse Precondition Matrix: Mrp.Kinv.Mpo
-        MC_Matrix_Mul_Matrix(5, 5, HLLC_M, HLLC_Kinv, HLLC_A);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, HLLC_M, HLLC_Kinv, HLLC_A);
     }
-    MC_Matrix_Mul_Matrix(5, 5, HLLC_A, HLLC_Minv, PrecondMatrix);
+    MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, HLLC_A, HLLC_Minv, PrecondMatrix);
 }
 
 //------------------------------------------------------------------------------
@@ -447,22 +430,14 @@ void Compute_Transformed_Preconditioner_Matrix_HLLC(int nodeID, int reqInv, doub
 //------------------------------------------------------------------------------
 void Compute_Transformed_Residual_HLLC(void) {
     int inode;
-    double Q[5];
     double res_hllc[5];
     double res_hllc_old[5];
     
     // Multiply by Precondition Matrix and Construct the Flux
     for (inode = 0; inode < nNode; inode++) {
-        // Get the Variables
-        Q[0] = Q1[inode];
-        Q[1] = Q2[inode];
-        Q[2] = Q3[inode];
-        Q[3] = Q4[inode];
-        Q[4] = Q5[inode];
-        
         // Compute the Transformation Matrix
         // Mro
-        Material_Get_Transformation_Matrix(Q, VariableType, VARIABLE_CON, HLLC_M);
+        Material_Get_Transformation_Matrix(inode, VariableType, VARIABLE_CON, HLLC_M);
         
         // Compute Transform Residual
         // Save the Residual
@@ -499,25 +474,17 @@ void Compute_Steady_Residual_HLLC_Precondition_Merkel(void) {
 //------------------------------------------------------------------------------
 void Compute_Steady_Residual_HLLC_Precondition_Turkel(void) {
     int inode, j, nid;
-    double Q[5], lQ[5];
     double res_hllc[5];
     double res_hllc_old[5];
-    double rho, u, v, w, p, T, c, ht, et, q2, mach;
-    double lrho, lu, lv, lw, lp, lT, lc, lht, let, lq2, lmach;
+    double rho, rhol, rhov, u, v, w, p, T, c, ht, et, q2, mach;
+    double lp, lmach;
     double dp_max, mach_max;
     
     // Multiply by Precondition Matrix and Construct the Flux
     for (inode = 0; inode < nNode; inode++) {
-        // Get the Variables
-        Q[0] = Q1[inode];
-        Q[1] = Q2[inode];
-        Q[2] = Q3[inode];
-        Q[3] = Q4[inode];
-        Q[4] = Q5[inode];
-        
         // Compute Equation of State
         // Note: Based on VariableType Pressure can be Perturbation of them
-        Material_Get_ControlVolume_Properties(Q, rho, p, T, u, v, w, q2, c, mach, et, ht);
+        CogSolver.CpNodeDB[inode].Get_Properties(rho, rhol, rhov, p, T, u, v, w, q2, c, mach, et, ht);
         
         //======================================================================
         // Compute Precondition of Convective Flux and Assemble Total Flux
@@ -532,16 +499,11 @@ void Compute_Steady_Residual_HLLC_Precondition_Turkel(void) {
             if (PrecondSmooth != 0) {
                 for (j = crs_IA_Node2Node[inode]; j < crs_IA_Node2Node[inode+1]; j++) {
                     nid   = crs_JA_Node2Node[j];
-                    // Get the local Q's
-                    lQ[0] = Q1[nid];
-                    lQ[1] = Q2[nid];
-                    lQ[2] = Q3[nid];
-                    lQ[3] = Q4[nid];
-                    lQ[4] = Q5[nid];
-                    // Compute Local Equation of State
+                    
                     // Note: Based on VariableType Pressure can be Perturbation of them
-                    Material_Get_ControlVolume_Properties(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
-
+                    lp    = CogSolver.CpNodeDB[nid].Get_Pressure();
+                    lmach = CogSolver.CpNodeDB[nid].Get_Mach();
+                    
                     // Compute Smoothing Parameters
                     mach_max = MAX(mach_max, lmach);
                     dp_max   = MAX(dp_max, fabs(p - lp));
@@ -561,6 +523,10 @@ void Compute_Steady_Residual_HLLC_Precondition_Turkel(void) {
             else
                 beta = 0.5;
             beta = beta*(sqrt(mach*PrecondGlobalMach)+ mach);
+            beta = MIN(1.0, beta);
+        }
+        if (PrecondType == PRECOND_TYPE_URLOCAL) {
+            beta = MAX(mach, mach_max);
             beta = MIN(1.0, beta);
         }
         if (PrecondType == PRECOND_TYPE_GLOBAL)
@@ -629,14 +595,14 @@ void Compute_Steady_Residual_HLLC_Precondition_Turkel(void) {
         // STEP 4:
         // Compute Transformation
         // Mrp
-        Material_Get_Transformation_Matrix(Q, VariableType, PrecondVariableType, HLLC_M);
+        Material_Get_Transformation_Matrix(inode, VariableType, PrecondVariableType, HLLC_M);
         // Mpr
-        Material_Get_Transformation_Matrix(Q, PrecondVariableType, VariableType, HLLC_Minv);
+        Material_Get_Transformation_Matrix(inode, PrecondVariableType, VariableType, HLLC_Minv);
         
         // STEP 5:
         // Compute Transformed Precondition Matrix: Mrp.P.Mpr
-        MC_Matrix_Mul_Matrix(5, 5, HLLC_M, HLLC_K, HLLC_A);
-        MC_Matrix_Mul_Matrix(5, 5, HLLC_A, HLLC_Minv, HLLC_T);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, HLLC_M, HLLC_K, HLLC_A);
+        MC_Matrix_Mul_Matrix(NEQUATIONS, NEQUATIONS, HLLC_A, HLLC_Minv, HLLC_T);
         
         // STEP 6:
         // Compute Preconditioned Residual
@@ -666,8 +632,8 @@ void Compute_Steady_Residual_HLLC_Precondition_Turkel(void) {
 //------------------------------------------------------------------------------
 void Compute_Flux_HLLC_Original(int node_L, int node_R, Vector3D areavec, double *Flux_HLLC, int AddTime) {
     int i;
-    double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
-    double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
+    double rho_L, rhol_L, rhov_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
+    double rho_R, rhol_R, rhov_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
     double rho, u, v, w, h, ht, c, ubar;
     double sigma, area, nx, ny, nz, maxlambda;
     double omega_L, rhostar_L, rhoustar_L, rhovstar_L, rhowstar_L, rhoetstar_L;
@@ -726,19 +692,70 @@ void Compute_Flux_HLLC_Original(int node_L, int node_R, Vector3D areavec, double
         
         // Compute Equation of State
         // Note: Based on VariableType Pressure can be Perturbation of them
-        Material_Get_Face_Properties(HLLC_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
-        Material_Get_Face_Properties(HLLC_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+        if ((CogSolver.FluxRecomputeFlag == TRUE) || ((node_R < nNode) && (SolverOrder == SOLVER_ORDER_SECOND))) {
+            // Get the Second Order Properties
+            CogSolver.CpNodeDB[node_L].Get_Recomputed_Properties(HLLC_Q_L, rho_L, rhol_L, rhov_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, et_L, ht_L);
+            CogSolver.CpNodeDB[node_R].Get_Recomputed_Properties(HLLC_Q_R, rho_R, rhol_R, rhov_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, et_R, ht_R);
+        } else {
+            // Get the precomputed First Order Properties
+            CogSolver.CpNodeDB[node_L].Get_Properties(rho_L, rhol_L, rhov_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, et_L, ht_L);
+            CogSolver.CpNodeDB[node_R].Get_Properties(rho_R, rhol_R, rhov_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, et_R, ht_R);
+        }
+        ubar_L = u_L*nx + v_L*ny + w_L*nz;
+        ubar_R = u_R*nx + v_R*ny + w_R*nz;
         
-        // ROE AVERAGE VARIABLES
-        rho   = sqrt(rho_R * rho_L);
-        sigma = rho/(rho_L + rho);
-        u     = u_L  + sigma*(u_R  - u_L);
-        v     = v_L  + sigma*(v_R  - v_L);
-        w     = w_L  + sigma*(w_R  - w_L);
-        ht    = ht_L + sigma*(ht_R - ht_L);
-        h     = ht - 0.5*(u*u + v*v + w*w);
-        c     = Material_Get_DH_SpeedSound(rho, h);
-        ubar  = u*nx + v*ny + w*nz;
+        // Average the Variables Based On Variable Type
+        switch (AverageType) {
+            case AVERAGE_TYPE_SIMPLE:
+                // SIMPLE AVERAGE VARIABLES
+                rho   = 0.5*(rho_R + rho_L);
+                u     = 0.5*(u_R  + u_L);
+                v     = 0.5*(v_R  + v_L);
+                w     = 0.5*(w_R  + w_L);
+                ht    = 0.5*(ht_R + ht_L);
+                h     = ht - 0.5*(u*u + v*v + w*w);
+                c     = Material_Get_DH_SpeedSound(rho, h);
+                break;
+            case AVERAGE_TYPE_ROE:
+                // ROE AVERAGE VARIABLES
+                rho   = sqrt(rho_R * rho_L);
+                sigma = rho/(rho_L + rho);
+                u     = u_L  + sigma*(u_R  - u_L);
+                v     = v_L  + sigma*(v_R  - v_L);
+                w     = w_L  + sigma*(w_R  - w_L);
+                ht    = ht_L + sigma*(ht_R - ht_L);
+                h     = ht - 0.5*(u*u + v*v + w*w);
+                c     = Material_Get_DH_SpeedSound(rho, h);
+                break;
+            case AVERAGE_TYPE_SIMPLE_APPROX:
+                // SIMPLE APPROX AVERAGE VARIABLES
+                rho   = 0.5*(rho_R + rho_L);
+                u     = 0.5*(u_R  + u_L);
+                v     = 0.5*(v_R  + v_L);
+                w     = 0.5*(w_R  + w_L);
+                ht    = 0.5*(ht_R + ht_L);
+                h     = ht - 0.5*(u*u + v*v + w*w);
+                c     = 0.5*(c_R  + c_L);
+                break;
+            case AVERAGE_TYPE_ROE_APPROX:
+                // ROE APPROX AVERAGE VARIABLES
+                rho   = sqrt(rho_R * rho_L);
+                sigma = rho/(rho_L + rho);
+                u     = u_L  + sigma*(u_R  - u_L);
+                v     = v_L  + sigma*(v_R  - v_L);
+                w     = w_L  + sigma*(w_R  - w_L);
+                ht    = ht_L + sigma*(ht_R - ht_L);
+                h     = ht - 0.5*(u*u + v*v + w*w);
+                c     = c_L  + sigma*(c_R  - c_L);
+                break;
+            default:
+                u = v = w = c = 0.0;
+                error("Compute_Flux_HLLC_Original:1: Invalid Average Type - %d", AverageType);
+                break;
+        }
+        
+        // Compute other average quantities
+        ubar = u*nx + v*ny + w*nz;
         
         //======================================================================
         // Compute HLLC Flux
@@ -791,6 +808,17 @@ void Compute_Flux_HLLC_Original(int node_L, int node_R, Vector3D areavec, double
                 }
                 RM_SumMaxEigenValue[node_R] += maxlambda*area;
             }
+        }
+        
+        // Do No Pressure Gradient Flux For Solid Wall Edge
+        if ((HLLC_BCType == BC_TYPE_EULER_WALL) && (BCMethod == BC_METHOD_PRESSURE_WALL)) {
+            // Compute the HLLC Flux
+            Flux_HLLC[0] = 0.0;
+            Flux_HLLC[1] = p_L*nx*area;
+            Flux_HLLC[2] = p_L*ny*area;
+            Flux_HLLC[3] = p_L*nz*area;
+            Flux_HLLC[4] = 0.0;
+            return;
         }
         
         // STEP 2:
@@ -849,7 +877,7 @@ void Compute_Flux_HLLC_Original(int node_L, int node_R, Vector3D areavec, double
             Flux_HLLC[3] = rhowstar_R*SM + pstar*nz;
             Flux_HLLC[4] = (rhoetstar_R + (pstar + Gauge_Pressure))*SM;
         } else
-            error("Compute_Flux_HLLC_Original: Exception Anomaly");
+            error("Compute_Flux_HLLC_Original:2: Exception Anomaly");
         
         // Compute the HLLC Flux
         Flux_HLLC[0] *= area;
@@ -858,7 +886,7 @@ void Compute_Flux_HLLC_Original(int node_L, int node_R, Vector3D areavec, double
         Flux_HLLC[3] *= area;
         Flux_HLLC[4] *= area;
     } else
-        error("Compute_Flux_HLLC_Original: Invalid Node - %d", node_L);
+        error("Compute_Flux_HLLC_Original:3: Invalid Node - %d", node_L);
 }
 
 //------------------------------------------------------------------------------
@@ -866,8 +894,8 @@ void Compute_Flux_HLLC_Original(int node_L, int node_R, Vector3D areavec, double
 //------------------------------------------------------------------------------
 void Compute_Flux_HLLC_Thornber(int node_L, int node_R, Vector3D areavec, double *Flux_HLLC, int AddTime) {
     int i;
-    double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
-    double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
+    double rho_L, rhol_L, rhov_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
+    double rho_R, rhol_R, rhov_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
     double rho, u, v, w, h, ht, c, ubar;
     double sigma, area, nx, ny, nz, maxlambda;
     double omega_L, rhostar_L, rhoustar_L, rhovstar_L, rhowstar_L, rhoetstar_L;
@@ -927,43 +955,97 @@ void Compute_Flux_HLLC_Thornber(int node_L, int node_R, Vector3D areavec, double
         
         // Compute Equation of State
         // Note: Based on VariableType Pressure can be Perturbation of them
-        Material_Get_Face_Properties(HLLC_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
-        Material_Get_Face_Properties(HLLC_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+        if ((CogSolver.FluxRecomputeFlag == TRUE) || ((node_R < nNode) && (SolverOrder == SOLVER_ORDER_SECOND))) {
+            // Get the Second Order Properties
+            CogSolver.CpNodeDB[node_L].Get_Recomputed_Properties(HLLC_Q_L, rho_L, rhol_L, rhov_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, et_L, ht_L);
+            CogSolver.CpNodeDB[node_R].Get_Recomputed_Properties(HLLC_Q_R, rho_R, rhol_R, rhov_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, et_R, ht_R);
+        } else {
+            // Get the precomputed First Order Properties
+            CogSolver.CpNodeDB[node_L].Get_Properties(rho_L, rhol_L, rhov_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, et_L, ht_L);
+            CogSolver.CpNodeDB[node_R].Get_Properties(rho_R, rhol_R, rhov_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, et_R, ht_R);
+        }
+        ubar_L = u_L*nx + v_L*ny + w_L*nz;
+        ubar_R = u_R*nx + v_R*ny + w_R*nz;
         
         // Thornber Modification
         Mach = MAX(mach_L, mach_R);
         fix  = MIN(1.0, Mach);
-        
-        tmp1 = 0.5*((1.0 + fix)*HLLC_Q_L[1] + (1.0 - fix)*HLLC_Q_R[1]);
-        tmp2 = 0.5*((1.0 + fix)*HLLC_Q_R[1] + (1.0 - fix)*HLLC_Q_L[1]);
-        HLLC_Q_L[1]  = tmp1;
-        HLLC_Q_R[1]  = tmp2;
-        
-        tmp1 = 0.5*((1.0 + fix)*HLLC_Q_L[2] + (1.0 - fix)*HLLC_Q_R[2]);
-        tmp2 = 0.5*((1.0 + fix)*HLLC_Q_R[2] + (1.0 - fix)*HLLC_Q_L[2]);
-        HLLC_Q_L[2]  = tmp1;
-        HLLC_Q_R[2]  = tmp2;
-        
-        tmp1 = 0.5*((1.0 + fix)*HLLC_Q_L[3] + (1.0 - fix)*HLLC_Q_R[3]);
-        tmp2 = 0.5*((1.0 + fix)*HLLC_Q_R[3] + (1.0 - fix)*HLLC_Q_L[3]);
-        HLLC_Q_L[3]  = tmp1;
-        HLLC_Q_R[3]  = tmp2;
+        if (VariableType == VARIABLE_CON) {
+            for (i = 1; i < (NEQUATIONS-1); i++) {
+                tmp1 = 0.5*((1.0 + fix)*HLLC_Q_L[i]/HLLC_Q_L[0] + (1.0 - fix)*HLLC_Q_R[i]/HLLC_Q_R[0]);
+                tmp2 = 0.5*((1.0 + fix)*HLLC_Q_R[i]/HLLC_Q_R[0] + (1.0 - fix)*HLLC_Q_L[i]/HLLC_Q_L[0]);
+                HLLC_Q_L[i] = HLLC_Q_L[0]*tmp1;
+                HLLC_Q_R[i] = HLLC_Q_R[0]*tmp2;
+            }
+        } else {
+            // Primitive Variables
+            for (i = 1; i < (NEQUATIONS-1); i++) {
+                tmp1 = 0.5*((1.0 + fix)*HLLC_Q_L[i] + (1.0 - fix)*HLLC_Q_R[i]);
+                tmp2 = 0.5*((1.0 + fix)*HLLC_Q_R[i] + (1.0 - fix)*HLLC_Q_L[i]);
+                HLLC_Q_L[i] = tmp1;
+                HLLC_Q_R[i] = tmp2;
+            }
+        }
         
         // Compute Again Equation of State
         // Note: Based on VariableType Pressure can be Perturbation of them
-        Material_Get_Face_Properties(HLLC_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
-        Material_Get_Face_Properties(HLLC_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
+        CogSolver.CpNodeDB[node_L].Get_Recomputed_Properties(HLLC_Q_L, rho_L, rhol_L, rhov_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, et_L, ht_L);
+        CogSolver.CpNodeDB[node_R].Get_Recomputed_Properties(HLLC_Q_R, rho_R, rhol_R, rhov_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, et_R, ht_R);
+        ubar_L = u_L*nx + v_L*ny + w_L*nz;
+        ubar_R = u_R*nx + v_R*ny + w_R*nz;
         
-        // ROE AVERAGE VARIABLES
-        rho   = sqrt(rho_R * rho_L);
-        sigma = rho/(rho_L + rho);
-        u     = u_L  + sigma*(u_R  - u_L);
-        v     = v_L  + sigma*(v_R  - v_L);
-        w     = w_L  + sigma*(w_R  - w_L);
-        ht    = ht_L + sigma*(ht_R - ht_L);
-        h     = ht - 0.5*(u*u + v*v + w*w);
-        c     = Material_Get_DH_SpeedSound(rho, h);
-        ubar  = u*nx + v*ny + w*nz;
+        // Average the Variables Based On Variable Type
+        switch (AverageType) {
+            case AVERAGE_TYPE_SIMPLE:
+                // SIMPLE AVERAGE VARIABLES
+                rho   = 0.5*(rho_R + rho_L);
+                u     = 0.5*(u_R  + u_L);
+                v     = 0.5*(v_R  + v_L);
+                w     = 0.5*(w_R  + w_L);
+                ht    = 0.5*(ht_R + ht_L);
+                h     = ht - 0.5*(u*u + v*v + w*w);
+                c     = Material_Get_DH_SpeedSound(rho, h);
+                break;
+            case AVERAGE_TYPE_ROE:
+                // ROE AVERAGE VARIABLES
+                rho   = sqrt(rho_R * rho_L);
+                sigma = rho/(rho_L + rho);
+                u     = u_L  + sigma*(u_R  - u_L);
+                v     = v_L  + sigma*(v_R  - v_L);
+                w     = w_L  + sigma*(w_R  - w_L);
+                ht    = ht_L + sigma*(ht_R - ht_L);
+                h     = ht - 0.5*(u*u + v*v + w*w);
+                c     = Material_Get_DH_SpeedSound(rho, h);
+                break;
+            case AVERAGE_TYPE_SIMPLE_APPROX:
+                // SIMPLE APPROX AVERAGE VARIABLES
+                rho   = 0.5*(rho_R + rho_L);
+                u     = 0.5*(u_R  + u_L);
+                v     = 0.5*(v_R  + v_L);
+                w     = 0.5*(w_R  + w_L);
+                ht    = 0.5*(ht_R + ht_L);
+                h     = ht - 0.5*(u*u + v*v + w*w);
+                c     = 0.5*(c_R  + c_L);
+                break;
+            case AVERAGE_TYPE_ROE_APPROX:
+                // ROE APPROX AVERAGE VARIABLES
+                rho   = sqrt(rho_R * rho_L);
+                sigma = rho/(rho_L + rho);
+                u     = u_L  + sigma*(u_R  - u_L);
+                v     = v_L  + sigma*(v_R  - v_L);
+                w     = w_L  + sigma*(w_R  - w_L);
+                ht    = ht_L + sigma*(ht_R - ht_L);
+                h     = ht - 0.5*(u*u + v*v + w*w);
+                c     = c_L  + sigma*(c_R  - c_L);
+                break;
+            default:
+                u = v = w = c = 0.0;
+                error("Compute_Flux_HLLC_Thornber:1: Invalid Average Type - %d", AverageType);
+                break;
+        }
+        
+        // Compute other average quantities
+        ubar = u*nx + v*ny + w*nz;
         
         //======================================================================
         // Compute HLLC Flux
@@ -1016,6 +1098,17 @@ void Compute_Flux_HLLC_Thornber(int node_L, int node_R, Vector3D areavec, double
                 }
                 RM_SumMaxEigenValue[node_R] += maxlambda*area;
             }
+        }
+        
+        // Do No Pressure Gradient Flux For Solid Wall Edge
+        if ((HLLC_BCType == BC_TYPE_EULER_WALL) && (BCMethod == BC_METHOD_PRESSURE_WALL)) {
+            // Compute the HLLC Flux
+            Flux_HLLC[0] = 0.0;
+            Flux_HLLC[1] = p_L*nx*area;
+            Flux_HLLC[2] = p_L*ny*area;
+            Flux_HLLC[3] = p_L*nz*area;
+            Flux_HLLC[4] = 0.0;
+            return;
         }
         
         // STEP 2:
@@ -1074,7 +1167,7 @@ void Compute_Flux_HLLC_Thornber(int node_L, int node_R, Vector3D areavec, double
             Flux_HLLC[3] = rhowstar_R*SM + pstar*nz;
             Flux_HLLC[4] = (rhoetstar_R + (pstar + Gauge_Pressure))*SM;
         } else
-            error("Compute_Flux_HLLC_Thornber: Exception Anomaly");
+            error("Compute_Flux_HLLC_Thornber:2: Exception Anomaly");
         
         // Compute the HLLC Flux
         Flux_HLLC[0] *= area;
@@ -1083,7 +1176,7 @@ void Compute_Flux_HLLC_Thornber(int node_L, int node_R, Vector3D areavec, double
         Flux_HLLC[3] *= area;
         Flux_HLLC[4] *= area;
     } else
-        error("Compute_Flux_HLLC_Thornber: Invalid Node - %d", node_L);
+        error("Compute_Flux_HLLC_Thornber:3: Invalid Node - %d", node_L);
 }
 
 //------------------------------------------------------------------------------
@@ -1097,9 +1190,9 @@ void Compute_Flux_HLLC_Precondition_Merkel(int node_L, int node_R, Vector3D area
 //! Compute HLLC Flux with Turkel Pre-Conditioner
 //------------------------------------------------------------------------------
 void Compute_Flux_HLLC_Precondition_Turkel(int node_L, int node_R, Vector3D areavec, double *Flux_HLLC, int AddTime) {
-    int i, AvgType;
-    double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
-    double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
+    int i;
+    double rho_L, rhol_L, rhov_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
+    double rho_R, rhol_R, rhov_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
     double rho, u, v, w, h, ht, c, ubar, q2, mach;
     double sigma, area, nx, ny, nz, maxlambda;
     double omega_L, rhostar_L, rhoustar_L, rhovstar_L, rhowstar_L, rhoetstar_L;
@@ -1158,35 +1251,100 @@ void Compute_Flux_HLLC_Precondition_Turkel(int node_L, int node_R, Vector3D area
         
         // Compute Equation of State
         // Note: Based on VariableType Pressure can be Perturbation of them
-        Material_Get_Face_Properties(HLLC_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
-        Material_Get_Face_Properties(HLLC_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
-        
-        AvgType = 1;
-        if (AvgType == 1) {
-            // ROE AVERAGE VARIABLES
-            rho   = sqrt(rho_R * rho_L);
-            sigma = rho/(rho_L + rho);
-            u     = u_L  + sigma*(u_R  - u_L);
-            v     = v_L  + sigma*(v_R  - v_L);
-            w     = w_L  + sigma*(w_R  - w_L);
-            ht    = ht_L + sigma*(ht_R - ht_L);
+        if ((CogSolver.FluxRecomputeFlag == TRUE) || ((node_R < nNode) && (SolverOrder == SOLVER_ORDER_SECOND))) {
+            // Get the Second Order Properties
+            CogSolver.CpNodeDB[node_L].Get_Recomputed_Properties(HLLC_Q_L, rho_L, rhol_L, rhov_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, et_L, ht_L);
+            CogSolver.CpNodeDB[node_R].Get_Recomputed_Properties(HLLC_Q_R, rho_R, rhol_R, rhov_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, et_R, ht_R);
         } else {
-            // SIMPLE AVERAGE VARIABLES
-            rho   = 0.5*(rho_R + rho_L);
-            u     = 0.5*(u_R  + u_L);
-            v     = 0.5*(v_R  + v_L);
-            w     = 0.5*(w_R  + w_L);
-            ht    = 0.5*(ht_R + ht_L);
+            // Get the precomputed First Order Properties
+            CogSolver.CpNodeDB[node_L].Get_Properties(rho_L, rhol_L, rhov_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, et_L, ht_L);
+            CogSolver.CpNodeDB[node_R].Get_Properties(rho_R, rhol_R, rhov_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, et_R, ht_R);
         }
+        ubar_L = u_L*nx + v_L*ny + w_L*nz;
+        ubar_R = u_R*nx + v_R*ny + w_R*nz;
+        
+//        // Some Modification
+//        double fix, tmp1, tmp2;
+//        fix = sqrt(mach_L*mach_R);
+//        fix  = MIN(1.0, fix);
+//        // Primitive Variables
+//        for (i = 1; i < (NEQUATIONS-1); i++) {
+////            tmp1 = 0.5*((1.0 + fix)*c_L + (1.0 - fix)*c_R);
+////            tmp2 = 0.5*((1.0 + fix)*c_R + (1.0 - fix)*c_L);
+////            c_L = tmp1;
+////            c_R = tmp2;
+//            tmp1 = 0.5*((1.0 + fix)*p_L + (1.0 - fix)*p_R);
+//            tmp2 = 0.5*((1.0 + fix)*p_R + (1.0 - fix)*p_L);
+//            p_L = tmp1;
+//            p_R = tmp2;
+//        }
+        
+        // Average the Variables Based On Variable Type
+        switch (AverageType) {
+            case AVERAGE_TYPE_SIMPLE:
+                // SIMPLE AVERAGE VARIABLES
+                rho   = 0.5*(rho_R + rho_L);
+                u     = 0.5*(u_R  + u_L);
+                v     = 0.5*(v_R  + v_L);
+                w     = 0.5*(w_R  + w_L);
+                ht    = 0.5*(ht_R + ht_L);
+                h     = ht - 0.5*(u*u + v*v + w*w);
+                c     = Material_Get_DH_SpeedSound(rho, h);
+                break;
+            case AVERAGE_TYPE_ROE:
+                // ROE AVERAGE VARIABLES
+                rho   = sqrt(rho_R * rho_L);
+                sigma = rho/(rho_L + rho);
+                u     = u_L  + sigma*(u_R  - u_L);
+                v     = v_L  + sigma*(v_R  - v_L);
+                w     = w_L  + sigma*(w_R  - w_L);
+                ht    = ht_L + sigma*(ht_R - ht_L);
+                h     = ht - 0.5*(u*u + v*v + w*w);
+                c     = Material_Get_DH_SpeedSound(rho, h);
+                break;
+            case AVERAGE_TYPE_SIMPLE_APPROX:
+                // SIMPLE APPROX AVERAGE VARIABLES
+                rho   = 0.5*(rho_R + rho_L);
+                u     = 0.5*(u_R  + u_L);
+                v     = 0.5*(v_R  + v_L);
+                w     = 0.5*(w_R  + w_L);
+                ht    = 0.5*(ht_R + ht_L);
+                h     = ht - 0.5*(u*u + v*v + w*w);
+                c     = 0.5*(c_R  + c_L);
+                break;
+            case AVERAGE_TYPE_ROE_APPROX:
+                // ROE APPROX AVERAGE VARIABLES
+                rho   = sqrt(rho_R * rho_L);
+                sigma = rho/(rho_L + rho);
+                u     = u_L  + sigma*(u_R  - u_L);
+                v     = v_L  + sigma*(v_R  - v_L);
+                w     = w_L  + sigma*(w_R  - w_L);
+                ht    = ht_L + sigma*(ht_R - ht_L);
+                h     = ht - 0.5*(u*u + v*v + w*w);
+                c     = c_L  + sigma*(c_R  - c_L);
+                break;
+            default:
+                u = v = w = c = 0.0;
+                error("Compute_Flux_HLLC_Precondition_Turkel:1: Invalid Average Type - %d", AverageType);
+                break;
+        }
+        
+//        // Modify the speed of sound for multiphase interface
+//        i = 0;
+//        if ((rhol_L - rhov_L) > 0.01) i++;
+//        if ((rhol_R - rhov_R) > 0.01) i++;
+//        if (i == 0)
+//            c = MAX(c_L, c_R);
+//        else
+//            c = MIN(c_L, c_R);
+        
+        // Compute other average quantities
         q2   = u*u + v*v + w*w;
-        h    = ht - 0.5*(u*u + v*v + w*w);
-        c    = Material_Get_DH_SpeedSound(rho, h);
         ubar = u*nx + v*ny + w*nz;
         mach = sqrt(q2)/c;
         
         int nid;
-        double lQ[NEQUATIONS];
-        double lrho, lu, lv, lw, lp, lT, lc, lht, let, lq2, lmach;
+        double lp, lmach;
         double dp_L, dp_R, lmach_L, lmach_R;
         double dp_max, mach_max;
         
@@ -1206,15 +1364,10 @@ void Compute_Flux_HLLC_Precondition_Turkel(int node_L, int node_R, Vector3D area
             if (PrecondSmooth != 0) {
                 for (i = crs_IA_Node2Node[node_L]; i < crs_IA_Node2Node[node_L+1]; i++) {
                     nid   = crs_JA_Node2Node[i];
-                    // Get the local Q's
-                    lQ[0] = Q1[nid];
-                    lQ[1] = Q2[nid];
-                    lQ[2] = Q3[nid];
-                    lQ[3] = Q4[nid];
-                    lQ[4] = Q5[nid];
-                    // Compute Local Equation of State
+                    
                     // Note: Based on VariableType Pressure can be Perturbation of them
-                    Material_Get_ControlVolume_Properties(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
+                    lp    = CogSolver.CpNodeDB[nid].Get_Pressure();
+                    lmach = CogSolver.CpNodeDB[nid].Get_Mach();
 
                     // Compute Smoothing Parameters
                     lmach_L = MAX(lmach_L, lmach);
@@ -1226,15 +1379,10 @@ void Compute_Flux_HLLC_Precondition_Turkel(int node_L, int node_R, Vector3D area
                 if (node_R < nNode) {
                     for (i = crs_IA_Node2Node[node_R]; i < crs_IA_Node2Node[node_R+1]; i++) {
                         nid  = crs_JA_Node2Node[i];
-                        // Get the local Q's
-                        lQ[0] = Q1[nid];
-                        lQ[1] = Q2[nid];
-                        lQ[2] = Q3[nid];
-                        lQ[3] = Q4[nid];
-                        lQ[4] = Q5[nid];
-                        // Compute Local Equation of State
+                        
                         // Note: Based on VariableType Pressure can be Perturbation of them
-                        Material_Get_ControlVolume_Properties(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
+                        lp    = CogSolver.CpNodeDB[nid].Get_Pressure();
+                        lmach = CogSolver.CpNodeDB[nid].Get_Mach();
 
                         // Compute Smoothing Parameters
                         lmach_R = MAX(lmach_R, lmach);
@@ -1266,6 +1414,10 @@ void Compute_Flux_HLLC_Precondition_Turkel(int node_L, int node_R, Vector3D area
             beta = beta*(sqrt(mach*PrecondGlobalMach)+ mach);
             beta = MIN(1.0, beta);
         }
+        if (PrecondType == PRECOND_TYPE_URLOCAL) {
+            beta = MAX(mach, mach_max);
+            beta = MIN(1.0, beta);
+        }
         if (PrecondType == PRECOND_TYPE_GLOBAL)
             beta = MIN(1.0, PrecondGlobalMach);
         
@@ -1295,7 +1447,7 @@ void Compute_Flux_HLLC_Precondition_Turkel(int node_L, int node_R, Vector3D area
                 delta = beta;
                 break;
             default:
-                error("Compute_Flux_HLLC_Precondition_Turkel: Invalid Solver Precondition Scheme - %d", PrecondMethod);
+                error("Compute_Flux_HLLC_Precondition_Turkel:2: Invalid Solver Precondition Scheme - %d", PrecondMethod);
                 break;
         }
         
@@ -1358,6 +1510,32 @@ void Compute_Flux_HLLC_Precondition_Turkel(int node_L, int node_R, Vector3D area
             }
         }
         
+        // Do No Pressure Gradient Flux For Solid Wall Edge
+        if ((HLLC_BCType == BC_TYPE_EULER_WALL) && (BCMethod == BC_METHOD_PRESSURE_WALL)) {
+            // Compute the Average Pressure
+            double Pbc = 0.0;
+            for (i = crs_IA_Node2Node[node_L]; i < crs_IA_Node2Node[node_L+1]; i++) {
+                nid = crs_JA_Node2Node[i];
+                Pbc += CogSolver.CpNodeDB[nid].Get_Pressure();
+            }
+            Pbc /= ((double)(crs_IA_Node2Node[node_L+1] - crs_IA_Node2Node[node_L]));
+            
+            // Compute the HLLC Flux
+            Flux_HLLC[0] = 0.0;
+            Flux_HLLC[1] = ((5.0*p_L + Pbc)/6.0)*nx*area;
+            Flux_HLLC[2] = ((5.0*p_L + Pbc)/6.0)*ny*area;
+            Flux_HLLC[3] = ((5.0*p_L + Pbc)/6.0)*nz*area;
+            Flux_HLLC[4] = 0.0;
+            
+//            // Compute the HLLC Flux
+//            Flux_HLLC[0] = 0.0;
+//            Flux_HLLC[1] = p_L*nx*area;
+//            Flux_HLLC[2] = p_L*ny*area;
+//            Flux_HLLC[3] = p_L*nz*area;
+//            Flux_HLLC[4] = 0.0;
+            return;
+        }
+        
         // STEP 4:
         // Estimate the Wave Speeds SL, SR and SM
         SL = MIN(EigenPre5_L, HLLC_Eigen[4]);
@@ -1414,7 +1592,7 @@ void Compute_Flux_HLLC_Precondition_Turkel(int node_L, int node_R, Vector3D area
             Flux_HLLC[3] = rhowstar_R*SM + pstar*nz;
             Flux_HLLC[4] = (rhoetstar_R + (pstar + Gauge_Pressure))*SM;
         } else
-            error("Compute_Flux_HLLC_Precondition_Turkel: Exception Anomaly");
+            error("Compute_Flux_HLLC_Precondition_Turkel:3: Exception Anomaly");
         
         // Compute the HLLC Flux
         Flux_HLLC[0] *= area;
@@ -1423,7 +1601,7 @@ void Compute_Flux_HLLC_Precondition_Turkel(int node_L, int node_R, Vector3D area
         Flux_HLLC[3] *= area;
         Flux_HLLC[4] *= area;
     } else
-        error("Compute_Flux_HLLC_Precondition_Turkel: Invalid Node - %d", node_L);
+        error("Compute_Flux_HLLC_Precondition_Turkel:4: Invalid Node - %d", node_L);
 }
 
 //------------------------------------------------------------------------------
@@ -1475,6 +1653,9 @@ void Compute_Residual_HLLC(int AddTime) {
         // Get area vector
         areavec = intEdge[i].areav;
         
+        // Set the Edge Type (Internal)
+        HLLC_BCType = BC_TYPE_NONE;
+        
         // Compute the HLLC Flux for this edge
         Compute_Flux_HLLC(node_L, node_R, areavec, flux_hllc, AddTime);
         
@@ -1501,6 +1682,9 @@ void Compute_Residual_HLLC(int AddTime) {
         
         // Get area vector
         areavec = bndEdge[i].areav;
+        
+        // Set the Edge Type
+        HLLC_BCType = bndEdge[i].type;
         
         // Compute the HLLC Flux for this edge
         Compute_Flux_HLLC(node_L, node_R, areavec, flux_hllc, AddTime);

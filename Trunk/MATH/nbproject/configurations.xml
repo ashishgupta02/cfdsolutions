@@ -58,6 +58,7 @@
             <pElem>../UTILS/include</pElem>
             <pElem>include</pElem>
           </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
@@ -67,10 +68,12 @@
             <pElem>../UTILS/include</pElem>
             <pElem>include</pElem>
           </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fpermissive -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
           <warningLevel>2</warningLevel>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
+          <commandLine>-march=native -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2 -fdefault-double-8 -fdefault-real-8 -I./include</commandLine>
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
         <asmTool>
@@ -92,6 +95,7 @@
               </makeArtifact>
             </linkerLibProjectItem>
           </linkerLibItems>
+          <commandLine>-march=native</commandLine>
         </linkerTool>
       </compileType>
       <item path="include/Complex.h" ex="false" tool="3" flavor2="0">
@@ -141,6 +145,7 @@
             <pElem>../UTILS/include</pElem>
             <pElem>include</pElem>
           </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
@@ -149,9 +154,11 @@
             <pElem>../UTILS/include</pElem>
             <pElem>include</pElem>
           </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fpermissive -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
           <warningLevel>2</warningLevel>
         </ccTool>
         <fortranCompilerTool>
+          <commandLine>-march=native -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2 -fdefault-double-8 -fdefault-real-8 -I./include</commandLine>
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
         <asmTool>
@@ -172,6 +179,7 @@
               </makeArtifact>
             </linkerLibProjectItem>
           </linkerLibItems>
+          <commandLine>-march=native</commandLine>
         </linkerTool>
       </compileType>
       <item path="include/Complex.h" ex="false" tool="3" flavor2="0">
@@ -371,7 +379,7 @@
       <item path="src/Vector3D.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
-    <conf name="Release_Intel" type="2">
+    <conf name="Release_Intel_MPI" type="2">
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>Intel|Intel</compilerSet>
@@ -386,9 +394,9 @@
             <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>include</pElem>
-            <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/include</pElem>
+            <pElem>/usr/local/openmpi/include</pElem>
           </incDir>
-          <commandLine>-axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer</commandLine>
+          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
           <preprocessorList>
             <Elem>HAVE_MPI</Elem>
           </preprocessorList>
@@ -401,9 +409,9 @@
             <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>include</pElem>
-            <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/include</pElem>
+            <pElem>/usr/local/openmpi/include</pElem>
           </incDir>
-          <commandLine>-axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer</commandLine>
+          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
           <preprocessorList>
             <Elem>HAVE_MPI</Elem>
           </preprocessorList>
@@ -420,20 +428,20 @@
         </asmTool>
         <linkerTool>
           <linkerAddLib>
-            <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/lib</pElem>
+            <pElem>/usr/local/openmpi/lib</pElem>
           </linkerAddLib>
           <commandlineTool>icc</commandlineTool>
           <linkerLibItems>
             <linkerLibProjectItem>
               <makeArtifact PL="../UTILS"
                             CT="2"
-                            CN="Release_Intel"
-                            AC="false"
+                            CN="Release_Intel_MPI"
+                            AC="true"
                             BL="true"
                             WD="../UTILS"
-                            BC="${MAKE}  -f Makefile CONF=Release_Intel"
-                            CC="${MAKE}  -f Makefile CONF=Release_Intel clean"
-                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
+                            BC="${MAKE}  -f Makefile CONF=Release_Intel_MPI"
+                            CC="${MAKE}  -f Makefile CONF=Release_Intel_MPI clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.${CND_DLIB_EXT}">
               </makeArtifact>
             </linkerLibProjectItem>
           </linkerLibItems>
@@ -473,7 +481,7 @@
       <item path="src/Vector3D.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
-    <conf name="Debug_Intel" type="2">
+    <conf name="Debug_Intel_MPI" type="2">
       <toolsSet>
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>Intel|Intel</compilerSet>
@@ -487,9 +495,9 @@
             <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>include</pElem>
-            <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/include</pElem>
+            <pElem>/usr/local/openmpi/include</pElem>
           </incDir>
-          <commandLine>-axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer</commandLine>
+          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
           <preprocessorList>
             <Elem>HAVE_MPI</Elem>
           </preprocessorList>
@@ -501,9 +509,9 @@
             <pElem>..</pElem>
             <pElem>../UTILS/include</pElem>
             <pElem>include</pElem>
-            <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/include</pElem>
+            <pElem>/usr/local/openmpi/include</pElem>
           </incDir>
-          <commandLine>-axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer</commandLine>
+          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
           <preprocessorList>
             <Elem>HAVE_MPI</Elem>
           </preprocessorList>
@@ -518,20 +526,20 @@
         </asmTool>
         <linkerTool>
           <linkerAddLib>
-            <pElem>/home/agupta/00-Applications/Lakesite/HPC_LIBS/lib</pElem>
+            <pElem>/usr/local/openmpi/lib</pElem>
           </linkerAddLib>
           <commandlineTool>icc</commandlineTool>
           <linkerLibItems>
             <linkerLibProjectItem>
               <makeArtifact PL="../UTILS"
                             CT="2"
-                            CN="Debug_Intel"
-                            AC="true"
+                            CN="Debug_Intel_MPI"
+                            AC="false"
                             BL="true"
                             WD="../UTILS"
-                            BC="${MAKE}  -f Makefile CONF=Debug_Intel"
-                            CC="${MAKE}  -f Makefile CONF=Debug_Intel clean"
-                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
+                            BC="${MAKE}  -f Makefile CONF=Debug_Intel_MPI"
+                            CC="${MAKE}  -f Makefile CONF=Debug_Intel_MPI clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.${CND_DLIB_EXT}">
               </makeArtifact>
             </linkerLibProjectItem>
           </linkerLibItems>
@@ -586,6 +594,7 @@
             <pElem>../UTILS/include</pElem>
             <pElem>include</pElem>
           </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
@@ -595,10 +604,12 @@
             <pElem>../UTILS/include</pElem>
             <pElem>include</pElem>
           </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fpermissive -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
           <warningLevel>2</warningLevel>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
+          <commandLine>-march=native -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2 -fdefault-double-8 -fdefault-real-8 -I./include</commandLine>
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
         <asmTool>
@@ -620,6 +631,7 @@
               </makeArtifact>
             </linkerLibProjectItem>
           </linkerLibItems>
+          <commandLine>-march=native</commandLine>
         </linkerTool>
       </compileType>
       <item path="include/Complex.h" ex="false" tool="3" flavor2="0">
@@ -669,6 +681,7 @@
             <pElem>../UTILS/include</pElem>
             <pElem>include</pElem>
           </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
@@ -677,9 +690,11 @@
             <pElem>../UTILS/include</pElem>
             <pElem>include</pElem>
           </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fpermissive -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
           <warningLevel>2</warningLevel>
         </ccTool>
         <fortranCompilerTool>
+          <commandLine>-march=native -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2 -fdefault-double-8 -fdefault-real-8 -I./include</commandLine>
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
         <asmTool>
@@ -700,6 +715,7 @@
               </makeArtifact>
             </linkerLibProjectItem>
           </linkerLibItems>
+          <commandLine>-march=native</commandLine>
         </linkerTool>
       </compileType>
       <item path="include/Complex.h" ex="false" tool="3" flavor2="0">
@@ -750,6 +766,7 @@
             <pElem>../UTILS/include</pElem>
             <pElem>include</pElem>
           </incDir>
+          <commandLine>-mcpu=powerpc64 -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000</commandLine>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
@@ -759,15 +776,18 @@
             <pElem>../UTILS/include</pElem>
             <pElem>include</pElem>
           </incDir>
+          <commandLine>-mcpu=powerpc64 -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fpermissive -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000</commandLine>
           <warningLevel>2</warningLevel>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
+          <commandLine>-mcpu=powerpc64 -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -fdefault-double-8 -fdefault-real-8 -I./include</commandLine>
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
         <asmTool>
           <developmentMode>5</developmentMode>
           <warningLevel>2</warningLevel>
+          <commandLine>-march=native -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2 -fdefault-double-8 -fdefault-real-8 -I./include</commandLine>
         </asmTool>
         <linkerTool>
           <linkerLibItems>
@@ -784,6 +804,7 @@
               </makeArtifact>
             </linkerLibProjectItem>
           </linkerLibItems>
+          <commandLine>-mcpu=powerpc64</commandLine>
         </linkerTool>
       </compileType>
       <item path="include/Complex.h" ex="false" tool="3" flavor2="0">
@@ -833,6 +854,7 @@
             <pElem>../UTILS/include</pElem>
             <pElem>include</pElem>
           </incDir>
+          <commandLine>-mcpu=powerpc64 -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000</commandLine>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
@@ -841,9 +863,11 @@
             <pElem>../UTILS/include</pElem>
             <pElem>include</pElem>
           </incDir>
+          <commandLine>-mcpu=powerpc64 -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fpermissive -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000</commandLine>
           <warningLevel>2</warningLevel>
         </ccTool>
         <fortranCompilerTool>
+          <commandLine>-mcpu=powerpc64 -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -fdefault-double-8 -fdefault-real-8 -I./include</commandLine>
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
         <asmTool>
@@ -860,6 +884,185 @@
                             WD="../UTILS"
                             BC="${MAKE}  -f Makefile CONF=Debug_GUPC_ppc64"
                             CC="${MAKE}  -f Makefile CONF=Debug_GUPC_ppc64 clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
+          <commandLine>-mcpu=powerpc64</commandLine>
+        </linkerTool>
+      </compileType>
+      <item path="include/Complex.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/LinearAlgebra.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/MC.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/MatrixBlock.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ParallelLinearAlgebra.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Point2D.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Point3D.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Vector2D.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Vector3D.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/LinearAlgebra.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/MC_Iterative_Jacobi.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/ParallelLinearAlgebra.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Point2D.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Point3D.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Vector2D.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Vector3D.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Release_Intel" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>Intel|Intel</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <commandlineTool>icc</commandlineTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <commandLine>-xhost -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <commandlineTool>icc</commandlineTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <commandLine>-xhost -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+          <commandlineTool>ifort</commandlineTool>
+          <commandLine>-xhost</commandLine>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <commandlineTool>icpc</commandlineTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Release_Intel"
+                            AC="false"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Release_Intel"
+                            CC="${MAKE}  -f Makefile CONF=Release_Intel clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+      <item path="include/Complex.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/LinearAlgebra.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/MC.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/MatrixBlock.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ParallelLinearAlgebra.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Point2D.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Point3D.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Vector2D.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Vector3D.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/LinearAlgebra.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/MC_Iterative_Jacobi.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/ParallelLinearAlgebra.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Point2D.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Point3D.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Vector2D.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Vector3D.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Debug_Intel" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>Intel|Intel</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <commandlineTool>icc</commandlineTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <commandLine>-xhost -parallel -openmp -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <commandlineTool>icc</commandlineTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <commandLine>-xhost -parallel -openmp -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <commandlineTool>ifort</commandlineTool>
+          <commandLine>-xhost -parallel -openmp</commandLine>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <commandlineTool>icpc</commandlineTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Debug_Intel"
+                            AC="true"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Debug_Intel"
+                            CC="${MAKE}  -f Makefile CONF=Debug_Intel clean"
                             OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.so">
               </makeArtifact>
             </linkerLibProjectItem>

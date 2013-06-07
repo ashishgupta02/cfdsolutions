@@ -29,7 +29,7 @@ char   RMSOutputFilename[256];
 // Variable Type
 int    VariableType;
 
-// Linear Solver Parameters
+// Solver Parameters
 int    SolverMethod;
 int    SolverScheme;
 int    FluxScheme;
@@ -45,6 +45,12 @@ int    LinearSolverNIteration;
 int    FirstOrderNIteration;
 double PhysicalDeltaTime;
 double Relaxation;
+int    AverageType;
+
+// Solution Smoother
+int    SolutionSmooth;
+int    SolutionSmoothNIteration;
+double SolutionSmoothRelaxation;
 
 // Residual Smoother Variables
 int    ResidualSmoothMethod;
@@ -76,6 +82,8 @@ int    RestartInput;
 int    RestartOutput;
 int    RestartIteration;
 int    RestartCycle;
+int    RestartInputIOType;
+int    RestartOutputIOType;
 char   RestartInputFilename[256];
 char   RestartOutputFilename[256];
 
@@ -108,7 +116,7 @@ void Solver_Parameters_Init(void) {
     // Variable Type
     VariableType                = VARIABLE_NONE;
     
-    // Linear Solver Parameters
+    // Solver Parameters
     SolverMethod                = SOLVER_METHOD_NONE;
     SolverScheme                = SOLVER_SCHEME_NONE;
     FluxScheme                  = FLUX_SCHEME_NONE;
@@ -124,7 +132,13 @@ void Solver_Parameters_Init(void) {
     FirstOrderNIteration        = 0;
     PhysicalDeltaTime           = 0.0;
     Relaxation                  = 0.0;
-
+    AverageType                 = AVERAGE_TYPE_NONE;
+    
+    // Solution Smoother
+    SolutionSmooth              = 0;
+    SolutionSmoothNIteration    = 0;
+    SolutionSmoothRelaxation    = 0.0;
+    
     // Residual Smoother Variables
     ResidualSmoothMethod        = RESIDUAL_SMOOTH_METHOD_NONE;
     ResidualSmoothType          = RESIDUAL_SMOOTH_TYPE_NONE;
@@ -155,6 +169,8 @@ void Solver_Parameters_Init(void) {
     RestartOutput               = 0;
     RestartIteration            = 0;
     RestartCycle                = 0;
+    RestartInputIOType          = MATERIAL_COMP_TYPE_NONE;
+    RestartOutputIOType         = MATERIAL_COMP_TYPE_NONE;
     str_blank(RestartInputFilename);
     str_blank(RestartOutputFilename);
     
@@ -201,6 +217,7 @@ void Solver_Parameters_Read(const char *filename) {
             if (position != string::npos) text_line.erase(position, 1);
             position = text_line.find("\n", 0);
             if (position != string::npos) text_line.erase(position, 1);
+            continue;
         }
         
         // Get the Mesh Input File Name
@@ -209,6 +226,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 14);
             strlength = text_line.copy(MeshInputFilename, text_line.size(), 0);
             MeshInputFilename[strlength] = '\0';
+            continue;
         }
         
         // Get the Boundary Condition Input File Name
@@ -217,6 +235,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 12);
             strlength = text_line.copy(BCInputFilename, text_line.size(), 0);
             BCInputFilename[strlength] = '\0';
+            continue;
         }
         
         // Get the Solution Output File Name
@@ -225,6 +244,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 18);
             strlength = text_line.copy(SolutionOutputFilename, text_line.size(), 0);
             SolutionOutputFilename[strlength] = '\0';
+            continue;
         }
         
         // Get the Restart Input File Name
@@ -233,6 +253,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 23);
             strlength = text_line.copy(RestartInputFilename, text_line.size(), 0);
             RestartInputFilename[strlength] = '\0';
+            continue;
         }
         
         // Get the Restart Output File Name
@@ -241,6 +262,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 24);
             strlength = text_line.copy(RestartOutputFilename, text_line.size(), 0);
             RestartOutputFilename[strlength] = '\0';
+            continue;
         }
         
         // Get the Mesh Reorder
@@ -250,6 +272,7 @@ void Solver_Parameters_Read(const char *filename) {
             option_name.assign(text_line);
             StringToUpperCase(option_name);
             GetOptionNameValue(option_name, MeshReorder, SolverBooleanMap);
+            continue;
         }
         
         // Get the Solver Method
@@ -259,6 +282,7 @@ void Solver_Parameters_Read(const char *filename) {
             option_name.assign(text_line);
             StringToUpperCase(option_name);
             GetOptionNameValue(option_name, SolverMethod, SolverMethodMap);
+            continue;
         }
         
         // Get the Solver Scheme
@@ -268,6 +292,7 @@ void Solver_Parameters_Read(const char *filename) {
             option_name.assign(text_line);
             StringToUpperCase(option_name);
             GetOptionNameValue(option_name, SolverScheme, SolverSchemeMap);
+            continue;
         }
         
         // Get the Flux Scheme
@@ -277,6 +302,7 @@ void Solver_Parameters_Read(const char *filename) {
             option_name.assign(text_line);
             StringToUpperCase(option_name);
             GetOptionNameValue(option_name, FluxScheme, FluxSchemeMap);
+            continue;
         }
         
         // Get the Solver Main Iterations 
@@ -285,6 +311,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 18);
             option_name.assign(text_line);
             SolverNIteration = atoi(option_name.c_str());
+            continue;
         }
         
         // Get the Solver Inner Iterations: Newton or Dual Time 
@@ -293,6 +320,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 24);
             option_name.assign(text_line);
             InnerNIteration = atoi(option_name.c_str());
+            continue;
         }
         
         // Get the Linear Solver Iterations 
@@ -301,6 +329,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 25);
             option_name.assign(text_line);
             LinearSolverNIteration = atoi(option_name.c_str());
+            continue;
         }
         
         // Get the Solver Order
@@ -310,6 +339,7 @@ void Solver_Parameters_Read(const char *filename) {
             option_name.assign(text_line);
             StringToUpperCase(option_name);
             GetOptionNameValue(option_name, SolverOrder, SolverOrderMap);
+            continue;
         }
         
         // Get the Time Integration Method
@@ -319,6 +349,7 @@ void Solver_Parameters_Read(const char *filename) {
             option_name.assign(text_line);
             StringToUpperCase(option_name);
             GetOptionNameValue(option_name, TimeIntegrationMethod, TimeIntegrationMethodMap);
+            continue;
         }
         
         // Get the Time Integration Type
@@ -328,6 +359,7 @@ void Solver_Parameters_Read(const char *filename) {
             option_name.assign(text_line);
             StringToUpperCase(option_name);
             GetOptionNameValue(option_name, TimeIntegrationType, TimeIntegrationTypeMap);
+            continue;
         }
         
         // Get the Precondition Method
@@ -337,6 +369,7 @@ void Solver_Parameters_Read(const char *filename) {
             option_name.assign(text_line);
             StringToUpperCase(option_name);
             GetOptionNameValue(option_name, PrecondMethod, PrecondMethodMap);
+            continue;
         }
         
         // Get the Precondition Type
@@ -346,6 +379,7 @@ void Solver_Parameters_Read(const char *filename) {
             option_name.assign(text_line);
             StringToUpperCase(option_name);
             GetOptionNameValue(option_name, PrecondType, PrecondTypeMap);
+            continue;
         }
         
         // Get the Precondition Smooth
@@ -355,6 +389,7 @@ void Solver_Parameters_Read(const char *filename) {
             option_name.assign(text_line);
             StringToUpperCase(option_name);
             GetOptionNameValue(option_name, PrecondSmooth, SolverBooleanMap);
+            continue;
         }
         
         // Get the Boundary Condition Method
@@ -364,6 +399,7 @@ void Solver_Parameters_Read(const char *filename) {
             option_name.assign(text_line);
             StringToUpperCase(option_name);
             GetOptionNameValue(option_name, BCMethod, BCMethodMap);
+            continue;
         }
         
         // Read No of Zero Pressure Gradient ZPG Iterations
@@ -372,6 +408,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 14);
             option_name.assign(text_line);
             ZPGIteration = atoi(option_name.c_str());
+            continue;
         }
         
         // Get the Variable Type for Computation
@@ -384,6 +421,7 @@ void Solver_Parameters_Read(const char *filename) {
             // Check the input
             if (VariableType == VARIABLE_PUS || VariableType == VARIABLE_NONE)
                 error("Solver_Parameters_Read: VARIABLE_TYPE=%s is invalid", option_name.c_str());
+            continue;
         }
         
         // Get the Entropy Fix
@@ -393,6 +431,7 @@ void Solver_Parameters_Read(const char *filename) {
             option_name.assign(text_line);
             StringToUpperCase(option_name);
             GetOptionNameValue(option_name, EntropyFix, SolverBooleanMap);
+            continue;
         }
         
         // Get the Jacobian Method
@@ -402,6 +441,7 @@ void Solver_Parameters_Read(const char *filename) {
             option_name.assign(text_line);
             StringToUpperCase(option_name);
             GetOptionNameValue(option_name, JacobianMethod, JacobianMethodMap);
+            continue;
         }
         
         // Get the Jacobian Update Frequency
@@ -410,6 +450,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 16);
             option_name.assign(text_line);
             JacobianUpdate = atoi(option_name.c_str());
+            continue;
         }
         
         // Get the Number of First Order Iterations for Higher Order Solver
@@ -418,6 +459,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 23);
             option_name.assign(text_line);
             FirstOrderNIteration = atoi(option_name.c_str());
+            continue;
         }
         
         // Get the Physical Delta Time
@@ -426,6 +468,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 20);
             option_name.assign(text_line);
             PhysicalDeltaTime = atof(option_name.c_str());
+            continue;
         }
         
         // Get the Relaxation Factor
@@ -434,9 +477,49 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 18);
             option_name.assign(text_line);
             Relaxation = atof(option_name.c_str());
+            continue;
         }
         
-        //-------------------Residual Smoother Properties----------------------------
+        // Get the Average Computation Type
+        position = text_line.find("AVERAGE_TYPE=", 0);
+        if ((position != string::npos) && (position == 0)) {
+            text_line.erase(0, 13);
+            option_name.assign(text_line);
+            StringToUpperCase(option_name);
+            GetOptionNameValue(option_name, AverageType, AverageTypeMap);
+            continue;
+        }
+        
+        //-------------------Solution Smoother Properties-----------------------
+        // Solution Smooth
+        position = text_line.find("SOLUTION_SMOOTH=", 0);
+        if ((position != string::npos) && (position == 0)) {
+            text_line.erase(0, 16);
+            option_name.assign(text_line);
+            StringToUpperCase(option_name);
+            GetOptionNameValue(option_name, SolutionSmooth, SolverBooleanMap);
+            continue;
+        }
+        
+        // Get the Number of Solution Smoother Iterations
+        position = text_line.find("SOLUTION_SMOOTH_NITERATION=", 0);
+        if ((position != string::npos) && (position == 0)) {
+            text_line.erase(0, 27);
+            option_name.assign(text_line);
+            SolutionSmoothNIteration = atoi(option_name.c_str());
+            continue;
+        }
+        
+        // Get the Solution Smoother Relaxation Factor
+        position = text_line.find("SOLUTION_SMOOTH_RELAXATION=", 0);
+        if ((position != string::npos) && (position == 0)) {
+            text_line.erase(0, 27);
+            option_name.assign(text_line);
+            SolutionSmoothRelaxation = atof(option_name.c_str());
+            continue;
+        }
+        
+        //-------------------Residual Smoother Properties-----------------------
         // Residual Smoother Method
         position = text_line.find("RESIDUAL_SMOOTH_METHOD=", 0);
         if ((position != string::npos) && (position == 0)) {
@@ -444,6 +527,7 @@ void Solver_Parameters_Read(const char *filename) {
             option_name.assign(text_line);
             StringToUpperCase(option_name);
             GetOptionNameValue(option_name, ResidualSmoothMethod, ResidualSmoothMethodMap);
+            continue;
         }
         
         // Residual Smoother Type
@@ -453,6 +537,7 @@ void Solver_Parameters_Read(const char *filename) {
             option_name.assign(text_line);
             StringToUpperCase(option_name);
             GetOptionNameValue(option_name, ResidualSmoothType, ResidualSmoothTypeMap);
+            continue;
         }
         
         // Residual Smoother Scheme
@@ -462,6 +547,7 @@ void Solver_Parameters_Read(const char *filename) {
             option_name.assign(text_line);
             StringToUpperCase(option_name);
             GetOptionNameValue(option_name, ResidualSmoothScheme, ResidualSmoothSchemeMap);
+            continue;
         }
         
         // Get the Number of Residual Smoother Iterations
@@ -470,6 +556,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 27);
             option_name.assign(text_line);
             ResidualSmoothNIteration = atoi(option_name.c_str());
+            continue;
         }
         
         // Get the Residual Smoother Relaxation Factor
@@ -478,6 +565,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 27);
             option_name.assign(text_line);
             ResidualSmoothRelaxation = atof(option_name.c_str());
+            continue;
         }
         
         //-------------------Flux Limiter Properties----------------------------
@@ -488,6 +576,7 @@ void Solver_Parameters_Read(const char *filename) {
             option_name.assign(text_line);
             StringToUpperCase(option_name);
             GetOptionNameValue(option_name, LimiterMethod, LimiterMethodMap);
+            continue;
         }
         
         // Get the Flux Limiter Smooth Boolean
@@ -497,6 +586,7 @@ void Solver_Parameters_Read(const char *filename) {
             option_name.assign(text_line);
             StringToUpperCase(option_name);
             GetOptionNameValue(option_name, LimiterSmooth, SolverBooleanMap);
+            continue;
         }
         
         // Get the Flux Limiter Order
@@ -506,6 +596,7 @@ void Solver_Parameters_Read(const char *filename) {
             option_name.assign(text_line);
             StringToUpperCase(option_name);
             GetOptionNameValue(option_name, LimiterOrder, LimiterOrderMap);
+            continue;
         }
         
         // Get the Limiter Start Solver Iteration
@@ -514,6 +605,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 31);
             option_name.assign(text_line);
             LimiterStartSolverIteration = atoi(option_name.c_str());
+            continue;
         }
         
         // Get the Limiter End Solver Iteration
@@ -522,6 +614,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 29);
             option_name.assign(text_line);
             LimiterEndSolverIteration = atoi(option_name.c_str());
+            continue;
         }
         
         // Read Venkatakrishanan Limiter K Threshold
@@ -530,6 +623,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 19);
             option_name.assign(text_line);
             Venkat_KThreshold = atof(option_name.c_str());
+            continue;
         }
         
         //-------------------Material Properties--------------------------------
@@ -540,6 +634,7 @@ void Solver_Parameters_Read(const char *filename) {
             option_name.assign(text_line);
             StringToUpperCase(option_name);
             GetOptionNameValue(option_name, MaterialType, MaterialTypeMap);
+            continue;
         }
         
         // Get the Material Name
@@ -548,6 +643,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 14);
             strlength = text_line.copy(MaterialName, text_line.size(), 0);
             MaterialName[strlength] = '\0';
+            continue;
         }
         
         // Read Material Type
@@ -557,6 +653,61 @@ void Solver_Parameters_Read(const char *filename) {
             option_name.assign(text_line);
             StringToUpperCase(option_name);
             GetOptionNameValue(option_name, MaterialCompType, MaterialCompTypeMap);
+            continue;
+        }
+        
+        // Read User Limit Minimum Pressure
+        position = text_line.find("LIMIT_MIN_PRESSURE=", 0);
+        if ((position != string::npos) && (position == 0)) {
+            text_line.erase(0, 19);
+            option_name.assign(text_line);
+            Limit_Min_Pressure = atof(option_name.c_str());
+            continue;
+        }
+        
+        // Read User Limit Maximum Pressure
+        position = text_line.find("LIMIT_MAX_PRESSURE=", 0);
+        if ((position != string::npos) && (position == 0)) {
+            text_line.erase(0, 19);
+            option_name.assign(text_line);
+            Limit_Max_Pressure = atof(option_name.c_str());
+            continue;
+        }
+        
+        // Read User Limit Minimum Density
+        position = text_line.find("LIMIT_MIN_DENSITY=", 0);
+        if ((position != string::npos) && (position == 0)) {
+            text_line.erase(0, 18);
+            option_name.assign(text_line);
+            Limit_Min_Rho = atof(option_name.c_str());
+            continue;
+        }
+        
+        // Read User Limit Maximum Density
+        position = text_line.find("LIMIT_MAX_DENSITY=", 0);
+        if ((position != string::npos) && (position == 0)) {
+            text_line.erase(0, 18);
+            option_name.assign(text_line);
+            Limit_Max_Rho = atof(option_name.c_str());
+            continue;
+        }
+        
+        // Read User Limit Minimum Temperature
+        position = text_line.find("LIMIT_MIN_TEMPERATURE=", 0);
+        if ((position != string::npos) && (position == 0)) {
+            text_line.erase(0, 22);
+            option_name.assign(text_line);
+            Limit_Min_Temperature = atof(option_name.c_str());
+            continue;
+        }
+        
+        // Read User Limit Maximum Temperature
+        position = text_line.find("LIMIT_MAX_TEMPERATURE=", 0);
+        if ((position != string::npos) && (position == 0)) {
+            text_line.erase(0, 22);
+            option_name.assign(text_line);
+            Limit_Max_Temperature = atof(option_name.c_str());
+            continue;
         }
         
         //-------------------Reference Values-----------------------------------
@@ -566,6 +717,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 13);
             option_name.assign(text_line);
             Ref_Pressure = atof(option_name.c_str());
+            continue;
         }
         
         // Read Reference Temperature
@@ -574,6 +726,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 16);
             option_name.assign(text_line);
             Ref_Temperature = atof(option_name.c_str());
+            continue;
         }
         
         // Read Reference Temperature
@@ -582,6 +735,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 11);
             option_name.assign(text_line);
             Ref_Length = atof(option_name.c_str());
+            continue;
         }
         
         //-------------------Far Field (Infinity) Values------------------------
@@ -591,6 +745,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 13);
             option_name.assign(text_line);
             Inf_Pressure = atof(option_name.c_str());
+            continue;
         }
         
         // Read Far Field Flow Temperature
@@ -599,6 +754,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 16);
             option_name.assign(text_line);
             Inf_Temperature = atof(option_name.c_str());
+            continue;
         }
         
         // Read Far Field Flow Mach Number
@@ -607,6 +763,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 9);
             option_name.assign(text_line);
             Inf_Mach = atof(option_name.c_str());
+            continue;
         }
         
         // Read Far Field Mach Ramp
@@ -615,6 +772,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 14);
             option_name.assign(text_line);
             Inf_Mach_Ramp = atoi(option_name.c_str());
+            continue;
         }
         
         // Read Far Field Mach Minimum
@@ -623,6 +781,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 13);
             option_name.assign(text_line);
             Inf_Mach_MIN = atof(option_name.c_str());
+            continue;
         }
         
         // Read Far Field Mach Maximum
@@ -631,6 +790,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 13);
             option_name.assign(text_line);
             Inf_Mach_MAX = atof(option_name.c_str());
+            continue;
         }
         
         // Read Far Field Flow Angle Alpha
@@ -639,6 +799,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 10);
             option_name.assign(text_line);
             Inf_Alpha = atof(option_name.c_str());
+            continue;
         }
         
         // Read Far Field Flow Angle Beta
@@ -647,6 +808,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 9);
             option_name.assign(text_line);
             Inf_Beta = atof(option_name.c_str());
+            continue;
         }
         
         //-------------------Pressure Conditions------------------------
@@ -656,6 +818,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 17);
             option_name.assign(text_line);
             Outflow_Pressure = atof(option_name.c_str());
+            continue;
         }
         
         // Read Gauge Pressure
@@ -664,6 +827,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 15);
             option_name.assign(text_line);
             Gauge_Pressure = atof(option_name.c_str());
+            continue;
         }
         
         // Read CFL Ramp
@@ -672,6 +836,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 9);
             option_name.assign(text_line);
             CFL_Ramp = atoi(option_name.c_str());
+            continue;
         }
         
         // Read CFL Minimum
@@ -680,6 +845,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 8);
             option_name.assign(text_line);
             CFL_MIN = atof(option_name.c_str());
+            continue;
         }
         
         // Read CFL Maximum
@@ -688,6 +854,7 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 8);
             option_name.assign(text_line);
             CFL_MAX = atof(option_name.c_str());
+            continue;
         }
         
         // Read Restart Solution Input Boolean
@@ -697,6 +864,7 @@ void Solver_Parameters_Read(const char *filename) {
             option_name.assign(text_line);
             StringToUpperCase(option_name);
             GetOptionNameValue(option_name, RestartInput, SolverBooleanMap);
+            continue;
         }
         
         // Read Restart Solution Output Boolean
@@ -706,6 +874,7 @@ void Solver_Parameters_Read(const char *filename) {
             option_name.assign(text_line);
             StringToUpperCase(option_name);
             GetOptionNameValue(option_name, RestartOutput, SolverBooleanMap);
+            continue;
         }
         
         // Read Restart Solution Cycle
@@ -714,6 +883,27 @@ void Solver_Parameters_Read(const char *filename) {
             text_line.erase(0, 19);
             option_name.assign(text_line);
             RestartCycle = atoi(option_name.c_str());
+            continue;
+        }
+        
+        // Read Restart Input IO Type
+        position = text_line.find("RESTART_INPUT_IO_TYPE=", 0);
+        if ((position != string::npos) && (position == 0)) {
+            text_line.erase(0, 22);
+            option_name.assign(text_line);
+            StringToUpperCase(option_name);
+            GetOptionNameValue(option_name, RestartInputIOType, MaterialCompTypeMap);
+            continue;
+        }
+        
+        // Read Restart Input IO Type
+        position = text_line.find("RESTART_OUTPUT_IO_TYPE=", 0);
+        if ((position != string::npos) && (position == 0)) {
+            text_line.erase(0, 23);
+            option_name.assign(text_line);
+            StringToUpperCase(option_name);
+            GetOptionNameValue(option_name, RestartOutputIOType, MaterialCompTypeMap);
+            continue;
         }
     }
     
@@ -778,6 +968,14 @@ void Solver_Parameters_Read(const char *filename) {
     info("%2d) No of First Order Iterations ---------: %d",  ++count, FirstOrderNIteration);
     info("%2d) Physical Delta Time ------------------: %lf", ++count, PhysicalDeltaTime);
     info("%2d) Relaxation Factor --------------------: %lf", ++count, Relaxation);
+    GetOptionValueName(option_name, AverageType, AverageTypeMap);
+    info("%2d) Average Computation Type -------------: %s",  ++count, option_name.c_str());
+    printf("-----------------------------------------------------------------------------\n");
+    printf("---INPUT: Solution Smoother Properties---------------------------------------\n");
+    GetOptionValueName(option_name, SolutionSmooth, SolverBooleanMap);
+    info("%2d) Solution Smooth ----------------------: %s",  ++count, option_name.c_str());
+    info("%2d) No of Solution Smoother Iterations ---: %d",  ++count, SolutionSmoothNIteration);
+    info("%2d) Solution Smoother Relaxation Factor --: %lf", ++count, SolutionSmoothRelaxation);
     printf("-----------------------------------------------------------------------------\n");
     printf("---INPUT: Residual Smoother Properties---------------------------------------\n");
     GetOptionValueName(option_name, ResidualSmoothMethod, ResidualSmoothMethodMap);
@@ -806,6 +1004,12 @@ void Solver_Parameters_Read(const char *filename) {
     info("%2d) Material Name ------------------------: %s",  ++count, MaterialName);
     GetOptionValueName(option_name, MaterialCompType, MaterialCompTypeMap);
     info("%2d) Material Computation Type ------------: %s",  ++count, option_name.c_str());
+    info("%2d) User Limit Minimum Pressure ----------: %lf", ++count, Limit_Min_Pressure);
+    info("%2d) User Limit Maximum Pressure ----------: %lf", ++count, Limit_Max_Pressure);
+    info("%2d) User Limit Minimum Density -----------: %lf", ++count, Limit_Min_Rho);
+    info("%2d) User Limit Maximum Density -----------: %lf", ++count, Limit_Max_Rho);
+    info("%2d) User Limit Minimum Temperature -------: %lf", ++count, Limit_Min_Temperature);
+    info("%2d) User Limit Maximum Temperature -------: %lf", ++count, Limit_Max_Temperature);
     printf("-----------------------------------------------------------------------------\n");
     printf("---INPUT: Reference Conditions-----------------------------------------------\n");
     info("%2d) Reference Pressure -------------------: %lf", ++count, Ref_Pressure);
@@ -835,6 +1039,10 @@ void Solver_Parameters_Read(const char *filename) {
     info("%2d) Restart Input ------------------------: %d",  ++count, RestartInput);
     info("%2d) Restart Output -----------------------: %d",  ++count, RestartOutput);
     info("%2d) Restart Cycle ------------------------: %d",  ++count, RestartCycle);
+    GetOptionValueName(option_name, RestartInputIOType, MaterialCompTypeMap);
+    info("%2d) Restart Input IO Type ----------------: %s",  ++count, option_name.c_str());
+    GetOptionValueName(option_name, RestartOutputIOType, MaterialCompTypeMap);
+    info("%2d) Restart Output IO Type ---------------: %s",  ++count, option_name.c_str());
     
     // Set the Material Properties
     Material_Set_Properties();

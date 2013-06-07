@@ -31,7 +31,7 @@ DEFAULTCONF=Debug
 CONF=${DEFAULTCONF}
 
 # All Configurations
-ALLCONFS=Debug Release Debug_GUPC_x86_64 Release_GUPC_x86_64 Debug_Intel Release_Intel Debug_GUPC_ppc64 Release_GUPC_ppc64 
+ALLCONFS=Debug Release Debug_GUPC_x86_64 Release_GUPC_x86_64 Debug_Intel_MPI Release_Intel_MPI Debug_GUPC_ppc64 Release_GUPC_ppc64 Debug_Intel Release_Intel 
 
 
 # build

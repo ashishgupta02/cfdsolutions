@@ -248,8 +248,8 @@ void EOS_IdealGas_Get_Extended_Properties(int ivDimIOType, int ivVariableType, d
     double dvEntropy, dvEnthalpy, dvInternalEnergy, dvTotalEnergy, dvTotalEnthalpy;
     double dvCv, dvCp, dvR, dvGamma;
     double dvDPDRho, dvDPDT, dvDRhoDT, dvDRhoDP, dvD2PDRho2, dvD2PDT2, dvD2PDTRho;
-    double dvDHdT_Rho, dvDHdT_P, dvDHDRho_T, dvDHDRho_P, dvDHDP_T, dvDHDP_Rho;
-    double dvDEdT_Rho, dvDEdT_P, dvDEDRho_T, dvDEDRho_P, dvDEDP_T, dvDEDP_Rho;
+    double dvDHDT_Rho, dvDHDT_P, dvDHDRho_T, dvDHDRho_P, dvDHDP_T, dvDHDP_Rho;
+    double dvDEDT_Rho, dvDEDT_P, dvDEDRho_T, dvDEDRho_P, dvDEDP_T, dvDEDP_Rho;
     double daVariableDimensional[EOS_NEQUATIONS];
     
     // Dimensionalize the Input Properties based on I/O Type
@@ -349,14 +349,14 @@ void EOS_IdealGas_Get_Extended_Properties(int ivDimIOType, int ivVariableType, d
     dvD2PDRho2       = 0.0;
     dvD2PDT2         = 0.0;
     dvD2PDTRho       = dvR;
-    dvDHdT_Rho       = dvCp;
-    dvDHdT_P         = dvCp;
+    dvDHDT_Rho       = dvCp;
+    dvDHDT_P         = dvCp;
     dvDHDRho_T       = 0.0;
     dvDHDRho_P       = -dvCp*dvTemperature/dvRho;
     dvDHDP_T         = 0.0;
     dvDHDP_Rho       = dvGamma/((dvGamma - 1.0)*dvRho);
-    dvDEdT_Rho       = dvDHdT_Rho - dvDPDT/dvRho;
-    dvDEdT_P         = dvDHdT_P + dvPressure*dvDRhoDT/(dvRho*dvRho);
+    dvDEDT_Rho       = dvDHDT_Rho - dvDPDT/dvRho;
+    dvDEDT_P         = dvDHDT_P + dvPressure*dvDRhoDT/(dvRho*dvRho);
     dvDEDRho_T       = dvDHDRho_T + dvPressure/(dvRho*dvRho) - dvDPDRho/dvRho;
     dvDEDRho_P       = dvDHDRho_P + dvPressure/(dvRho*dvRho);
     dvDEDP_T         = dvDHDP_T - 1.0/dvRho + dvPressure*dvDRhoDP/(dvRho*dvRho);
@@ -388,14 +388,14 @@ void EOS_IdealGas_Get_Extended_Properties(int ivDimIOType, int ivVariableType, d
     dpPropertyOut[22] = dvD2PDRho2;
     dpPropertyOut[23] = dvD2PDT2;
     dpPropertyOut[24] = dvD2PDTRho;
-    dpPropertyOut[25] = dvDHdT_Rho;
-    dpPropertyOut[26] = dvDHdT_P;
+    dpPropertyOut[25] = dvDHDT_Rho;
+    dpPropertyOut[26] = dvDHDT_P;
     dpPropertyOut[27] = dvDHDRho_T;
     dpPropertyOut[28] = dvDHDRho_P;
     dpPropertyOut[29] = dvDHDP_T;
     dpPropertyOut[30] = dvDHDP_Rho;
-    dpPropertyOut[31] = dvDEdT_Rho;
-    dpPropertyOut[32] = dvDEdT_P;
+    dpPropertyOut[31] = dvDEDT_Rho;
+    dpPropertyOut[32] = dvDEDT_P;
     dpPropertyOut[33] = dvDEDRho_T;
     dpPropertyOut[34] = dvDEDRho_P;
     dpPropertyOut[35] = dvDEDP_T;
@@ -516,15 +516,24 @@ double EOS_IdealGas_Get_Density(int ivDimIOType, int ivVariableType, double *dpV
 //------------------------------------------------------------------------------
 //!
 //------------------------------------------------------------------------------
-double EOS_IdealGas_Get_DensityLiquid(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+double EOS_IdealGas_Get_Density_Liquid(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
     return EOS_IdealGas_Get_Density(ivDimIOType, ivVariableType, dpVariableIn);
 }
 
 //------------------------------------------------------------------------------
 //!
 //------------------------------------------------------------------------------
-double EOS_IdealGas_Get_DensityVapor(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+double EOS_IdealGas_Get_Density_Vapor(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
     return EOS_IdealGas_Get_Density(ivDimIOType, ivVariableType, dpVariableIn);
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+void EOS_IdealGas_Get_Density_All(int ivDimIOType, int ivVariableType, double *dpVariableIn, double *dpDensityOut) {
+    dpDensityOut[0] = EOS_IdealGas_Get_Density(ivDimIOType, ivVariableType, dpVariableIn);
+    dpDensityOut[1] = dpDensityOut[0];
+    dpDensityOut[2] = dpDensityOut[0];
 }
 
 //------------------------------------------------------------------------------
@@ -1565,6 +1574,13 @@ double EOS_IdealGas_Get_HeatCapacityCp(int ivDimIOType, int ivVariableType, doub
     }
     //-END----------------Dimensional Computations------------------------------
     return dvCp;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_IdealGas_Get_Quality(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    return 1.0;
 }
 
 // Compute First Derivatives

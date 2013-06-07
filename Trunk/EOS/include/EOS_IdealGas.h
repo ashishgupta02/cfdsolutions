@@ -22,9 +22,10 @@ extern "C" {
     void EOS_IdealGas_Get_Properties(int ivDimIOType, int ivVariableType, double *dpVariableIn, double *dpPropertyOut);
     void EOS_IdealGas_Get_Extended_Properties(int ivDimIOType, int ivVariableType, double *dpVariableIn, double *dpPropertyOut);
     
+    void   EOS_IdealGas_Get_Density_All(int ivDimIOType, int ivVariableType, double *dpVariableIn, double *dpDensityOut);
     double EOS_IdealGas_Get_Density(int ivDimIOType, int ivVariableType, double *dpVariableIn);
-    double EOS_IdealGas_Get_DensityLiquid(int ivDimIOType, int ivVariableType, double *dpVariableIn);
-    double EOS_IdealGas_Get_DensityVapor(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_IdealGas_Get_Density_Liquid(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_IdealGas_Get_Density_Vapor(int ivDimIOType, int ivVariableType, double *dpVariableIn);
     double EOS_IdealGas_Get_Pressure(int ivDimIOType, int ivVariableType, double *dpVariableIn);
     double EOS_IdealGas_Get_Temperature(int ivDimIOType, int ivVariableType, double *dpVariableIn);
     double EOS_IdealGas_Get_SpeedSound(int ivDimIOType, int ivVariableType, double *dpVariableIn);
@@ -36,6 +37,7 @@ extern "C" {
     double EOS_IdealGas_Get_TotalEnergy(int ivDimIOType, int ivVariableType, double *dpVariableIn);
     double EOS_IdealGas_Get_HeatCapacityCv(int ivDimIOType, int ivVariableType, double *dpVariableIn);
     double EOS_IdealGas_Get_HeatCapacityCp(int ivDimIOType, int ivVariableType, double *dpVariableIn);
+    double EOS_IdealGas_Get_Quality(int ivDimIOType, int ivVariableType, double *dpVariableIn);
     double EOS_IdealGas_Get_DPressureDDensity(int ivDimIOType, int ivVariableType, double *dpVariableIn);
     double EOS_IdealGas_Get_DPressureDTemperature(int ivDimIOType, int ivVariableType, double *dpVariableIn);
     double EOS_IdealGas_Get_DDensityDTemperature(int ivDimIOType, int ivVariableType, double *dpVariableIn);

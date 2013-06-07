@@ -164,6 +164,9 @@ void Compute_Jacobian_FiniteDifference(int AddTime, int Iteration) {
         }
     }
     
+    // Set Flux Recompute Flag
+    CogSolver.FluxRecomputeFlag = TRUE;
+    
     // Check if Alternating
     if (FiniteDifference == JACOBIAN_METHOD_ALTERNATE) {
         if (Iteration%2 == 0)
@@ -658,5 +661,8 @@ void Compute_Jacobian_FiniteDifference(int AddTime, int Iteration) {
                 SolverBlockMatrix.A[idgnL][i][j] += FDJac_dFdL[i][j];
         }
     }
+    
+    // Reset Flux Recompute Flag
+    CogSolver.FluxRecomputeFlag = FALSE;
 }
 

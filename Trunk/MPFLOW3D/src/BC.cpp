@@ -115,14 +115,21 @@ int Compute_Precondition_Characteristic_BoundaryCondition_Turkel(double Q_L[NEQU
     int i;
     double nx, ny, nz;
     double   rho,   u,   v,   w,   et,   p,   c,   T,   ubar,   ht,   q2,   mach;
-    double rho_i, u_i, v_i, w_i, et_i, p_i, c_i, T_i, ubar_i, ht_i, q2_i, mach_i;
-    double rho_b, u_b, v_b, w_b, et_b, p_b, c_b, T_b, ubar_b, ht_b, q2_b, mach_b;
+    double rho_i, rhol_i, rhov_i, u_i, v_i, w_i, et_i, p_i, c_i, T_i, ubar_i, ht_i, q2_i, mach_i;
+    double rho_b, rhol_b, rhov_b, u_b, v_b, w_b, et_b, p_b, c_b, T_b, ubar_b, ht_b, q2_b, mach_b;
     double rho_b_n, u_b_n, v_b_n, w_b_n, et_b_n, p_b_n;
     double lamda1, lamda2, lamda3, lamda4, lamda5;
     double ubar_pre, c_pre;
     int instance = BC_TYPE_NONE;
     int rvalue = 0;
-    int node_L;
+    int node_L, node_R;
+    
+    // Do No Pressure Gradient Flux for Solid Wall Edge
+    if ((BCType == BC_TYPE_EULER_WALL) && (BCMethod == BC_METHOD_PRESSURE_WALL)) {
+        for (i = 0; i < NEQUATIONS; i++)
+            Q_B[i] = Q_L[i];
+        return rvalue;
+    }
     
     // Initialization
     BC_Reset();
@@ -140,24 +147,32 @@ int Compute_Precondition_Characteristic_BoundaryCondition_Turkel(double Q_L[NEQU
     ny = AreaVec.vec[1];
     nz = AreaVec.vec[2];
 
-    // Compute Equation of State
-    // Physical node: Based on Variable Type Pressure will be Perturbation
-    Material_Get_Face_Properties(Q_L, nx, ny, nz, rho_i, p_i, T_i, u_i, v_i, w_i, q2_i, c_i, mach_i, ubar_i, et_i, ht_i);
+    // Get two nodes of edge
+    node_L = bndEdge[BEdgeID].node[0];
+    node_R = bndEdge[BEdgeID].node[1];
     
-    // Ghost node: Based on Variable Type Pressure will be Perturbation
-    Material_Get_Face_Properties(Q_R, nx, ny, nz, rho_b, p_b, T_b, u_b, v_b, w_b, q2_b, c_b, mach_b, ubar_b, et_b, ht_b);
+    // Compute Equation of State
+    if (CogSolver.FluxRecomputeFlag == TRUE) {
+        // Physical node: Based on Variable Type Pressure will be Perturbation
+        CogSolver.CpNodeDB[node_L].Get_Recomputed_Properties(Q_L, rho_i, rhol_i, rhov_i, p_i, T_i, u_i, v_i, w_i, q2_i, c_i, mach_i, et_i, ht_i);
+        // Ghost node: Based on Variable Type Pressure will be Perturbation
+        CogSolver.CpNodeDB[node_R].Get_Recomputed_Properties(Q_R, rho_b, rhol_b, rhov_b, p_b, T_b, u_b, v_b, w_b, q2_b, c_b, mach_b, et_b, ht_b);
+    } else {
+        // Physical node: Based on Variable Type Pressure will be Perturbation
+        CogSolver.CpNodeDB[node_L].Get_Properties(rho_i, rhol_i, rhov_i, p_i, T_i, u_i, v_i, w_i, q2_i, c_i, mach_i, et_i, ht_i);
+        // Ghost node: Based on Variable Type Pressure will be Perturbation
+        CogSolver.CpNodeDB[node_R].Get_Properties(rho_b, rhol_b, rhov_b, p_b, T_b, u_b, v_b, w_b, q2_b, c_b, mach_b, et_b, ht_b);
+    }
+    ubar_i = u_i*nx + v_i*ny + w_i*nz;
+    ubar_b = u_b*nx + v_b*ny + w_b*nz;
     
     // Average State: Based on Variable Type Pressure will be Perturbation
     for (i = 0; i < NEQUATIONS; i++)
         Q_B[i] = 0.5*(Q_L[i] + Q_R[i]);
     Material_Get_Face_Properties(Q_B, nx, ny, nz, rho, p, T, u, v, w, q2, c, mach, ubar, et, ht);
     
-    // Get two nodes of edge
-    node_L = bndEdge[BEdgeID].node[0];
-
     int nid;
-    double lQ[NEQUATIONS];
-    double lrho, lu, lv, lw, lp, lT, lc, lht, let, lq2, lmach;
+    double lp, lmach;
     double dp_max, mach_max;
 
     //==========================================================================
@@ -174,14 +189,10 @@ int Compute_Precondition_Characteristic_BoundaryCondition_Turkel(double Q_L[NEQU
         if (PrecondSmooth != 0) {
             for (i = crs_IA_Node2Node[node_L]; i < crs_IA_Node2Node[node_L+1]; i++) {
                 nid   = crs_JA_Node2Node[i];
-                // Get the local Q's
-                lQ[0] = Q1[nid];
-                lQ[1] = Q2[nid];
-                lQ[2] = Q3[nid];
-                lQ[3] = Q4[nid];
-                lQ[4] = Q5[nid];
-                // Compute Local Equation of State
-                Material_Get_ControlVolume_Properties(lQ, lrho, lp, lT, lu, lv, lw, lq2, lc, lmach, let, lht);
+                
+                // Note: Based on VariableType Pressure can be Perturbation of them
+                lp    = CogSolver.CpNodeDB[nid].Get_Pressure();
+                lmach = CogSolver.CpNodeDB[nid].Get_Mach();
 
                 // Compute Smoothing Parameters
                 mach_max = MAX(mach_max, lmach);
@@ -208,6 +219,10 @@ int Compute_Precondition_Characteristic_BoundaryCondition_Turkel(double Q_L[NEQU
         else
             beta = 0.5;
         beta = beta*(sqrt(mach*PrecondGlobalMach)+ mach);
+        beta = MIN(1.0, beta);
+    }
+    if (PrecondType == PRECOND_TYPE_URLOCAL) {
+        beta = MAX(mach, mach_max);
         beta = MIN(1.0, beta);
     }
     if (PrecondType == PRECOND_TYPE_GLOBAL)
@@ -237,7 +252,7 @@ int Compute_Precondition_Characteristic_BoundaryCondition_Turkel(double Q_L[NEQU
             delta = beta;
             break;
         default:
-            error("Compute_Precondition_Characteristic_BoundaryCondition_Turkel: Invalid Solver Precondition Scheme - %d", PrecondMethod);
+            error("Compute_Precondition_Characteristic_BoundaryCondition_Turkel:1: Invalid Solver Precondition Scheme - %d", PrecondMethod);
             break;
     }
 
@@ -304,7 +319,7 @@ int Compute_Precondition_Characteristic_BoundaryCondition_Turkel(double Q_L[NEQU
                     info("Mach: %lf", fabs(lamda1) / c);
                     info("Normal: %lf %lf %lf ", nx, ny, nz);
                     info("Velocity: %lf %lf %lf ", u_i, v_i, w_i);
-                    warn("Compute_Precondition_Characteristic_BoundaryCondition: Unable apply Euler Solid Wall boundary condition - 1");
+                    warn("Compute_Precondition_Characteristic_BoundaryCondition_Turkel:2: Unable apply Euler Solid Wall boundary condition");
                 }
             }
             break;
@@ -329,7 +344,7 @@ int Compute_Precondition_Characteristic_BoundaryCondition_Turkel(double Q_L[NEQU
                 info("Mach: %lf", fabs(lamda1) / c);
                 info("Normal: %lf %lf %lf ", nx, ny, nz);
                 info("Velocity: %lf %lf %lf ", u_i, v_i, w_i);
-                error("Compute_Precondition_Characteristic_BoundaryCondition: Unable apply boundary condition - 2");
+                error("Compute_Precondition_Characteristic_BoundaryCondition_Turkel:3: Unable apply boundary condition");
             }
             break;
         // Inflow
@@ -353,7 +368,7 @@ int Compute_Precondition_Characteristic_BoundaryCondition_Turkel(double Q_L[NEQU
                 info("Mach: %lf", fabs(lamda1) / c);
                 info("Normal: %lf %lf %lf ", nx, ny, nz);
                 info("Velocity: %lf %lf %lf ", u_i, v_i, w_i);
-                warn("Compute_Precondition_Characteristic_BoundaryCondition: Rescue Inflow boundary condition edge[%d] - 3", BEdgeID);
+                warn("Compute_Precondition_Characteristic_BoundaryCondition_Turkel:4: Rescue Inflow boundary condition edge[%d]", BEdgeID);
             }
             break;
         // Outflow
@@ -377,7 +392,7 @@ int Compute_Precondition_Characteristic_BoundaryCondition_Turkel(double Q_L[NEQU
                 info("Mach: %lf", fabs(lamda1) / c);
                 info("Normal: %lf %lf %lf ", nx, ny, nz);
                 info("Velocity: %lf %lf %lf ", u_i, v_i, w_i);
-                warn("Compute_Precondition_Characteristic_BoundaryCondition: Rescue Outflow boundary condition edge[%d] - 4", BEdgeID);
+                warn("Compute_Precondition_Characteristic_BoundaryCondition_Turkel:5: Rescue Outflow boundary condition edge[%d]", BEdgeID);
             }
             break;
         // Subsonic Inflow
@@ -391,7 +406,7 @@ int Compute_Precondition_Characteristic_BoundaryCondition_Turkel(double Q_L[NEQU
                 info("Mach: %lf", fabs(lamda1) / c);
                 info("Normal: %lf %lf %lf ", nx, ny, nz);
                 info("Velocity: %lf %lf %lf ", u_i, v_i, w_i);
-                warn("Compute_Precondition_Characteristic_BoundaryCondition: Unable apply Subsonic Inflow boundary condition edge[%d] - 5", BEdgeID);
+                warn("Compute_Precondition_Characteristic_BoundaryCondition_Turkel:6: Unable apply Subsonic Inflow boundary condition edge[%d]", BEdgeID);
             }
             break;
         // Subsonic Outflow
@@ -405,7 +420,7 @@ int Compute_Precondition_Characteristic_BoundaryCondition_Turkel(double Q_L[NEQU
                 info("Mach: %lf", fabs(lamda1) / c);
                 info("Normal: %lf %lf %lf ", nx, ny, nz);
                 info("Velocity: %lf %lf %lf ", u_i, v_i, w_i);
-                warn("Compute_Precondition_Characteristic_BoundaryCondition: Unable apply Subsonic Outflow boundary condition edge[%d] - 6", BEdgeID);
+                warn("Compute_Precondition_Characteristic_BoundaryCondition_Turkel:7: Unable apply Subsonic Outflow boundary condition edge[%d]", BEdgeID);
             }
             break;
         // Supersonic Inflow
@@ -419,7 +434,7 @@ int Compute_Precondition_Characteristic_BoundaryCondition_Turkel(double Q_L[NEQU
                 info("Mach: %lf", fabs(lamda1) / c);
                 info("Normal: %lf %lf %lf ", nx, ny, nz);
                 info("Velocity: %lf %lf %lf ", u_i, v_i, w_i);
-                warn("Compute_Precondition_Characteristic_BoundaryCondition: Unable apply Supersonic Inflow boundary condition edge[%d] - 7", BEdgeID);
+                warn("Compute_Precondition_Characteristic_BoundaryCondition_Turkel:8: Unable apply Supersonic Inflow boundary condition edge[%d]", BEdgeID);
             }
             break;
         // Supersonic Outflow
@@ -433,7 +448,7 @@ int Compute_Precondition_Characteristic_BoundaryCondition_Turkel(double Q_L[NEQU
                 info("Mach: %lf", fabs(lamda1) / c);
                 info("Normal: %lf %lf %lf ", nx, ny, nz);
                 info("Velocity: %lf %lf %lf ", u_i, v_i, w_i);
-                warn("Compute_Precondition_Characteristic_BoundaryCondition: Unable apply Supersonic Outflow boundary condition edge[%d] - 8", BEdgeID);
+                warn("Compute_Precondition_Characteristic_BoundaryCondition_Turkel:9: Unable apply Supersonic Outflow boundary condition edge[%d]", BEdgeID);
             }
             break;
         default:
@@ -442,7 +457,7 @@ int Compute_Precondition_Characteristic_BoundaryCondition_Turkel(double Q_L[NEQU
             info("Mach: %lf", fabs(lamda1) / c);
             info("Normal: %lf %lf %lf ", nx, ny, nz);
             info("Velocity: %lf %lf %lf ", u_i, v_i, w_i);
-            error("Compute_Precondition_Characteristic_BoundaryCondition: Unable apply boundary condition - 9");
+            error("Compute_Precondition_Characteristic_BoundaryCondition_Turkel:10: Unable apply boundary condition");
             break;
     }
 
@@ -673,13 +688,15 @@ int Compute_Precondition_Characteristic_BoundaryCondition_Turkel(double Q_L[NEQU
             w_b_n   = Inf_W;
             break;
         default:
-            error("Compute_Precondition_Characteristic_BoundaryCondition: Unable to set BC Type");
+            error("Compute_Precondition_Characteristic_BoundaryCondition_Turkel:11: Unable to set BC Type");
             break;
     }
-
+    
     if ((p_b_n + Gauge_Pressure) < 0.0) {
-        warn("Compute_Precondition_Characteristic_BoundaryCondition: Negative Pressure Detected P_i: %e, P_b_n: %e", p_i, p_b_n);
-        rvalue = 1;
+        if (BCType == BC_TYPE_EULER_WALL) {
+            warn("Compute_Precondition_Characteristic_BoundaryCondition_Turkel:12: Negative Pressure Detected BCType: %d, P_i: %e, P_b_n: %e", BCType, p_i, p_b_n);
+            rvalue = 1;
+        }
     }
 
     // Conservative Variable Formulation
@@ -764,12 +781,20 @@ int Compute_Characteristic_BoundaryCondition(double Q_L[NEQUATIONS], double Q_R[
     int i;
     double nx, ny, nz;
     double   rho,   u,   v,   w,   et,   p,   c,   T,   ubar,   ht,   q2,   mach;
-    double rho_i, u_i, v_i, w_i, et_i, p_i, c_i, T_i, ubar_i, ht_i, q2_i, mach_i;
-    double rho_b, u_b, v_b, w_b, et_b, p_b, c_b, T_b, ubar_b, ht_b, q2_b, mach_b;
+    double rho_i, rhol_i, rhov_i, u_i, v_i, w_i, et_i, p_i, c_i, T_i, ubar_i, ht_i, q2_i, mach_i;
+    double rho_b, rhol_b, rhov_b, u_b, v_b, w_b, et_b, p_b, c_b, T_b, ubar_b, ht_b, q2_b, mach_b;
     double rho_b_n, u_b_n, v_b_n, w_b_n, et_b_n, p_b_n;
     double lamda1, lamda2, lamda3, lamda4, lamda5;
     int instance = BC_TYPE_NONE;
     int rvalue = 0;
+    int node_L, node_R;
+    
+    // Do No Pressure Gradient Flux for Solid Wall Edge
+    if ((BCType == BC_TYPE_EULER_WALL) && (BCMethod == BC_METHOD_PRESSURE_WALL)) {
+        for (i = 0; i < NEQUATIONS; i++)
+            Q_B[i] = Q_L[i];
+        return rvalue;
+    }
     
     // Initialization
     BC_Reset();
@@ -787,18 +812,44 @@ int Compute_Characteristic_BoundaryCondition(double Q_L[NEQUATIONS], double Q_R[
     ny = AreaVec.vec[1];
     nz = AreaVec.vec[2];
 
-    // Compute Equation of State
-    // Physical node: Based on Variable Type Pressure will be Perturbation
-    Material_Get_Face_Properties(Q_L, nx, ny, nz, rho_i, p_i, T_i, u_i, v_i, w_i, q2_i, c_i, mach_i, ubar_i, et_i, ht_i);
+    // Get two nodes of edge
+    node_L = bndEdge[BEdgeID].node[0];
+    node_R = bndEdge[BEdgeID].node[1];
     
-    // Ghost node: Based on Variable Type Pressure will be Perturbation
-    Material_Get_Face_Properties(Q_R, nx, ny, nz, rho_b, p_b, T_b, u_b, v_b, w_b, q2_b, c_b, mach_b, ubar_b, et_b, ht_b);
+    // Compute Equation of State
+    if (CogSolver.FluxRecomputeFlag == TRUE) {
+        // Physical node: Based on Variable Type Pressure will be Perturbation
+        CogSolver.CpNodeDB[node_L].Get_Recomputed_Properties(Q_L, rho_i, rhol_i, rhov_i, p_i, T_i, u_i, v_i, w_i, q2_i, c_i, mach_i, et_i, ht_i);
+        // Ghost node: Based on Variable Type Pressure will be Perturbation
+        CogSolver.CpNodeDB[node_R].Get_Recomputed_Properties(Q_R, rho_b, rhol_b, rhov_b, p_b, T_b, u_b, v_b, w_b, q2_b, c_b, mach_b, et_b, ht_b);
+    } else {
+        // Physical node: Based on Variable Type Pressure will be Perturbation
+        CogSolver.CpNodeDB[node_L].Get_Properties(rho_i, rhol_i, rhov_i, p_i, T_i, u_i, v_i, w_i, q2_i, c_i, mach_i, et_i, ht_i);
+        // Ghost node: Based on Variable Type Pressure will be Perturbation
+        CogSolver.CpNodeDB[node_R].Get_Properties(rho_b, rhol_b, rhov_b, p_b, T_b, u_b, v_b, w_b, q2_b, c_b, mach_b, et_b, ht_b);
+    }
+    ubar_i = u_i*nx + v_i*ny + w_i*nz;
+    ubar_b = u_b*nx + v_b*ny + w_b*nz;
     
     // Average State: Based on Variable Type Pressure will be Perturbation
     for (i = 0; i < NEQUATIONS; i++)
         Q_B[i] = 0.5*(Q_L[i] + Q_R[i]);
-    Material_Get_Face_Properties(Q_B, nx, ny, nz, rho, p, T, u, v, w, q2, c, mach, ubar, et, ht);
-    
+    if ((AverageType == AVERAGE_TYPE_ROE_APPROX) || (AverageType == AVERAGE_TYPE_SIMPLE_APPROX)) {
+        rho = 0.5*(rho_i + rho_b);
+        p    = 0.5*(p_i + p_b);
+        T    = 0.5*(T_i + T_b);
+        u    = 0.5*(u_i + u_b);
+        v    = 0.5*(v_i + v_b);
+        w    = 0.5*(w_i + w_b);
+        c    = 0.5*(c_i + c_b);
+        et   = 0.5*(et_i + et_b);
+        ht   = 0.5*(ht_i + ht_b);
+        ubar = 0.5*(ubar_i + ubar_b);
+        q2   = u*u + v*v + w*w;
+        mach = sqrt(q2)/c;
+    } else {
+        Material_Get_Face_Properties(Q_B, nx, ny, nz, rho, p, T, u, v, w, q2, c, mach, ubar, et, ht);
+    }
     //==========================================================================
     // Compute Boundary Condition
     //==========================================================================
@@ -1001,7 +1052,7 @@ int Compute_Characteristic_BoundaryCondition(double Q_L[NEQUATIONS], double Q_R[
         case BC_TYPE_EULER_WALL:
             if (BCMethod == BC_METHOD_CHARCTERISTIC_WEAK) {
                 // Compute the Normal Component of Velocity and Subtract From Velocity
-                p_b_n   = p_i;
+                p_b_n   = fabs(p_i);
                 rho_b_n = rho_i;
                 u_b_n   = u_i - nx * ubar_i;
                 v_b_n   = v_i - ny * ubar_i;
@@ -1228,8 +1279,10 @@ int Compute_Characteristic_BoundaryCondition(double Q_L[NEQUATIONS], double Q_R[
     }
     
     if ((p_b_n + Gauge_Pressure) < 0.0) {
-        warn("Compute_Precondition_Characteristic_BoundaryCondition: Negative Pressure Detected P_i: %e, P_b_n: %e", p_i, p_b_n);
-        rvalue = 1;
+        if (BCType == BC_TYPE_EULER_WALL) {
+            warn("Compute_Precondition_Characteristic_BoundaryCondition: Negative Pressure Detected BCType: %d, P_i: %e, P_b_n: %e", BCType, p_i, p_b_n);
+            rvalue = 1;
+        }
     }
 
     // Conservative Variable Formulation
@@ -1314,13 +1367,21 @@ int Compute_Characteristic_BoundaryCondition_Direct(double Q_L[NEQUATIONS], doub
     int i;
     double nx, ny, nz;
     double   rho,   u,   v,   w,   et,   p,   c,   T,   ubar,   ht,   q2,   mach;
-    double rho_i, u_i, v_i, w_i, et_i, p_i, c_i, T_i, ubar_i, ht_i, q2_i, mach_i;
-    double rho_b, u_b, v_b, w_b, et_b, p_b, c_b, T_b, ubar_b, ht_b, q2_b, mach_b;
+    double rho_i, rhol_i, rhov_i, u_i, v_i, w_i, et_i, p_i, c_i, T_i, ubar_i, ht_i, q2_i, mach_i;
+    double rho_b, rhol_b, rhov_b, u_b, v_b, w_b, et_b, p_b, c_b, T_b, ubar_b, ht_b, q2_b, mach_b;
     double rho_b_n, u_b_n, v_b_n, w_b_n, et_b_n, p_b_n;
     double lamda1, lamda2, lamda3, lamda4, lamda5;
     double temp;
     int instance = BC_TYPE_NONE;
     int rvalue = 0;
+    int node_L, node_R;
+    
+    // Do No Pressure Gradient Flux for Solid Wall Edge
+    if ((BCType == BC_TYPE_EULER_WALL) && (BCMethod == BC_METHOD_PRESSURE_WALL)) {
+        for (i = 0; i < NEQUATIONS; i++)
+            Q_B[i] = Q_L[i];
+        return rvalue;
+    }
     
     // Default Initialization: Based on Variable Type Pressure will be Perturbation
     p_b_n   = Inf_Pressure;
@@ -1335,12 +1396,24 @@ int Compute_Characteristic_BoundaryCondition_Direct(double Q_L[NEQUATIONS], doub
     ny = AreaVec.vec[1];
     nz = AreaVec.vec[2];
 
-    // Compute Equation of State
-    // Physical node: Based on Variable Type Pressure will be Perturbation
-    Material_Get_Face_Properties(Q_L, nx, ny, nz, rho_i, p_i, T_i, u_i, v_i, w_i, q2_i, c_i, mach_i, ubar_i, et_i, ht_i);
+    // Get two nodes of edge
+    node_L = bndEdge[BEdgeID].node[0];
+    node_R = bndEdge[BEdgeID].node[1];
     
-    // Ghost node: Based on Variable Type Pressure will be Perturbation
-    Material_Get_Face_Properties(Q_R, nx, ny, nz, rho_b, p_b, T_b, u_b, v_b, w_b, q2_b, c_b, mach_b, ubar_b, et_b, ht_b);
+    // Compute Equation of State
+    if (CogSolver.FluxRecomputeFlag == TRUE) {
+        // Physical node: Based on Variable Type Pressure will be Perturbation
+        CogSolver.CpNodeDB[node_L].Get_Recomputed_Properties(Q_L, rho_i, rhol_i, rhov_i, p_i, T_i, u_i, v_i, w_i, q2_i, c_i, mach_i, et_i, ht_i);
+        // Ghost node: Based on Variable Type Pressure will be Perturbation
+        CogSolver.CpNodeDB[node_R].Get_Recomputed_Properties(Q_R, rho_b, rhol_b, rhov_b, p_b, T_b, u_b, v_b, w_b, q2_b, c_b, mach_b, et_b, ht_b);
+    } else {
+        // Physical node: Based on Variable Type Pressure will be Perturbation
+        CogSolver.CpNodeDB[node_L].Get_Properties(rho_i, rhol_i, rhov_i, p_i, T_i, u_i, v_i, w_i, q2_i, c_i, mach_i, et_i, ht_i);
+        // Ghost node: Based on Variable Type Pressure will be Perturbation
+        CogSolver.CpNodeDB[node_R].Get_Properties(rho_b, rhol_b, rhov_b, p_b, T_b, u_b, v_b, w_b, q2_b, c_b, mach_b, et_b, ht_b);
+    }
+    ubar_i = u_i*nx + v_i*ny + w_i*nz;
+    ubar_b = u_b*nx + v_b*ny + w_b*nz;
     
     // Average State: Based on Variable Type Pressure will be Perturbation
     for (i = 0; i < NEQUATIONS; i++)
@@ -1744,12 +1817,12 @@ assert(node_R > node_L);
             rvalue = Compute_Precondition_Characteristic_BoundaryCondition_Turkel(Q_L, Q_R, areavec, BEdgeID, bndEdge[BEdgeID].type, Iteration, Q_B);
             break;
         default:
-            error("Apply_Characteristic_Boundary_Condition: Invalid Solver Precondition Scheme - %d -1", PrecondMethod);
+            error("Apply_Characteristic_Boundary_Condition(int,int):1: Invalid Solver Precondition Scheme - %d", PrecondMethod);
             break;
     }
     
     if (rvalue != 0)
-        error("Apply_Characteristic_Boundary_Condition: BndNode: %d,  GhostNode: %d -2", node_L, node_R);
+        error("Apply_Characteristic_Boundary_Condition(int,int):2: BndNode: %d,  GhostNode: %d", node_L, node_R);
 
     // Update the Boundary Value of Ghost Node
     Q1[node_R] = Q_B[0];
@@ -1819,12 +1892,12 @@ void Apply_Characteristic_Boundary_Condition(int Iteration) {
                 rvalue = Compute_Precondition_Characteristic_BoundaryCondition_Turkel(Q_L, Q_R, areavec, iBEdge, bndEdge[iBEdge].type, Iteration, Q_B);
                 break;
             default:
-                error("Apply_Characteristic_Boundary_Condition: Invalid Solver Precondition Scheme - %d -1", PrecondMethod);
+                error("Apply_Characteristic_Boundary_Condition(int):1: Invalid Solver Precondition Scheme - %d", PrecondMethod);
                 break;
         }
         
         if (rvalue != 0)
-            error("Apply_Characteristic_Boundary_Condition: BndNode: %d,  GhostNode: %d -2", node_L, node_R);
+            error("Apply_Characteristic_Boundary_Condition(int):2: BEdge: %d, BndNode: %d,  GhostNode: %d", iBEdge, node_L, node_R);
         
         // Update the Boundary Value of Ghost Node
         Q1[node_R] = Q_B[0];

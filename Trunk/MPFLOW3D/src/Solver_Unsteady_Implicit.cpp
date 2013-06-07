@@ -49,6 +49,7 @@ int Solver_Unsteady_Implicit(void) {
     double *Qn01, *Qn02, *Qn03, *Qn04, *Qn05;
     double *Qn11, *Qn12, *Qn13, *Qn14, *Qn15;
     int giter;
+    double RMS_Res;
     
     // Check if Unsteady Computations
     Qn01 = Qn02 = Qn03 = Qn04 = Qn05 = NULL;
@@ -192,7 +193,6 @@ int Solver_Unsteady_Implicit(void) {
             // Add Physical Time Contribution to Residual and Jacobian
             // And Compute RMS with Time Term 
             int idgn;
-            RMS[0] = RMS[1] = RMS[2] = RMS[3] = RMS[4] = 0.0;
             for (int i = 0; i < nNode; i++) {
                 // Get the diagonal location
                 idgn = SolverBlockMatrix.IAU[i];
@@ -205,12 +205,24 @@ int Solver_Unsteady_Implicit(void) {
                     SolverBlockMatrix.B[i][2] -= eta*((1.0 + theta)*(Q3[i] - Qn03[i]) - theta*(Qn03[i] - Qn13[i]));
                     SolverBlockMatrix.B[i][3] -= eta*((1.0 + theta)*(Q4[i] - Qn04[i]) - theta*(Qn04[i] - Qn14[i]));
                     SolverBlockMatrix.B[i][4] -= eta*((1.0 + theta)*(Q5[i] - Qn05[i]) - theta*(Qn05[i] - Qn15[i]));
+                    
+                    Res1_Conv[i] += eta*((1.0 + theta)*(Q1[i] - Qn01[i]) - theta*(Qn01[i] - Qn11[i]));
+                    Res2_Conv[i] += eta*((1.0 + theta)*(Q2[i] - Qn02[i]) - theta*(Qn02[i] - Qn12[i]));
+                    Res3_Conv[i] += eta*((1.0 + theta)*(Q3[i] - Qn03[i]) - theta*(Qn03[i] - Qn13[i]));
+                    Res4_Conv[i] += eta*((1.0 + theta)*(Q4[i] - Qn04[i]) - theta*(Qn04[i] - Qn14[i]));
+                    Res5_Conv[i] += eta*((1.0 + theta)*(Q5[i] - Qn05[i]) - theta*(Qn05[i] - Qn15[i]));
                 } else if (TimeIntegrationMethod == TIME_INTEGRATION_METHOD_IMPLICIT_EULER_EULER) {
                     SolverBlockMatrix.B[i][0] -= eta*(Q1[i] - Qn01[i]);
                     SolverBlockMatrix.B[i][1] -= eta*(Q2[i] - Qn02[i]);
                     SolverBlockMatrix.B[i][2] -= eta*(Q3[i] - Qn03[i]);
                     SolverBlockMatrix.B[i][3] -= eta*(Q4[i] - Qn04[i]);
                     SolverBlockMatrix.B[i][4] -= eta*(Q5[i] - Qn05[i]);
+                    
+                    Res1_Conv[i] += eta*(Q1[i] - Qn01[i]);
+                    Res2_Conv[i] += eta*(Q2[i] - Qn02[i]);
+                    Res3_Conv[i] += eta*(Q3[i] - Qn03[i]);
+                    Res4_Conv[i] += eta*(Q4[i] - Qn04[i]);
+                    Res5_Conv[i] += eta*(Q5[i] - Qn05[i]);
                 }
                 
                 for (int j = 0; j < SolverBlockMatrix.Block_nRow; j++) {
@@ -218,25 +230,10 @@ int Solver_Unsteady_Implicit(void) {
                         if (k == j)
                             SolverBlockMatrix.A[idgn][j][k] += (1.0 + theta)*eta;
                 }
-                
-                // Compute Residual With Time Term
-                for (int i = 0; i < nNode; i++) {
-                    for (int j = 0; j < NEQUATIONS; j++)
-                        RMS[j] += SolverBlockMatrix.B[i][j]*SolverBlockMatrix.B[i][j];
-                }
             }
             
-            // Compute RMS
-            RMS_Res = RMS[0] + RMS[1] + RMS[2] + RMS[3] + RMS[4];
-            RMS_Res = sqrt(RMS_Res/(5.0 * (double)nNode));
-            RMS[0] = sqrt(RMS[0]/(double)nNode);
-            RMS[1] = sqrt(RMS[1]/(double)nNode);
-            RMS[2] = sqrt(RMS[2]/(double)nNode);
-            RMS[3] = sqrt(RMS[3]/(double)nNode);
-            RMS[4] = sqrt(RMS[4]/(double)nNode);
-
             // Write RMS
-            RMS_Writer(giter, RMS);
+            RMS_Res = RMS_Writer(giter);
 
             // Check for Residual NAN
             if (isnan(RMS_Res)) {

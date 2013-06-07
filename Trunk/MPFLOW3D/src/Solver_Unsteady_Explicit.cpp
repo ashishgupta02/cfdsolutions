@@ -52,6 +52,7 @@ int Solver_Unsteady_Explicit_Todo(void) {
     double *Qn01, *Qn02, *Qn03, *Qn04, *Qn05;
     double *Qn11, *Qn12, *Qn13, *Qn14, *Qn15;
     int giter;
+    double RMS_Res;
     
     // Check if Unsteady Computations
     Qn01 = Qn02 = Qn03 = Qn04 = Qn05 = NULL;
@@ -211,26 +212,9 @@ int Solver_Unsteady_Explicit_Todo(void) {
             
             // Compute Local Time Stepping
             Compute_DeltaT(iter);
-
-            // Compute RMS
-            RMS[0] = RMS[1] = RMS[2] = RMS[3] = RMS[4] = 0.0;
-            for (int i = 0; i < nNode; i++) {
-                RMS[0] += Res1_Conv[i]*Res1_Conv[i];
-                RMS[1] += Res2_Conv[i]*Res2_Conv[i];
-                RMS[2] += Res3_Conv[i]*Res3_Conv[i];
-                RMS[3] += Res4_Conv[i]*Res4_Conv[i];
-                RMS[4] += Res5_Conv[i]*Res5_Conv[i];
-            }
-            RMS_Res = RMS[0] + RMS[1] + RMS[2] + RMS[3] + RMS[4];
-            RMS_Res = sqrt(RMS_Res/(5.0 * (double)nNode));
-            RMS[0] = sqrt(RMS[0]/(double)nNode);
-            RMS[1] = sqrt(RMS[1]/(double)nNode);
-            RMS[2] = sqrt(RMS[2]/(double)nNode);
-            RMS[3] = sqrt(RMS[3]/(double)nNode);
-            RMS[4] = sqrt(RMS[4]/(double)nNode);
-
+            
             // Write RMS
-            RMS_Writer(giter, RMS);
+            RMS_Res = RMS_Writer(giter);
 
             // Check for Residual NAN
             if (isnan(RMS_Res)) {

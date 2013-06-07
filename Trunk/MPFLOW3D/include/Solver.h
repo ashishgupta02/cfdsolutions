@@ -11,6 +11,7 @@
 #define	_SOLVER_H
 
 // Custom header files
+#include "SolverDB.h"
 #include "SolverParameters.h"
 #include "MC.h"
 #include "BC.h"
@@ -22,6 +23,9 @@
 #include "LDFSS_Fluxes.h"
 #include "Osher_Fluxes.h"
 #include "StegerWarming_Fluxes.h"
+
+// Solver Object
+extern CSolver CogSolver;
 
 // Conservative or Primitive Variables
 extern double *Q1; /* rho,    P   */
@@ -75,10 +79,6 @@ extern double *Limiter_Phi2;
 extern double *Limiter_Phi3;
 extern double *Limiter_Phi4;
 extern double *Limiter_Phi5;
-
-// RMS
-extern double RMS[5];
-extern double RMS_Res;
 
 // Min and Max EigenValue Value
 extern double MinEigenLamda1;
