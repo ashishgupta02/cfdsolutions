@@ -12,12 +12,15 @@
 #include "SolverParameters.h"
 #include "Trim_Utils.h"
 #include "EOS.h"
+#include "Solver.h"
+#include "Commons.h"
 
 // Material Variables
 int    MaterialType;
 int    MaterialCompType;
 int    MaterialEOS_IO_Type;
 char   MaterialName[256];
+double MaterialPropertyLimits[9];
 
 // Dimensional Properties (SI Units)
 double Ref_Rho;
@@ -53,6 +56,14 @@ double Inf_Mach_MIN;
 double Gauge_Pressure;
 double Outflow_Pressure;
 
+// Material User Limits
+double Limit_Min_Pressure;
+double Limit_Max_Pressure;
+double Limit_Min_Rho;
+double Limit_Max_Rho;
+double Limit_Min_Temperature;
+double Limit_Max_Temperature;
+
 //------------------------------------------------------------------------------
 //!
 //------------------------------------------------------------------------------
@@ -62,6 +73,8 @@ void Material_Init(void) {
     MaterialCompType    = MATERIAL_COMP_TYPE_NONE;
     MaterialEOS_IO_Type = EOS_DIMENSIONAL_IO_NONE;
     str_blank(MaterialName);
+    for (int i = 0; i < 9; i++)
+        MaterialPropertyLimits[i] = 0.0;
     
     // Dimensional Reference Properties
     Ref_Rho             = 0.0;
@@ -96,6 +109,14 @@ void Material_Init(void) {
     // Gauge Variables
     Gauge_Pressure      = 0.0;
     Outflow_Pressure    = 0.0;
+    
+    // Material User Limits
+    Limit_Min_Pressure    = 0.0;
+    Limit_Max_Pressure    = 0.0;
+    Limit_Min_Rho         = 0.0;
+    Limit_Max_Rho         = 0.0;
+    Limit_Min_Temperature = 0.0;
+    Limit_Max_Temperature = 0.0;
 }
 
 //------------------------------------------------------------------------------
@@ -136,6 +157,43 @@ void Material_Set_Properties(void) {
     Ref_Mach            = Prop[ 6];
     Ref_Time            = Prop[ 7];
     Ref_TotalEnergy     = Prop[12];
+    
+    // Compute the Material Property Limits for NIST Material
+    if (MaterialType == MATERIAL_TYPE_NIST) {
+        EOS_Get_Fluid_Information(Prop);
+        MaterialPropertyLimits[0] = Prop[ 2]; // Critical Temperature
+        MaterialPropertyLimits[1] = Prop[ 3]; // Critical Pressure
+        MaterialPropertyLimits[2] = Prop[ 5]; // Critical Density
+        MaterialPropertyLimits[3] = Prop[ 6]; // Triple Point Temperature
+        MaterialPropertyLimits[4] = Prop[ 7]; // Normal Boiling Point Temperature
+        MaterialPropertyLimits[5] = Prop[10]; // Minimum Temperature 
+        MaterialPropertyLimits[6] = Prop[11]; // Maximum Temperature
+        MaterialPropertyLimits[7] = Prop[12]; // Maximum Pressure
+        MaterialPropertyLimits[8] = Prop[13]; // Maximum Density
+        
+        // Check and set the valid User Property Limits
+        // Pressure Limits
+        if ((Limit_Min_Pressure > 0.0) || (Limit_Max_Pressure > 0.0)) {
+            if (Limit_Max_Pressure < MaterialPropertyLimits[7])
+                MaterialPropertyLimits[7] = Limit_Max_Pressure;
+        }
+        // Density Limits
+        if((Limit_Min_Rho > 0.0) || (Limit_Max_Rho > 0.0)) {
+            if (Limit_Max_Rho < MaterialPropertyLimits[8])
+                MaterialPropertyLimits[8] = Limit_Max_Rho;
+        }
+        // Temperature Limits
+        if ((Limit_Min_Temperature > 0.0) || (Limit_Max_Temperature > 0.0)) {
+            // Maximum Temperature
+            if ((Limit_Max_Temperature < MaterialPropertyLimits[6]) &&
+                    (Limit_Max_Temperature > MaterialPropertyLimits[5]))
+                MaterialPropertyLimits[6] = Limit_Max_Temperature;
+            // Minimum Temperature
+            if ((Limit_Min_Temperature > MaterialPropertyLimits[5]) &&
+                    (Limit_Min_Temperature < MaterialPropertyLimits[6]))
+                MaterialPropertyLimits[5] = Limit_Min_Temperature;
+        }
+    }
     
     // Compute the Infinity Conditions (SI Units)
     EOS_Get_PT_Density(EOS_DIMENSIONAL_IO_D_D, Inf_Pressure, Inf_Temperature, Density);
@@ -184,6 +242,42 @@ void Material_Set_Properties(void) {
             Outflow_Pressure /= Ref_Pressure;
             // Set Computations I/O Mode
             MaterialEOS_IO_Type = EOS_DIMENSIONAL_IO_ND_ND;
+            // Print the Infinity Conditions
+            info("Non-Dimensional - Infinity and Other Conditions:");
+            printf("-----------------------------------------------------------------------------\n");
+            info("Density_Inf -------------------------------: %15.6f", Inf_Rho);
+            info("Pressure_Inf ------------------------------: %15.6f", Inf_Pressure);
+            info("Temperature_Inf ---------------------------: %15.6f", Inf_Temperature);
+            info("Velocity_U_Inf ----------------------------: %15.6f", Inf_U);
+            info("Velocity_V_Inf ----------------------------: %15.6f", Inf_V);
+            info("Velocity_W_Inf ----------------------------: %15.6f", Inf_W);
+            info("SpeedSound_Inf ----------------------------: %15.6f", Inf_SpeedSound);
+            info("Mach_Inf ----------------------------------: %15.6f", Inf_Mach);
+            info("TotalEnergy_Inf ---------------------------: %15.6f", Inf_Et);
+            info("Gauge_Pressure ----------------------------: %15.6f", Gauge_Pressure);
+            info("Outflow_Pressure --------------------------: %15.6f", Outflow_Pressure);
+            printf("=============================================================================\n");
+            // Non-Dimensionalize the Material Property Limits for NIST Material
+            if (MaterialType == MATERIAL_TYPE_NIST) {
+                MaterialPropertyLimits[0] /= Ref_Temperature; // Critical Temperature
+                MaterialPropertyLimits[1] /= Ref_Pressure; // Critical Pressure
+                MaterialPropertyLimits[2] /= Ref_Rho; // Critical Density
+                MaterialPropertyLimits[3] /= Ref_Temperature; // Triple Point Temperature
+                MaterialPropertyLimits[4] /= Ref_Temperature; // Normal Boiling Point Temperature
+                MaterialPropertyLimits[5] /= Ref_Temperature; // Minimum Temperature 
+                MaterialPropertyLimits[6] /= Ref_Temperature; // Maximum Temperature
+                MaterialPropertyLimits[7] /= Ref_Pressure; // Maximum Pressure
+                MaterialPropertyLimits[8] /= Ref_Rho; // Maximum Density;
+            }
+            
+            // Non-Dimensionalize the User Property Limits
+            Limit_Min_Pressure    /= Ref_Pressure;
+            Limit_Max_Pressure    /= Ref_Pressure;
+            Limit_Min_Rho         /= Ref_Rho;
+            Limit_Max_Rho         /= Ref_Rho;
+            Limit_Min_Temperature /= Ref_Temperature;
+            Limit_Max_Temperature /= Ref_Temperature;
+            
             //--END Non-Dimensionalization
             break;
         case MATERIAL_COMP_TYPE_DIM:
@@ -227,7 +321,373 @@ void Material_Set_InfinityCondition(int Iteration) {
 }
 
 //------------------------------------------------------------------------------
-//! Compute Equation of State Variables at Control Volume
+//! Bound the Solution in Limits
+//------------------------------------------------------------------------------
+void Material_Limit_Solution(void) {
+    double Coeff1, Coeff2;
+    int nid;
+    double DensityEps = 0.0, PressureEps = 0.0, TemperatureEps = 0.0;
+    double SmoothVar1 = 0.0;
+    double SmoothVar2 = 0.0;
+    
+    // Set the Material Eps 0.1 - 1% of the properties
+    // Check the Material Computation Type
+    switch (MaterialCompType) {
+        case MATERIAL_COMP_TYPE_NDIM:
+            DensityEps     = 0.0001*Inf_Rho/Ref_Rho;
+            PressureEps    = 0.0001*Inf_Pressure/Ref_Pressure;
+            TemperatureEps = 0.001*MaterialPropertyLimits[5];
+            break;
+        case MATERIAL_COMP_TYPE_DIM:
+            DensityEps     = 0.0001*Inf_Rho;
+            PressureEps    = 0.0001*Inf_Pressure;
+            TemperatureEps = 0.001*MaterialPropertyLimits[5];
+            break;
+        default:
+            error("Material_Limit_Solution:1: Undefined Material Computation Type - %d", MaterialCompType);
+            break;
+    }
+    
+    // Bound the Solution in Limits for NIST Materials
+    if (MaterialType == MATERIAL_TYPE_NIST) {
+        switch (VariableType) {
+            // Conservative Variable Formulation
+            case VARIABLE_CON:
+                error("Material_Limit_Solution:2: No Support Yet - %d", VariableType);
+                break;
+            // Primitive Variable Formulation Density Velocity Pressure
+            case VARIABLE_RUP:
+                for (int inode = 0; inode < nNode; inode++) {
+                    // Maximum Density
+                    if (Q1[inode] >= MaterialPropertyLimits[8]) {
+                        // Get the Average from the neighbor
+                        SmoothVar1 = 0.0; // Density
+                        SmoothVar2 = 0.0; // Pressure
+                        for (int i = crs_IA_Node2Node[inode]; i < crs_IA_Node2Node[inode+1]; i++) {
+                            nid = crs_JA_Node2Node[i];
+                            SmoothVar1 += Q1[nid];
+                            SmoothVar2 += Q5[nid];
+                        }
+                        SmoothVar1 /= ((double)(crs_IA_Node2Node[inode+1] - crs_IA_Node2Node[inode]));
+                        SmoothVar2 /= ((double)(crs_IA_Node2Node[inode+1] - crs_IA_Node2Node[inode]));
+                        // Check if density is back in limits
+                        if (SmoothVar1 >= MaterialPropertyLimits[8])
+                            Q1[inode] = 0.5*(SmoothVar1 + MaterialPropertyLimits[8] - DensityEps);
+                        else
+                            Q1[inode] = SmoothVar1;
+                        
+                        // Update Pressure with average
+                        Q5[inode] = SmoothVar2;
+                        
+                        // Smooth the Density and Pressure
+                        Coeff1 = SolutionSmoothRelaxation;
+                        Coeff2 = ((1.0 - Coeff1)/((double)(crs_IA_Node2Node[inode+1] - crs_IA_Node2Node[inode])));
+                        for (int iSmooth = 0; iSmooth < 5; iSmooth++) {
+                            // First Term
+                            SmoothVar1 = Coeff1*Q1[inode];
+                            SmoothVar2 = Coeff1*Q5[inode];
+                            // Second Term
+                            for (int i = crs_IA_Node2Node[inode]; i < crs_IA_Node2Node[inode+1]; i++) {
+                                nid = crs_JA_Node2Node[i];
+                                SmoothVar1 += Coeff2*Q1[nid];
+                                SmoothVar2 += Coeff2*Q5[nid];
+                            }
+                            Q1[inode] = SmoothVar1;
+                            Q5[inode] = SmoothVar2;
+                        }
+                    }
+                    // Maximum Pressure
+                    if ((Q5[inode] + Gauge_Pressure) >= MaterialPropertyLimits[7]) {
+                        // Get the Average from the neighbor
+                        SmoothVar1 = 0.0; // Pressure
+                        SmoothVar2 = 0.0; // Density
+                        for (int i = crs_IA_Node2Node[inode]; i < crs_IA_Node2Node[inode+1]; i++) {
+                            nid = crs_JA_Node2Node[i];
+                            SmoothVar1 += Q5[nid];
+                            SmoothVar2 += Q1[nid];
+                        }
+                        SmoothVar1 /= ((double)(crs_IA_Node2Node[inode+1] - crs_IA_Node2Node[inode]));
+                        SmoothVar2 /= ((double)(crs_IA_Node2Node[inode+1] - crs_IA_Node2Node[inode]));
+                        if ((SmoothVar1 + Gauge_Pressure) >= MaterialPropertyLimits[7])
+                            Q5[inode] = 0.5*(SmoothVar1 + MaterialPropertyLimits[7] - PressureEps - Gauge_Pressure);
+                        else
+                            Q5[inode] = SmoothVar1;
+                        
+                        // Update Density with average
+                        Q1[inode] = SmoothVar2;
+                        
+                        // Smooth the Pressure and Density
+                        Coeff1 = SolutionSmoothRelaxation;
+                        Coeff2 = ((1.0 - Coeff1)/(crs_IA_Node2Node[inode+1] - crs_IA_Node2Node[inode]));
+                        for (int iSmooth = 0; iSmooth < 5; iSmooth++) {
+                            // First Term
+                            SmoothVar1 = Coeff1*Q5[inode];
+                            SmoothVar2 = Coeff1*Q1[inode];
+                            // Second Term
+                            for (int i = crs_IA_Node2Node[inode]; i < crs_IA_Node2Node[inode+1]; i++) {
+                                nid = crs_JA_Node2Node[i];
+                                SmoothVar1 += Coeff2*Q5[nid];
+                                SmoothVar2 += Coeff2*Q1[nid];
+                            }
+                            Q5[inode] = SmoothVar1;
+                            Q1[inode] = SmoothVar2;
+                        }
+                    }
+                }
+                break;
+            // Primitive Variable Formulation Pressure Velocity Temperature
+            case VARIABLE_PUT:
+                error("Material_Limit_Solution:3: No Support Yet - %d", VariableType);
+                break;
+            // Primitive Variable Formulation Density Velocity Temperature
+            case VARIABLE_RUT:
+                for (int inode = 0; inode < nNode; inode++) {
+                    // Maximum Density
+                    if (Q1[inode] >= MaterialPropertyLimits[8]) {
+                        // Get the Average from the neighbor
+                        SmoothVar1 = 0.0; // Density
+                        SmoothVar2 = 0.0; // Temperature
+                        for (int i = crs_IA_Node2Node[inode]; i < crs_IA_Node2Node[inode+1]; i++) {
+                            nid = crs_JA_Node2Node[i];
+                            SmoothVar1 += Q1[nid];
+                            SmoothVar2 += Q5[nid];
+                        }
+                        SmoothVar1 /= ((double)(crs_IA_Node2Node[inode+1] - crs_IA_Node2Node[inode]));
+                        SmoothVar2 /= ((double)(crs_IA_Node2Node[inode+1] - crs_IA_Node2Node[inode]));
+                        if (SmoothVar1 >= MaterialPropertyLimits[8])
+                            Q1[inode] = 0.5*(SmoothVar1 + MaterialPropertyLimits[8] - DensityEps);
+                        else
+                            Q1[inode] = SmoothVar1;
+                        
+                        // Update Temperature with average
+                        Q5[inode] = SmoothVar2;
+                        
+                        // Smooth the Density and Temperature
+                        Coeff1 = SolutionSmoothRelaxation;
+                        Coeff2 = ((1.0 - Coeff1)/(crs_IA_Node2Node[inode+1] - crs_IA_Node2Node[inode]));
+                        for (int iSmooth = 0; iSmooth < 5; iSmooth++) {
+                            // First Term
+                            SmoothVar1 = Coeff1*Q1[inode];
+                            SmoothVar2 = Coeff1*Q5[inode];
+                            // Second Term
+                            for (int i = crs_IA_Node2Node[inode]; i < crs_IA_Node2Node[inode+1]; i++) {
+                                nid = crs_JA_Node2Node[i];
+                                SmoothVar1 += Coeff2*Q1[nid];
+                                SmoothVar2 += Coeff2*Q5[nid];
+                            }
+                            Q1[inode] = SmoothVar1;
+                            Q5[inode] = SmoothVar2;
+                        }
+                    }
+                    // Temperature Minimum
+                    if ((Q5[inode]) <= MaterialPropertyLimits[5]) {
+                        // Get the Average from the neighbor
+                        SmoothVar1 = 0.0; // Temperature
+                        SmoothVar2 = 0.0; // Density
+                        for (int i = crs_IA_Node2Node[inode]; i < crs_IA_Node2Node[inode+1]; i++) {
+                            nid = crs_JA_Node2Node[i];
+                            SmoothVar1 += Q5[nid];
+                            SmoothVar2 += Q1[nid];
+                        }
+                        SmoothVar1 /= ((double)(crs_IA_Node2Node[inode+1] - crs_IA_Node2Node[inode]));
+                        SmoothVar2 /= ((double)(crs_IA_Node2Node[inode+1] - crs_IA_Node2Node[inode]));
+                        if (SmoothVar1 <= MaterialPropertyLimits[5])
+                            Q5[inode] = 0.5*(SmoothVar1 + MaterialPropertyLimits[5] + TemperatureEps);
+                        else
+                            Q5[inode] = SmoothVar1;
+                        
+                        // Update Density with average
+                        Q1[inode] = SmoothVar2;
+                        
+                        // Smooth the Temperature and Density
+                        Coeff1 = SolutionSmoothRelaxation;
+                        Coeff2 = ((1.0 - Coeff1)/(crs_IA_Node2Node[inode+1] - crs_IA_Node2Node[inode]));
+                        for (int iSmooth = 0; iSmooth < 5; iSmooth++) {
+                            // First Term
+                            SmoothVar1 = Coeff1*Q5[inode];
+                            SmoothVar2 = Coeff1*Q1[inode];
+                            // Second Term
+                            for (int i = crs_IA_Node2Node[inode]; i < crs_IA_Node2Node[inode+1]; i++) {
+                                nid = crs_JA_Node2Node[i];
+                                SmoothVar1 += Coeff2*Q5[nid];
+                                SmoothVar2 += Coeff2*Q1[nid];
+                            }
+                            Q5[inode] = SmoothVar1;
+                            Q1[inode] = SmoothVar2;
+                        }
+                    }
+                    // Temperature Maximum
+                    if ((Q5[inode]) >= MaterialPropertyLimits[6]) {
+                        // Get the Average from the neighbor
+                        SmoothVar1 = 0.0; // Temperature
+                        SmoothVar2 = 0.0; // Density
+                        for (int i = crs_IA_Node2Node[inode]; i < crs_IA_Node2Node[inode+1]; i++) {
+                            nid = crs_JA_Node2Node[i];
+                            SmoothVar1 += Q5[nid];
+                            SmoothVar2 += Q1[nid];
+                        }
+                        SmoothVar1 /= ((double)(crs_IA_Node2Node[inode+1] - crs_IA_Node2Node[inode]));
+                        SmoothVar2 /= ((double)(crs_IA_Node2Node[inode+1] - crs_IA_Node2Node[inode]));
+                        if (SmoothVar1 >= MaterialPropertyLimits[6])
+                            Q5[inode] = 0.5*(SmoothVar1 + MaterialPropertyLimits[6] - TemperatureEps);
+                        else
+                            Q5[inode] = SmoothVar1;
+                        
+                        // Update Density with average
+                        Q1[inode] = SmoothVar2;
+                        
+                        // Smooth the Temperature
+                        Coeff1 = SolutionSmoothRelaxation;
+                        Coeff2 = ((1.0 - Coeff1)/(crs_IA_Node2Node[inode+1] - crs_IA_Node2Node[inode]));
+                        for (int iSmooth = 0; iSmooth < 5; iSmooth++) {
+                            // First Term
+                            SmoothVar1 = Coeff1*Q5[inode];
+                            SmoothVar2 = Coeff1*Q1[inode];
+                            // Second Term
+                            for (int i = crs_IA_Node2Node[inode]; i < crs_IA_Node2Node[inode+1]; i++) {
+                                nid = crs_JA_Node2Node[i];
+                                SmoothVar1 += Coeff2*Q5[nid];
+                                SmoothVar2 += Coeff2*Q1[nid];
+                            }
+                            Q5[inode] = SmoothVar1;
+                            Q1[inode] = SmoothVar2;
+                        }
+                    }
+                }
+                break;
+            default:
+                error("Material_Limit_Solution:4: Undefined Variable Type - %d", VariableType);
+                break;
+        }
+    }
+}
+
+//------------------------------------------------------------------------------
+//! Compute Equation of State Properties at Control Volume
+//! Note: MaterialEOS_IO_Type = EOS_DIMENSIONAL_IO_D_D or EOS_DIMENSIONAL_IO_ND_ND
+//       is only supported. Done to improve the accuracy
+//------------------------------------------------------------------------------
+void Material_Get_Properties(double *dpVariableIn, double *dpPropertyOut) {
+    double daEOSVariable[NEQUATIONS];
+    
+    // This is done to preserve the accuracy of dpVariableIn
+    // if passed directly to EOS functions will result in loss of accuracy
+    for (int i = 0; i < NEQUATIONS; i++)
+        daEOSVariable[i] = dpVariableIn[i];
+    
+    // Compute the EOS Based on Variable Type of Q
+    switch (VariableType) {
+        // Conservative Variable Formulation
+        case VARIABLE_CON:
+            EOS_Get_Properties(MaterialEOS_IO_Type, EOS_VARIABLE_CON, daEOSVariable, dpPropertyOut);
+            // Update the variables
+            dpPropertyOut[ 0] = dpVariableIn[0]; // Density
+            dpPropertyOut[ 5] = dpVariableIn[1]/dpVariableIn[0];
+            dpPropertyOut[ 6] = dpVariableIn[2]/dpVariableIn[0];
+            dpPropertyOut[ 7] = dpVariableIn[3]/dpVariableIn[0];
+            dpPropertyOut[15] = dpVariableIn[4]/dpVariableIn[0];
+            dpPropertyOut[ 3] = dpPropertyOut[3] - Gauge_Pressure;
+            break;
+        // Primitive Variable Formulation Density Velocity Pressure
+        case VARIABLE_RUP:
+            daEOSVariable[4] += Gauge_Pressure; // Pressure
+            EOS_Get_Properties(MaterialEOS_IO_Type, EOS_VARIABLE_RUP, daEOSVariable, dpPropertyOut);
+            dpPropertyOut[ 0] = dpVariableIn[0];
+            dpPropertyOut[ 5] = dpVariableIn[1];
+            dpPropertyOut[ 6] = dpVariableIn[2];
+            dpPropertyOut[ 7] = dpVariableIn[3];
+            dpPropertyOut[ 3] = dpVariableIn[4]; // Perturbation
+            break;
+        // Primitive Variable Formulation Pressure Velocity Temperature
+        case VARIABLE_PUT:
+            daEOSVariable[0] += Gauge_Pressure; // Pressure
+            EOS_Get_Properties(MaterialEOS_IO_Type, EOS_VARIABLE_PUT, daEOSVariable, dpPropertyOut);
+            dpPropertyOut[ 3] = dpVariableIn[0]; // Perturbation
+            dpPropertyOut[ 5] = dpVariableIn[1];
+            dpPropertyOut[ 6] = dpVariableIn[2];
+            dpPropertyOut[ 7] = dpVariableIn[3];
+            dpPropertyOut[ 4] = dpVariableIn[4];
+            break;
+        // Primitive Variable Formulation Density Velocity Temperature
+        case VARIABLE_RUT:
+            EOS_Get_Properties(MaterialEOS_IO_Type, EOS_VARIABLE_RUT, daEOSVariable, dpPropertyOut);
+            dpPropertyOut[ 0] = dpVariableIn[0];
+            dpPropertyOut[ 5] = dpVariableIn[1];
+            dpPropertyOut[ 6] = dpVariableIn[2];
+            dpPropertyOut[ 7] = dpVariableIn[3];
+            dpPropertyOut[ 4] = dpVariableIn[4];
+            dpPropertyOut[ 3] = dpPropertyOut[ 3] - Gauge_Pressure;
+            break;
+        default:
+            error("Material_Get_Properties:1: Undefined Variable Type - %d", VariableType);
+            break;
+    }
+}
+
+//------------------------------------------------------------------------------
+//! Compute Equation of State Extended Properties at Control Volume
+//! Note: MaterialEOS_IO_Type = EOS_DIMENSIONAL_IO_D_D or EOS_DIMENSIONAL_IO_ND_ND
+//       is only supported. Done to improve the accuracy
+//------------------------------------------------------------------------------
+void Material_Get_Extended_Properties(double *dpVariableIn, double *dpPropertyOut) {
+    double daEOSVariable[NEQUATIONS];
+    
+    // This is done to preserve the accuracy of dpVariableIn
+    // if passed directly to EOS functions will result in loss of accuracy
+    for (int i = 0; i < NEQUATIONS; i++)
+        daEOSVariable[i] = dpVariableIn[i];
+    
+    // Compute the EOS Based on Variable Type of Q
+    switch (VariableType) {
+        // Conservative Variable Formulation
+        case VARIABLE_CON:
+            EOS_Get_Extended_Properties(MaterialEOS_IO_Type, EOS_VARIABLE_CON, daEOSVariable, dpPropertyOut);
+            // Update the variables
+            dpPropertyOut[ 0] = dpVariableIn[0]; // Density
+            dpPropertyOut[ 5] = dpVariableIn[1]/dpVariableIn[0];
+            dpPropertyOut[ 6] = dpVariableIn[2]/dpVariableIn[0];
+            dpPropertyOut[ 7] = dpVariableIn[3]/dpVariableIn[0];
+            dpPropertyOut[15] = dpVariableIn[4]/dpVariableIn[0];
+            dpPropertyOut[ 3] = dpPropertyOut[3] - Gauge_Pressure;
+            break;
+        // Primitive Variable Formulation Density Velocity Pressure
+        case VARIABLE_RUP:
+            daEOSVariable[4] += Gauge_Pressure; // Pressure
+            EOS_Get_Extended_Properties(MaterialEOS_IO_Type, EOS_VARIABLE_RUP, daEOSVariable, dpPropertyOut);
+            dpPropertyOut[ 0] = dpVariableIn[0];
+            dpPropertyOut[ 5] = dpVariableIn[1];
+            dpPropertyOut[ 6] = dpVariableIn[2];
+            dpPropertyOut[ 7] = dpVariableIn[3];
+            dpPropertyOut[ 3] = dpVariableIn[4]; // Perturbation
+            break;
+        // Primitive Variable Formulation Pressure Velocity Temperature
+        case VARIABLE_PUT:
+            daEOSVariable[0] += Gauge_Pressure; // Pressure
+            EOS_Get_Extended_Properties(MaterialEOS_IO_Type, EOS_VARIABLE_PUT, daEOSVariable, dpPropertyOut);
+            dpPropertyOut[ 3] = dpVariableIn[0]; // Perturbation
+            dpPropertyOut[ 5] = dpVariableIn[1];
+            dpPropertyOut[ 6] = dpVariableIn[2];
+            dpPropertyOut[ 7] = dpVariableIn[3];
+            dpPropertyOut[ 4] = dpVariableIn[4];
+            break;
+        // Primitive Variable Formulation Density Velocity Temperature
+        case VARIABLE_RUT:
+            EOS_Get_Extended_Properties(MaterialEOS_IO_Type, EOS_VARIABLE_RUT, daEOSVariable, dpPropertyOut);
+            dpPropertyOut[ 0] = dpVariableIn[0];
+            dpPropertyOut[ 5] = dpVariableIn[1];
+            dpPropertyOut[ 6] = dpVariableIn[2];
+            dpPropertyOut[ 7] = dpVariableIn[3];
+            dpPropertyOut[ 4] = dpVariableIn[4];
+            dpPropertyOut[ 3] = dpPropertyOut[ 3] - Gauge_Pressure;
+            break;
+        default:
+            error("Material_Get_Extended_Properties:1: Undefined Variable Type - %d", VariableType);
+            break;
+    }
+}
+
+//------------------------------------------------------------------------------
+//! Compute Equation of State Proterties at Control Volume
 //! Note: MaterialEOS_IO_Type = EOS_DIMENSIONAL_IO_D_D or EOS_DIMENSIONAL_IO_ND_ND
 //       is only supported. Done to improve the accuracy
 //------------------------------------------------------------------------------
@@ -325,6 +785,42 @@ void Material_Get_Face_Properties(double *dpVariableIn, double nx, double ny, do
 //------------------------------------------------------------------------------
 //!
 //------------------------------------------------------------------------------
+void Material_Get_Density_All(double *dpVariableIn, double *dpDensity) {
+    double daEOSVariable[NEQUATIONS];
+    
+    // This is done to preserve the accuracy of dpVariableIn
+    // if passed directly to EOS functions will result in loss of accuracy
+    for (int i = 0; i < NEQUATIONS; i++)
+        daEOSVariable[i] = dpVariableIn[i];
+    
+    switch (VariableType) {
+        // Conservative Variable Formulation
+        case VARIABLE_CON:
+            EOS_Get_Density_All(MaterialEOS_IO_Type, EOS_VARIABLE_CON, daEOSVariable, dpDensity);
+            break;
+        // Primitive Variable Formulation Density Velocity Pressure
+        case VARIABLE_RUP:
+            daEOSVariable[4] += Gauge_Pressure; // Pressure
+            EOS_Get_Density_All(MaterialEOS_IO_Type, EOS_VARIABLE_RUP, daEOSVariable, dpDensity);
+            break;
+        // Primitive Variable Formulation Pressure Velocity Temperature
+        case VARIABLE_PUT:
+            daEOSVariable[0] += Gauge_Pressure; // Pressure
+            EOS_Get_Density_All(MaterialEOS_IO_Type, EOS_VARIABLE_PUT, daEOSVariable, dpDensity);
+            break;
+        // Primitive Variable Formulation Density Velocity Temperature
+        case VARIABLE_RUT:
+            EOS_Get_Density_All(MaterialEOS_IO_Type, EOS_VARIABLE_RUT, daEOSVariable, dpDensity);
+            break;
+        default:
+            error("Material_Get_Density_All:1: Undefined Variable Type - %d", VariableType);
+            break;
+    }
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
 double Material_Get_Density(double *dpVariableIn) {
     double Rho = 0.0;
     double daEOSVariable[NEQUATIONS];
@@ -359,6 +855,84 @@ double Material_Get_Density(double *dpVariableIn) {
     }
     
     return Rho;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double Material_Get_Density_Liquid(double *dpVariableIn) {
+    double RhoL = 0.0;
+    double daEOSVariable[NEQUATIONS];
+    
+    // This is done to preserve the accuracy of dpVariableIn
+    // if passed directly to EOS functions will result in loss of accuracy
+    for (int i = 0; i < NEQUATIONS; i++)
+        daEOSVariable[i] = dpVariableIn[i];
+    
+    switch (VariableType) {
+        // Conservative Variable Formulation
+        case VARIABLE_CON:
+            RhoL = EOS_Get_Density_Liquid(MaterialEOS_IO_Type, EOS_VARIABLE_CON, daEOSVariable);
+            break;
+        // Primitive Variable Formulation Density Velocity Pressure
+        case VARIABLE_RUP:
+            daEOSVariable[4] += Gauge_Pressure; // Pressure
+            RhoL = EOS_Get_Density_Liquid(MaterialEOS_IO_Type, EOS_VARIABLE_RUP, daEOSVariable);
+            break;
+        // Primitive Variable Formulation Pressure Velocity Temperature
+        case VARIABLE_PUT:
+            daEOSVariable[0] += Gauge_Pressure; // Pressure
+            RhoL = EOS_Get_Density_Liquid(MaterialEOS_IO_Type, EOS_VARIABLE_PUT, daEOSVariable);
+            break;
+        // Primitive Variable Formulation Density Velocity Temperature
+        case VARIABLE_RUT:
+            RhoL = EOS_Get_Density_Liquid(MaterialEOS_IO_Type, EOS_VARIABLE_RUT, daEOSVariable);
+            break;
+        default:
+            error("Material_Get_Density_Liquid:1: Undefined Variable Type - %d", VariableType);
+            break;
+    }
+    
+    return RhoL;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double Material_Get_Density_Vapor(double *dpVariableIn) {
+    double RhoV = 0.0;
+    double daEOSVariable[NEQUATIONS];
+    
+    // This is done to preserve the accuracy of dpVariableIn
+    // if passed directly to EOS functions will result in loss of accuracy
+    for (int i = 0; i < NEQUATIONS; i++)
+        daEOSVariable[i] = dpVariableIn[i];
+    
+    switch (VariableType) {
+        // Conservative Variable Formulation
+        case VARIABLE_CON:
+            RhoV = EOS_Get_Density_Vapor(MaterialEOS_IO_Type, EOS_VARIABLE_CON, daEOSVariable);
+            break;
+        // Primitive Variable Formulation Density Velocity Pressure
+        case VARIABLE_RUP:
+            daEOSVariable[4] += Gauge_Pressure; // Pressure
+            RhoV = EOS_Get_Density_Vapor(MaterialEOS_IO_Type, EOS_VARIABLE_RUP, daEOSVariable);
+            break;
+        // Primitive Variable Formulation Pressure Velocity Temperature
+        case VARIABLE_PUT:
+            daEOSVariable[0] += Gauge_Pressure; // Pressure
+            RhoV = EOS_Get_Density_Vapor(MaterialEOS_IO_Type, EOS_VARIABLE_PUT, daEOSVariable);
+            break;
+        // Primitive Variable Formulation Density Velocity Temperature
+        case VARIABLE_RUT:
+            RhoV = EOS_Get_Density_Vapor(MaterialEOS_IO_Type, EOS_VARIABLE_RUT, daEOSVariable);
+            break;
+        default:
+            error("Material_Get_Density_Vapor:1: Undefined Variable Type - %d", VariableType);
+            break;
+    }
+    
+    return RhoV;
 }
 
 //------------------------------------------------------------------------------
@@ -559,6 +1133,45 @@ double Material_Get_SpeedSound(double *dpVariableIn) {
 //------------------------------------------------------------------------------
 //!
 //------------------------------------------------------------------------------
+double Material_Get_Quality(double *dpVariableIn) {
+    double Quality = 0.0;
+    double daEOSVariable[NEQUATIONS];
+    
+    // This is done to preserve the accuracy of dpVariableIn
+    // if passed directly to EOS functions will result in loss of accuracy
+    for (int i = 0; i < NEQUATIONS; i++)
+        daEOSVariable[i] = dpVariableIn[i];
+    
+    switch (VariableType) {
+        // Conservative Variable Formulation
+        case VARIABLE_CON:
+            Quality = EOS_Get_Quality(MaterialEOS_IO_Type, EOS_VARIABLE_CON, daEOSVariable);
+            break;
+        // Primitive Variable Formulation Density Velocity Pressure
+        case VARIABLE_RUP:
+            daEOSVariable[4] += Gauge_Pressure; // Pressure
+            Quality = EOS_Get_Quality(MaterialEOS_IO_Type, EOS_VARIABLE_RUP, daEOSVariable);
+            break;
+        // Primitive Variable Formulation Pressure Velocity Temperature
+        case VARIABLE_PUT:
+            daEOSVariable[0] += Gauge_Pressure; // Pressure
+            Quality = EOS_Get_Quality(MaterialEOS_IO_Type, EOS_VARIABLE_PUT, daEOSVariable);
+            break;
+        // Primitive Variable Formulation Density Velocity Temperature
+        case VARIABLE_RUT:
+            Quality = EOS_Get_Quality(MaterialEOS_IO_Type, EOS_VARIABLE_RUT, daEOSVariable);
+            break;
+        default:
+            error("Material_Get_Quality:1: Undefined Variable Type - %d", VariableType);
+            break;
+    }
+    
+    return Quality;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
 double Material_Get_DH_SpeedSound(double dvDensity, double dvEnthalpy) {
     double SpeedSound = 0.0;
     
@@ -637,43 +1250,5 @@ void Material_Get_RUH_To_Q(double Rho, double Velocity_U, double Velocity_V, dou
             error("Compute_Q_From_EOS_Variables:1: Undefined Variable Type - %d", VariableType);
             break;
     }
-}
-
-//------------------------------------------------------------------------------
-//! Transformation Matrix: Mpr = dqp/dqr
-//------------------------------------------------------------------------------
-void Material_Get_Transformation_Matrix(double *dpVariableIn, int ivVarTypeFrom, int ivVarTypeTo, double **Matrix) {
-    double daEOSVariable[NEQUATIONS];
-    
-    // This is done to preserve the accuracy of dpVariableIn
-    // if passed directly to EOS functions will result in loss of accuracy
-    for (int i = 0; i < NEQUATIONS; i++)
-        daEOSVariable[i] = dpVariableIn[i];
-    
-    // Compute the EOS Based on Variable Type of Q
-    switch (VariableType) {
-        // Conservative Variable Formulation
-        case VARIABLE_CON:
-            // Nothing to Do
-            break;
-        // Primitive Variable Formulation Density Velocity Pressure
-        case VARIABLE_RUP:
-            daEOSVariable[4] += Gauge_Pressure; // Pressure
-            break;
-        // Primitive Variable Formulation Pressure Velocity Temperature
-        case VARIABLE_PUT:
-            daEOSVariable[0] += Gauge_Pressure; // Pressure
-            break;
-        // Primitive Variable Formulation Density Velocity Temperature
-        case VARIABLE_RUT:
-            // Nothing to Do
-            break;
-        default:
-            error("Material_Get_Transformation_Matrix:1: Undefined Variable Type - %d", VariableType);
-            break;
-    }
-    
-    // Compute the Transformation Matrix
-    EOS_Get_Transformation_Matrix(MaterialEOS_IO_Type, VariableType, daEOSVariable, ivVarTypeFrom, ivVarTypeTo, Matrix);
 }
 

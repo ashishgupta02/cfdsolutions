@@ -36,15 +36,9 @@ int Solver_Steady_Implicit(void) {
     int AddTime     = FALSE;
     int CheckNAN    = 0;
     int SaveOrder   = 0;
-    int SaveRMS     = 0;
     int SaveLimiter = 0;
     double lrms     = 0.0;
-    double scale_RMS[NEQUATIONS], scale_RMS_Res;
-    
-    // Initialize
-    for (int i = 0; i < NEQUATIONS; i++)
-        scale_RMS[i] = 1.0;
-    scale_RMS_Res = 1.0;
+    double RMS_Res;
     
     // Save Solver Parameters
     SaveOrder   = SolverOrder;
@@ -52,6 +46,16 @@ int Solver_Steady_Implicit(void) {
     
     // Initialize the Jacobian Data Structure
     Jacobian_Init();
+    
+    // Limit the Solution in Valid Range
+    Material_Limit_Solution();
+    
+    // Smooth the Solution if Required
+    if (SolutionSmooth == TRUE)
+        CogSolver.Smooth_Solution();
+    
+    // Compute the Thermodynamic Properties of All Node (Physical + Ghosts)
+    CogSolver.Compute_Bulk_Extended_Properties(0, nNode+nBNode);
     
     // Pseduo-Time Loop
     for (int iter = RestartIteration; iter < SolverNIteration; iter++) {
@@ -104,7 +108,11 @@ int Solver_Steady_Implicit(void) {
             if ((LimiterStartSolverIteration <= iter+1) && (LimiterEndSolverIteration > iter))
                 LimiterMethod = SaveLimiter;
         }
-
+        
+        // Compute the Thermodynamic Properties of Changed Physical Nodes
+        // Update is needed to aid the calculation of Jacobians of First Order
+        CogSolver.Compute_Bulk_Extended_Properties(0, nNode);
+        
         // Compute Least Square Gradient -- Unweighted
         if (SolverOrder == SOLVER_ORDER_SECOND) {
             Compute_Least_Square_Gradient(0);
@@ -114,7 +122,10 @@ int Solver_Steady_Implicit(void) {
         
         // Apply boundary conditions
         Apply_Boundary_Condition(iter);
-
+        
+        // Update the Thermodynamic Properties of Boundary Ghost Nodes
+        CogSolver.Compute_Bulk_Extended_Properties(nNode, nNode+nBNode);
+        
         AddTime = TRUE;
         // Compute Residuals
         Compute_Residual(AddTime);
@@ -126,36 +137,8 @@ int Solver_Steady_Implicit(void) {
         if (ResidualSmoothMethod != RESIDUAL_SMOOTH_METHOD_NONE)
             Residual_Smoothing();
         
-        // Compute RMS
-        RMS[0] = RMS[1] = RMS[2] = RMS[3] = RMS[4] = 0.0;
-        for (int i = 0; i < nNode; i++) {
-            RMS[0] += (Res1_Conv[i] + Res1_Diss[i])*(Res1_Conv[i] + Res1_Diss[i]);
-            RMS[1] += (Res2_Conv[i] + Res2_Diss[i])*(Res2_Conv[i] + Res2_Diss[i]);
-            RMS[2] += (Res3_Conv[i] + Res3_Diss[i])*(Res3_Conv[i] + Res3_Diss[i]);
-            RMS[3] += (Res4_Conv[i] + Res4_Diss[i])*(Res4_Conv[i] + Res4_Diss[i]);
-            RMS[4] += (Res5_Conv[i] + Res5_Diss[i])*(Res5_Conv[i] + Res5_Diss[i]);
-        }
-        RMS_Res = RMS[0] + RMS[1] + RMS[2] + RMS[3] + RMS[4];
-        RMS_Res = sqrt(RMS_Res/(5.0 * (double)nNode));
-        for (int i = 0; i < NEQUATIONS; i++)
-            RMS[i] = sqrt(RMS[i]/(double)nNode);
-        
-        // Normalize the RMS
-        if (SaveRMS == 0) {
-            scale_RMS_Res = 0.0;
-            for (int i = 0; i < NEQUATIONS; i++) {
-                scale_RMS[i] = RMS[i];
-                scale_RMS_Res += RMS[i];
-            }
-            scale_RMS_Res /= NEQUATIONS;
-            SaveRMS = 1;
-        }
-        for (int i = 0; i < NEQUATIONS; i++)
-            RMS[i] /= scale_RMS[i];
-        RMS_Res /= scale_RMS_Res;
-        
         // Write RMS
-        RMS_Writer(iter+1, RMS);
+        RMS_Res = RMS_Writer(iter+1);
         
         // Check for Residual NAN
         if (isnan(RMS_Res)) {
@@ -170,7 +153,8 @@ int Solver_Steady_Implicit(void) {
         Compute_Jacobian(AddTime, iter);
         
         // Solve for Solution
-        lrms = MC_Iterative_Block_LU_Jacobi_CRS(LinearSolverNIteration, 0, SolverBlockMatrix);       
+//        lrms = MC_Iterative_Block_LU_Jacobi_CRS(LinearSolverNIteration, 2, SolverBlockMatrix);       
+        lrms = MC_Iterative_Block_LUSGS_CRS(LinearSolverNIteration, SolverBlockMatrix);
         
         // Check for Linear Solver NAN
         if (isnan(lrms)) {
@@ -186,7 +170,14 @@ int Solver_Steady_Implicit(void) {
             Q4[i] += Relaxation*SolverBlockMatrix.X[i][3];
             Q5[i] += Relaxation*SolverBlockMatrix.X[i][4];
         }
-
+        
+        // Limit the Solution in Valid Range
+        Material_Limit_Solution();
+        
+        // Smooth the Solution if Required
+        if (SolutionSmooth == TRUE)
+            CogSolver.Smooth_Solution();
+        
         // Precondition Variable Normalize
         if (PrecondMethod != PRECOND_METHOD_NONE) {
             for (int i = 0; i < nNode; i++)

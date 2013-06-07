@@ -33,7 +33,8 @@ extern "C" {
     void   MC_Matrix_Mul_Matrix(int nRow, int nCol, double **Mat1, double **Mat2, double **Out);
     double MC_Iterative_Block_Jacobi_CRS (int Iteration, double Relax, MC_CRS Object);
     double MC_Iterative_Block_LU_Jacobi_CRS(int Iteration, int Direction, MC_CRS Object);
-
+    double MC_Iterative_Block_LUSGS_CRS(int Iteration, MC_CRS Object);
+    
 #ifdef	__cplusplus
 }
 #endif

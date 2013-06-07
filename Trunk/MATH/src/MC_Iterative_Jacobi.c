@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <float.h>
+#include "LinearAlgebra.h"
 
 #include "MC.h"
 
@@ -528,6 +529,188 @@ double MC_Iterative_Block_LU_Jacobi_CRS(int Iteration, int Direction, MC_CRS Obj
             }
         }
         free(LU);
+    }
+    
+    return RMS;
+}
+
+// *****************************************************************************
+// LU-Symmetric-Gauss-Seidel
+// *****************************************************************************
+double MC_Iterative_Block_LUSGS_CRS(int Iteration, MC_CRS Object) {
+    int i, ii, j, jj, m, iRow, iLoopSGS, diag, iStart, iEnd, MaxIter = 100;
+    int    *Pivot    = NULL;
+    double *SolY     = NULL;
+    double *SolX     = NULL;
+    double *RHS      = NULL;
+    double *tempvect = NULL;
+    double **APLU    = NULL;
+    double RMS       = 0.0;
+    
+    /* Basic Checking before proceeding */
+    if ((Object.IA == NULL) || (Object.JA == NULL) || (Object.IAU == NULL) ||
+            (Object.A == NULL) || (Object.B == NULL) || (Object.X == NULL) ||
+            (Object.Block_nRow <= 0) || (Object.Block_nCol <= 0) ||
+            (Object.DIM <= 0) || (Object.nROW <= 0) || (Object.nCOL <= 0) ||
+            (Object.nCOL != Object.nROW) || (Object.Block_nCol != Object.Block_nRow))
+        return RMS;
+    
+    // Allocate Memory
+    Pivot    = (int *)     malloc(Object.Block_nRow*sizeof(int));
+    SolY     = (double *)  malloc(Object.Block_nRow*sizeof(double));
+    SolX     = (double *)  malloc(Object.Block_nRow*sizeof(double));
+    RHS      = (double *)  malloc(Object.Block_nRow*sizeof(double));
+    APLU     = (double **) malloc(Object.Block_nRow*sizeof(double*));
+    tempvect = (double *)  malloc(Object.Block_nRow*Object.Block_nRow*sizeof(double));
+    for (i = 0; i < Object.Block_nRow; i++)
+        APLU[i] = &tempvect[i*Object.Block_nRow];
+    tempvect = NULL;
+    tempvect = (double *)  malloc(Object.Block_nRow*sizeof(double));
+    
+    // Set the Initial Value for Solution Vector
+    for (iRow = 0; iRow < Object.nROW; iRow++) {
+        RMS = 0.0;
+        for (j = 0; j < Object.Block_nCol; j++)
+            RMS += Object.B[iRow][j];
+        RMS /= Object.Block_nCol;
+        for (j = 0; j < Object.Block_nCol; j++)
+            Object.X[iRow][j] = RMS;
+    }
+    
+    // Iterate Until Convergence or Max Iteration
+    if (Iteration <= 0)
+        Iteration = MaxIter;
+
+    // Progressively iterate to approximate solutions
+    for (iLoopSGS = 0; iLoopSGS < Iteration; iLoopSGS++) {
+        // Forward Sweep
+        for (iRow = 0; iRow < Object.nROW; iRow++) {
+            // Get the RHS (b) Vector of a Row
+            for (j = 0; j < Object.Block_nRow; j++)
+                RHS[j] = Object.B[iRow][j];
+            
+            // Compute: b - Ao*X where are Ao is Off-Diagonal Matrix
+            diag   = Object.IAU[iRow];
+            iStart = Object.IA[iRow];
+            iEnd   = Object.IA[iRow + 1];
+            for (j = iStart; j < iEnd; j++) {
+                // Check for the Diagonal Entry and Continue
+                if (j == diag)
+                    continue;
+                
+                // Matrix Vector Multiply
+                for (ii = 0; ii < Object.Block_nRow; ii++)
+                    tempvect[ii] = 0.0;
+
+                for (ii = 0; ii < Object.Block_nRow; ii++) {
+                    for (jj = 0; jj < Object.Block_nCol; jj++)
+                        tempvect[ii] += Object.A[j][ii][jj] * Object.X[Object.JA[j]][jj];
+                }
+
+                for (m = 0; m < Object.Block_nRow; m++)
+                    RHS[m] -= tempvect[m];
+            }
+            
+            // Get the Diagonal Matrix
+            for (i = 0; i < Object.Block_nRow; i++) {
+                for (j = 0; j < Object.Block_nCol; j++)
+                    APLU[i][j] = Object.A[diag][i][j];
+            }
+            
+            // Pivot Gaussain LU Decompose A : Note A is replace with LU
+            GaussainLUDecompose(APLU, Pivot, Object.Block_nRow, 1);
+            // Get the RHS iRow vector
+            for (j = 0; j < Object.Block_nCol; j++)
+                tempvect[j] = RHS[j];
+            // Ly = Pb
+            Solve_PivotForwardSubstitution(APLU, SolY, tempvect, Pivot, Object.Block_nRow);
+            // Pivot Ux = y
+            Solve_PivotBackSubstitution(APLU, SolX, SolY, Pivot, Object.Block_nRow);
+            // Update the Solution
+            for (j = 0; j < Object.Block_nCol; j++)
+                Object.X[iRow][j] = SolX[j];
+        }
+        
+        // Backward Sweep
+        for (iRow = Object.nROW - 1; iRow >= 0; iRow--) {
+            // Get the RHS (b) Vector of a Row
+            for (j = 0; j < Object.Block_nRow; j++)
+                RHS[j] = Object.B[iRow][j];
+            
+            // Compute: b - Ao*X where are Ao is Off-Diagonal Matrix
+            diag   = Object.IAU[iRow];
+            iStart = Object.IA[iRow];
+            iEnd   = Object.IA[iRow + 1];
+            for (j = iStart; j < iEnd; j++) {
+                // Check for the Diagonal Entry and Continue
+                if (j == diag)
+                    continue;
+                
+                // Matrix Vector Multiply
+                for (ii = 0; ii < Object.Block_nRow; ii++)
+                    tempvect[ii] = 0.0;
+                for (ii = 0; ii < Object.Block_nRow; ii++) {
+                    for (jj = 0; jj < Object.Block_nCol; jj++)
+                        tempvect[ii] += Object.A[j][ii][jj] * Object.X[Object.JA[j]][jj];
+                }
+
+                for (m = 0; m < Object.Block_nRow; m++)
+                    RHS[m] -= tempvect[m];
+            }
+            
+            // Get the Diagonal Matrix
+            for (i = 0; i < Object.Block_nRow; i++) {
+                for (j = 0; j < Object.Block_nCol; j++)
+                    APLU[i][j] = Object.A[diag][i][j];
+            }
+            
+            // Pivot Gaussain LU Decompose A : Note A is replace with LU
+            GaussainLUDecompose(APLU, Pivot, Object.Block_nRow, 1);
+            // Get the RHS iRow vector
+            for (j = 0; j < Object.Block_nCol; j++)
+                tempvect[j] = RHS[j];
+            // Ly = Pb
+            Solve_PivotForwardSubstitution(APLU, SolY, tempvect, Pivot, Object.Block_nRow);
+            // Pivot Ux = y
+            Solve_PivotBackSubstitution(APLU, SolX, SolY, Pivot, Object.Block_nRow);
+            // Update the Solution
+            for (j = 0; j < Object.Block_nCol; j++)
+                Object.X[iRow][j] = SolX[j];
+        }
+    }
+    
+    RMS = 0.0;
+    // Compute RMS: b - A*X
+    for (iRow = 0; iRow < Object.nROW; iRow++) {
+        // Compute A*X
+        for (ii = 0; ii < Object.Block_nRow; ii++)
+            tempvect[ii] = 0.0;
+        for (ii = 0; ii < Object.Block_nRow; ii++) {
+            for (jj = 0; jj < Object.Block_nCol; jj++)
+                tempvect[ii] += Object.A[j][ii][jj] * Object.X[Object.JA[j]][jj];
+        }
+        // b-A*X
+        for (j = 0; j < Object.Block_nCol; j++)
+            RMS += (Object.B[iRow][j] - tempvect[j])*(Object.B[iRow][j] - tempvect[j]);
+        RMS /= Object.Block_nCol;
+    }
+    RMS = sqrt(RMS / ((double) Object.nROW));
+    
+    // Free Memory
+    if (tempvect != NULL)
+        free(tempvect);
+    if (Pivot != NULL)
+        free(Pivot);
+    if (SolY != NULL)
+        free(SolY);
+    if (SolX != NULL)
+        free(SolX);
+    if (RHS != NULL)
+        free(RHS);
+    if (APLU != NULL) {
+        tempvect = APLU[0];
+        free(tempvect);
+        free(APLU);
     }
     
     return RMS;

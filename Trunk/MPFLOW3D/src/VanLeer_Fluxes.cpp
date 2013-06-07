@@ -143,8 +143,8 @@ void VanLeer_Reset(void) {
 //------------------------------------------------------------------------------
 void Compute_Flux_VanLeer(int node_L, int node_R, Vector3D areavec, double *Flux_VanLeer, int AddTime) {
     int i;
-    double rho_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
-    double rho_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
+    double rho_L, rhol_L, rhov_L, u_L, v_L, w_L, et_L, p_L, c_L, ht_L, ubar_L, q2_L, T_L, mach_L;
+    double rho_R, rhol_R, rhov_R, u_R, v_R, w_R, et_R, p_R, c_R, ht_R, ubar_R, q2_R, T_R, mach_R;
     
     double area, maxlambda;
     double nx, ny, nz;
@@ -199,10 +199,20 @@ void Compute_Flux_VanLeer(int node_L, int node_R, Vector3D areavec, double *Flux
         }
         
         // Compute Equation of State
-        Material_Get_Face_Properties(VanLeer_Q_L, nx, ny, nz, rho_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, ubar_L, et_L, ht_L);
-        Material_Get_Face_Properties(VanLeer_Q_R, nx, ny, nz, rho_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, ubar_R, et_R, ht_R);
-        p_L += Gauge_Pressure;
-        p_R += Gauge_Pressure;
+        // Note: Based on VariableType Pressure can be Perturbation of them
+        if ((CogSolver.FluxRecomputeFlag == TRUE) || ((node_R < nNode) && (SolverOrder == SOLVER_ORDER_SECOND))) {
+            // Get the Second Order Properties
+            CogSolver.CpNodeDB[node_L].Get_Recomputed_Properties(VanLeer_Q_L, rho_L, rhol_L, rhov_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, et_L, ht_L);
+            CogSolver.CpNodeDB[node_R].Get_Recomputed_Properties(VanLeer_Q_R, rho_R, rhol_R, rhov_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, et_R, ht_R);
+        } else {
+            // Get the precomputed First Order Properties
+            CogSolver.CpNodeDB[node_L].Get_Properties(rho_L, rhol_L, rhov_L, p_L, T_L, u_L, v_L, w_L, q2_L, c_L, mach_L, et_L, ht_L);
+            CogSolver.CpNodeDB[node_R].Get_Properties(rho_R, rhol_R, rhov_R, p_R, T_R, u_R, v_R, w_R, q2_R, c_R, mach_R, et_R, ht_R);
+        }
+        ubar_L  = u_L*nx + v_L*ny + w_L*nz;
+        ubar_R  = u_R*nx + v_R*ny + w_R*nz;
+        p_L    += Gauge_Pressure;
+        p_R    += Gauge_Pressure;
         
         double rho_avg, ubar_avg, p_avg, c_avg;
         rho_avg  = 0.5*(rho_L + rho_R);

@@ -28,19 +28,13 @@ int Solver_Steady_Explicit_RungeKutta(void) {
     int CheckNAN    = 0;
     int SaveOrder   = 0;
     int SaveLimiter = 0;
-    int SaveRMS     = 0;
     int RKStage     = 0;
     double eta      = 0.0;
     double *WQ      = NULL;
     double *WDeltaT = NULL;
     double *Dummy   = NULL;
     double phi[5];
-    double scale_RMS[NEQUATIONS], scale_RMS_Res;
-    
-    // Initialize
-    for (int i = 0; i < NEQUATIONS; i++)
-        scale_RMS[i] = 1.0;
-    scale_RMS_Res = 1.0;
+    double RMS_Res;
     
     // Create the helper arrays for Runge-Kutta Method
     // WQ
@@ -91,6 +85,19 @@ int Solver_Steady_Explicit_RungeKutta(void) {
     // Save Solver Parameters
     SaveOrder   = SolverOrder;
     SaveLimiter = LimiterMethod;
+    
+    // Limit the Solution in Valid Range
+    Material_Limit_Solution();
+    
+    // Smooth the Solution if Required
+    if (SolutionSmooth == TRUE)
+        CogSolver.Smooth_Solution();
+    
+//    // Smooth Solution Near Stagnation Points
+//    CogSolver.Smooth_Stagnation_Solution();
+    
+    // Compute the Thermodynamic Properties of All Node (Physical + Ghosts)
+    CogSolver.Compute_Bulk_Extended_Properties(0, nNode+nBNode);
     
     for (int iter = RestartIteration; iter < SolverNIteration; iter++) {
         // Reset Residuals and DeltaT
@@ -143,6 +150,10 @@ int Solver_Steady_Explicit_RungeKutta(void) {
                 LimiterMethod = SaveLimiter;
         }
         
+        // Compute the Thermodynamic Properties of Changed Physical Nodes
+        // Computation is Required for computation of Transformation Matrix
+        CogSolver.Compute_Bulk_Extended_Properties(0, nNode);
+        
         // Compute Least Square Gradient -- Unweighted
         if (SolverOrder == SOLVER_ORDER_SECOND) {
             Compute_Least_Square_Gradient(0); // Need to be fixed: replace zero with enum type
@@ -152,7 +163,10 @@ int Solver_Steady_Explicit_RungeKutta(void) {
         
         // Apply boundary conditions
         Apply_Boundary_Condition(iter);
-
+        
+        // Update the Thermodynamic Properties of Boundary Ghost Nodes
+        CogSolver.Compute_Bulk_Extended_Properties(nNode, nNode+nBNode);
+        
         // Reset the Residual Smoothing Variables: Required before Residual Computation
         if (ResidualSmoothMethod != RESIDUAL_SMOOTH_METHOD_NONE)
             Residual_Smoothing_Reset();
@@ -168,36 +182,8 @@ int Solver_Steady_Explicit_RungeKutta(void) {
         if (ResidualSmoothMethod != RESIDUAL_SMOOTH_METHOD_NONE)
             Residual_Smoothing();
         
-        // Compute RMS
-        RMS[0] = RMS[1] = RMS[2] = RMS[3] = RMS[4] = 0.0;
-        for (int i = 0; i < nNode; i++) {
-            RMS[0] += (Res1_Conv[i] + Res1_Diss[i])*(Res1_Conv[i] + Res1_Diss[i]);
-            RMS[1] += (Res2_Conv[i] + Res2_Diss[i])*(Res2_Conv[i] + Res2_Diss[i]);
-            RMS[2] += (Res3_Conv[i] + Res3_Diss[i])*(Res3_Conv[i] + Res3_Diss[i]);
-            RMS[3] += (Res4_Conv[i] + Res4_Diss[i])*(Res4_Conv[i] + Res4_Diss[i]);
-            RMS[4] += (Res5_Conv[i] + Res5_Diss[i])*(Res5_Conv[i] + Res5_Diss[i]);
-        }
-        RMS_Res = RMS[0] + RMS[1] + RMS[2] + RMS[3] + RMS[4];
-        RMS_Res = sqrt(RMS_Res/(5.0 * (double)nNode));
-        for (int i = 0; i < NEQUATIONS; i++)
-            RMS[i] = sqrt(RMS[i]/(double)nNode);
-        
-        // Normalize the RMS
-        if (SaveRMS == 0) {
-            scale_RMS_Res = 0.0;
-            for (int i = 0; i < NEQUATIONS; i++) {
-                scale_RMS[i] = RMS[i];
-                scale_RMS_Res += RMS[i];
-            }
-            scale_RMS_Res /= NEQUATIONS;
-            SaveRMS = 1;
-        }
-        for (int i = 0; i < NEQUATIONS; i++)
-            RMS[i] /= scale_RMS[i];
-        RMS_Res /= scale_RMS_Res;
-        
         // Write RMS
-        RMS_Writer(iter+1, RMS);
+        RMS_Res = RMS_Writer(iter+1);
         
         // Check for Residual NAN
         if (isnan(RMS_Res)) {
@@ -220,7 +206,7 @@ int Solver_Steady_Explicit_RungeKutta(void) {
                 WQ[NEQUATIONS*i + 4] = Q5[i];
                 if (iRKS == 0)
                     WDeltaT[i] = DeltaT[i];
-
+               
                 // W(n+1) = W(n) - phi*dT*RES(n)/vol
                 eta   = WDeltaT[i]/cVolume[i];
                 Q1[i] = WQ[NEQUATIONS*i + 0] - phi[iRKS]*eta*(Res1_Conv[i] + Res1_Diss[i]);
@@ -244,9 +230,23 @@ int Solver_Steady_Explicit_RungeKutta(void) {
                     DeltaT[i]    = 0.0;
                 }
             }
-        
+            
+            // Limit the Solution in Valid Range
+            Material_Limit_Solution();
+            
+            // Smooth the Solution if Required
+            if (SolutionSmooth == TRUE)
+                CogSolver.Smooth_Solution();
+            
+//            // Smooth Solution Near Stagnation Points
+//            CogSolver.Smooth_Stagnation_Solution();
+    
             if (iRKS < (RKStage - 1)) {
-                // Compute RESn
+                // Compute RESn    
+                // Compute the Thermodynamic Properties of Changed Physical Nodes
+                // Computation is Required for computation of Transformation Matrix
+                CogSolver.Compute_Bulk_Extended_Properties(0, nNode);
+        
                 // Compute Least Square Gradient -- Unweighted
                 if (SolverOrder == SOLVER_ORDER_SECOND) {
                     Compute_Least_Square_Gradient(0);
@@ -256,7 +256,10 @@ int Solver_Steady_Explicit_RungeKutta(void) {
 
                 // Apply boundary conditions
                 Apply_Boundary_Condition(iter);
-
+                
+                // Update the Thermodynamic Properties of Boundary Ghost Nodes
+                CogSolver.Compute_Bulk_Extended_Properties(nNode, nNode+nBNode);
+                
                 // Reset the Residual Smoothing Variables: Required before Residual Computation
                 if (ResidualSmoothMethod != RESIDUAL_SMOOTH_METHOD_NONE)
                     Residual_Smoothing_Reset();
@@ -329,7 +332,6 @@ int Solver_Steady_Explicit_RungeKutta_Martinelli_Jameson(void) {
     int CheckNAN    = 0;
     int SaveOrder   = 0;
     int SaveLimiter = 0;
-    int SaveRMS     = 0;
     int RKStage     = 0;
     double eta      = 0.0;
     double *WQ      = NULL;
@@ -337,12 +339,7 @@ int Solver_Steady_Explicit_RungeKutta_Martinelli_Jameson(void) {
     double *WDeltaT = NULL;
     double *Dummy   = NULL;
     double phi[5], psi[5];
-    double scale_RMS[NEQUATIONS], scale_RMS_Res;
-    
-    // Initialize
-    for (int i = 0; i < NEQUATIONS; i++)
-        scale_RMS[i] = 1.0;
-    scale_RMS_Res = 1.0;
+    double RMS_Res;
     
     // Create the helper arrays for Runge-Kutta Method
     // WQ and Residuals
@@ -369,6 +366,16 @@ int Solver_Steady_Explicit_RungeKutta_Martinelli_Jameson(void) {
     // Save Solver Parameters
     SaveOrder   = SolverOrder;
     SaveLimiter = LimiterMethod;
+    
+    // Limit the Solution in Valid Range
+    Material_Limit_Solution();
+
+    // Smooth the Solution if Required
+    if (SolutionSmooth == TRUE)
+        CogSolver.Smooth_Solution();
+    
+    // Compute the Thermodynamic Properties of All Node (Physical + Ghosts)
+    CogSolver.Compute_Bulk_Extended_Properties(0, nNode+nBNode);
     
     for (int iter = RestartIteration; iter < SolverNIteration; iter++) {
         // Reset Residuals and DeltaT
@@ -420,7 +427,11 @@ int Solver_Steady_Explicit_RungeKutta_Martinelli_Jameson(void) {
             if ((LimiterStartSolverIteration <= iter+1) && (LimiterEndSolverIteration > iter))
                 LimiterMethod = SaveLimiter;
         }
-
+        
+        // Compute the Thermodynamic Properties of Changed Physical Nodes
+        // Computation is Required for computation of Transformation Matrix
+        CogSolver.Compute_Bulk_Extended_Properties(0, nNode);
+        
         // Compute Least Square Gradient -- Unweighted
         if (SolverOrder == SOLVER_ORDER_SECOND) {
             Compute_Least_Square_Gradient(0); // Need to be fixed: replace zero with enum type
@@ -430,6 +441,9 @@ int Solver_Steady_Explicit_RungeKutta_Martinelli_Jameson(void) {
         
         // Apply boundary conditions
         Apply_Boundary_Condition(iter);
+
+        // Update the Thermodynamic Properties of Boundary Ghost Nodes
+        CogSolver.Compute_Bulk_Extended_Properties(nNode, nNode+nBNode);
 
         // Reset the Residual Smoothing Variables: Required before Residual Computation
         if (ResidualSmoothMethod != RESIDUAL_SMOOTH_METHOD_NONE)
@@ -446,36 +460,8 @@ int Solver_Steady_Explicit_RungeKutta_Martinelli_Jameson(void) {
         if (ResidualSmoothMethod != RESIDUAL_SMOOTH_METHOD_NONE)
             Residual_Smoothing();
         
-        // Compute RMS
-        RMS[0] = RMS[1] = RMS[2] = RMS[3] = RMS[4] = 0.0;
-        for (int i = 0; i < nNode; i++) {
-            RMS[0] += (Res1_Conv[i] + Res1_Diss[i])*(Res1_Conv[i] + Res1_Diss[i]);
-            RMS[1] += (Res2_Conv[i] + Res2_Diss[i])*(Res2_Conv[i] + Res2_Diss[i]);
-            RMS[2] += (Res3_Conv[i] + Res3_Diss[i])*(Res3_Conv[i] + Res3_Diss[i]);
-            RMS[3] += (Res4_Conv[i] + Res4_Diss[i])*(Res4_Conv[i] + Res4_Diss[i]);
-            RMS[4] += (Res5_Conv[i] + Res5_Diss[i])*(Res5_Conv[i] + Res5_Diss[i]);
-        }
-        RMS_Res = RMS[0] + RMS[1] + RMS[2] + RMS[3] + RMS[4];
-        RMS_Res = sqrt(RMS_Res/(5.0 * (double)nNode));
-        for (int i = 0; i < NEQUATIONS; i++)
-            RMS[i] = sqrt(RMS[i]/(double)nNode);
-        
-        // Normalize the RMS
-        if (SaveRMS == 0) {
-            scale_RMS_Res = 0.0;
-            for (int i = 0; i < NEQUATIONS; i++) {
-                scale_RMS[i] = RMS[i];
-                scale_RMS_Res += RMS[i];
-            }
-            scale_RMS_Res /= NEQUATIONS;
-            SaveRMS = 1;
-        }
-        for (int i = 0; i < NEQUATIONS; i++)
-            RMS[i] /= scale_RMS[i];
-        RMS_Res /= scale_RMS_Res;
-        
         // Write RMS
-        RMS_Writer(iter+1, RMS);
+        RMS_Res = RMS_Writer(iter+1);
         
         // Check for Residual NAN
         if (isnan(RMS_Res)) {
@@ -545,9 +531,20 @@ int Solver_Steady_Explicit_RungeKutta_Martinelli_Jameson(void) {
                     DeltaT[i]    = 0.0;
                 }
             }
-        
+            
+            // Limit the Solution in Valid Range
+            Material_Limit_Solution();
+            
+            // Smooth the Solution if Required
+            if (SolutionSmooth == TRUE)
+                CogSolver.Smooth_Solution();
+            
             if (iRKS < (RKStage - 1)) {
-                // Compute RESn
+                // Compute RESn    
+                // Compute the Thermodynamic Properties of Changed Physical Nodes
+                // Computation is Required for computation of Transformation Matrix
+                CogSolver.Compute_Bulk_Extended_Properties(0, nNode);
+        
                 // Compute Least Square Gradient -- Unweighted
                 if (SolverOrder == SOLVER_ORDER_SECOND) {
                     Compute_Least_Square_Gradient(0);
@@ -557,7 +554,10 @@ int Solver_Steady_Explicit_RungeKutta_Martinelli_Jameson(void) {
 
                 // Apply boundary conditions
                 Apply_Boundary_Condition(iter);
-
+                
+                // Update the Thermodynamic Properties of Boundary Ghost Nodes
+                CogSolver.Compute_Bulk_Extended_Properties(nNode, nNode+nBNode);
+                
                 // Reset the Residual Smoothing Variables: Required before Residual Computation
                 if (ResidualSmoothMethod != RESIDUAL_SMOOTH_METHOD_NONE)
                     Residual_Smoothing_Reset();

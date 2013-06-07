@@ -1016,9 +1016,9 @@ void Create_Connectivity_Maps(int reOrder) {
         // Create Node2Node Connectivity
         Create_Connectivity_Node2Node();
         // Reorder using Cuthill Mckee Algorithm
-        info("Reodering Nodes to Reduce Bandwidth for Matrix Computations");
+        info("Reordering Nodes to Reduce Bandwidth for Matrix Computations");
         Cuthill_Mckee_Reorder();
-        // Free Memory as they are currupt need to recreate
+        // Free Memory as they are corrupt need to recreate
         for (int n = 0; n < nNode; n++) {
             delete node2Cell[n];
             delete node2Node[n];
@@ -1050,7 +1050,7 @@ void Create_Connectivity_Maps(int reOrder) {
     Create_Connectivity_Node2Edge();
     
     // Verify the Surface Cell Orientation
-    info("Verifing Surface Connectivity");
+    info("Verifying Surface Connectivity");
     Verify_Surface_Connectivity();
 
     // Create Connectivity in CRS format

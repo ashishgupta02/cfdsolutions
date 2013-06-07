@@ -384,7 +384,9 @@ c  one or inputs are outside limits--if just a warning proceed w/ calc
         call ERRMSG (ierrl,herr)
 c  if error (as opposed to warning) set output density to zero and return
       else if (ierrl.gt.0) then
+        write(*,*) "TDETDFLSH2", ierrl, t, D
         write (herr,1007) ierrl,herrl(1:236),hnull
+        write (*,*) ierrl, herrl(1:236)
  1007   format ('[TDETDFLSH2 error',i3,'] ',a236,a1)
         call ERRMSG (ierrl,herr)
         q=999.d0     !quality undefined

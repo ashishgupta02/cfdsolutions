@@ -234,6 +234,26 @@ void EOS_Get_Extended_Properties(int ivDimIOType, int ivVariableType, double *dp
 //------------------------------------------------------------------------------
 //!
 //------------------------------------------------------------------------------
+void EOS_Get_Density_All(int ivDimIOType, int ivVariableType, double *dpVariableIn, double *dpDensityOut) {
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            EOS_IdealGas_Get_Density_All(ivDimIOType, ivVariableType, dpVariableIn, dpDensityOut);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            EOS_NIST_Get_Density_All(ivDimIOType, ivVariableType, dpVariableIn, dpDensityOut);
+            break;
+        default:
+            error("EOS_Get_Density_All:1: Undefined Equation of State Model");
+            break;
+    }
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
 double EOS_Get_Density(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
     double result = 0.0;
     
@@ -258,21 +278,21 @@ double EOS_Get_Density(int ivDimIOType, int ivVariableType, double *dpVariableIn
 //------------------------------------------------------------------------------
 //!
 //------------------------------------------------------------------------------
-double EOS_Get_DensityLiquid(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+double EOS_Get_Density_Liquid(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
     double result = 0.0;
     
     // Setup According to the EOS Model Type
     switch (SogFluidInfo.ivEOSModelType) {
         // Thermally Ideal Gas Model
         case EOS_MODEL_IDEALGAS:
-            result = EOS_IdealGas_Get_DensityLiquid(ivDimIOType, ivVariableType, dpVariableIn);
+            result = EOS_IdealGas_Get_Density_Liquid(ivDimIOType, ivVariableType, dpVariableIn);
             break;
         // Fluid Models provided by NIST
         case EOS_MODEL_NIST:
-            result = EOS_NIST_Get_DensityLiquid(ivDimIOType, ivVariableType, dpVariableIn);
+            result = EOS_NIST_Get_Density_Liquid(ivDimIOType, ivVariableType, dpVariableIn);
             break;
         default:
-            error("EOS_Get_DensityLiquid:1: Undefined Equation of State Model");
+            error("EOS_Get_Density_Liquid:1: Undefined Equation of State Model");
             break;
     }
     
@@ -282,21 +302,21 @@ double EOS_Get_DensityLiquid(int ivDimIOType, int ivVariableType, double *dpVari
 //------------------------------------------------------------------------------
 //!
 //------------------------------------------------------------------------------
-double EOS_Get_DensityVapor(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+double EOS_Get_Density_Vapor(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
     double result = 0.0;
     
     // Setup According to the EOS Model Type
     switch (SogFluidInfo.ivEOSModelType) {
         // Thermally Ideal Gas Model
         case EOS_MODEL_IDEALGAS:
-            result = EOS_IdealGas_Get_DensityVapor(ivDimIOType, ivVariableType, dpVariableIn);
+            result = EOS_IdealGas_Get_Density_Vapor(ivDimIOType, ivVariableType, dpVariableIn);
             break;
         // Fluid Models provided by NIST
         case EOS_MODEL_NIST:
-            result = EOS_NIST_Get_DensityVapor(ivDimIOType, ivVariableType, dpVariableIn);
+            result = EOS_NIST_Get_Density_Vapor(ivDimIOType, ivVariableType, dpVariableIn);
             break;
         default:
-            error("EOS_Get_DensityVapor:1: Undefined Equation of State Model");
+            error("EOS_Get_Density_Vapor:1: Undefined Equation of State Model");
             break;
     }
     
@@ -561,6 +581,30 @@ double EOS_Get_HeatCapacityCp(int ivDimIOType, int ivVariableType, double *dpVar
             break;
         default:
             error("EOS_Get_HeatCapacityCp:1: Undefined Equation of State Model");
+            break;
+    }
+    
+    return result;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
+double EOS_Get_Quality(int ivDimIOType, int ivVariableType, double *dpVariableIn) {
+    double result = 0.0;
+    
+    // Setup According to the EOS Model Type
+    switch (SogFluidInfo.ivEOSModelType) {
+        // Thermally Ideal Gas Model
+        case EOS_MODEL_IDEALGAS:
+            result = EOS_IdealGas_Get_Quality(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        // Fluid Models provided by NIST
+        case EOS_MODEL_NIST:
+            result = EOS_NIST_Get_Quality(ivDimIOType, ivVariableType, dpVariableIn);
+            break;
+        default:
+            error("EOS_Get_Quality:1: Undefined Equation of State Model");
             break;
     }
     
@@ -1244,7 +1288,7 @@ void EOS_Get_Transformation_Matrix(int ivDimIOType, int ivVarTypeIn, double *dpV
                 error("EOS_Get_Transformation_Matrix:28: Not Implemented For EOS_VARIABLE_PUS");
                 break;
             default:
-                error("EOS_Get_Transformation_Matrix:29: Undefined Variable Type - %d - Error-6", ivVarTypeIn);
+                error("EOS_Get_Transformation_Matrix:29: Undefined Variable Type - %d", ivVarTypeIn);
                 break;
         }
     }

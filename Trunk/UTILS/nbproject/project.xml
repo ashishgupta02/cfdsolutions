@@ -29,11 +29,11 @@
                     <type>2</type>
                 </confElem>
                 <confElem>
-                    <name>Release_Intel</name>
+                    <name>Release_Intel_MPI</name>
                     <type>2</type>
                 </confElem>
                 <confElem>
-                    <name>Debug_Intel</name>
+                    <name>Debug_Intel_MPI</name>
                     <type>2</type>
                 </confElem>
                 <confElem>
@@ -50,6 +50,14 @@
                 </confElem>
                 <confElem>
                     <name>Debug_GUPC_ppc64</name>
+                    <type>2</type>
+                </confElem>
+                <confElem>
+                    <name>Release_Intel</name>
+                    <type>2</type>
+                </confElem>
+                <confElem>
+                    <name>Debug_Intel</name>
                     <type>2</type>
                 </confElem>
             </confList>

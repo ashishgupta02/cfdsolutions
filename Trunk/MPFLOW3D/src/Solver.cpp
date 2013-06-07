@@ -20,6 +20,9 @@
 #include "Material.h"
 #include "DebugSolver.h"
 
+// Solver Object
+CSolver CogSolver;
+
 // Local Time
 double *DeltaT;
 double MinDeltaT;
@@ -72,10 +75,6 @@ double *Limiter_Phi2;
 double *Limiter_Phi3;
 double *Limiter_Phi4;
 double *Limiter_Phi5;
-
-//RMS
-double RMS[5];
-double RMS_Res;
 
 // Min and Max EigenValue Value
 double MinEigenLamda1;
@@ -149,14 +148,6 @@ void Solver_Init(void) {
     Limiter_Phi3    = NULL;
     Limiter_Phi4    = NULL;
     Limiter_Phi5    = NULL;
-    
-    // RMS
-    RMS[0]          = 0.0;
-    RMS[1]          = 0.0;
-    RMS[2]          = 0.0;
-    RMS[3]          = 0.0;
-    RMS[4]          = 0.0;
-    RMS_Res         = 0.0;
     
     // Min and Max EigenValue Value
     MinEigenLamda1   = DBL_MAX;
@@ -338,6 +329,9 @@ void Solver_Finalize(void) {
 //------------------------------------------------------------------------------
 void Solver_Set_Initial_Conditions(void) {
 
+    // Create Solver Data Structure
+    CogSolver.Create(nNode + nBNode);
+    
     // Allocate Memory to Store Conservative or Primitive Variables
     Q1 = new double[nNode + nBNode];
     Q2 = new double[nNode + nBNode];
@@ -489,6 +483,9 @@ void Solver_Set_Initial_Conditions(void) {
     
     // Set Boundary Conditions
     Initialize_Boundary_Condition();
+    
+    // Set the Boundary Flags
+    CogSolver.Set_BoundaryFlag();
     
     // Check if Implicit Scheme
     if (SolverScheme == SOLVER_SCHEME_IMPLICIT)

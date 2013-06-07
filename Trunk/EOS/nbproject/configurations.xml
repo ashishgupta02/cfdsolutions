@@ -58,6 +58,7 @@
             <pElem>../MATH/include</pElem>
             <pElem>../</pElem>
           </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
           <preprocessorList>
             <Elem>__linux</Elem>
           </preprocessorList>
@@ -71,12 +72,14 @@
             <pElem>../MATH/include</pElem>
             <pElem>../</pElem>
           </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fpermissive -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
           <preprocessorList>
             <Elem>__linux</Elem>
           </preprocessorList>
           <warningLevel>2</warningLevel>
         </ccTool>
         <fortranCompilerTool>
+          <commandLine>-march=native -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2 -fdefault-double-8 -fdefault-real-8 -I./include</commandLine>
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
         <asmTool>
@@ -121,7 +124,7 @@
               </makeArtifact>
             </linkerLibProjectItem>
           </linkerLibItems>
-          <commandLine>-lgfortran</commandLine>
+          <commandLine>-march=native -lgfortran</commandLine>
         </linkerTool>
       </compileType>
       <item path="include/EOS.h" ex="false" tool="3" flavor2="0">
@@ -172,6 +175,7 @@
             <pElem>../MATH/include</pElem>
             <pElem>../</pElem>
           </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
           <preprocessorList>
             <Elem>__linux</Elem>
           </preprocessorList>
@@ -186,6 +190,7 @@
             <pElem>../MATH/include</pElem>
             <pElem>../</pElem>
           </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fpermissive -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
           <preprocessorList>
             <Elem>__linux</Elem>
           </preprocessorList>
@@ -193,6 +198,7 @@
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
+          <commandLine>-march=native -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2 -fdefault-double-8 -fdefault-real-8 -I./include</commandLine>
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
         <asmTool>
@@ -238,7 +244,7 @@
               </makeArtifact>
             </linkerLibProjectItem>
           </linkerLibItems>
-          <commandLine>-lgfortran</commandLine>
+          <commandLine>-march=native -lgfortran</commandLine>
         </linkerTool>
       </compileType>
       <item path="include/EOS.h" ex="false" tool="3" flavor2="0">
@@ -288,6 +294,7 @@
             <pElem>../MATH/include</pElem>
             <pElem>../</pElem>
           </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
           <preprocessorList>
             <Elem>__linux</Elem>
           </preprocessorList>
@@ -301,12 +308,14 @@
             <pElem>../MATH/include</pElem>
             <pElem>../</pElem>
           </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fpermissive -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
           <preprocessorList>
             <Elem>__linux</Elem>
           </preprocessorList>
           <warningLevel>2</warningLevel>
         </ccTool>
         <fortranCompilerTool>
+          <commandLine>-march=native -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2 -fdefault-double-8 -fdefault-real-8 -I./include</commandLine>
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
         <asmTool>
@@ -351,7 +360,7 @@
               </makeArtifact>
             </linkerLibProjectItem>
           </linkerLibItems>
-          <commandLine>-lgfortran</commandLine>
+          <commandLine>-march=native -lgfortran</commandLine>
         </linkerTool>
       </compileType>
       <item path="include/EOS.h" ex="false" tool="3" flavor2="0">
@@ -402,6 +411,7 @@
             <pElem>../MATH/include</pElem>
             <pElem>../</pElem>
           </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
           <preprocessorList>
             <Elem>__linux</Elem>
           </preprocessorList>
@@ -416,6 +426,7 @@
             <pElem>../MATH/include</pElem>
             <pElem>../</pElem>
           </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fpermissive -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
           <preprocessorList>
             <Elem>__linux</Elem>
           </preprocessorList>
@@ -423,6 +434,7 @@
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
+          <commandLine>-march=native -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2 -fdefault-double-8 -fdefault-real-8 -I./include</commandLine>
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
         <asmTool>
@@ -468,7 +480,479 @@
               </makeArtifact>
             </linkerLibProjectItem>
           </linkerLibItems>
-          <commandLine>-lgfortran</commandLine>
+          <commandLine>-march=native -lgfortran</commandLine>
+        </linkerTool>
+      </compileType>
+      <item path="include/EOS.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Density_Pressure.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Density_Temperature.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_IdealGas.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Internal.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_NIST.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Pressure_Temperature.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/EOS.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_Density_Pressure.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_Density_Temperature.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_IdealGas.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_Internal.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_NIST.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_Pressure_Temperature.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/Test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Debug_Intel_MPI" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>Intel|Intel</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>../NISTThermo/NISTThermo/include</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
+            <pElem>../</pElem>
+          </incDir>
+          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
+          <preprocessorList>
+            <Elem>__linux</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <commandlineTool>icc</commandlineTool>
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>../NISTThermo/NISTThermo/include</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
+            <pElem>../</pElem>
+          </incDir>
+          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
+          <preprocessorList>
+            <Elem>__linux</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <commandlineTool>icc</commandlineTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Debug_Intel_MPI"
+                            AC="false"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Debug_Intel_MPI"
+                            CC="${MAKE}  -f Makefile CONF=Debug_Intel_MPI clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.${CND_DLIB_EXT}">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../MATH"
+                            CT="2"
+                            CN="Debug_Intel_MPI"
+                            AC="false"
+                            BL="true"
+                            WD="../MATH"
+                            BC="${MAKE}  -f Makefile CONF=Debug_Intel_MPI"
+                            CC="${MAKE}  -f Makefile CONF=Debug_Intel_MPI clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.${CND_DLIB_EXT}">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../NISTThermo/NISTThermo"
+                            CT="2"
+                            CN="Debug_Intel_MPI"
+                            AC="false"
+                            BL="true"
+                            WD="../NISTThermo/NISTThermo"
+                            BC="${MAKE}  -f Makefile CONF=Debug_Intel_MPI"
+                            CC="${MAKE}  -f Makefile CONF=Debug_Intel_MPI clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libNISTThermo.${CND_DLIB_EXT}">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+      <item path="include/EOS.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Density_Pressure.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Density_Temperature.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_IdealGas.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Internal.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_NIST.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Pressure_Temperature.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/EOS.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_Density_Pressure.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_Density_Temperature.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_IdealGas.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_Internal.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_NIST.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_Pressure_Temperature.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/Test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Release_Intel_MPI" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>Intel|Intel</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>../NISTThermo/NISTThermo/include</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
+            <pElem>../</pElem>
+          </incDir>
+          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
+          <preprocessorList>
+            <Elem>__linux</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <commandlineTool>icc</commandlineTool>
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>../NISTThermo/NISTThermo/include</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
+            <pElem>../</pElem>
+          </incDir>
+          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
+          <preprocessorList>
+            <Elem>__linux</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <commandlineTool>icc</commandlineTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Release_Intel_MPI"
+                            AC="true"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Release_Intel_MPI"
+                            CC="${MAKE}  -f Makefile CONF=Release_Intel_MPI clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.${CND_DLIB_EXT}">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../MATH"
+                            CT="2"
+                            CN="Release_Intel_MPI"
+                            AC="true"
+                            BL="true"
+                            WD="../MATH"
+                            BC="${MAKE}  -f Makefile CONF=Release_Intel_MPI"
+                            CC="${MAKE}  -f Makefile CONF=Release_Intel_MPI clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.${CND_DLIB_EXT}">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../NISTThermo/NISTThermo"
+                            CT="2"
+                            CN="Release_Intel_MPI"
+                            AC="true"
+                            BL="true"
+                            WD="../NISTThermo/NISTThermo"
+                            BC="${MAKE}  -f Makefile CONF=Release_Intel_MPI"
+                            CC="${MAKE}  -f Makefile CONF=Release_Intel_MPI clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libNISTThermo.${CND_DLIB_EXT}">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+      <item path="include/EOS.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Density_Pressure.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Density_Temperature.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_IdealGas.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Internal.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_NIST.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Pressure_Temperature.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/EOS.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_Density_Pressure.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_Density_Temperature.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_IdealGas.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_Internal.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_NIST.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_Pressure_Temperature.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/Test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Debug_GUPC_ppc64" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GUPC_ppc64|GNU</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>true</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>../NISTThermo/NISTThermo/include</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
+            <pElem>../</pElem>
+          </incDir>
+          <commandLine>-mcpu=powerpc64 -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000</commandLine>
+          <preprocessorList>
+            <Elem>__linux</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>../NISTThermo/NISTThermo/include</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
+            <pElem>../</pElem>
+          </incDir>
+          <commandLine>-mcpu=powerpc64 -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fpermissive -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000</commandLine>
+          <preprocessorList>
+            <Elem>__linux</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <commandLine>-mcpu=powerpc64 -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -fdefault-double-8 -fdefault-real-8 -I./include</commandLine>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../MATH"
+                            CT="2"
+                            CN="Debug_GUPC_ppc64"
+                            AC="false"
+                            BL="true"
+                            WD="../MATH"
+                            BC="${MAKE}  -f Makefile CONF=Debug_GUPC_ppc64"
+                            CC="${MAKE}  -f Makefile CONF=Debug_GUPC_ppc64 clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.${CND_DLIB_EXT}">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Debug_GUPC_ppc64"
+                            AC="false"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Debug_GUPC_ppc64"
+                            CC="${MAKE}  -f Makefile CONF=Debug_GUPC_ppc64 clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.${CND_DLIB_EXT}">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../NISTThermo/NISTThermo"
+                            CT="2"
+                            CN="Debug_GUPC_ppc64"
+                            AC="false"
+                            BL="true"
+                            WD="../NISTThermo/NISTThermo"
+                            BC="${MAKE}  -f Makefile CONF=Debug_GUPC_ppc64"
+                            CC="${MAKE}  -f Makefile CONF=Debug_GUPC_ppc64 clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libNISTThermo.${CND_DLIB_EXT}">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
+          <commandLine>-mcpu=powerpc64 -lgfortran</commandLine>
+        </linkerTool>
+      </compileType>
+      <item path="include/EOS.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Density_Pressure.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Density_Temperature.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_IdealGas.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Internal.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_NIST.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Pressure_Temperature.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/EOS.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_Density_Pressure.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_Density_Temperature.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_IdealGas.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_Internal.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_NIST.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/EOS_Pressure_Temperature.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/Test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Release_GUPC_ppc64" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>GUPC_ppc64|GNU</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>../NISTThermo/NISTThermo/include</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
+            <pElem>../</pElem>
+          </incDir>
+          <commandLine>-mcpu=powerpc64 -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000</commandLine>
+          <preprocessorList>
+            <Elem>__linux</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>../NISTThermo/NISTThermo/include</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
+            <pElem>../</pElem>
+          </incDir>
+          <commandLine>-mcpu=powerpc64 -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fpermissive -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000</commandLine>
+          <preprocessorList>
+            <Elem>__linux</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+          <commandLine>-mcpu=powerpc64 -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -fdefault-double-8 -fdefault-real-8 -I./include</commandLine>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../MATH"
+                            CT="2"
+                            CN="Release_GUPC_ppc64"
+                            AC="false"
+                            BL="true"
+                            WD="../MATH"
+                            BC="${MAKE}  -f Makefile CONF=Release_GUPC_ppc64"
+                            CC="${MAKE}  -f Makefile CONF=Release_GUPC_ppc64 clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.${CND_DLIB_EXT}">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Release_GUPC_ppc64"
+                            AC="false"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Release_GUPC_ppc64"
+                            CC="${MAKE}  -f Makefile CONF=Release_GUPC_ppc64 clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.${CND_DLIB_EXT}">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../NISTThermo/NISTThermo"
+                            CT="2"
+                            CN="Release_GUPC_ppc64"
+                            AC="false"
+                            BL="true"
+                            WD="../NISTThermo/NISTThermo"
+                            BC="${MAKE}  -f Makefile CONF=Release_GUPC_ppc64"
+                            CC="${MAKE}  -f Makefile CONF=Release_GUPC_ppc64 clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libNISTThermo.${CND_DLIB_EXT}">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
+          <commandLine>-mcpu=powerpc64 -lgfortran</commandLine>
         </linkerTool>
       </compileType>
       <item path="include/EOS.h" ex="false" tool="3" flavor2="0">
@@ -507,7 +991,7 @@
         <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>Intel|Intel</compilerSet>
         <dependencyChecking>true</dependencyChecking>
-        <rebuildPropChanged>true</rebuildPropChanged>
+        <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <cTool>
@@ -518,7 +1002,7 @@
             <pElem>../MATH/include</pElem>
             <pElem>../</pElem>
           </incDir>
-          <commandLine>-axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
+          <commandLine>-xhost -parallel -openmp -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
           <preprocessorList>
             <Elem>__linux</Elem>
           </preprocessorList>
@@ -532,13 +1016,14 @@
             <pElem>../MATH/include</pElem>
             <pElem>../</pElem>
           </incDir>
-          <commandLine>-axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
+          <commandLine>-xhost -parallel -openmp -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
           <preprocessorList>
             <Elem>__linux</Elem>
           </preprocessorList>
           <warningLevel>2</warningLevel>
         </ccTool>
         <fortranCompilerTool>
+          <commandLine>-xhost -parallel -openmp</commandLine>
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
         <asmTool>
@@ -546,18 +1031,6 @@
         </asmTool>
         <linkerTool>
           <linkerLibItems>
-            <linkerLibProjectItem>
-              <makeArtifact PL="../MATH"
-                            CT="2"
-                            CN="Debug_Intel"
-                            AC="false"
-                            BL="true"
-                            WD="../MATH"
-                            BC="${MAKE}  -f Makefile CONF=Debug_Intel"
-                            CC="${MAKE}  -f Makefile CONF=Debug_Intel clean"
-                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.${CND_DLIB_EXT}">
-              </makeArtifact>
-            </linkerLibProjectItem>
             <linkerLibProjectItem>
               <makeArtifact PL="../UTILS"
                             CT="2"
@@ -571,10 +1044,22 @@
               </makeArtifact>
             </linkerLibProjectItem>
             <linkerLibProjectItem>
+              <makeArtifact PL="../MATH"
+                            CT="2"
+                            CN="Debug_Intel"
+                            AC="false"
+                            BL="true"
+                            WD="../MATH"
+                            BC="${MAKE}  -f Makefile CONF=Debug_Intel"
+                            CC="${MAKE}  -f Makefile CONF=Debug_Intel clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.${CND_DLIB_EXT}">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
               <makeArtifact PL="../NISTThermo/NISTThermo"
                             CT="2"
                             CN="Debug_Intel"
-                            AC="true"
+                            AC="false"
                             BL="true"
                             WD="../NISTThermo/NISTThermo"
                             BC="${MAKE}  -f Makefile CONF=Debug_Intel"
@@ -633,7 +1118,7 @@
             <pElem>../MATH/include</pElem>
             <pElem>../</pElem>
           </incDir>
-          <commandLine>-axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
+          <commandLine>-xhost -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
           <preprocessorList>
             <Elem>__linux</Elem>
           </preprocessorList>
@@ -648,7 +1133,7 @@
             <pElem>../MATH/include</pElem>
             <pElem>../</pElem>
           </incDir>
-          <commandLine>-axSSE4.2 -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
+          <commandLine>-xhost -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
           <preprocessorList>
             <Elem>__linux</Elem>
           </preprocessorList>
@@ -656,6 +1141,7 @@
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
+          <commandLine>-xhost</commandLine>
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
         <asmTool>
@@ -664,18 +1150,6 @@
         </asmTool>
         <linkerTool>
           <linkerLibItems>
-            <linkerLibProjectItem>
-              <makeArtifact PL="../MATH"
-                            CT="2"
-                            CN="Release_Intel"
-                            AC="false"
-                            BL="true"
-                            WD="../MATH"
-                            BC="${MAKE}  -f Makefile CONF=Release_Intel"
-                            CC="${MAKE}  -f Makefile CONF=Release_Intel clean"
-                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.${CND_DLIB_EXT}">
-              </makeArtifact>
-            </linkerLibProjectItem>
             <linkerLibProjectItem>
               <makeArtifact PL="../UTILS"
                             CT="2"
@@ -686,6 +1160,18 @@
                             BC="${MAKE}  -f Makefile CONF=Release_Intel"
                             CC="${MAKE}  -f Makefile CONF=Release_Intel clean"
                             OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.${CND_DLIB_EXT}">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../MATH"
+                            CT="2"
+                            CN="Release_Intel"
+                            AC="false"
+                            BL="true"
+                            WD="../MATH"
+                            BC="${MAKE}  -f Makefile CONF=Release_Intel"
+                            CC="${MAKE}  -f Makefile CONF=Release_Intel clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.${CND_DLIB_EXT}">
               </makeArtifact>
             </linkerLibProjectItem>
             <linkerLibProjectItem>
@@ -701,236 +1187,6 @@
               </makeArtifact>
             </linkerLibProjectItem>
           </linkerLibItems>
-        </linkerTool>
-      </compileType>
-      <item path="include/EOS.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/EOS_Density_Pressure.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/EOS_Density_Temperature.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/EOS_IdealGas.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/EOS_Internal.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/EOS_NIST.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/EOS_Pressure_Temperature.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="src/EOS.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="src/EOS_Density_Pressure.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="src/EOS_Density_Temperature.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="src/EOS_IdealGas.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="src/EOS_Internal.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="src/EOS_NIST.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="src/EOS_Pressure_Temperature.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="src/Test.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-    </conf>
-    <conf name="Debug_GUPC_ppc64" type="2">
-      <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
-        <compilerSet>GUPC_ppc64|GNU</compilerSet>
-        <dependencyChecking>true</dependencyChecking>
-        <rebuildPropChanged>true</rebuildPropChanged>
-      </toolsSet>
-      <compileType>
-        <cTool>
-          <incDir>
-            <pElem>include</pElem>
-            <pElem>../NISTThermo/NISTThermo/include</pElem>
-            <pElem>../UTILS/include</pElem>
-            <pElem>../MATH/include</pElem>
-            <pElem>../</pElem>
-          </incDir>
-          <preprocessorList>
-            <Elem>__linux</Elem>
-          </preprocessorList>
-          <warningLevel>2</warningLevel>
-        </cTool>
-        <ccTool>
-          <incDir>
-            <pElem>include</pElem>
-            <pElem>../NISTThermo/NISTThermo/include</pElem>
-            <pElem>../UTILS/include</pElem>
-            <pElem>../MATH/include</pElem>
-            <pElem>../</pElem>
-          </incDir>
-          <preprocessorList>
-            <Elem>__linux</Elem>
-          </preprocessorList>
-          <warningLevel>2</warningLevel>
-        </ccTool>
-        <fortranCompilerTool>
-          <warningLevel>2</warningLevel>
-        </fortranCompilerTool>
-        <asmTool>
-          <warningLevel>2</warningLevel>
-        </asmTool>
-        <linkerTool>
-          <linkerLibItems>
-            <linkerLibProjectItem>
-              <makeArtifact PL="../MATH"
-                            CT="2"
-                            CN="Debug_GUPC_ppc64"
-                            AC="false"
-                            BL="true"
-                            WD="../MATH"
-                            BC="${MAKE}  -f Makefile CONF=Debug_GUPC_ppc64"
-                            CC="${MAKE}  -f Makefile CONF=Debug_GUPC_ppc64 clean"
-                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.${CND_DLIB_EXT}">
-              </makeArtifact>
-            </linkerLibProjectItem>
-            <linkerLibProjectItem>
-              <makeArtifact PL="../UTILS"
-                            CT="2"
-                            CN="Debug_GUPC_ppc64"
-                            AC="false"
-                            BL="true"
-                            WD="../UTILS"
-                            BC="${MAKE}  -f Makefile CONF=Debug_GUPC_ppc64"
-                            CC="${MAKE}  -f Makefile CONF=Debug_GUPC_ppc64 clean"
-                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.${CND_DLIB_EXT}">
-              </makeArtifact>
-            </linkerLibProjectItem>
-            <linkerLibProjectItem>
-              <makeArtifact PL="../NISTThermo/NISTThermo"
-                            CT="2"
-                            CN="Debug_GUPC_ppc64"
-                            AC="false"
-                            BL="true"
-                            WD="../NISTThermo/NISTThermo"
-                            BC="${MAKE}  -f Makefile CONF=Debug_GUPC_ppc64"
-                            CC="${MAKE}  -f Makefile CONF=Debug_GUPC_ppc64 clean"
-                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libNISTThermo.${CND_DLIB_EXT}">
-              </makeArtifact>
-            </linkerLibProjectItem>
-          </linkerLibItems>
-          <commandLine>-lgfortran</commandLine>
-        </linkerTool>
-      </compileType>
-      <item path="include/EOS.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/EOS_Density_Pressure.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/EOS_Density_Temperature.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/EOS_IdealGas.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/EOS_Internal.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/EOS_NIST.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/EOS_Pressure_Temperature.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="src/EOS.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="src/EOS_Density_Pressure.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="src/EOS_Density_Temperature.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="src/EOS_IdealGas.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="src/EOS_Internal.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="src/EOS_NIST.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="src/EOS_Pressure_Temperature.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="src/Test.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-    </conf>
-    <conf name="Release_GUPC_ppc64" type="2">
-      <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
-        <compilerSet>GUPC_ppc64|GNU</compilerSet>
-        <dependencyChecking>true</dependencyChecking>
-        <rebuildPropChanged>false</rebuildPropChanged>
-      </toolsSet>
-      <compileType>
-        <cTool>
-          <developmentMode>5</developmentMode>
-          <incDir>
-            <pElem>include</pElem>
-            <pElem>../NISTThermo/NISTThermo/include</pElem>
-            <pElem>../UTILS/include</pElem>
-            <pElem>../MATH/include</pElem>
-            <pElem>../</pElem>
-          </incDir>
-          <preprocessorList>
-            <Elem>__linux</Elem>
-          </preprocessorList>
-          <warningLevel>2</warningLevel>
-        </cTool>
-        <ccTool>
-          <developmentMode>5</developmentMode>
-          <incDir>
-            <pElem>include</pElem>
-            <pElem>../NISTThermo/NISTThermo/include</pElem>
-            <pElem>../UTILS/include</pElem>
-            <pElem>../MATH/include</pElem>
-            <pElem>../</pElem>
-          </incDir>
-          <preprocessorList>
-            <Elem>__linux</Elem>
-          </preprocessorList>
-          <warningLevel>2</warningLevel>
-        </ccTool>
-        <fortranCompilerTool>
-          <developmentMode>5</developmentMode>
-          <warningLevel>2</warningLevel>
-        </fortranCompilerTool>
-        <asmTool>
-          <developmentMode>5</developmentMode>
-          <warningLevel>2</warningLevel>
-        </asmTool>
-        <linkerTool>
-          <linkerLibItems>
-            <linkerLibProjectItem>
-              <makeArtifact PL="../MATH"
-                            CT="2"
-                            CN="Release_GUPC_ppc64"
-                            AC="false"
-                            BL="true"
-                            WD="../MATH"
-                            BC="${MAKE}  -f Makefile CONF=Release_GUPC_ppc64"
-                            CC="${MAKE}  -f Makefile CONF=Release_GUPC_ppc64 clean"
-                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.${CND_DLIB_EXT}">
-              </makeArtifact>
-            </linkerLibProjectItem>
-            <linkerLibProjectItem>
-              <makeArtifact PL="../UTILS"
-                            CT="2"
-                            CN="Release_GUPC_ppc64"
-                            AC="false"
-                            BL="true"
-                            WD="../UTILS"
-                            BC="${MAKE}  -f Makefile CONF=Release_GUPC_ppc64"
-                            CC="${MAKE}  -f Makefile CONF=Release_GUPC_ppc64 clean"
-                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.${CND_DLIB_EXT}">
-              </makeArtifact>
-            </linkerLibProjectItem>
-            <linkerLibProjectItem>
-              <makeArtifact PL="../NISTThermo/NISTThermo"
-                            CT="2"
-                            CN="Release_GUPC_ppc64"
-                            AC="false"
-                            BL="true"
-                            WD="../NISTThermo/NISTThermo"
-                            BC="${MAKE}  -f Makefile CONF=Release_GUPC_ppc64"
-                            CC="${MAKE}  -f Makefile CONF=Release_GUPC_ppc64 clean"
-                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libNISTThermo.${CND_DLIB_EXT}">
-              </makeArtifact>
-            </linkerLibProjectItem>
-          </linkerLibItems>
-          <commandLine>-lgfortran</commandLine>
         </linkerTool>
       </compileType>
       <item path="include/EOS.h" ex="false" tool="3" flavor2="0">
