@@ -621,6 +621,124 @@ void CSolver::Smooth_Solution() {
 //------------------------------------------------------------------------------
 //!
 //------------------------------------------------------------------------------
+void CSolver::Smooth_Solution_Gradient() {
+    double Coeff1, Coeff2;
+    int nid;
+    double *Qx_Old = NULL;
+    double *Qx_New = NULL;
+    double *Qy_Old = NULL;
+    double *Qy_New = NULL;
+    double *Qz_Old = NULL;
+    double *Qz_New = NULL;
+    double *Qswap = NULL;
+    
+    Qx_Old = new double [NEQUATIONS*nNode];
+    Qx_New = new double [NEQUATIONS*nNode];
+    Qy_Old = new double [NEQUATIONS*nNode];
+    Qy_New = new double [NEQUATIONS*nNode];
+    Qz_Old = new double [NEQUATIONS*nNode];
+    Qz_New = new double [NEQUATIONS*nNode];
+    
+    // Get the Old Q's
+    for (int inode = 0; inode < nNode; inode++) {
+        // X
+        Qx_Old[NEQUATIONS*inode + 0] = Q1x[inode];
+        Qx_Old[NEQUATIONS*inode + 1] = Q2x[inode];
+        Qx_Old[NEQUATIONS*inode + 2] = Q3x[inode];
+        Qx_Old[NEQUATIONS*inode + 3] = Q4x[inode];
+        Qx_Old[NEQUATIONS*inode + 4] = Q5x[inode];
+        
+        // Y
+        Qy_Old[NEQUATIONS*inode + 0] = Q1y[inode];
+        Qy_Old[NEQUATIONS*inode + 1] = Q2y[inode];
+        Qy_Old[NEQUATIONS*inode + 2] = Q3y[inode];
+        Qy_Old[NEQUATIONS*inode + 3] = Q4y[inode];
+        Qy_Old[NEQUATIONS*inode + 4] = Q5y[inode];
+        
+        // Z
+        Qz_Old[NEQUATIONS*inode + 0] = Q1z[inode];
+        Qz_Old[NEQUATIONS*inode + 1] = Q2z[inode];
+        Qz_Old[NEQUATIONS*inode + 2] = Q3z[inode];
+        Qz_Old[NEQUATIONS*inode + 3] = Q4z[inode];
+        Qz_Old[NEQUATIONS*inode + 4] = Q5z[inode];
+    }
+    
+    Coeff1 = SolutionSmoothRelaxation;
+    for (int iSmooth = 0; iSmooth < SolutionSmoothNIteration; iSmooth++) {
+        for (int inode = 0; inode < nNode; inode++) {
+            Coeff2 = ((1.0 - Coeff1)/(crs_IA_Node2Node[inode+1] - crs_IA_Node2Node[inode]));
+            // First Term
+            for (int j = 0; j < NEQUATIONS; j++) {
+                Qx_New[NEQUATIONS*inode + j] = Coeff1*Qx_Old[NEQUATIONS*inode + j];
+                Qy_New[NEQUATIONS*inode + j] = Coeff1*Qy_Old[NEQUATIONS*inode + j];
+                Qz_New[NEQUATIONS*inode + j] = Coeff1*Qz_Old[NEQUATIONS*inode + j];
+            }
+            // Second Term
+            for (int i = crs_IA_Node2Node[inode]; i < crs_IA_Node2Node[inode+1]; i++) {
+                nid = crs_JA_Node2Node[i];
+                for (int j = 0; j < NEQUATIONS; j++) {
+                    Qx_New[NEQUATIONS*inode + j] += Coeff2*Qx_Old[NEQUATIONS*nid + j];
+                    Qy_New[NEQUATIONS*inode + j] += Coeff2*Qy_Old[NEQUATIONS*nid + j];
+                    Qz_New[NEQUATIONS*inode + j] += Coeff2*Qz_Old[NEQUATIONS*nid + j];
+                }
+            }
+        }
+        // Swap the New to Old
+        // X
+        Qswap  = Qx_New;
+        Qx_New = Qx_Old;
+        Qx_Old = Qswap; // Old is Now New solution
+        Qswap  = NULL;
+        
+        // Y
+        Qswap  = Qy_New;
+        Qy_New = Qy_Old;
+        Qy_Old = Qswap; // Old is Now New solution
+        Qswap  = NULL;
+        
+        // Z
+        Qswap  = Qz_New;
+        Qz_New = Qz_Old;
+        Qz_Old = Qswap; // Old is Now New solution
+        Qswap  = NULL;
+    }
+
+    // Smooth Solution
+    for (int inode = 0; inode < nNode; inode++) {
+        // X
+        Q1x[inode] = Qx_Old[NEQUATIONS*inode + 0];
+        Q2x[inode] = Qx_Old[NEQUATIONS*inode + 1];
+        Q3x[inode] = Qx_Old[NEQUATIONS*inode + 2];
+        Q4x[inode] = Qx_Old[NEQUATIONS*inode + 3];
+        Q5x[inode] = Qx_Old[NEQUATIONS*inode + 4];
+        
+        // Y
+        Q1y[inode] = Qy_Old[NEQUATIONS*inode + 0];
+        Q2y[inode] = Qy_Old[NEQUATIONS*inode + 1];
+        Q3y[inode] = Qy_Old[NEQUATIONS*inode + 2];
+        Q4y[inode] = Qy_Old[NEQUATIONS*inode + 3];
+        Q5y[inode] = Qy_Old[NEQUATIONS*inode + 4];
+        
+        // Z
+        Q1z[inode] = Qz_Old[NEQUATIONS*inode + 0];
+        Q2z[inode] = Qz_Old[NEQUATIONS*inode + 1];
+        Q3z[inode] = Qz_Old[NEQUATIONS*inode + 2];
+        Q4z[inode] = Qz_Old[NEQUATIONS*inode + 3];
+        Q5z[inode] = Qz_Old[NEQUATIONS*inode + 4];
+    }
+    
+    // Free Memory
+    delete[] Qx_Old;
+    delete[] Qx_New;
+    delete[] Qy_Old;
+    delete[] Qy_New;
+    delete[] Qz_Old;
+    delete[] Qz_New;
+}
+
+//------------------------------------------------------------------------------
+//!
+//------------------------------------------------------------------------------
 void CSolver::Smooth_Stagnation_Solution() {
     double Coeff1, Coeff2;
     int nid;

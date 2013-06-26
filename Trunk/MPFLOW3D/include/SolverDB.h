@@ -141,6 +141,7 @@ public:
     void Compute_Boundary_Nodes_Properties(void);
     void Compute_Boundary_Nodes_Extended_Properties(void);
     void Smooth_Solution(void);
+    void Smooth_Solution_Gradient(void);
     void Smooth_Stagnation_Solution(void);
 };
 

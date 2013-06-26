@@ -530,7 +530,7 @@
             <pElem>../MATH/include</pElem>
             <pElem>../</pElem>
           </incDir>
-          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
+          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -xsse2</commandLine>
           <preprocessorList>
             <Elem>__linux</Elem>
           </preprocessorList>
@@ -545,7 +545,7 @@
             <pElem>../MATH/include</pElem>
             <pElem>../</pElem>
           </incDir>
-          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
+          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -xsse2</commandLine>
           <preprocessorList>
             <Elem>__linux</Elem>
           </preprocessorList>
@@ -647,7 +647,7 @@
             <pElem>../MATH/include</pElem>
             <pElem>../</pElem>
           </incDir>
-          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
+          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -xsse2</commandLine>
           <preprocessorList>
             <Elem>__linux</Elem>
           </preprocessorList>
@@ -663,7 +663,7 @@
             <pElem>../MATH/include</pElem>
             <pElem>../</pElem>
           </incDir>
-          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
+          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -xsse2</commandLine>
           <preprocessorList>
             <Elem>__linux</Elem>
           </preprocessorList>

@@ -157,6 +157,7 @@ int Solver_Steady_Explicit_RungeKutta(void) {
         // Compute Least Square Gradient -- Unweighted
         if (SolverOrder == SOLVER_ORDER_SECOND) {
             Compute_Least_Square_Gradient(0); // Need to be fixed: replace zero with enum type
+            CogSolver.Smooth_Solution_Gradient();
             if (LimiterMethod != LIMITER_METHOD_NONE)
                 Compute_Limiter();
         }
@@ -250,6 +251,7 @@ int Solver_Steady_Explicit_RungeKutta(void) {
                 // Compute Least Square Gradient -- Unweighted
                 if (SolverOrder == SOLVER_ORDER_SECOND) {
                     Compute_Least_Square_Gradient(0);
+                    CogSolver.Smooth_Solution_Gradient();
                     if (LimiterMethod != LIMITER_METHOD_NONE)
                         Compute_Limiter();
                 }
@@ -291,9 +293,9 @@ int Solver_Steady_Explicit_RungeKutta(void) {
         RestartIteration = iter+1;
         Check_Restart(iter);
         
-        if ((RMS_Res < (DBL_EPSILON*10.0))|| ((iter+1) == SolverNIteration)) {
-            iter = SolverNIteration + 1;
-        }
+//        if ((RMS_Res < (DBL_EPSILON*10.0))|| ((iter+1) == SolverNIteration)) {
+//            iter = SolverNIteration + 1;
+//        }
     }
     
     // Check if Solution Restart is Requested
@@ -435,6 +437,7 @@ int Solver_Steady_Explicit_RungeKutta_Martinelli_Jameson(void) {
         // Compute Least Square Gradient -- Unweighted
         if (SolverOrder == SOLVER_ORDER_SECOND) {
             Compute_Least_Square_Gradient(0); // Need to be fixed: replace zero with enum type
+            CogSolver.Smooth_Solution_Gradient();
             if (LimiterMethod != LIMITER_METHOD_NONE)
                 Compute_Limiter();
         }
@@ -548,6 +551,7 @@ int Solver_Steady_Explicit_RungeKutta_Martinelli_Jameson(void) {
                 // Compute Least Square Gradient -- Unweighted
                 if (SolverOrder == SOLVER_ORDER_SECOND) {
                     Compute_Least_Square_Gradient(0);
+                    CogSolver.Smooth_Solution_Gradient();
                     if (LimiterMethod != LIMITER_METHOD_NONE)
                         Compute_Limiter();
                 }

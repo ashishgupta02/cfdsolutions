@@ -600,7 +600,7 @@
             <pElem>include</pElem>
             <pElem>/usr/local/openmpi/include</pElem>
           </incDir>
-          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
+          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -xsse2</commandLine>
           <preprocessorList>
             <Elem>HAVE_MPI</Elem>
           </preprocessorList>
@@ -614,7 +614,7 @@
             <pElem>include</pElem>
             <pElem>/usr/local/openmpi/include</pElem>
           </incDir>
-          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
+          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -xsse2</commandLine>
           <preprocessorList>
             <Elem>HAVE_MPI</Elem>
           </preprocessorList>
@@ -746,7 +746,7 @@
             <pElem>include</pElem>
             <pElem>/usr/local/openmpi/include</pElem>
           </incDir>
-          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
+          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -xsse2</commandLine>
           <preprocessorList>
             <Elem>HAVE_MPI</Elem>
           </preprocessorList>
@@ -759,7 +759,7 @@
             <pElem>include</pElem>
             <pElem>/usr/local/openmpi/include</pElem>
           </incDir>
-          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
+          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -xsse2</commandLine>
           <preprocessorList>
             <Elem>HAVE_MPI</Elem>
           </preprocessorList>

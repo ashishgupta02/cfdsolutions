@@ -480,7 +480,7 @@
           <incDir>
             <pElem>include</pElem>
           </incDir>
-          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
+          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -xsse2</commandLine>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
@@ -488,11 +488,11 @@
           <incDir>
             <pElem>include</pElem>
           </incDir>
-          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
+          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -xsse2</commandLine>
           <warningLevel>2</warningLevel>
         </ccTool>
         <fortranCompilerTool>
-          <commandLine>-fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include</commandLine>
+          <commandLine>-fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include</commandLine>
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
         <asmTool>
@@ -582,7 +582,7 @@
           <incDir>
             <pElem>include</pElem>
           </incDir>
-          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
+          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -xsse2</commandLine>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
@@ -591,12 +591,12 @@
           <incDir>
             <pElem>include</pElem>
           </incDir>
-          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2</commandLine>
+          <commandLine>-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -xsse2</commandLine>
           <warningLevel>2</warningLevel>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
-          <commandLine>-fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include</commandLine>
+          <commandLine>-fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include</commandLine>
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
         <asmTool>

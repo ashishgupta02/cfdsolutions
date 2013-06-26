@@ -116,6 +116,7 @@ int Solver_Steady_Implicit(void) {
         // Compute Least Square Gradient -- Unweighted
         if (SolverOrder == SOLVER_ORDER_SECOND) {
             Compute_Least_Square_Gradient(0);
+            CogSolver.Smooth_Solution_Gradient();
             if (LimiterMethod != LIMITER_METHOD_NONE)
                 Compute_Limiter();
         }
