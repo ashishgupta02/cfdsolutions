@@ -69,14 +69,14 @@ OBJECTFILES= \
 
 
 # C Compiler Flags
-CFLAGS=-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2
+CFLAGS=-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -xsse2
 
 # CC Compiler Flags
-CCFLAGS=-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2
-CXXFLAGS=-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2
+CCFLAGS=-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -xsse2
+CXXFLAGS=-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -xsse2
 
 # Fortran Compiler Flags
-FFLAGS=-fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include
+FFLAGS=-fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include
 
 # Assembler Flags
 ASFLAGS=
@@ -94,127 +94,127 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libNISTThermo.${CND_DLIB_EXT}: ${OBJE
 
 ${OBJECTDIR}/src/cmns.o: src/cmns.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/cmns.o src/cmns.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/cmns.o src/cmns.f
 
 ${OBJECTDIR}/src/core_anc.o: src/core_anc.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/core_anc.o src/core_anc.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/core_anc.o src/core_anc.f
 
 ${OBJECTDIR}/src/core_bwr.o: src/core_bwr.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/core_bwr.o src/core_bwr.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/core_bwr.o src/core_bwr.f
 
 ${OBJECTDIR}/src/core_cpp.o: src/core_cpp.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/core_cpp.o src/core_cpp.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/core_cpp.o src/core_cpp.f
 
 ${OBJECTDIR}/src/core_de.o: src/core_de.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/core_de.o src/core_de.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/core_de.o src/core_de.f
 
 ${OBJECTDIR}/src/core_ecs.o: src/core_ecs.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/core_ecs.o src/core_ecs.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/core_ecs.o src/core_ecs.f
 
 ${OBJECTDIR}/src/core_feq.o: src/core_feq.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/core_feq.o src/core_feq.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/core_feq.o src/core_feq.f
 
 ${OBJECTDIR}/src/core_mlt.o: src/core_mlt.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/core_mlt.o src/core_mlt.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/core_mlt.o src/core_mlt.f
 
 ${OBJECTDIR}/src/core_ph0.o: src/core_ph0.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/core_ph0.o src/core_ph0.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/core_ph0.o src/core_ph0.f
 
 ${OBJECTDIR}/src/core_pr.o: src/core_pr.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/core_pr.o src/core_pr.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/core_pr.o src/core_pr.f
 
 ${OBJECTDIR}/src/core_qui.o: src/core_qui.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/core_qui.o src/core_qui.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/core_qui.o src/core_qui.f
 
 ${OBJECTDIR}/src/core_stn.o: src/core_stn.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/core_stn.o src/core_stn.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/core_stn.o src/core_stn.f
 
 ${OBJECTDIR}/src/flash2.o: src/flash2.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/flash2.o src/flash2.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/flash2.o src/flash2.f
 
 ${OBJECTDIR}/src/flsh_sub.o: src/flsh_sub.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/flsh_sub.o src/flsh_sub.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/flsh_sub.o src/flsh_sub.f
 
 ${OBJECTDIR}/src/idealgas.o: src/idealgas.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/idealgas.o src/idealgas.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/idealgas.o src/idealgas.f
 
 ${OBJECTDIR}/src/mix_aga8.o: src/mix_aga8.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/mix_aga8.o src/mix_aga8.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/mix_aga8.o src/mix_aga8.f
 
 ${OBJECTDIR}/src/mix_hmx.o: src/mix_hmx.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/mix_hmx.o src/mix_hmx.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/mix_hmx.o src/mix_hmx.f
 
 ${OBJECTDIR}/src/nist_extension_mp_pd.o: src/nist_extension_mp_pd.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/nist_extension_mp_pd.o src/nist_extension_mp_pd.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/nist_extension_mp_pd.o src/nist_extension_mp_pd.f
 
 ${OBJECTDIR}/src/nist_extension_mp_td.o: src/nist_extension_mp_td.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/nist_extension_mp_td.o src/nist_extension_mp_td.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/nist_extension_mp_td.o src/nist_extension_mp_td.f
 
 ${OBJECTDIR}/src/nist_extension_pd.o: src/nist_extension_pd.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/nist_extension_pd.o src/nist_extension_pd.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/nist_extension_pd.o src/nist_extension_pd.f
 
 ${OBJECTDIR}/src/nist_extension_td.o: src/nist_extension_td.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/nist_extension_td.o src/nist_extension_td.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/nist_extension_td.o src/nist_extension_td.f
 
 ${OBJECTDIR}/src/prop_sub.o: src/prop_sub.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/prop_sub.o src/prop_sub.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/prop_sub.o src/prop_sub.f
 
 ${OBJECTDIR}/src/realgas.o: src/realgas.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/realgas.o src/realgas.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/realgas.o src/realgas.f
 
 ${OBJECTDIR}/src/sat_sub.o: src/sat_sub.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/sat_sub.o src/sat_sub.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/sat_sub.o src/sat_sub.f
 
 ${OBJECTDIR}/src/setup.o: src/setup.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/setup.o src/setup.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/setup.o src/setup.f
 
 ${OBJECTDIR}/src/setup2.o: src/setup2.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/setup2.o src/setup2.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/setup2.o src/setup2.f
 
 ${OBJECTDIR}/src/trns_ecs.o: src/trns_ecs.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/trns_ecs.o src/trns_ecs.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/trns_ecs.o src/trns_ecs.f
 
 ${OBJECTDIR}/src/trns_tcx.o: src/trns_tcx.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/trns_tcx.o src/trns_tcx.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/trns_tcx.o src/trns_tcx.f
 
 ${OBJECTDIR}/src/trns_vis.o: src/trns_vis.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/trns_vis.o src/trns_vis.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/trns_vis.o src/trns_vis.f
 
 ${OBJECTDIR}/src/trnsp.o: src/trnsp.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/trnsp.o src/trnsp.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/trnsp.o src/trnsp.f
 
 ${OBJECTDIR}/src/utility.o: src/utility.f 
 	${MKDIR} -p ${OBJECTDIR}/src
-	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -mfpmath=sse -msse2 -fast -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/utility.o src/utility.f
+	$(COMPILE.f) -O2 -Wall -fno-math-errno -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -xsse2 -r8 -I./include -fPIC  -o ${OBJECTDIR}/src/utility.o src/utility.f
 
 # Subprojects
 .build-subprojects:

@@ -352,7 +352,7 @@ void Restart_Reader(const char* filename) {
             Q2[inode] = Q[1]*IOConversion[1];
             Q3[inode] = Q[2]*IOConversion[2];
             Q4[inode] = Q[3]*IOConversion[3];
-            Q[4] = Q[4]*Inf_Pressure;
+            //Q[4] = Q[4]*Inf_Pressure;
             Q5[inode] = (Q[4] - Gauge_Pressure)*IOConversion[4];
         }
     }
