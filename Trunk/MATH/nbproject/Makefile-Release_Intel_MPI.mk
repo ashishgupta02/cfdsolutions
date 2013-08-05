@@ -15,8 +15,8 @@ NM=nm
 CCADMIN=CCadmin
 RANLIB=ranlib
 CC=icc
-CCC=icc
-CXX=icc
+CCC=icpc
+CXX=icpc
 FC=ifort
 AS=as
 
@@ -45,20 +45,20 @@ OBJECTFILES= \
 
 
 # C Compiler Flags
-CFLAGS=-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -xsse2
+CFLAGS=-fast -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -funroll-all-loops -finline-limit=150000
 
 # CC Compiler Flags
-CCFLAGS=-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -xsse2
-CXXFLAGS=-Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -xsse2
+CCFLAGS=-fast -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000
+CXXFLAGS=-fast -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000
 
 # Fortran Compiler Flags
-FFLAGS=
+FFLAGS=-fast
 
 # Assembler Flags
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-L/usr/local/openmpi/lib -Wl,-rpath,../UTILS/dist/Release_Intel_MPI/Intel-Linux-x86 -L../UTILS/dist/Release_Intel_MPI/Intel-Linux-x86 -lUTILS
+LDLIBSOPTIONS=-L/apps/HPC_LIBS/lib -Wl,-rpath,../UTILS/dist/Release_Intel_MPI/Intel-Linux-x86 -L../UTILS/dist/Release_Intel_MPI/Intel-Linux-x86 -lUTILS
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -68,42 +68,42 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.${CND_DLIB_EXT}: ../UTILS/dis
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.${CND_DLIB_EXT}: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	icc -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -lmpi -shared -fPIC
+	icpc -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -lmpi -shared -fPIC
 
 ${OBJECTDIR}/src/LinearAlgebra.o: src/LinearAlgebra.c 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.c) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -Iinclude -I/usr/local/openmpi/include -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -xsse2 -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/LinearAlgebra.o src/LinearAlgebra.c
+	$(COMPILE.c) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -Iinclude -I/apps/HPC_LIBS/include -fast -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/LinearAlgebra.o src/LinearAlgebra.c
 
 ${OBJECTDIR}/src/MC_Iterative_Jacobi.o: src/MC_Iterative_Jacobi.c 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.c) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -Iinclude -I/usr/local/openmpi/include -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -xsse2 -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MC_Iterative_Jacobi.o src/MC_Iterative_Jacobi.c
+	$(COMPILE.c) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -Iinclude -I/apps/HPC_LIBS/include -fast -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -funroll-all-loops -finline-limit=150000 -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/MC_Iterative_Jacobi.o src/MC_Iterative_Jacobi.c
 
 ${OBJECTDIR}/src/ParallelLinearAlgebra.o: src/ParallelLinearAlgebra.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -Iinclude -I/usr/local/openmpi/include -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -xsse2 -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/ParallelLinearAlgebra.o src/ParallelLinearAlgebra.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -Iinclude -I/apps/HPC_LIBS/include -fast -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/ParallelLinearAlgebra.o src/ParallelLinearAlgebra.cpp
 
 ${OBJECTDIR}/src/Point2D.o: src/Point2D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -Iinclude -I/usr/local/openmpi/include -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -xsse2 -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Point2D.o src/Point2D.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -Iinclude -I/apps/HPC_LIBS/include -fast -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Point2D.o src/Point2D.cpp
 
 ${OBJECTDIR}/src/Point3D.o: src/Point3D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -Iinclude -I/usr/local/openmpi/include -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -xsse2 -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Point3D.o src/Point3D.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -Iinclude -I/apps/HPC_LIBS/include -fast -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Point3D.o src/Point3D.cpp
 
 ${OBJECTDIR}/src/Vector2D.o: src/Vector2D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -Iinclude -I/usr/local/openmpi/include -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -xsse2 -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Vector2D.o src/Vector2D.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -Iinclude -I/apps/HPC_LIBS/include -fast -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Vector2D.o src/Vector2D.cpp
 
 ${OBJECTDIR}/src/Vector3D.o: src/Vector3D.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} $@.d
-	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -Iinclude -I/usr/local/openmpi/include -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -xsse2 -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Vector3D.o src/Vector3D.cpp
+	$(COMPILE.cc) -O2 -Wall -DHAVE_MPI -I.. -I../UTILS/include -Iinclude -I/apps/HPC_LIBS/include -fast -Wno-write-strings -fno-math-errno -fstrict-aliasing -fomit-frame-pointer -fpermissive -funroll-all-loops -finline-limit=150000 -fPIC  -MMD -MP -MF $@.d -o ${OBJECTDIR}/src/Vector3D.o src/Vector3D.cpp
 
 # Subprojects
 .build-subprojects:

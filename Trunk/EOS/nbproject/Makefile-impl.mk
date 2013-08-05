@@ -27,11 +27,11 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 PROJECTNAME=EOS
 
 # Active Configuration
-DEFAULTCONF=Debug
+DEFAULTCONF=Release
 CONF=${DEFAULTCONF}
 
 # All Configurations
-ALLCONFS=Debug Release Debug_GUPC_x86_64 Release_GUPC_x86_64 Debug_Intel_MPI Release_Intel_MPI Debug_GUPC_ppc64 Release_GUPC_ppc64 Debug_Intel Release_Intel 
+ALLCONFS=Release Debug Release_Intel Debug_Intel Release_Intel_MPI Debug_Intel_MPI Release_GUPC_x86_64 Debug_GUPC_x86_64 Release_GUPC_ppc64 Debug_GUPC_ppc64 
 
 
 # build
