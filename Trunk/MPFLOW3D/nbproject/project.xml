@@ -28,11 +28,11 @@
                     <type>1</type>
                 </confElem>
                 <confElem>
-                    <name>Release_Cygwin</name>
+                    <name>Release_Intel</name>
                     <type>1</type>
                 </confElem>
                 <confElem>
-                    <name>Debug_Cygwin</name>
+                    <name>Debug_Intel</name>
                     <type>1</type>
                 </confElem>
                 <confElem>
@@ -60,11 +60,11 @@
                     <type>1</type>
                 </confElem>
                 <confElem>
-                    <name>Release_Intel</name>
+                    <name>Release_Cygwin</name>
                     <type>1</type>
                 </confElem>
                 <confElem>
-                    <name>Debug_Intel</name>
+                    <name>Debug_Cygwin</name>
                     <type>1</type>
                 </confElem>
             </confList>
