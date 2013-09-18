@@ -1420,6 +1420,7 @@
             <pElem>..</pElem>
             <pElem>include</pElem>
           </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
@@ -1428,16 +1429,20 @@
             <pElem>..</pElem>
             <pElem>include</pElem>
           </incDir>
-          <commandLine>-Wno-write-strings</commandLine>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
           <warningLevel>2</warningLevel>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
+          <commandLine>-march=native -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2 -fdefault-double-8 -fdefault-real-8 -I./include</commandLine>
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
         <asmTool>
           <warningLevel>2</warningLevel>
         </asmTool>
+        <linkerTool>
+          <commandLine>-march=native</commandLine>
+        </linkerTool>
       </compileType>
       <item path="include/Check_Malloc.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1547,6 +1552,7 @@
             <pElem>..</pElem>
             <pElem>include</pElem>
           </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
           <warningLevel>2</warningLevel>
         </cTool>
         <ccTool>
@@ -1554,15 +1560,19 @@
             <pElem>..</pElem>
             <pElem>include</pElem>
           </incDir>
-          <commandLine>-Wno-write-strings</commandLine>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fpermissive -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
           <warningLevel>2</warningLevel>
         </ccTool>
         <fortranCompilerTool>
+          <commandLine>-march=native -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2 -fdefault-double-8 -fdefault-real-8 -I./include</commandLine>
           <warningLevel>2</warningLevel>
         </fortranCompilerTool>
         <asmTool>
           <warningLevel>2</warningLevel>
         </asmTool>
+        <linkerTool>
+          <commandLine>-march=native</commandLine>
+        </linkerTool>
       </compileType>
       <item path="include/Check_Malloc.h" ex="false" tool="3" flavor2="0">
       </item>

@@ -89,19 +89,19 @@ CND_PACKAGE_PATH_Debug_GUPC_ppc64=dist/Debug_GUPC_ppc64/GUPC_ppc64-Linux-x86/pac
 # Release_Cygwin configuration
 CND_PLATFORM_Release_Cygwin=Cygwin_4.x-Windows
 CND_ARTIFACT_DIR_Release_Cygwin=dist/Release_Cygwin/Cygwin_4.x-Windows
-CND_ARTIFACT_NAME_Release_Cygwin=euler3d
-CND_ARTIFACT_PATH_Release_Cygwin=dist/Release_Cygwin/Cygwin_4.x-Windows/euler3d
+CND_ARTIFACT_NAME_Release_Cygwin=mpflow3d
+CND_ARTIFACT_PATH_Release_Cygwin=dist/Release_Cygwin/Cygwin_4.x-Windows/mpflow3d
 CND_PACKAGE_DIR_Release_Cygwin=dist/Release_Cygwin/Cygwin_4.x-Windows/package
-CND_PACKAGE_NAME_Release_Cygwin=euler3d.tar
-CND_PACKAGE_PATH_Release_Cygwin=dist/Release_Cygwin/Cygwin_4.x-Windows/package/euler3d.tar
+CND_PACKAGE_NAME_Release_Cygwin=mpflow3d.tar
+CND_PACKAGE_PATH_Release_Cygwin=dist/Release_Cygwin/Cygwin_4.x-Windows/package/mpflow3d.tar
 # Debug_Cygwin configuration
 CND_PLATFORM_Debug_Cygwin=Cygwin_4.x-Windows
 CND_ARTIFACT_DIR_Debug_Cygwin=dist/Debug_Cygwin/Cygwin_4.x-Windows
-CND_ARTIFACT_NAME_Debug_Cygwin=euler3d
-CND_ARTIFACT_PATH_Debug_Cygwin=dist/Debug_Cygwin/Cygwin_4.x-Windows/euler3d
+CND_ARTIFACT_NAME_Debug_Cygwin=mpflow3d
+CND_ARTIFACT_PATH_Debug_Cygwin=dist/Debug_Cygwin/Cygwin_4.x-Windows/mpflow3d
 CND_PACKAGE_DIR_Debug_Cygwin=dist/Debug_Cygwin/Cygwin_4.x-Windows/package
-CND_PACKAGE_NAME_Debug_Cygwin=euler3d.tar
-CND_PACKAGE_PATH_Debug_Cygwin=dist/Debug_Cygwin/Cygwin_4.x-Windows/package/euler3d.tar
+CND_PACKAGE_NAME_Debug_Cygwin=mpflow3d.tar
+CND_PACKAGE_PATH_Debug_Cygwin=dist/Debug_Cygwin/Cygwin_4.x-Windows/package/mpflow3d.tar
 #
 # include compiler specific variables
 #
