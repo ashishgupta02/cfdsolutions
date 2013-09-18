@@ -10,11 +10,12 @@ CND_PLATFORM=Cygwin_4.x-Windows
 CND_CONF=Debug_Cygwin
 CND_DISTDIR=dist
 CND_BUILDDIR=build
+CND_DLIB_EXT=dll
 NBTMPDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}/tmp-packaging
 TMPDIRNAME=tmp-packaging
-OUTPUT_PATH=${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/euler3d
-OUTPUT_BASENAME=euler3d
-PACKAGE_TOP_DIR=euler3d/
+OUTPUT_PATH=${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/mpflow3d
+OUTPUT_BASENAME=mpflow3d
+PACKAGE_TOP_DIR=mpflow3d/
 
 # Functions
 function checkReturnCode
@@ -59,15 +60,15 @@ mkdir -p ${NBTMPDIR}
 
 # Copy files and create directories and links
 cd "${TOP}"
-makeDirectory "${NBTMPDIR}/euler3d/bin"
+makeDirectory "${NBTMPDIR}/mpflow3d/bin"
 copyFileToTmpDir "${OUTPUT_PATH}.exe" "${NBTMPDIR}/${PACKAGE_TOP_DIR}bin/${OUTPUT_BASENAME}.exe" 0755
 
 
 # Generate tar file
 cd "${TOP}"
-rm -f ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/package/euler3d.tar
+rm -f ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/package/mpflow3d.tar
 cd ${NBTMPDIR}
-tar -vcf ../../../../${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/package/euler3d.tar *
+tar -vcf ../../../../${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/package/mpflow3d.tar *
 checkReturnCode
 
 # Cleanup

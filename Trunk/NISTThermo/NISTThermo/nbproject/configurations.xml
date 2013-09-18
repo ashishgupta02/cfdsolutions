@@ -1082,5 +1082,209 @@
       <item path="src/utility.f" ex="false" tool="2" flavor2="0">
       </item>
     </conf>
+    <conf name="Release_Cygwin" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>Cygwin_4.x|Cygwin_4.x</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>include</pElem>
+          </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fpermissive -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>include</pElem>
+          </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fpermissive -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+          <commandLine>-march=native -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2 -fdefault-double-8 -fdefault-real-8 -I./include</commandLine>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <commandLine>-march=native</commandLine>
+        </linkerTool>
+      </compileType>
+      <item path="include/NISTThermo.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/NISTThermo_Extension.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/cmns.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/core_anc.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/core_bwr.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/core_cpp.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/core_de.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/core_ecs.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/core_feq.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/core_mlt.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/core_ph0.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/core_pr.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/core_qui.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/core_stn.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/flash2.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/flsh_sub.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/idealgas.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/mix_aga8.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/mix_hmx.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/nist_extension_mp_pd.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/nist_extension_mp_td.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/nist_extension_pd.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/nist_extension_td.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/prop_sub.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/realgas.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/sat_sub.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/setup.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/setup2.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/trns_ecs.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/trns_tcx.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/trns_vis.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/trnsp.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/utility.f" ex="false" tool="2" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Debug_Cygwin" type="2">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>Cygwin_4.x|Cygwin_4.x</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <incDir>
+            <pElem>include</pElem>
+          </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fpermissive -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <incDir>
+            <pElem>include</pElem>
+          </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fpermissive -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <commandLine>-march=native -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2 -fdefault-double-8 -fdefault-real-8 -I./include</commandLine>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <commandLine>-march=native</commandLine>
+        </linkerTool>
+      </compileType>
+      <item path="include/NISTThermo.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/NISTThermo_Extension.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/cmns.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/core_anc.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/core_bwr.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/core_cpp.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/core_de.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/core_ecs.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/core_feq.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/core_mlt.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/core_ph0.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/core_pr.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/core_qui.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/core_stn.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/flash2.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/flsh_sub.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/idealgas.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/mix_aga8.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/mix_hmx.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/nist_extension_mp_pd.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/nist_extension_mp_td.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/nist_extension_pd.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/nist_extension_td.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/prop_sub.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/realgas.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/sat_sub.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/setup.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/setup2.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/trns_ecs.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/trns_tcx.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/trns_vis.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/trnsp.f" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="src/utility.f" ex="false" tool="2" flavor2="0">
+      </item>
+    </conf>
   </confs>
 </configurationDescriptor>

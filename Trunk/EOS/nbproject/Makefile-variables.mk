@@ -86,6 +86,22 @@ CND_ARTIFACT_PATH_Debug_GUPC_ppc64=dist/Debug_GUPC_ppc64/GUPC_ppc64-Linux-x86/li
 CND_PACKAGE_DIR_Debug_GUPC_ppc64=dist/Debug_GUPC_ppc64/GUPC_ppc64-Linux-x86/package
 CND_PACKAGE_NAME_Debug_GUPC_ppc64=libEOS.so.tar
 CND_PACKAGE_PATH_Debug_GUPC_ppc64=dist/Debug_GUPC_ppc64/GUPC_ppc64-Linux-x86/package/libEOS.so.tar
+# Release_Cygwin configuration
+CND_PLATFORM_Release_Cygwin=Cygwin_4.x-Windows
+CND_ARTIFACT_DIR_Release_Cygwin=dist/Release_Cygwin/Cygwin_4.x-Windows
+CND_ARTIFACT_NAME_Release_Cygwin=libEOS.dll
+CND_ARTIFACT_PATH_Release_Cygwin=dist/Release_Cygwin/Cygwin_4.x-Windows/libEOS.dll
+CND_PACKAGE_DIR_Release_Cygwin=dist/Release_Cygwin/Cygwin_4.x-Windows/package
+CND_PACKAGE_NAME_Release_Cygwin=libEOS.dll.tar
+CND_PACKAGE_PATH_Release_Cygwin=dist/Release_Cygwin/Cygwin_4.x-Windows/package/libEOS.dll.tar
+# Debug_Cygwin configuration
+CND_PLATFORM_Debug_Cygwin=Cygwin_4.x-Windows
+CND_ARTIFACT_DIR_Debug_Cygwin=dist/Debug_Cygwin/Cygwin_4.x-Windows
+CND_ARTIFACT_NAME_Debug_Cygwin=libEOS.dll
+CND_ARTIFACT_PATH_Debug_Cygwin=dist/Debug_Cygwin/Cygwin_4.x-Windows/libEOS.dll
+CND_PACKAGE_DIR_Debug_Cygwin=dist/Debug_Cygwin/Cygwin_4.x-Windows/package
+CND_PACKAGE_NAME_Debug_Cygwin=libEOS.dll.tar
+CND_PACKAGE_PATH_Debug_Cygwin=dist/Debug_Cygwin/Cygwin_4.x-Windows/package/libEOS.dll.tar
 #
 # include compiler specific variables
 #
