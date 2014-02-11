@@ -33,12 +33,12 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 #ifndef __Read_CGNS_H__
 #define __Read_CGNS_H__
 
-int Read (const char *file);
-int Info (const char *file);
+int Read(const char *file);
+int Info(const char *file);
 
 #endif

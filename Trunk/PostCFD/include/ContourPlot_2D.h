@@ -33,11 +33,11 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 #ifndef __ContourPlot_2D_H__
 #define __ContourPlot_2D_H__
 
-int CreateContourPlot_2D (int, int);
-void ContourPlot_2D (void);
+int CreateContourPlot_2D(int, int);
+void ContourPlot_2D(void);
 #endif

@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 /* User Defined */
 #include "Global.h"
@@ -52,141 +52,140 @@
  * Post-Analysis of CFD Data
  * Developed only for CFD-Tutor with single base - single zone 2D
  * -------------------------------------------------------------*/
-int PostProcessing (const char *file) {
-	int visual;
-	int nbases, ncoords, celldim, phydim;
-	char basename[33];
-	ZONE *z;
-	int i, j, nz;
-	SOLUTION *s;
+int PostProcessing(const char *file) {
+    int visual;
+    int nbases, ncoords, celldim, phydim;
+    char basename[33];
+    ZONE *z;
+    int i, j, nz;
+    SOLUTION *s;
 
-	/* Checks for existance of file */
-	if (!file_exists(file))
-		FATAL (NULL, "File does not exist");
-	
-	/* Read CGNS file */
-	printf ("Reading CGNS file from %s\n", file);
-	fflush (stdout);
-	
-	/* Open CGNS File */
-	nbases = open_cgns (file, 0);
-	if (!nbases)
-		FATAL (NULL, "No bases in CGNS file");
+    /* Checks for existance of file */
+    if (!file_exists(file))
+        FATAL(NULL, "File does not exist");
 
-	cg_version (cgnsfn, &Version);
-	printf("File version = %lf\n", Version);
+    /* Read CGNS file */
+    printf("Reading CGNS file from %s\n", file);
+    fflush(stdout);
 
-	printf("No of Bases = %d\n", nbases);
+    /* Open CGNS File */
+    nbases = open_cgns(file, 0);
+    if (!nbases)
+        FATAL(NULL, "No bases in CGNS file");
 
-	if (nbases == 1)
-		cgnsbase = 1;
-	else {
-		printf ("Give base No to Post-Processed : ");
-		scanf ("%d", &cgnsbase);
+    cg_version(cgnsfn, &Version);
+    printf("File version = %lf\n", Version);
 
-		if (cgnsbase < 1 || cgnsbase > nbases)
-			FATAL (NULL, "Invailed base index");
-	}
+    printf("No of Bases = %d\n", nbases);
 
-	if (cg_base_read (cgnsfn, cgnsbase, basename, &celldim, &phydim) ||
-		cg_nzones (cgnsfn, cgnsbase, &nZones))
-		FATAL(NULL, NULL);
-	
-	if (celldim != 2 || phydim != 2)
-		FATAL (NULL, "Not A 2D Grid");
-	
-	if (nZones > 1) 
-		FATAL (NULL, "Not A Single Zone");
-	
+    if (nbases == 1)
+        cgnsbase = 1;
+    else {
+        printf("Give base No to Post-Processed : ");
+        scanf("%d", &cgnsbase);
 
-	printf ("Base Number = %d\n", cgnsbase);
-	printf ("Base Name = %s\n", basename);
-	printf ("Cell Dimension = %d\n", celldim);
-	printf ("Physical Dimension = %d\n", phydim);
+        if (cgnsbase < 1 || cgnsbase > nbases)
+            FATAL(NULL, "Invailed base index");
+    }
 
-	read_cgns ();
-	
-	printf ("No of Zones = %d\n", nZones);
-	
-	/* Print Zone Information */
-	for (z = Zones, nz = 1; nz <= nZones; nz++, z++) {
-		printf ("Zone No = %d\n", z->id);
-		printf ("Zone Name = %s\n", z->name);
-		if (cg_ncoords (cgnsfn, cgnsbase, nz, &ncoords))
-			FATAL ("Post-Processing ncoords", NULL);
-		if(ncoords != 2)
-			FATAL (NULL, "No 3D Support Now"); 
+    if (cg_base_read(cgnsfn, cgnsbase, basename, &celldim, &phydim) ||
+            cg_nzones(cgnsfn, cgnsbase, &nZones))
+        FATAL(NULL, NULL);
 
-		print_ZoneType (z->type);
-		switch (z->type) {
-			case 2:
-				/* For Structured Grid */
-				printf ("Dimensions = %d x %d x %d\n",z->dim[0], z->dim[1], z->dim[2]);
-				break;
-			case 3:
-				/* For Unstructured Grid */
-				printf ("No of Nodes = %d\n", z->dim[0]);
-				printf ("No of Cells = %d\n", z->dim[1]);
-				break;
-			default:
-				/* Unknown Type Grids */
-				FATAL(NULL,"Unknown Grid Type");
-		}
-	}
-	
-	/* Print Available Solution Fields */
-	for (z = Zones, nz = 1; nz <= nZones; nz++, z++) {
-		if (z->nsols) {
-			printf ("No of Solutions Nodes = %d\n", z->nsols);
-			for (s = z->sols, i = 1; i <= z->nsols; i++, s++) {
-				printf("Solution Node = %d\n", i);
-				
-				if(s->nflds == 0)
-					FATAL(NULL,"No Solution Fields: Exiting");
-					
-				printf("\tNo of Fields = %d\n", s->nflds);
-				for (j = 0; j < s->nflds; j++) {
-					printf("\tField = %s\n", s->flds[j].name);
-				}
-			}
-		}
-		else
-			FATAL(NULL,"No Solution Node Available: Exiting");
-	}
-		
-	/* Initialize Data Structure Only Once */
-	for (z = Zones, nz = 1; nz <= nZones; nz++, z++)
-		InitializeGrid_2D(z);
-	
+    if (celldim != 2 || phydim != 2)
+        FATAL(NULL, "Not A 2D Grid");
 
-	/* Do Post-Processing Operation Below */
-	/*****************/
-	
-	/* Post Analysis Function Calls */
-	for (z = Zones, nz = 1; nz <= nZones; nz++, z++) {
-		InitializeSolutionCGNS_2D(z);
-		InitializeSolution_2D();
-		GetSolutionList_2D();
-			
-		/* Visual Mode Option */
-		printf("Goto Visual Mode (0/1):");
-		scanf("%d", &visual);
-		
-		if (visual == 1)
-			Graphics_2D();
-		else {
-			GetFluidProperties();
-			GetReferenceQuantities();
-			PostAnalysis_2D();
-		}	
-	}
-	
-	/*****************/
-	/* Do Post-Processing Operation Above */
-		
-	/* Close cgns Interface */
-	if (cg_close (cgnsfn))
-		FATAL (NULL, NULL);
+    if (nZones > 1)
+        FATAL(NULL, "Not A Single Zone");
 
-	return 0;
+
+    printf("Base Number = %d\n", cgnsbase);
+    printf("Base Name = %s\n", basename);
+    printf("Cell Dimension = %d\n", celldim);
+    printf("Physical Dimension = %d\n", phydim);
+
+    read_cgns();
+
+    printf("No of Zones = %d\n", nZones);
+
+    /* Print Zone Information */
+    for (z = Zones, nz = 1; nz <= nZones; nz++, z++) {
+        printf("Zone No = %d\n", z->id);
+        printf("Zone Name = %s\n", z->name);
+        if (cg_ncoords(cgnsfn, cgnsbase, nz, &ncoords))
+            FATAL("Post-Processing ncoords", NULL);
+        if (ncoords != 2)
+            FATAL(NULL, "No 3D Support Now");
+
+        print_ZoneType(z->type);
+        switch (z->type) {
+            case 2:
+                /* For Structured Grid */
+                printf("Dimensions = %d x %d x %d\n", z->dim[0], z->dim[1], z->dim[2]);
+                break;
+            case 3:
+                /* For Unstructured Grid */
+                printf("No of Nodes = %d\n", z->dim[0]);
+                printf("No of Cells = %d\n", z->dim[1]);
+                break;
+            default:
+                /* Unknown Type Grids */
+                FATAL(NULL, "Unknown Grid Type");
+        }
+    }
+
+    /* Print Available Solution Fields */
+    for (z = Zones, nz = 1; nz <= nZones; nz++, z++) {
+        if (z->nsols) {
+            printf("No of Solutions Nodes = %d\n", z->nsols);
+            for (s = z->sols, i = 1; i <= z->nsols; i++, s++) {
+                printf("Solution Node = %d\n", i);
+
+                if (s->nflds == 0)
+                    FATAL(NULL, "No Solution Fields: Exiting");
+
+                printf("\tNo of Fields = %d\n", s->nflds);
+                for (j = 0; j < s->nflds; j++) {
+                    printf("\tField = %s\n", s->flds[j].name);
+                }
+            }
+        } else
+            FATAL(NULL, "No Solution Node Available: Exiting");
+    }
+
+    /* Initialize Data Structure Only Once */
+    for (z = Zones, nz = 1; nz <= nZones; nz++, z++)
+        InitializeGrid_2D(z);
+
+
+    /* Do Post-Processing Operation Below */
+    /*****************/
+
+    /* Post Analysis Function Calls */
+    for (z = Zones, nz = 1; nz <= nZones; nz++, z++) {
+        InitializeSolutionCGNS_2D(z);
+        InitializeSolution_2D();
+        GetSolutionList_2D();
+
+        /* Visual Mode Option */
+        printf("Goto Visual Mode (0/1):");
+        scanf("%d", &visual);
+
+        if (visual == 1)
+            Graphics_2D();
+        else {
+            GetFluidProperties();
+            GetReferenceQuantities();
+            PostAnalysis_2D();
+        }
+    }
+
+    /*****************/
+    /* Do Post-Processing Operation Above */
+
+    /* Close cgns Interface */
+    if (cg_close(cgnsfn))
+        FATAL(NULL, NULL);
+
+    return 0;
 }

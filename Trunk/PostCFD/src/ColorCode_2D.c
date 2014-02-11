@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 /* User Defined */
 #include "Global.h"
@@ -47,36 +47,37 @@ double Blue[256];
 static int colorflag = 0;
 
 /*--------------------------------------------------------------*/
+
 /* Color Varies From:
-	Blue -> Blue + Green
-	Blue + Green -> Green + Red
-	Green + Red -> Red
-*/
-void ColorEncode_2D (void) {
-	int i, tmp;
-	
-	if (colorflag == 0 ) {
-		tmp = (ColorRange - 1)/3;
-		/* Blue -> Blue + Green */
-		for (i = 0; i <= tmp; i++) {
-			Red[i]   = 0.0;
-			Green[i] = ((double)i)/((double)tmp);
-			Blue[i]  = 1.0;
-		}
-		
-		/* Blue + Green -> Green + Red */
-		for (i = 0; i <= tmp; i++) {
-			Red[tmp+i]   = ((double)i)/((double)tmp);
-			Green[tmp+i] = 1.0;
-			Blue[tmp+i]  = ((double)(tmp-i))/((double)tmp);
-		}
-		
-		/* Green + Red -> Red */
-		for(i = 0; i <= tmp; i++) {
-			Red[2*tmp+i]   = 1;
-			Green[2*tmp+i] = ((double)(tmp-i))/((double)tmp);
-			Blue[2*tmp+i]  = 0;
-		}
-		colorflag = 1;
-	}
+        Blue -> Blue + Green
+        Blue + Green -> Green + Red
+        Green + Red -> Red
+ */
+void ColorEncode_2D(void) {
+    int i, tmp;
+
+    if (colorflag == 0) {
+        tmp = (ColorRange - 1) / 3;
+        /* Blue -> Blue + Green */
+        for (i = 0; i <= tmp; i++) {
+            Red[i] = 0.0;
+            Green[i] = ((double) i) / ((double) tmp);
+            Blue[i] = 1.0;
+        }
+
+        /* Blue + Green -> Green + Red */
+        for (i = 0; i <= tmp; i++) {
+            Red[tmp + i] = ((double) i) / ((double) tmp);
+            Green[tmp + i] = 1.0;
+            Blue[tmp + i] = ((double) (tmp - i)) / ((double) tmp);
+        }
+
+        /* Green + Red -> Red */
+        for (i = 0; i <= tmp; i++) {
+            Red[2 * tmp + i] = 1;
+            Green[2 * tmp + i] = ((double) (tmp - i)) / ((double) tmp);
+            Blue[2 * tmp + i] = 0;
+        }
+        colorflag = 1;
+    }
 }

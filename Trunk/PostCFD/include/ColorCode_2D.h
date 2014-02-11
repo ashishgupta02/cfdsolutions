@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 #ifndef __ColorCode_2D_H__
 #define __ColorCode_2D_H__
@@ -42,7 +42,7 @@ extern double Red[256];
 extern double Green[256];
 extern double Blue[256];
 
-void ColorEncode_2D (void);
+void ColorEncode_2D(void);
 
 #endif
 

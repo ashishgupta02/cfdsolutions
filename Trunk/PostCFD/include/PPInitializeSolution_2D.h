@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 
 #ifndef __PPInitializeSolution_2D_H__
@@ -44,29 +44,29 @@
 /* User Defined */
 
 typedef struct PP_2D_Data_Un {
-	char Name[50];
-	int Size;
-	double *Data;
+    char Name[50];
+    int Size;
+    double *Data;
 } Data_2D_Un;
 
 typedef struct PP_2D_SolutionCGNS_Un {
-	unsigned int Size;
-	Data_2D_Un *SolCGNS;
+    unsigned int Size;
+    Data_2D_Un *SolCGNS;
 } SolutionCGNS_2D_Un;
 
 typedef struct PP_2D_Solution_Un {
-	int Location;
-	int Size;
-	Data_2D_Un **Sols;
+    int Location;
+    int Size;
+    Data_2D_Un **Sols;
 } Solution_2D_Un;
 
 /* This Variable is used to store the data present in CGNS file */
 extern SolutionCGNS_2D_Un SolutionCGNS2D;
 
 /* This Variable is used to store the data pointers of both the solution
-	1) CGNS File Data 
-	2) Computed Data
-*/
+        1) CGNS File Data 
+        2) Computed Data
+ */
 extern Solution_2D_Un Solution2D;
 
 /* Solution Data Declearations */
@@ -147,15 +147,15 @@ extern Data_2D_Un PerturbationVelocityZ2D;
 extern Data_2D_Un VelocityDivergence2D;
 
 /* Function Declearattions */
-void DummySolutions_2D (void);
-void SolutionMinMaxVector_2D (int, int, double *, double *);
-void SolutionMinMax_2D (int, double *, double *);
+void DummySolutions_2D(void);
+void SolutionMinMaxVector_2D(int, int, double *, double *);
+void SolutionMinMax_2D(int, double *, double *);
 int SolutionCC2NodeSelect_2D(void);
-int InitializeSolutionCGNS_2D (ZONE *);
-int InitializeSolution_2D (void);
-int GetSolutionList_2D (void);
-int CheckSolutionFieldExistance_2D (const char *);
-int GetSolutionFieldLocation_2D (const char *);
-int UpdateSolution_2D (Data_2D_Un *);
+int InitializeSolutionCGNS_2D(ZONE *);
+int InitializeSolution_2D(void);
+int GetSolutionList_2D(void);
+int CheckSolutionFieldExistance_2D(const char *);
+int GetSolutionFieldLocation_2D(const char *);
+int UpdateSolution_2D(Data_2D_Un *);
 
 #endif

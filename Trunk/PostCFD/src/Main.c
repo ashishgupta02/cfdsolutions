@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 /* User Defined */
 #include "Global.h"
@@ -48,124 +48,124 @@
 static char options[] = "acirput";
 
 static char *usgmsg[] = {
-                         "usage  : Post-Processing [options]",
-                         "options:",
-                         "	-a		= Append to CGNS file",
-                         "	-c		= Convert to CGNS formate",
-                         "	-i		= CGNS Information",
-                         "	-r		= Read a CGNS file",
-                         "	-p		= Post-Processing",
-						 "	-u		= Patch CGNS File",
-						 "	-t		= Patch CGNS Connectivity", 
-                         NULL
-                 };
+    "usage  : Post-Processing [options]",
+    "options:",
+    "	-a		= Append to CGNS file",
+    "	-c		= Convert to CGNS formate",
+    "	-i		= CGNS Information",
+    "	-r		= Read a CGNS file",
+    "	-p		= Post-Processing",
+    "	-u		= Patch CGNS File",
+    "	-t		= Patch CGNS Connectivity",
+    NULL
+};
 
 /*---------- usage --------------------------------------------------
  * Display usage message and exit
  *-------------------------------------------------------------------*/
 
-static void usage (char **usgmsg) {
-	int n;
+static void usage(char **usgmsg) {
+    int n;
 
-	for (n = 0; NULL != usgmsg[n]; n++)
-		fprintf (stderr, "%s\n", usgmsg[n]);
+    for (n = 0; NULL != usgmsg[n]; n++)
+        fprintf(stderr, "%s\n", usgmsg[n]);
 
-	exit (1);
+    exit(1);
 }
 
 /*---------- arguments ---------------------------------------------------
  * Get option letter from argument vector or terminates on error
  *----------------------------------------------------------------------*/
 
-static int arguments (int argc, char **argv) {
-	unsigned int n;
+static int arguments(int argc, char **argv) {
+    unsigned int n;
 
-	if (argc < 2) {
-		printf (" Too few arguments\n");
-		usage (usgmsg);
-	}
+    if (argc < 2) {
+        printf(" Too few arguments\n");
+        usage(usgmsg);
+    }
 
-	if (argc < 3) {
-		printf ("No input file\n");
-		exit (1);
-	}
-	if ((argc == 3) || (argc == 4)) {
-		for (n = 0; n < strlen(options); n++)
-			if (argv[1][1] == options[n])
-				return n;
-		MSG("Invalid option");
-		usage (usgmsg);
-	}
-	
-	return 0;
+    if (argc < 3) {
+        printf("No input file\n");
+        exit(1);
+    }
+    if ((argc == 3) || (argc == 4)) {
+        for (n = 0; n < strlen(options); n++)
+            if (argv[1][1] == options[n])
+                return n;
+        Warn("Invalid option");
+        usage(usgmsg);
+    }
+
+    return 0;
 }
 
 /*-----------------------------------------------------------------------------
  * Main Function
  * ---------------------------------------------------------------------------*/
 
-int main (int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
 
-	int err, sel;
-	char File[100], File1[100]; 
-	
-	sel = arguments (argc, argv);
-	strcpy (File,argv[2]);
-	
-	/* Selecting the module */
-	switch(sel){
-	case 0:
-		/* Append CGNS File */
-		MSG("main: Not Yet Implemented");
-		break;
-	case 1:
-		/* Write New CGNS File */
-		/*
-		if((err = convert(File)) == 1) {
-			FATAL("Convert","Unknown error");
-			exit(1);
-		}
-		*/
-		MSG("main: Not Yet Implemented");
-		break;
-	case 2:
-		/* Cgns File Information */
-		err = Info(File);
-		if(err == 1) {
-			MSG("main: Info CGNS");
-			exit(1);
-		}
-		break;
-	case 3:
-		/* Open CGNS File In Read Mode */
-		if((err = Read(File)) == 1) {
-			MSG("main: Read CGNS");
-			exit(1);
-		}
-		break;
-	case 4:
-		/* Calls the Post-Processing Module */
-		if((err = PostProcessing(File)) == 1) {
-			MSG("main: Post-Processing CGNS");
-			exit(1);
-		}
-		break;
-	case 5:
-		/* CGNS Patch */
-		strcpy(File1, argv[3]);
-		if((err = CGNSPatch(File, File1)) == 1) {
-			MSG("main: Patch Failed");
-			exit(1);
-		}
-		break;
-	case 6:
-		/* CGNS Connectivity Patch */
-		strcpy(File1, argv[3]);
-		if((err = CGNSPatch_Connectivity(File, File1)) == 1) {
-			MSG("main: Patch Connectivity Failed");
-			exit(1);
-		}
-		break;
-	}
-	return 0;
+    int err, sel;
+    char File[100], File1[100];
+
+    sel = arguments(argc, argv);
+    strcpy(File, argv[2]);
+
+    /* Selecting the module */
+    switch (sel) {
+        case 0:
+            /* Append CGNS File */
+            Warn("main: Not Yet Implemented");
+            break;
+        case 1:
+            /* Write New CGNS File */
+            /*
+            if((err = convert(File)) == 1) {
+                    FATAL("Convert","Unknown error");
+                    exit(1);
+            }
+             */
+            Warn("main: Not Yet Implemented");
+            break;
+        case 2:
+            /* Cgns File Information */
+            err = Info(File);
+            if (err == 1) {
+                Warn("main: Info CGNS");
+                exit(1);
+            }
+            break;
+        case 3:
+            /* Open CGNS File In Read Mode */
+            if ((err = Read(File)) == 1) {
+                Warn("main: Read CGNS");
+                exit(1);
+            }
+            break;
+        case 4:
+            /* Calls the Post-Processing Module */
+            if ((err = PostProcessing(File)) == 1) {
+                Warn("main: Post-Processing CGNS");
+                exit(1);
+            }
+            break;
+        case 5:
+            /* CGNS Patch */
+            strcpy(File1, argv[3]);
+            if ((err = CGNSPatch(File, File1)) == 1) {
+                Warn("main: Patch Failed");
+                exit(1);
+            }
+            break;
+        case 6:
+            /* CGNS Connectivity Patch */
+            strcpy(File1, argv[3]);
+            if ((err = CGNSPatch_Connectivity(File, File1)) == 1) {
+                Warn("main: Patch Connectivity Failed");
+                exit(1);
+            }
+            break;
+    }
+    return 0;
 }

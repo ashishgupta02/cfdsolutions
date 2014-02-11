@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 
 
@@ -44,31 +44,31 @@
 #include "PostProcessing_2D.h"
 
 int compress_sort(int *, int, int);
-int sort_bubble (int *, int);
-int GetCellAdjacentCellsQuad_2D (int);
-int GetCellAdjacentCellsTri_2D (int);
-int GetCellAdjacentCells_2D (void);
-int GetNodeAdjacentCells_2D (int *, int *, int);
-int CountTotalNonZeroEntries_2D (void);
-int CreateSymmetricCSRFormat_2D (void);
-int FV_InsertSort_2D (int *, int);
-int ResizeObject_2D (Vector_2D *);
-int Push_Back_2D (Vector_2D *, int);
-int CreateNodeAdjacentCells_2D (void);
-int GetEdgeNumber_2D (int, int);
-int CreateQuadEdgeList_2D (int);
-int CreateTriangleEdgeList_2D (int);
-int CreateCellEdgeList_2D (void);
-int GetQuadrilateralEdges_2D (int, int *);
-int GetTriangleEdges_2D (int, int *);
-int GetCellEdgeNodes_2D (int, int, int *);
-int CreateEdgeCellList_2D (void);
-int SearchItem_2D (int, int);
-int SearchInsert_2D (int, int);
-int CreateNodeAdjacentNodes_2D (void);
-int CreatEdgeStructure_2D (void);
-int InitializeUnstructuredGrid_2D (ZONE *);
-int InitializeStructuredGrid_2D (ZONE *);
-int InitializeGrid_2D (ZONE *);
+int sort_bubble(int *, int);
+int GetCellAdjacentCellsQuad_2D(int);
+int GetCellAdjacentCellsTri_2D(int);
+int GetCellAdjacentCells_2D(void);
+int GetNodeAdjacentCells_2D(int *, int *, int);
+int CountTotalNonZeroEntries_2D(void);
+int CreateSymmetricCSRFormat_2D(void);
+int FV_InsertSort_2D(int *, int);
+int ResizeObject_2D(Vector_2D *);
+int Push_Back_2D(Vector_2D *, int);
+int CreateNodeAdjacentCells_2D(void);
+int GetEdgeNumber_2D(int, int);
+int CreateQuadEdgeList_2D(int);
+int CreateTriangleEdgeList_2D(int);
+int CreateCellEdgeList_2D(void);
+int GetQuadrilateralEdges_2D(int, int *);
+int GetTriangleEdges_2D(int, int *);
+int GetCellEdgeNodes_2D(int, int, int *);
+int CreateEdgeCellList_2D(void);
+int SearchItem_2D(int, int);
+int SearchInsert_2D(int, int);
+int CreateNodeAdjacentNodes_2D(void);
+int CreatEdgeStructure_2D(void);
+int InitializeUnstructuredGrid_2D(ZONE *);
+int InitializeStructuredGrid_2D(ZONE *);
+int InitializeGrid_2D(ZONE *);
 
 #endif

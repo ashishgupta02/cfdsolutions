@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 #ifndef __Boundary_2D_H__
 #define __Boundary_2D_H__
@@ -41,21 +41,21 @@
 #include "CGNSIO.h"
 
 typedef struct PP_2D_Boundary {
-	char Name[33];
-	char TypeName[33];
-	int Type;
-	unsigned int Size;
-	int *BPoints;
+    char Name[33];
+    char TypeName[33];
+    int Type;
+    unsigned int Size;
+    int *BPoints;
 } Boundary_2D_Un;
 
 typedef struct PP_2D_BoundaryCondition {
-	unsigned int NoBoCo;
-	Boundary_2D_Un *BoCo;
+    unsigned int NoBoCo;
+    Boundary_2D_Un *BoCo;
 } BoundaryCondition_2D_Un;
 
 extern BoundaryCondition_2D_Un Boundary2D;
 
-int InitializeBoundaryCondition_2D (ZONE *);
-void DisplayBoundary_2D (void);
+int InitializeBoundaryCondition_2D(ZONE *);
+void DisplayBoundary_2D(void);
 
 #endif

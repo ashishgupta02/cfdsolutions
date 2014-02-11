@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 /* User Defined */
 #include "Global.h"
@@ -48,62 +48,62 @@
 /* static char options[] = "123"; */
 
 static char *PPOptions[] = {
-	"Post-Processing [options]",
-	"options:",
-	"	1	= Scalar Variables",
-	"	2	= Vector Variables",
-	"	3	= Tensor Variables",
-	NULL
+    "Post-Processing [options]",
+    "options:",
+    "	1	= Scalar Variables",
+    "	2	= Vector Variables",
+    "	3	= Tensor Variables",
+    NULL
 };
 
 /*---------- usage --------------------------------------------------
  * Display usage message and exit
  *-------------------------------------------------------------------*/
 
-static int usage (char **usgmsg) {
-	int n;
+static int usage(char **usgmsg) {
+    int n;
 
-	for (n = 0; NULL != usgmsg[n]; n++)
-		fprintf (stderr, "%s\n", usgmsg[n]);
+    for (n = 0; NULL != usgmsg[n]; n++)
+        fprintf(stderr, "%s\n", usgmsg[n]);
 
-	return 0;
+    return 0;
 }
 
 /*---------------------------------------------------------------*/
-int PostAnalysis_2D (void) {
-	int Option;
-loop1:		
-	/* Getting Post-Processing Option */
-	usage(PPOptions);
-	printf("Give Post-Processing Module Option: ");
-	scanf("%d", &Option);
-	if(Option < 1 || Option > 3) goto loop1;
+int PostAnalysis_2D(void) {
+    int Option;
+loop1:
+    /* Getting Post-Processing Option */
+    usage(PPOptions);
+    printf("Give Post-Processing Module Option: ");
+    scanf("%d", &Option);
+    if (Option < 1 || Option > 3) goto loop1;
 
-	GetSolutionList_2D();
-	
-	switch (Option) {
-		case 1:
-			/* Calculate Scalar Variables */
-			ScalarFlowVariableOptions_2D();
-			break;
-		case 2:
-			/* Calculate Vector Variables */
-			//VectorFlowVariableOptions_2D();
-			break;
-		case 3:
-			/* Calculate Tensor Variables */
-			TensorFlowVariableOptions_2D();
-			break;
-		default:
-			/* Invalid Option */
-			FATAL(NULL,"Invalid Post-Processing Option");
-	}
-	
-	printf("Perform Another Post-Processing Operation (1/0):");
-	scanf("%d", &Option);
-	
-	if (Option == 1)
-		goto loop1;
-	
-	return 0;
+    GetSolutionList_2D();
+
+    switch (Option) {
+        case 1:
+            /* Calculate Scalar Variables */
+            ScalarFlowVariableOptions_2D();
+            break;
+        case 2:
+            /* Calculate Vector Variables */
+            //VectorFlowVariableOptions_2D();
+            break;
+        case 3:
+            /* Calculate Tensor Variables */
+            TensorFlowVariableOptions_2D();
+            break;
+        default:
+            /* Invalid Option */
+            FATAL(NULL, "Invalid Post-Processing Option");
+    }
+
+    printf("Perform Another Post-Processing Operation (1/0):");
+    scanf("%d", &Option);
+
+    if (Option == 1)
+        goto loop1;
+
+    return 0;
 }

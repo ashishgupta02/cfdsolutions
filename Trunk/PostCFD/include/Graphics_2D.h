@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 #ifndef __Graphics_2D_H__
 #define __Graphics_2D_H__
@@ -42,10 +42,10 @@ extern int MainWindowID;
 extern int windowHeight, windowWidth, winPositionX, winPositionY;
 extern double WorldAspect;
 
-void PrintString_2D (void *, char *);
-void DrawAxis_2D (void);
-void DrawInitial_2D (void);
+void PrintString_2D(void *, char *);
+void DrawAxis_2D(void);
+void DrawInitial_2D(void);
 void InitializeDrawArea_2D(void);
-void Graphics_2D (void);
+void Graphics_2D(void);
 
 #endif

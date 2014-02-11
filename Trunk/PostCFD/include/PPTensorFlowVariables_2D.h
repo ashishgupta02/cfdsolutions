@@ -33,13 +33,13 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 
 #ifndef __PPTensorFlowVariables_2D_H__
 #define __PPTensorFlowVariables_2D_H__
 
-int TensorFlowVariableOptions_2D (void);
+int TensorFlowVariableOptions_2D(void);
 
 #endif
 

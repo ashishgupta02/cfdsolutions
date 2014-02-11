@@ -33,14 +33,14 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 
 #ifndef __CellPointOperation_2D_H__
 #define __CellPointOperation_2D_H__
 
-void PointInCell_2D (double, double, int, int *);
-void CellContainPoint_2D (double, double, int *);
+void PointInCell_2D(double, double, int, int *);
+void CellContainPoint_2D(double, double, int *);
 
 #endif
 

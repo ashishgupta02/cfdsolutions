@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 #ifndef __Algebra_H__
 #define __Algebra_H__
@@ -42,17 +42,17 @@
 
 /* 2-by-2 matrix */
 typedef struct Matrix2Struct {
-	double element[2][2];
+    double element[2][2];
 } Matrix2;
 
 /* 3-by-3 matrix */
 typedef struct Matrix3Struct {
-	double element[3][3];
+    double element[3][3];
 } Matrix3;
 
 /* 4-by-4 matrix */
 typedef struct Matrix4Struct {
-	double element[4][4];
+    double element[4][4];
 } Matrix4;
 
 /********************/
@@ -140,8 +140,8 @@ if (!(x)) fprintf(stderr," Assert failed: x\n");
 #define ERROR		0
 #define SUCCESS		1
 #define FAIL		0
-typedef int boolean;			/* boolean data type */
-typedef boolean flag;			/* flag data type */
+typedef int boolean; /* boolean data type */
+typedef boolean flag; /* flag data type */
 
 /* Functions Declearations */
 /******************/
@@ -163,19 +163,19 @@ Matrix4 *V3MatMul(Matrix4 *, Matrix4 *, Matrix4 *);
 /***********************/
 /*   Useful Routines   */
 /***********************/
-double acosh2 (double);
-double asinh2 (double);
-double atanh2 (double);
-double atan4 (double, double);
-double cot (double);
-double agud (double);
-int i_gcf (int, int);
-int i_lcm (int, int);
-double Matrix2_Det (Matrix2  *);
-double Matrix2_Inverse (Matrix2 *, Matrix2 *);
-double Matrix3_Det (Matrix3 *);
-double Matrix3_Inverse (Matrix3 *, Matrix3 *);
-double Matrix4_Det (Matrix4 *);
-double Matrix4_Inverse (Matrix4 *, Matrix4 *);
+double acosh2(double);
+double asinh2(double);
+double atanh2(double);
+double atan4(double, double);
+double cot(double);
+double agud(double);
+int i_gcf(int, int);
+int i_lcm(int, int);
+double Matrix2_Det(Matrix2 *);
+double Matrix2_Inverse(Matrix2 *, Matrix2 *);
+double Matrix3_Det(Matrix3 *);
+double Matrix3_Inverse(Matrix3 *, Matrix3 *);
+double Matrix4_Det(Matrix4 *);
+double Matrix4_Inverse(Matrix4 *, Matrix4 *);
 
 #endif

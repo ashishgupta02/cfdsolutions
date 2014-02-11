@@ -33,20 +33,20 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 #ifndef __DrawMesh_2D_H__
 #define __DrawMesh_2D_H__
 
-extern double MinMaxX[2]; /* [O] = minvalue, [1] = maxvalue */ 
+extern double MinMaxX[2]; /* [O] = minvalue, [1] = maxvalue */
 extern double MinMaxY[2]; /* [O] = minvalue, [1] = maxvalue */
 
-void CoordinateMinMax_2D (void);
-void DrawMesh_2D (void);
+void CoordinateMinMax_2D(void);
+void DrawMesh_2D(void);
 
-void MeshScalarPlot_2D (int);
-void MeshScalar_2D (void);
+void MeshScalarPlot_2D(int);
+void MeshScalar_2D(void);
 
-void Mesh_2D (void);
+void Mesh_2D(void);
 #endif
 

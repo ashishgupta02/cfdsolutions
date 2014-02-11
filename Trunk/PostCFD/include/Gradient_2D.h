@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 
 
@@ -42,11 +42,11 @@
 
 #include "PPInitializeSolution_2D.h"
 
-int CellGradientWANM_2D (Data_2D_Un *, Data_2D_Un *, Data_2D_Un *);
-int NodeGradientWANM_2D (Data_2D_Un *, Data_2D_Un *, Data_2D_Un *);
-int CellGradientLSM_2D (Data_2D_Un *, Data_2D_Un *, Data_2D_Un *);
-int NodeGradientLSM_2D (Data_2D_Un *, Data_2D_Un *, Data_2D_Un *);
-int CellGradientLI_2D (Data_2D_Un *, Data_2D_Un *, Data_2D_Un *);
-int NodeGradientLI_2D (Data_2D_Un *, Data_2D_Un *, Data_2D_Un *, Data_2D_Un *);
+int CellGradientWANM_2D(Data_2D_Un *, Data_2D_Un *, Data_2D_Un *);
+int NodeGradientWANM_2D(Data_2D_Un *, Data_2D_Un *, Data_2D_Un *);
+int CellGradientLSM_2D(Data_2D_Un *, Data_2D_Un *, Data_2D_Un *);
+int NodeGradientLSM_2D(Data_2D_Un *, Data_2D_Un *, Data_2D_Un *);
+int CellGradientLI_2D(Data_2D_Un *, Data_2D_Un *, Data_2D_Un *);
+int NodeGradientLI_2D(Data_2D_Un *, Data_2D_Un *, Data_2D_Un *, Data_2D_Un *);
 
 #endif

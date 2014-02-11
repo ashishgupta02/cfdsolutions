@@ -33,12 +33,12 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 #ifndef __VectorPlot_2D_H__
 #define __VectorPlot_2D_H__
 
-int CreateVectorPlot_2D (int, int);
-void VectorPlot_2D (void);
+int CreateVectorPlot_2D(int, int);
+void VectorPlot_2D(void);
 #endif
 

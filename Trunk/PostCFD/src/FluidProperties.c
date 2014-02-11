@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 /* User Defined */
 #include "Global.h"
@@ -61,273 +61,273 @@ Data_2D_Un *SpecificHeat_Var;
 Data_2D_Un *Conductivity_Var;
 
 /*--------------------------------------------------------------*/
-static void ERROR (char *errmsg) {
-	char cmd[129];
+static void ERROR(char *errmsg) {
+    char cmd[129];
 
-	sprintf (cmd, "error_exit {%s}", errmsg);
-	printf ("%s\n", cmd);
-	exit (1);
+    sprintf(cmd, "error_exit {%s}", errmsg);
+    printf("%s\n", cmd);
+    exit(1);
 }
 
 /*---------------------------------------------------------------*/
-int GetFluidFlag (void) {
-	printf("Select a Fluid Property Type\n");
-	printf("Select\n\tIncompressible\t0\n\tCompressible\t1\n");
-	printf("Fluid Type (0/1):");
-	scanf("%d", &FluidFlag);
-	
-	return 0;
+int GetFluidFlag(void) {
+    printf("Select a Fluid Property Type\n");
+    printf("Select\n\tIncompressible\t0\n\tCompressible\t1\n");
+    printf("Fluid Type (0/1):");
+    scanf("%d", &FluidFlag);
+
+    return 0;
 }
 
 /*---------------------------------------------------------------*/
-int GetSpecificDensityConst (void) {
-	
-	printf("Specific Density\n");
-	printf("\tSpecific Density = ");
-	scanf("%lf", &SpecificDensity_Const);
-	
-	return 0;
+int GetSpecificDensityConst(void) {
+
+    printf("Specific Density\n");
+    printf("\tSpecific Density = ");
+    scanf("%lf", &SpecificDensity_Const);
+
+    return 0;
 }
 
 /*---------------------------------------------------------------*/
-int GetSpecificHeat (void) {
-	int flag, select;
-	
-	printf("Specific Heat\n");
-	printf("\tConstant or Variable (0/1):");
-	scanf("%d", &flag);
-	
-	switch (flag) {
-		case 0:
-			/* Constant */
-			printf("Specific Heat = ");
-			scanf("%lf", &SpecificHeat_Const);
-			SpecificHeat_Flag = 0;
-			break;
-		case 1:
-			/* Variable */
-			SpecificHeat_Flag = 1;
-			printf("Constant Specific Heat Reference Value:\n");
-			printf("Specific Heat (free-stream) = ");
-			scanf("%lf", &SpecificHeat_Const);
-			
-			printf("Variable Specific Heat:\n");
-			GetSolutionList_2D();
-			printf("Select the Variable = ");
-			scanf("%d", &select);
-			
-			SpecificHeat_Var = Solution2D.Sols[select];
-			if(SpecificHeat_Var == NULL)
-				ERROR("GetSpecificHeat: Solution Memory Location Failed");
-			
-			break;
-		default:
-			printf("Error: Invalid Option\n");
-			exit(1);
-	}
-	
-	return 0;
+int GetSpecificHeat(void) {
+    int flag, select;
+
+    printf("Specific Heat\n");
+    printf("\tConstant or Variable (0/1):");
+    scanf("%d", &flag);
+
+    switch (flag) {
+        case 0:
+            /* Constant */
+            printf("Specific Heat = ");
+            scanf("%lf", &SpecificHeat_Const);
+            SpecificHeat_Flag = 0;
+            break;
+        case 1:
+            /* Variable */
+            SpecificHeat_Flag = 1;
+            printf("Constant Specific Heat Reference Value:\n");
+            printf("Specific Heat (free-stream) = ");
+            scanf("%lf", &SpecificHeat_Const);
+
+            printf("Variable Specific Heat:\n");
+            GetSolutionList_2D();
+            printf("Select the Variable = ");
+            scanf("%d", &select);
+
+            SpecificHeat_Var = Solution2D.Sols[select];
+            if (SpecificHeat_Var == NULL)
+                ERROR("GetSpecificHeat: Solution Memory Location Failed");
+
+            break;
+        default:
+            printf("Error: Invalid Option\n");
+            exit(1);
+    }
+
+    return 0;
 }
 
 /*---------------------------------------------------------------*/
-int GetViscosity (void) {
-	int flag, select;
-	
-	printf("Viscosity\n");
-	printf("\tConstant or Variable (0/1):");
-	scanf("%d", &flag);
-	
-	switch (flag) {
-		case 0:
-			/* Constant */
-			Viscosity_Flag = 0;
-			printf("Viscosity = ");
-			scanf("%lf", &Viscosity_Const);
-			break;
-		case 1:
-			/* Variable */
-			Viscosity_Flag = 1;
-			printf("Constant Viscosity Reference Value:\n");
-			printf("Viscosity (free-stream) = ");
-			scanf("%lf", &Viscosity_Const);
-			
-			printf("Variable Viscosity:\n");
-			GetSolutionList_2D();
-			printf("Select the Variable = ");
-			scanf("%d", &select);
-			
-			Viscosity_Var = Solution2D.Sols[select];
-			if(Viscosity_Var == NULL)
-				ERROR("GetViscosity: Solution Memory Location Failed");
+int GetViscosity(void) {
+    int flag, select;
 
-			break;
-		default:
-			printf("Error: Invalid Option\n");
-			exit(1);
-	}
+    printf("Viscosity\n");
+    printf("\tConstant or Variable (0/1):");
+    scanf("%d", &flag);
 
-	
-	return 0;
+    switch (flag) {
+        case 0:
+            /* Constant */
+            Viscosity_Flag = 0;
+            printf("Viscosity = ");
+            scanf("%lf", &Viscosity_Const);
+            break;
+        case 1:
+            /* Variable */
+            Viscosity_Flag = 1;
+            printf("Constant Viscosity Reference Value:\n");
+            printf("Viscosity (free-stream) = ");
+            scanf("%lf", &Viscosity_Const);
+
+            printf("Variable Viscosity:\n");
+            GetSolutionList_2D();
+            printf("Select the Variable = ");
+            scanf("%d", &select);
+
+            Viscosity_Var = Solution2D.Sols[select];
+            if (Viscosity_Var == NULL)
+                ERROR("GetViscosity: Solution Memory Location Failed");
+
+            break;
+        default:
+            printf("Error: Invalid Option\n");
+            exit(1);
+    }
+
+
+    return 0;
 }
 
 /*---------------------------------------------------------------*/
-int GetConductivity (void) {
-	int flag, select;
-	
-	printf("Conductivity\n");
-	printf("\tConstant or Variable (0/1):");
-	scanf("%d", &flag);
-	
-	switch (flag) {
-		case 0:
-			/* Constant */
-			Conductivity_Flag = 0;
-			printf("Conductivity = ");
-			scanf("%lf", &Conductivity_Const);
-			break;
-		case 1:
-			/* Variable */
-			Conductivity_Flag = 1;
-			printf("Constant Conductivity Reference Value:\n");
-			printf("Conductivity (free-stream) = ");
-			scanf("%lf", &Conductivity_Const);
-			
-			printf("Variable Conductivity:\n");
-			GetSolutionList_2D();
-			printf("Select the Variable = ");
-			scanf("%d", &select);
-			
-			Conductivity_Var = Solution2D.Sols[select];
-			if(Conductivity_Var == NULL)
-				ERROR("GetConductivity: Solution Memory Location Failed");
+int GetConductivity(void) {
+    int flag, select;
 
-			break;
-		default:
-			printf("Error: Invalid Option\n");
-			exit(1);
-	}
-	
-	return 0;
+    printf("Conductivity\n");
+    printf("\tConstant or Variable (0/1):");
+    scanf("%d", &flag);
+
+    switch (flag) {
+        case 0:
+            /* Constant */
+            Conductivity_Flag = 0;
+            printf("Conductivity = ");
+            scanf("%lf", &Conductivity_Const);
+            break;
+        case 1:
+            /* Variable */
+            Conductivity_Flag = 1;
+            printf("Constant Conductivity Reference Value:\n");
+            printf("Conductivity (free-stream) = ");
+            scanf("%lf", &Conductivity_Const);
+
+            printf("Variable Conductivity:\n");
+            GetSolutionList_2D();
+            printf("Select the Variable = ");
+            scanf("%d", &select);
+
+            Conductivity_Var = Solution2D.Sols[select];
+            if (Conductivity_Var == NULL)
+                ERROR("GetConductivity: Solution Memory Location Failed");
+
+            break;
+        default:
+            printf("Error: Invalid Option\n");
+            exit(1);
+    }
+
+    return 0;
 }
 
 /*---------------------------------------------------------------*/
-int GetGasConstant (void) {
-	int flag, select;
-	
-	printf("Gas Constant\n");
-	printf("\tConstant or Variable (0/1):");
-	scanf("%d", &flag);
-	
-	switch (flag) {
-		case 0:
-			/* Constant */
-			GasConstant_Flag = 0;
-			printf("Gas Constant = ");
-			scanf("%lf", &GasConstant_Const);
-			break;
-		case 1:
-			/* Variable */
-			GasConstant_Flag = 1;
-			printf("Constant Gas Constant Reference Value:\n");
-			printf("Gas Constant (free-stream) = ");
-			scanf("%lf", &GasConstant_Const);
-			
-			printf("Variable GasConstant:\n");
-			GetSolutionList_2D();
-			printf("Select the Variable = ");
-			scanf("%d", &select);
-			
-			GasConstant_Var = Solution2D.Sols[select];
-			if(GasConstant_Var == NULL)
-				ERROR("GetGasConstant: Solution Memory Location Failed");
+int GetGasConstant(void) {
+    int flag, select;
 
-			break;
-		default:
-			printf("Error: Invalid Option\n");
-			exit(1);
-	}
-	
-	return 0;
+    printf("Gas Constant\n");
+    printf("\tConstant or Variable (0/1):");
+    scanf("%d", &flag);
+
+    switch (flag) {
+        case 0:
+            /* Constant */
+            GasConstant_Flag = 0;
+            printf("Gas Constant = ");
+            scanf("%lf", &GasConstant_Const);
+            break;
+        case 1:
+            /* Variable */
+            GasConstant_Flag = 1;
+            printf("Constant Gas Constant Reference Value:\n");
+            printf("Gas Constant (free-stream) = ");
+            scanf("%lf", &GasConstant_Const);
+
+            printf("Variable GasConstant:\n");
+            GetSolutionList_2D();
+            printf("Select the Variable = ");
+            scanf("%d", &select);
+
+            GasConstant_Var = Solution2D.Sols[select];
+            if (GasConstant_Var == NULL)
+                ERROR("GetGasConstant: Solution Memory Location Failed");
+
+            break;
+        default:
+            printf("Error: Invalid Option\n");
+            exit(1);
+    }
+
+    return 0;
 }
 
 /*---------------------------------------------------------------*/
-int GetSpecificHeatRatio (void) {
-	int flag, select;
-	
-	printf("Specific Heat Ratio\n");
-	printf("\tConstant or Variable (0/1):");
-	scanf("%d", &flag);
-	
-	switch (flag) {
-		case 0:
-			/* Constant */
-			SpecificHeatRatio_Flag = 0;
-			printf("Specific Heat Ratio = ");
-			scanf("%lf", &SpecificHeatRatio_Const);
-			break;
-		case 1:
-			/* Variable */
-			SpecificHeatRatio_Flag = 1;
-			printf("Constant Specific Heat Ratio Reference Value:\n");
-			printf("Specific Heat Ratio (free-stream) = ");
-			scanf("%lf", &SpecificHeatRatio_Const);
-			
-			printf("Variable Specific Heat Ratio:\n");
-			GetSolutionList_2D();
-			printf("Select the Variable = ");
-			scanf("%d", &select);
-			
-			SpecificHeatRatio_Var = Solution2D.Sols[select];
-			if(SpecificHeatRatio_Var == NULL)
-				ERROR("GetSpecificHeatRatio: Solution Memory Location Failed");
+int GetSpecificHeatRatio(void) {
+    int flag, select;
 
-			break;
-		default:
-			printf("Error: Invalid Option\n");
-			exit(1);
-	}
-	
-	return 0;
-}
- 
-/*---------------------------------------------------------------*/
-int GetIncompressibleFluidProperties (void) {
-	GetSpecificDensityConst();
-	GetSpecificHeat();
-	GetViscosity();
-	GetConductivity();
-		
-	return 0;
+    printf("Specific Heat Ratio\n");
+    printf("\tConstant or Variable (0/1):");
+    scanf("%d", &flag);
+
+    switch (flag) {
+        case 0:
+            /* Constant */
+            SpecificHeatRatio_Flag = 0;
+            printf("Specific Heat Ratio = ");
+            scanf("%lf", &SpecificHeatRatio_Const);
+            break;
+        case 1:
+            /* Variable */
+            SpecificHeatRatio_Flag = 1;
+            printf("Constant Specific Heat Ratio Reference Value:\n");
+            printf("Specific Heat Ratio (free-stream) = ");
+            scanf("%lf", &SpecificHeatRatio_Const);
+
+            printf("Variable Specific Heat Ratio:\n");
+            GetSolutionList_2D();
+            printf("Select the Variable = ");
+            scanf("%d", &select);
+
+            SpecificHeatRatio_Var = Solution2D.Sols[select];
+            if (SpecificHeatRatio_Var == NULL)
+                ERROR("GetSpecificHeatRatio: Solution Memory Location Failed");
+
+            break;
+        default:
+            printf("Error: Invalid Option\n");
+            exit(1);
+    }
+
+    return 0;
 }
 
 /*---------------------------------------------------------------*/
-int GetCompressibleFluidProperties (void) {
-	GetGasConstant();
-	GetSpecificHeatRatio();
-	GetViscosity();
-	GetConductivity();
-	
-	return 0;
+int GetIncompressibleFluidProperties(void) {
+    GetSpecificDensityConst();
+    GetSpecificHeat();
+    GetViscosity();
+    GetConductivity();
+
+    return 0;
 }
 
 /*---------------------------------------------------------------*/
-int GetFluidProperties (void) {
-	GetFluidFlag();
-	
-	switch (FluidFlag) {
-		case InCompressible:
-			/* Incompressible */
-			GetIncompressibleFluidProperties();
-			break;
-		case Compressible:
-			/* Compressible */
-			GetCompressibleFluidProperties();
-			break;
-		default :
-			/* Error */
-			printf("Invalid Fluid Type: Neither InCompressible nor Compressible\n");
-			exit(1);
-	}
-	
-	return 0;
+int GetCompressibleFluidProperties(void) {
+    GetGasConstant();
+    GetSpecificHeatRatio();
+    GetViscosity();
+    GetConductivity();
+
+    return 0;
+}
+
+/*---------------------------------------------------------------*/
+int GetFluidProperties(void) {
+    GetFluidFlag();
+
+    switch (FluidFlag) {
+        case InCompressible:
+            /* Incompressible */
+            GetIncompressibleFluidProperties();
+            break;
+        case Compressible:
+            /* Compressible */
+            GetCompressibleFluidProperties();
+            break;
+        default:
+            /* Error */
+            printf("Invalid Fluid Type: Neither InCompressible nor Compressible\n");
+            exit(1);
+    }
+
+    return 0;
 }

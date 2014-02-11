@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 
 #ifndef __FluidProperties_H__
@@ -49,11 +49,11 @@ extern int FluidFlag;
 
 /* NOTE: Use variables
 When Incompressible:
-	Always Constant: Specific Density
-	Variable or Constant: Specific Heat, Viscosity, Conductivity
+        Always Constant: Specific Density
+        Variable or Constant: Specific Heat, Viscosity, Conductivity
 When Compressible:
-	Variable or Constant: Gas Constant, SpecificHeatRatio, Viscosity, Conductivity
-*/
+        Variable or Constant: Gas Constant, SpecificHeatRatio, Viscosity, Conductivity
+ */
 
 /* If Properties are constant */
 extern double GasConstant_Const, SpecificDensity_Const, Viscosity_Const;
@@ -71,16 +71,16 @@ extern Data_2D_Un *SpecificHeat_Var;
 extern Data_2D_Un *Conductivity_Var;
 
 /* Functions Declearation */
-int GetFluidFlag (void);
-int GetSpecificDensityConst (void);
-int GetSpecificHeat (void);
-int GetViscosity (void);
-int GetConductivity (void);
-int GetGasConstant (void);
-int GetSpecificHeatRatio (void);
-int GetIncompressibleFluidProperties (void);
-int GetCompressibleFluidProperties (void);
-int GetFluidProperties (void);
+int GetFluidFlag(void);
+int GetSpecificDensityConst(void);
+int GetSpecificHeat(void);
+int GetViscosity(void);
+int GetConductivity(void);
+int GetGasConstant(void);
+int GetSpecificHeatRatio(void);
+int GetIncompressibleFluidProperties(void);
+int GetCompressibleFluidProperties(void);
+int GetFluidProperties(void);
 
 #endif
 

@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 /* User Defined */
 #include "Global.h"
@@ -42,37 +42,37 @@
 #include "CellPointOperation_2D.h"
 
 /*--------------------------------------------------------------*/
-void PointInCell_2D (double x, double y, int cellID, int *flag) {
-	int i, j, node1, node2;
-	int result = 0;
-	
-	*flag = 0;
-	
-	for (i = 0, j = (Cell2D[cellID].NodesPerCell - 1); i < Cell2D[cellID].NodesPerCell; j = i, i++) {
-		node1 = Cell2D[cellID].ConnectNode[j];
-		node2 = Cell2D[cellID].ConnectNode[i];
-		
-		/* AntiClock Wise (cgns standard) */
-		if (((y - Node2D[node1].Coordinate[1])*(Node2D[node2].Coordinate[0] - Node2D[node1].Coordinate[0]) -
-			(x - Node2D[node1].Coordinate[0])*(Node2D[node2].Coordinate[1] - Node2D[node1].Coordinate[1])) >= 0.0)
-			result++;
-	}
-	
-	if (result == Cell2D[cellID].NodesPerCell)
-		*flag = 1;		
+void PointInCell_2D(double x, double y, int cellID, int *flag) {
+    int i, j, node1, node2;
+    int result = 0;
+
+    *flag = 0;
+
+    for (i = 0, j = (Cell2D[cellID].NodesPerCell - 1); i < Cell2D[cellID].NodesPerCell; j = i, i++) {
+        node1 = Cell2D[cellID].ConnectNode[j];
+        node2 = Cell2D[cellID].ConnectNode[i];
+
+        /* AntiClock Wise (cgns standard) */
+        if (((y - Node2D[node1].Coordinate[1])*(Node2D[node2].Coordinate[0] - Node2D[node1].Coordinate[0]) -
+                (x - Node2D[node1].Coordinate[0])*(Node2D[node2].Coordinate[1] - Node2D[node1].Coordinate[1])) >= 0.0)
+            result++;
+    }
+
+    if (result == Cell2D[cellID].NodesPerCell)
+        *flag = 1;
 }
 
 /*--------------------------------------------------------------*/
-void CellContainPoint_2D (double x, double y, int *cellID) {
-	int i, flag;
-	
-	*cellID = -1;
-	
-	for (i = 0; i < NoCells2D; i++) {
-		PointInCell_2D(x, y, i, &flag);
-		if (flag == 1) {
-			*cellID = i;
-			i = NoCells2D;
-		}
-	}
+void CellContainPoint_2D(double x, double y, int *cellID) {
+    int i, flag;
+
+    *cellID = -1;
+
+    for (i = 0; i < NoCells2D; i++) {
+        PointInCell_2D(x, y, i, &flag);
+        if (flag == 1) {
+            *cellID = i;
+            i = NoCells2D;
+        }
+    }
 }

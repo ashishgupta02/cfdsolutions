@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 /* User Defined */
 #include "Global.h"
@@ -41,79 +41,79 @@
 #include "CGNSIO.h"
 
 /* This function opens a input file and convert it into CGNS formate */
-int convert(const char *file){
-	FILE *fp;
-	char str[10], name[33];
-	double *xcoord = NULL, *ycoord = NULL, *zcoord = NULL;
-	int i, type, *curve, *range;
-	
-	/* Checks for existance of file */
-	if (!file_exists( file )){
-		FATAL(NULL, "File does not exist"); 
-	}
-	
-	strcpy(name,file);
-	strcat(name,".cgns");
-	printf("Output File: %s\n", name);
-	
-	/* Open the input file */
-	if ((fp = fopen(file,"r")) == NULL){
-		printf("Cannot open input file. \n");
-		exit(1);
-	}
-	
-	fscanf(fp, "%d%s\n", &type, str);
-	
-	switch(type){
-		case 31:
-			printf("Data of Type : %s\n", str);
-			curve = (int *)malloc( sizeof(int));
-			range = (int *)malloc( sizeof(int));
-			fscanf(fp, "%d%d\n", &curve[0], &range[0]);
-			xcoord = (double *)malloc( range[0]*sizeof(double));
-			ycoord = (double *)malloc( range[0]*sizeof(double));
-			zcoord = (double *)malloc( range[0]*sizeof(double));
-			for(i = 0; i < range[0]; i++){
-				fscanf(fp,"%lf%lf%lf", &xcoord[i], &ycoord[i], &zcoord[i]);
-				printf("%lf\t%lf\t%lf\n", xcoord[i], ycoord[i], zcoord[i]);
-			}	
-			break;
-		case 51:
-			printf("Data of Type : %s\n", str);
-			curve = (int *)malloc( 2*sizeof(int));
-			range = (int *)malloc( 2*sizeof(int));
-			fscanf(fp, "%d%d%d%d\n", &curve[0], &curve[1], &range[0], &range[1]);
-			xcoord = (double *)malloc( range[0]*range[1]*sizeof(double));
-			ycoord = (double *)malloc( range[0]*range[1]*sizeof(double));
-			zcoord = (double *)malloc( range[0]*range[1]*sizeof(double));
-			for(i = 0; i < range[0]*range[1]; i++){
-				fscanf(fp,"%lf%lf%lf", &xcoord[i], &ycoord[i], &zcoord[i]);
-				printf("%lf\t%lf\t%lf\n", xcoord[i], ycoord[i], zcoord[i]);
-			}
-			break;
-		default:
-			printf("Not Implemented\n");
-			break;
-	}
-	
-	/* Close the input file */
-	fclose(fp);
-	
-	/* Creat a New CGNS file */
-	open_cgns (name, 2);
-	/* Write in CGNS file */
-	write_cgns();
-	if(cg_close(cgnsfn))
-		FATAL(NULL, NULL);
-	
-	/* Releasing the allocated memory */
-	if(xcoord != NULL)
-		free(xcoord);
-	if(ycoord != NULL)
-		free(ycoord);
-	if(zcoord != NULL)
-		free(zcoord);
+int convert(const char *file) {
+    FILE *fp;
+    char str[10], name[33];
+    double *xcoord = NULL, *ycoord = NULL, *zcoord = NULL;
+    int i, type, *curve, *range;
 
-	return 0;
+    /* Checks for existance of file */
+    if (!file_exists(file)) {
+        FATAL(NULL, "File does not exist");
+    }
+
+    strcpy(name, file);
+    strcat(name, ".cgns");
+    printf("Output File: %s\n", name);
+
+    /* Open the input file */
+    if ((fp = fopen(file, "r")) == NULL) {
+        printf("Cannot open input file. \n");
+        exit(1);
+    }
+
+    fscanf(fp, "%d%s\n", &type, str);
+
+    switch (type) {
+        case 31:
+            printf("Data of Type : %s\n", str);
+            curve = (int *) malloc(sizeof (int));
+            range = (int *) malloc(sizeof (int));
+            fscanf(fp, "%d%d\n", &curve[0], &range[0]);
+            xcoord = (double *) malloc(range[0] * sizeof (double));
+            ycoord = (double *) malloc(range[0] * sizeof (double));
+            zcoord = (double *) malloc(range[0] * sizeof (double));
+            for (i = 0; i < range[0]; i++) {
+                fscanf(fp, "%lf%lf%lf", &xcoord[i], &ycoord[i], &zcoord[i]);
+                printf("%lf\t%lf\t%lf\n", xcoord[i], ycoord[i], zcoord[i]);
+            }
+            break;
+        case 51:
+            printf("Data of Type : %s\n", str);
+            curve = (int *) malloc(2 * sizeof (int));
+            range = (int *) malloc(2 * sizeof (int));
+            fscanf(fp, "%d%d%d%d\n", &curve[0], &curve[1], &range[0], &range[1]);
+            xcoord = (double *) malloc(range[0] * range[1] * sizeof (double));
+            ycoord = (double *) malloc(range[0] * range[1] * sizeof (double));
+            zcoord = (double *) malloc(range[0] * range[1] * sizeof (double));
+            for (i = 0; i < range[0] * range[1]; i++) {
+                fscanf(fp, "%lf%lf%lf", &xcoord[i], &ycoord[i], &zcoord[i]);
+                printf("%lf\t%lf\t%lf\n", xcoord[i], ycoord[i], zcoord[i]);
+            }
+            break;
+        default:
+            printf("Not Implemented\n");
+            break;
+    }
+
+    /* Close the input file */
+    fclose(fp);
+
+    /* Creat a New CGNS file */
+    open_cgns(name, 2);
+    /* Write in CGNS file */
+    write_cgns();
+    if (cg_close(cgnsfn))
+        FATAL(NULL, NULL);
+
+    /* Releasing the allocated memory */
+    if (xcoord != NULL)
+        free(xcoord);
+    if (ycoord != NULL)
+        free(ycoord);
+    if (zcoord != NULL)
+        free(zcoord);
+
+    return 0;
 }
 

@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 #ifndef __Streamline_2D_H__
 #define __Streamline_2D_H__
@@ -48,9 +48,9 @@ extern Point2 *SeedPoint;
 extern int *SeedCellID;
 extern int SeedID;
 
-void DrawSeedPoint_2D (void);
-void GetSeedPoints_2D (void);
-void InitializeSeedPoint_2D (double, double);
-void Streamline_2D (void);
+void DrawSeedPoint_2D(void);
+void GetSeedPoints_2D(void);
+void InitializeSeedPoint_2D(double, double);
+void Streamline_2D(void);
 
 #endif

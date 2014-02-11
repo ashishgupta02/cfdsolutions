@@ -33,26 +33,26 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 /* User Defined */
 #include "Global.h"
 #include "Error.h"
 
 /*--------------------------------------------------------------*/
-void Error_Exit (char *errmsg) {
-	char cmd[129];
+void Error_Exit(char *errmsg) {
+    char cmd[129];
 
-	sprintf (cmd, "error_exit {%s}", errmsg);
-	printf ("%s\n", cmd);
-	exit (1);
+    sprintf(cmd, "error_exit {%s}", errmsg);
+    printf("%s\n", cmd);
+    exit(1);
 }
 
 /*--------------------------------------------------------------*/
-void MSG (const char *msg) {
-	char cmd[129];
+void Warn(const char *msg) {
+    char cmd[129];
 
-	sprintf (cmd, "Warning: {%s}", msg);
-	printf ("%s\n", cmd);
+    sprintf(cmd, "Warning: {%s}", msg);
+    printf("%s\n", cmd);
 }
 

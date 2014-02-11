@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 /* User Defined */
 #include "Global.h"
@@ -61,76 +61,76 @@ Data_2D_Un GraVecX;
 Data_2D_Un GraVecY;
 
 /*--------------------------------------------------------------*/
-void ScalarTopology_2D (void) {
-	int flag = 0;
-	Data_2D_Un tmp;
-	
-	if (ScalarTopologyArg == -1)
-		return;
-	
-	/* Should not go for first time */
-	if (firstSca) {		
-		if (ScalarTopologyArg != CheckScaTopArg)
-			flag = 1;
-	}
-	
-	/* If First time */
-	if ((!firstSca) || (flag == 1)) {
-		if (flag == 1) {
-			if (GraVecX.Data != NULL) free(GraVecX.Data);
-			if (GraVecY.Data != NULL) free(GraVecY.Data);
-		}
-		
-		CheckScaTopArg = ScalarTopologyArg;
-		
-		switch (Solution2D.Location) {
-			case Vertex:
-				/* Allocate Gradient Vector Memory */
-				GraVecX.Size = NoNodes2D;
-				GraVecY.Size = NoNodes2D;
-				
-				GraVecX.Data = (double *) malloc(NoNodes2D * sizeof(double));
-				GraVecY.Data = (double *) malloc(NoNodes2D * sizeof(double));
-				if ((GraVecX.Data == NULL) || (GraVecY.Data == NULL)) {
-					MSG("ScalarTopology_2D: Memory Allocation Failed 1");
-					return;
-				}
-				/* Get Scalar Gradient */
-				NodeGradientLSM_2D(Solution2D.Sols[ScalarTopologyArg], &GraVecX, &GraVecY);
-				
-				break;
-			case CellCenter:
-				/* Initialize tmp variable */
-				tmp.Size = NoNodes2D;
-				tmp.Data = (double *) malloc(NoNodes2D * sizeof(double));
-				if (tmp.Data == NULL) {
-					MSG("ScalarTopology_2D: Memory Allocation Failed 2");
-					return;
-				}
-				
-				/* Interpolate from CellCenter to Vertex */
-				ArithmeticCC2Node_2D(Solution2D.Sols[ScalarTopologyArg], &tmp);
-				
-				GraVecX.Size = NoNodes2D;
-				GraVecY.Size = NoNodes2D;
-				
-				GraVecX.Data = (double *) malloc(NoNodes2D * sizeof(double));
-				GraVecY.Data = (double *) malloc(NoNodes2D * sizeof(double));
-				if ((GraVecX.Data == NULL) || (GraVecY.Data == NULL)) {
-					MSG("ScalarTopology_2D: Memory Allocation Failed 3");
-					return;
-				}
-				
-				/* Get Scalar Gradient */
-				NodeGradientLSM_2D(&tmp, &GraVecX, &GraVecY);
-				
-				/* Release tmp memory */
-				if (tmp.Data != NULL) free(tmp.Data);
-				break;
-		}
-		
-		firstSca = 1;
-		/* Get Critical Point Using Vector Topology */
-		VectorTopology_2D();
-	}
+void ScalarTopology_2D(void) {
+    int flag = 0;
+    Data_2D_Un tmp;
+
+    if (ScalarTopologyArg == -1)
+        return;
+
+    /* Should not go for first time */
+    if (firstSca) {
+        if (ScalarTopologyArg != CheckScaTopArg)
+            flag = 1;
+    }
+
+    /* If First time */
+    if ((!firstSca) || (flag == 1)) {
+        if (flag == 1) {
+            if (GraVecX.Data != NULL) free(GraVecX.Data);
+            if (GraVecY.Data != NULL) free(GraVecY.Data);
+        }
+
+        CheckScaTopArg = ScalarTopologyArg;
+
+        switch (Solution2D.Location) {
+            case Vertex:
+                /* Allocate Gradient Vector Memory */
+                GraVecX.Size = NoNodes2D;
+                GraVecY.Size = NoNodes2D;
+
+                GraVecX.Data = (double *) malloc(NoNodes2D * sizeof (double));
+                GraVecY.Data = (double *) malloc(NoNodes2D * sizeof (double));
+                if ((GraVecX.Data == NULL) || (GraVecY.Data == NULL)) {
+                    Warn("ScalarTopology_2D: Memory Allocation Failed 1");
+                    return;
+                }
+                /* Get Scalar Gradient */
+                NodeGradientLSM_2D(Solution2D.Sols[ScalarTopologyArg], &GraVecX, &GraVecY);
+
+                break;
+            case CellCenter:
+                /* Initialize tmp variable */
+                tmp.Size = NoNodes2D;
+                tmp.Data = (double *) malloc(NoNodes2D * sizeof (double));
+                if (tmp.Data == NULL) {
+                    Warn("ScalarTopology_2D: Memory Allocation Failed 2");
+                    return;
+                }
+
+                /* Interpolate from CellCenter to Vertex */
+                ArithmeticCC2Node_2D(Solution2D.Sols[ScalarTopologyArg], &tmp);
+
+                GraVecX.Size = NoNodes2D;
+                GraVecY.Size = NoNodes2D;
+
+                GraVecX.Data = (double *) malloc(NoNodes2D * sizeof (double));
+                GraVecY.Data = (double *) malloc(NoNodes2D * sizeof (double));
+                if ((GraVecX.Data == NULL) || (GraVecY.Data == NULL)) {
+                    Warn("ScalarTopology_2D: Memory Allocation Failed 3");
+                    return;
+                }
+
+                /* Get Scalar Gradient */
+                NodeGradientLSM_2D(&tmp, &GraVecX, &GraVecY);
+
+                /* Release tmp memory */
+                if (tmp.Data != NULL) free(tmp.Data);
+                break;
+        }
+
+        firstSca = 1;
+        /* Get Critical Point Using Vector Topology */
+        VectorTopology_2D();
+    }
 }

@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 /* User Defined */
 #include "Global.h"
@@ -46,19 +46,19 @@ Data_2D_Un *Vector2DX;
 Data_2D_Un *Vector2DY;
 
 /*--------------------------------------------------------------*/
-void MinMaxVector_2D (Data_2D_Un *VecX, Data_2D_Un *VecY, double *MinValue, double *MaxValue) {
-	int i;
-	double Sol;
-	
-	*MinValue = sqrt((VecX->Data[0] * VecX->Data[0]) + (VecY->Data[0] * VecY->Data[0]));
-	
-	*MaxValue = *MinValue;
-	for (i = 1; i < VecX->Size; i++) {
-		Sol = sqrt((VecX->Data[i] * VecX->Data[i]) + (VecY->Data[i] * VecY->Data[i]));
-		if (*MinValue > Sol)
-			*MinValue = Sol;
-		
-		if (*MaxValue < Sol)
-			*MaxValue = Sol;
-	}
+void MinMaxVector_2D(Data_2D_Un *VecX, Data_2D_Un *VecY, double *MinValue, double *MaxValue) {
+    int i;
+    double Sol;
+
+    *MinValue = sqrt((VecX->Data[0] * VecX->Data[0]) + (VecY->Data[0] * VecY->Data[0]));
+
+    *MaxValue = *MinValue;
+    for (i = 1; i < VecX->Size; i++) {
+        Sol = sqrt((VecX->Data[i] * VecX->Data[i]) + (VecY->Data[i] * VecY->Data[i]));
+        if (*MinValue > Sol)
+            *MinValue = Sol;
+
+        if (*MaxValue < Sol)
+            *MaxValue = Sol;
+    }
 }

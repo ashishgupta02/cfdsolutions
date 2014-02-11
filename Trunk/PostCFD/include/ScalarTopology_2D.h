@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 #ifndef __ScalarTopology_2D_H__
 #define __ScalarTopolopy_2D_H__
@@ -46,5 +46,5 @@ extern int ScalarTopologyArg;
 extern Data_2D_Un GraVecX;
 extern Data_2D_Un GraVecY;
 
-void ScalarTopology_2D (void);
+void ScalarTopology_2D(void);
 #endif

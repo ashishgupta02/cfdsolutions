@@ -33,12 +33,12 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 #ifndef __CGNSPatch_H__
 #define __CGNSPatch_H__
 
 extern int CGNSPatch_Connectivity(const char *, const char *);
-extern int CGNSPatch(const char * , const char *);
+extern int CGNSPatch(const char *, const char *);
 
 #endif

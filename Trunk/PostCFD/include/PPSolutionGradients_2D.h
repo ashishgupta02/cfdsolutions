@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 
 #ifndef __PPSolutionGradients_2D_H__
@@ -44,10 +44,10 @@
 int LSMSolutionFieldGradient_2D(int, Data_2D_Un *, Data_2D_Un *);
 int LISolutionFieldGradient_2D(int, Data_2D_Un *, Data_2D_Un *);
 int CalculateSolutionFieldGradient_2D(int, Data_2D_Un *, Data_2D_Un *);
-int CalculateTemperatureGradient_2D (int);
-int CalculatePressureGradient_2D (int);
-int CalculateDensityGradient_2D (int);
-int SolutionGradient_2D (void);
+int CalculateTemperatureGradient_2D(int);
+int CalculatePressureGradient_2D(int);
+int CalculateDensityGradient_2D(int);
+int SolutionGradient_2D(void);
 
 #endif
 
