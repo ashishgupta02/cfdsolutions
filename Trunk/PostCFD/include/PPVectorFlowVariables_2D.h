@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 
 #ifndef __PPVectorFlowVariables_2D_H__
@@ -43,9 +43,9 @@
 #include "PPInitializeSolution_2D.h"
 
 /* Function Declearation */
-int Momentum_2D (ZONE *);
-int Vorticity_2D (ZONE *);
-int VectorFlowVariableOptions_2D (void);
+int Momentum_2D(ZONE *);
+int Vorticity_2D(ZONE *);
+int VectorFlowVariableOptions_2D(void);
 
 #endif
 

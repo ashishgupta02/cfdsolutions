@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 #ifndef __VectorTopology_2D_H__
 #define __VectorTopolopy_2D_H__
@@ -48,12 +48,12 @@
 #define AttractingSpiral	6
 
 typedef struct PP_2D_CriticalPoint_Un {
-	int Size;
-	int *Type;
-	int *Cell;
-	Point2 *CriticalPoint;
-	Point2 *EigenVector1;
-	Point2 *EigenVector2;
+    int Size;
+    int *Type;
+    int *Cell;
+    Point2 *CriticalPoint;
+    Point2 *EigenVector1;
+    Point2 *EigenVector2;
 } CriticalPoint_2D_Un;
 
 /* Vector Components Arg1 = X, Arg2 = Y */
@@ -65,9 +65,9 @@ extern CriticalPoint_2D_Un CPoint2D;
 extern Data_2D_Un TopVecX;
 extern Data_2D_Un TopVecY;
 
-void SetTopologicalSeedPoints_2D (void);
-int AddCriticalPoint_2D (int, Point2, Point2, Point2, int);
-int GetCriticalPoint_2D (int, Point2 *, Point2 *, Point2 *, int *);
-void VectorTopology_2D (void);
+void SetTopologicalSeedPoints_2D(void);
+int AddCriticalPoint_2D(int, Point2, Point2, Point2, int);
+int GetCriticalPoint_2D(int, Point2 *, Point2 *, Point2 *, int *);
+void VectorTopology_2D(void);
 
 #endif

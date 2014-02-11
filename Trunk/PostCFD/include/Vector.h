@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 #ifndef __Vector_H__
 #define __Vector_H__
@@ -41,21 +41,22 @@
 /*********************/
 /* 2d geometry types */
 /*********************/
+
 /* 2D point */
 typedef struct Point2Struct {
-	double x, y;
+    double x, y;
 } Point2;
 
 typedef Point2 Vector2;
 
 /* 2D integer point */
 typedef struct IntPoint2Struct {
-	int x, y;
+    int x, y;
 } IntPoint2;
 
 /* 2D box */
 typedef struct Box2dStruct {
-	Point2 min, max;
+    Point2 min, max;
 } Box2;
 
 
@@ -68,7 +69,7 @@ double V2Length(Vector2 *);
 double V2Dot(Vector2 *, Vector2 *);
 double V2Cross(Vector2 *, Vector2 *);
 double DotO_2D(Point2 *, Point2 *, Point2 *);
-double CrossO_2D(Point2 *, Point2 *, Point2 *); 
+double CrossO_2D(Point2 *, Point2 *, Point2 *);
 double V2DistanceBetween2Points(Point2 *, Point2 *);
 double V2ENorm(Vector2 *);
 double ENormO_2D(Point2 *, Point2 *);
@@ -87,21 +88,22 @@ Vector2 *V2Duplicate(Vector2 *);
 /*********************/
 /* 3d geometry types */
 /*********************/
+
 /* 3D point */
 typedef struct Point3Struct {
-	double x, y, z;
+    double x, y, z;
 } Point3;
 
 typedef Point3 Vector3;
 
 /* 3D integer point */
 typedef struct IntPoint3Struct {
-	int x, y, z;
+    int x, y, z;
 } IntPoint3;
 
 /* 3D box */
 typedef struct Box3dStruct {
-	Point3 min, max;
+    Point3 min, max;
 } Box3;
 
 

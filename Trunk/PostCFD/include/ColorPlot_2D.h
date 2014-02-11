@@ -33,14 +33,14 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 #ifndef __ColorPlot_2D_H__
 #define __ColorPlot_2D_H__
 
-void DrawName_2D (int);
-void DrawLegend_2D (double, double, int, int);
-void CreateColorPlot_2D (int);
-void ColorPlot_2D (void);
+void DrawName_2D(int);
+void DrawLegend_2D(double, double, int, int);
+void CreateColorPlot_2D(int);
+void ColorPlot_2D(void);
 
 #endif

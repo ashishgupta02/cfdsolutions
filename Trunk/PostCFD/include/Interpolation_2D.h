@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 
 #ifndef __Interpolation_2D_H__
@@ -41,14 +41,14 @@
 
 #include "PPInitializeSolution_2D.h"
 
-int SetInterpolationOptionCC2Node_2D (void);
-int WeightedAreaCC2Node_2D (Data_2D_Un *, Data_2D_Un *);
+int SetInterpolationOptionCC2Node_2D(void);
+int WeightedAreaCC2Node_2D(Data_2D_Un *, Data_2D_Un *);
 int InverseDistanceCC2Node_2D(Data_2D_Un *, Data_2D_Un *);
-int LaplacianCC2Node_2D (Data_2D_Un *, Data_2D_Un *);
-int ArithmeticCC2Node_2D (Data_2D_Un *, Data_2D_Un *);
-int CellCenter2Node_2D (Data_2D_Un *, Data_2D_Un *);
+int LaplacianCC2Node_2D(Data_2D_Un *, Data_2D_Un *);
+int ArithmeticCC2Node_2D(Data_2D_Un *, Data_2D_Un *);
+int CellCenter2Node_2D(Data_2D_Un *, Data_2D_Un *);
 
 int LinearNode2CC_2D(Data_2D_Un *, Data_2D_Un *);
-int Node2CellCenter_2D (Data_2D_Un *, Data_2D_Un *);
+int Node2CellCenter_2D(Data_2D_Un *, Data_2D_Un *);
 
 #endif

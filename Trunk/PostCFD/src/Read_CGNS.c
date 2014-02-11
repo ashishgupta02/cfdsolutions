@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 /* User Defined */
 #include "Global.h"
@@ -44,146 +44,146 @@
 /*---------- Read ----------------------------------------------
  * Read CGNS File
  * -------------------------------------------------------------*/
-int Read (const char *file) {
-	int nbases, celldim, phydim;
-	char basename[33];
-	ZONE *z;
-	BOCO *bocos;
-	int nz, nb;
+int Read(const char *file) {
+    int nbases, celldim, phydim;
+    char basename[33];
+    ZONE *z;
+    BOCO *bocos;
+    int nz, nb;
 
-	/* Checks for existance of file */
-	if (!file_exists(file))
-		FATAL (NULL, "File does not exist");
+    /* Checks for existance of file */
+    if (!file_exists(file))
+        FATAL(NULL, "File does not exist");
 
-	/* Read CGNS file */
-	printf ("Reading CGNS file from %s\n", file);
-	fflush (stdout);
+    /* Read CGNS file */
+    printf("Reading CGNS file from %s\n", file);
+    fflush(stdout);
 
-	/* Open CGNS File */
-	nbases = open_cgns (file, 0);
-	if (!nbases)
-		FATAL (NULL, "No bases in CGNS file");
+    /* Open CGNS File */
+    nbases = open_cgns(file, 0);
+    if (!nbases)
+        FATAL(NULL, "No bases in CGNS file");
 
-	cg_version (cgnsfn, &Version);
-	printf("File version = %lf\n", Version);
+    cg_version(cgnsfn, &Version);
+    printf("File version = %lf\n", Version);
 
-	printf("No of Bases in file = %d\n", nbases);
+    printf("No of Bases in file = %d\n", nbases);
 
-	if (nbases == 1)
-		cgnsbase = 1;
-	else {
-		printf ("Give base No to browse : ");
-		scanf ("%d", &cgnsbase);
+    if (nbases == 1)
+        cgnsbase = 1;
+    else {
+        printf("Give base No to browse : ");
+        scanf("%d", &cgnsbase);
 
-		if (cgnsbase < 1 || cgnsbase > nbases)
-			FATAL (NULL, "Invailed base index");
-	}
+        if (cgnsbase < 1 || cgnsbase > nbases)
+            FATAL(NULL, "Invailed base index");
+    }
 
-	if (cg_base_read (cgnsfn, cgnsbase, basename, &celldim, &phydim))
-		FATAL(NULL, NULL);
+    if (cg_base_read(cgnsfn, cgnsbase, basename, &celldim, &phydim))
+        FATAL(NULL, NULL);
 
-	printf ("Using base %d - %s\n", cgnsbase, basename);
-	printf ("Cell dimension     = %d\n", celldim);
-	printf ("Physical dimension = %d\n", phydim);
+    printf("Using base %d - %s\n", cgnsbase, basename);
+    printf("Cell dimension     = %d\n", celldim);
+    printf("Physical dimension = %d\n", phydim);
 
-	read_cgns();
+    read_cgns();
 
-	printf ("No of zones nodes = %d\n", nZones);
+    printf("No of zones nodes = %d\n", nZones);
 
-	for (z = Zones, nz = 1; nz <= nZones; nz++, z++) {
-		printf ("\nZone No = %d\nZone Name = %s\n", z->id, z->name);
+    for (z = Zones, nz = 1; nz <= nZones; nz++, z++) {
+        printf("\nZone No = %d\nZone Name = %s\n", z->id, z->name);
 
-		print_ZoneType (z->type);
-		switch (z->type) {
-		case 2:
-			printf ("Dimensions = %d x %d x %d\n",
-			        z->dim[0], z->dim[1], z->dim[2]);
-			break;
-		case 3:
-			printf ("Dimensions = %d\n", z->dim[0]);
-			break;
-		}
+        print_ZoneType(z->type);
+        switch (z->type) {
+            case 2:
+                printf("Dimensions = %d x %d x %d\n",
+                        z->dim[0], z->dim[1], z->dim[2]);
+                break;
+            case 3:
+                printf("Dimensions = %d\n", z->dim[0]);
+                break;
+        }
 
-		if (z->nbocos) {
-			printf ("No of boundary conditions = %d\n", z->nbocos);
-			for (bocos = z->bocos, nb = 1; nb <= z->nbocos; nb++, bocos++) {
-				printf ("Boundry condition name = %s\n", bocos->name);
+        if (z->nbocos) {
+            printf("No of boundary conditions = %d\n", z->nbocos);
+            for (bocos = z->bocos, nb = 1; nb <= z->nbocos; nb++, bocos++) {
+                printf("Boundry condition name = %s\n", bocos->name);
 
-				print_BCType (bocos->type);
-				print_PointSetType(bocos->ptype);
-				print_BCDataType(bocos->n_type);
-			}
-		}
+                print_BCType(bocos->type);
+                print_PointSetType(bocos->ptype);
+                print_BCDataType(bocos->n_type);
+            }
+        }
 
-		if (z->nsols) {
-			printf ("No of solutions node = %d\n", z->nsols);
-			print_solution (z);
-		}
-	}
+        if (z->nsols) {
+            printf("No of solutions node = %d\n", z->nsols);
+            print_solution(z);
+        }
+    }
 
-	if (cg_close (cgnsfn))
-		FATAL (NULL, NULL);
+    if (cg_close(cgnsfn))
+        FATAL(NULL, NULL);
 
-	return 0;
+    return 0;
 }
 
 /*---------- Info ----------------------------------------------
  * Information CGNS File
  * -------------------------------------------------------------*/
-int Info (const char *file) {
-	int nz, nbases, celldim, phydim;
-	char basename[33];
-	ZONE *z;
+int Info(const char *file) {
+    int nz, nbases, celldim, phydim;
+    char basename[33];
+    ZONE *z;
 
-	if (!file_exists (file))
-		FATAL (NULL, "CGNSfile does not exist or is not a file");
+    if (!file_exists(file))
+        FATAL(NULL, "CGNSfile does not exist or is not a file");
 
-	/* read CGNS file */
-	printf ("reading CGNS file from %s\n", file);
-	fflush (stdout);
-	nbases = open_cgns (file, 0);
-	if (!nbases) FATAL (NULL, "no bases in CGNS file");
+    /* read CGNS file */
+    printf("reading CGNS file from %s\n", file);
+    fflush(stdout);
+    nbases = open_cgns(file, 0);
+    if (!nbases) FATAL(NULL, "no bases in CGNS file");
 
-	cg_version (cgnsfn, &Version);
-	printf("File version = %lf\n", Version);
-	printf("No of Bases in file = %d\n", nbases);
+    cg_version(cgnsfn, &Version);
+    printf("File version = %lf\n", Version);
+    printf("No of Bases in file = %d\n", nbases);
 
-	if (nbases == 1)
-		cgnsbase = 1;
-	else {
-		printf ("Give base No to browse");
-		scanf ("%d", &cgnsbase);
+    if (nbases == 1)
+        cgnsbase = 1;
+    else {
+        printf("Give base No to browse");
+        scanf("%d", &cgnsbase);
 
-		if (cgnsbase < 1 || cgnsbase > nbases)
-			FATAL (NULL, "Invailed base index");
-	}
+        if (cgnsbase < 1 || cgnsbase > nbases)
+            FATAL(NULL, "Invailed base index");
+    }
 
-	if (cg_base_read (cgnsfn, cgnsbase, basename, &celldim, &phydim))
-		FATAL (NULL, NULL);
+    if (cg_base_read(cgnsfn, cgnsbase, basename, &celldim, &phydim))
+        FATAL(NULL, NULL);
 
-	printf ("using base %d - %s\n", cgnsbase, basename);
-	printf ("cell dimension     = %d\n", celldim);
-	printf ("physical dimension = %d\n", phydim);
+    printf("using base %d - %s\n", cgnsbase, basename);
+    printf("cell dimension     = %d\n", celldim);
+    printf("physical dimension = %d\n", phydim);
 
-	read_zones ();
+    read_zones();
 
-	for (z = Zones, nz = 1; nz <= nZones; nz++, z++) {
-		printf ("\nzone %d - %s\n", z->id, z->name);
-		printf ("type      = %d\n", z->type);
-		printf ("dimension = %d x %d x %d\n", z->dim[0],
-		        z->dim[1], z->dim[2]);
-		printf ("1to1      = %d\n", z->nints);
-		print_interface (z);
+    for (z = Zones, nz = 1; nz <= nZones; nz++, z++) {
+        printf("\nzone %d - %s\n", z->id, z->name);
+        printf("type      = %d\n", z->type);
+        printf("dimension = %d x %d x %d\n", z->dim[0],
+                z->dim[1], z->dim[2]);
+        printf("1to1      = %d\n", z->nints);
+        print_interface(z);
 
-		printf ("connects  = %d\n", z->nconns);
-		print_connect (z);
+        printf("connects  = %d\n", z->nconns);
+        print_connect(z);
 
-		printf ("solutions = %d\n", z->nsols);
-		print_solution (z);
-	}
+        printf("solutions = %d\n", z->nsols);
+        print_solution(z);
+    }
 
-	if (cg_close (cgnsfn))
-		FATAL (NULL, NULL);
-	exit (0);
+    if (cg_close(cgnsfn))
+        FATAL(NULL, NULL);
+    exit(0);
 }
 

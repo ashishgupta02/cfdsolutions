@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 
 #ifndef __PostAnalysis_2D_H__
@@ -41,6 +41,6 @@
 
 #include "CGNSIO.h"
 
-int PostAnalysis_2D (void);
+int PostAnalysis_2D(void);
 
 #endif

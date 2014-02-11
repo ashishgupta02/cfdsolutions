@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 
 #ifndef __Stream_2D_H__
@@ -42,16 +42,16 @@
 #include "PPInitializeSolution_2D.h"
 
 /* Stream Module:
-	1: StreamLines
-	2: Vector Topology
-	3: Scalar Topology
-*/
+        1: StreamLines
+        2: Vector Topology
+        3: Scalar Topology
+ */
 extern int StreamModule;
 
 /* Use to store pointer of Streamline, Vector Topology and Scalar Topology Vectors */
 extern Data_2D_Un *Vector2DX;
 extern Data_2D_Un *Vector2DY;
 
-void MinMaxVector_2D (Data_2D_Un *, Data_2D_Un *, double *, double *);
+void MinMaxVector_2D(Data_2D_Un *, Data_2D_Un *, double *, double *);
 
 #endif

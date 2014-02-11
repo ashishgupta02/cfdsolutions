@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 #ifndef __POSTPROCESSING_2D_H__
 #define __POSTPROCESSING_2D_H__
@@ -47,58 +47,58 @@
 
 /* 2D Post-Processing Data Structure */
 typedef struct PP_2D_Node {
-	/* Flag Denote Bounday or Internal Node */
-	int	Flag;
-	double	Coordinate[2];
-	double	WeightTotal;
+    /* Flag Denote Bounday or Internal Node */
+    int Flag;
+    double Coordinate[2];
+    double WeightTotal;
 } Node_2D;
 
 typedef struct PP_2D_Edge {
-	int	Flag, NoOfNeighbourCells;
-	double	MidCoordinate[2];
-	int	ConnectedNodes[2];
-	double	length;
-	double	dx, dy, nx, ny;
-	/* Cell[0] and Cell[1] are adjacent cells of edge. For boundary cell with
-	NoOfNeighbouringCells = 1, Cell[0] = 0 */
-	int	Cell[2];
-	int	VisitFlag;
+    int Flag, NoOfNeighbourCells;
+    double MidCoordinate[2];
+    int ConnectedNodes[2];
+    double length;
+    double dx, dy, nx, ny;
+    /* Cell[0] and Cell[1] are adjacent cells of edge. For boundary cell with
+    NoOfNeighbouringCells = 1, Cell[0] = 0 */
+    int Cell[2];
+    int VisitFlag;
 } Edge_2D;
 
 typedef struct PP_2D_Cell {
-	int	Flag, NodesPerCell, EdgesPerCell, NearCells;
-	double	Area;
-	double	Centroid[2];
-	int	*ConnectNode, *ConnectEdge, *NearNeighbours;
+    int Flag, NodesPerCell, EdgesPerCell, NearCells;
+    double Area;
+    double Centroid[2];
+    int *ConnectNode, *ConnectEdge, *NearNeighbours;
 } Cell_2D;
 
 typedef struct PP_2D_Vector {
-	int	Size;
-	int	Capacity;
-	int	*Data;
+    int Size;
+    int Capacity;
+    int *Data;
 } Vector_2D;
 
 /* Bigger Picture */
 typedef struct PP_2D_Block {
-	int	id;
-	char	Name[33];
-	Node_2D	*Node2D;
-	Cell_2D *Cell2D;
-	Edge_2D	*Edge2D;
-	Vector_2D *NodeAdjacentNodes2D;
-	Vector_2D *NodeAdjacentCells2D;
+    int id;
+    char Name[33];
+    Node_2D *Node2D;
+    Cell_2D *Cell2D;
+    Edge_2D *Edge2D;
+    Vector_2D *NodeAdjacentNodes2D;
+    Vector_2D *NodeAdjacentCells2D;
 } Block_2D;
 
-extern int	NoCells2D, NoEdges2D, NoNodes2D, NoOfBoundaryEdges2D, MaxEdgeNum2D;
-extern Node_2D	*Node2D;
-extern Cell_2D	*Cell2D;
-extern Edge_2D	*Edge2D;
+extern int NoCells2D, NoEdges2D, NoNodes2D, NoOfBoundaryEdges2D, MaxEdgeNum2D;
+extern Node_2D *Node2D;
+extern Cell_2D *Cell2D;
+extern Edge_2D *Edge2D;
 extern Vector_2D *NodeAdjacentNodes2D;
 extern Vector_2D *NodeAdjacentCells2D;
-extern int	*IA_2D;
-extern int	*JA_2D;
+extern int *IA_2D;
+extern int *JA_2D;
 
 /* Function Declearation */
-extern int PostProcessing (const char *);
+extern int PostProcessing(const char *);
 
 #endif

@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 /* User Defined */
 #include "Global.h"
@@ -50,96 +50,96 @@ BoundaryCondition_2D_Un Boundary2D;
 
 /* Boundary Name */
 char BoCoName[26][33] = {
-	"BCTypeNull", "BCTypeUserDefined",
-	"BCAxisymmetricWedge", "BCDegenerateLine", "BCDegeneratePoint",
-	"BCDirichlet", "BCExtrapolate", "BCFarfield", "BCGeneral", "BCInflow",
-	"BCInflowSubsonic", "BCInflowSupersonic", "BCNeumann", "BCOutflow",
-	"BCOutflowSubsonic", "BCOutflowSupersonic", "BCSymmetryPlane",
-	"BCSymmetryPolar", "BCTunnelInflow", "BCTunnelOutflow", "BCWall",
-	"BCWallInviscid", "BCWallViscous", "BCWallViscousHeatFlux",
-	"BCWallViscousIsothermal", "FamilySpecified"
+    "BCTypeNull", "BCTypeUserDefined",
+    "BCAxisymmetricWedge", "BCDegenerateLine", "BCDegeneratePoint",
+    "BCDirichlet", "BCExtrapolate", "BCFarfield", "BCGeneral", "BCInflow",
+    "BCInflowSubsonic", "BCInflowSupersonic", "BCNeumann", "BCOutflow",
+    "BCOutflowSubsonic", "BCOutflowSupersonic", "BCSymmetryPlane",
+    "BCSymmetryPolar", "BCTunnelInflow", "BCTunnelOutflow", "BCWall",
+    "BCWallInviscid", "BCWallViscous", "BCWallViscousHeatFlux",
+    "BCWallViscousIsothermal", "FamilySpecified"
 };
 
 /*---------------------------------------------------------------*/
-int InitializeBoundaryCondition_2D (ZONE *P) {
-	int i, bc, node1, node2, edgeID;
-	BOCO *boco;
-	
-	Boundary2D.NoBoCo = P->nbocos;
-	Boundary2D.BoCo = (Boundary_2D_Un *) malloc(Boundary2D.NoBoCo * sizeof(Boundary_2D_Un));
-	if (Boundary2D.BoCo == NULL) {
-		MSG("InitializeBoundaryCondition_2D: Failed 1");
-		return 1;
-	}
-	
-	for (i = 0; i < NoNodes2D; i++)
-		Node2D[i].Flag = 0;
-	
-	for (boco = P->bocos, bc = 1; bc <= P->nbocos; bc++, boco++) {
-		if (boco->ptype != PointList) {
-			MSG("InitializeBoundaryCondition: Error - Expecting Point List");
-			return 1;
-		}
-		
-		if((boco->type >= 0) || (boco->type <= 25)) {
-			strcpy(Boundary2D.BoCo[bc-1].Name, boco->name);
-			strcpy(Boundary2D.BoCo[bc-1].TypeName, BoCoName[boco->type]);
-			Boundary2D.BoCo[bc-1].Type = boco->type;
-			printf("BoCo = %s\tType = %d\tType Name = %s\n", Boundary2D.BoCo[bc-1].Name, Boundary2D.BoCo[bc-1].Type, Boundary2D.BoCo[bc-1].TypeName);
-		}
-		
-		Boundary2D.BoCo[bc-1].Size = boco->npnts;
-		Boundary2D.BoCo[bc-1].BPoints = (int *) malloc (boco->npnts * sizeof(int));
-		if (Boundary2D.BoCo[bc-1].BPoints == NULL) {
-			MSG("InitializeBoundaryCondition_2D: Failed 2");
-			return 1;
-		}
-		
-		for (i = 0; i < (boco->npnts); i++)
-			Node2D[boco->pnts[i]].Flag = 1;
-		
-		
-		for (i = 0; i < (boco->npnts - 1); i++) {
-			node1 = boco->pnts[i];
-			node2 = boco->pnts[i+1];
-			Boundary2D.BoCo[bc-1].BPoints[i] = boco->pnts[i];
-			Boundary2D.BoCo[bc-1].BPoints[i+1] = boco->pnts[i+1];
-			i++;
-			edgeID = GetEdgeNumber_2D(node1, node2); 
-			Edge2D[edgeID].Flag = boco->type;
-		}
-	}
-	
-	return 0;
+int InitializeBoundaryCondition_2D(ZONE *P) {
+    int i, bc, node1, node2, edgeID;
+    BOCO *boco;
+
+    Boundary2D.NoBoCo = P->nbocos;
+    Boundary2D.BoCo = (Boundary_2D_Un *) malloc(Boundary2D.NoBoCo * sizeof (Boundary_2D_Un));
+    if (Boundary2D.BoCo == NULL) {
+        Warn("InitializeBoundaryCondition_2D: Failed 1");
+        return 1;
+    }
+
+    for (i = 0; i < NoNodes2D; i++)
+        Node2D[i].Flag = 0;
+
+    for (boco = P->bocos, bc = 1; bc <= P->nbocos; bc++, boco++) {
+        if (boco->ptype != PointList) {
+            Warn("InitializeBoundaryCondition: Error - Expecting Point List");
+            return 1;
+        }
+
+        if ((boco->type >= 0) || (boco->type <= 25)) {
+            strcpy(Boundary2D.BoCo[bc - 1].Name, boco->name);
+            strcpy(Boundary2D.BoCo[bc - 1].TypeName, BoCoName[boco->type]);
+            Boundary2D.BoCo[bc - 1].Type = boco->type;
+            printf("BoCo = %s\tType = %d\tType Name = %s\n", Boundary2D.BoCo[bc - 1].Name, Boundary2D.BoCo[bc - 1].Type, Boundary2D.BoCo[bc - 1].TypeName);
+        }
+
+        Boundary2D.BoCo[bc - 1].Size = boco->npnts;
+        Boundary2D.BoCo[bc - 1].BPoints = (int *) malloc(boco->npnts * sizeof (int));
+        if (Boundary2D.BoCo[bc - 1].BPoints == NULL) {
+            Warn("InitializeBoundaryCondition_2D: Failed 2");
+            return 1;
+        }
+
+        for (i = 0; i < (boco->npnts); i++)
+            Node2D[boco->pnts[i]].Flag = 1;
+
+
+        for (i = 0; i < (boco->npnts - 1); i++) {
+            node1 = boco->pnts[i];
+            node2 = boco->pnts[i + 1];
+            Boundary2D.BoCo[bc - 1].BPoints[i] = boco->pnts[i];
+            Boundary2D.BoCo[bc - 1].BPoints[i + 1] = boco->pnts[i + 1];
+            i++;
+            edgeID = GetEdgeNumber_2D(node1, node2);
+            Edge2D[edgeID].Flag = boco->type;
+        }
+    }
+
+    return 0;
 }
 
 /*---------------------------------------------------------------*/
-static void BoundaryColor_2D (float* BColor, int Type) {
-	BColor[0] = (float) (Type)/26;
-	BColor[1] = (float) (26 - Type)/(Type + 26);
-	BColor[2] = (float)(26 - Type)/26;
+static void BoundaryColor_2D(float* BColor, int Type) {
+    BColor[0] = (float) (Type) / 26;
+    BColor[1] = (float) (26 - Type) / (Type + 26);
+    BColor[2] = (float) (26 - Type) / 26;
 }
 
 /*---------------------------------------------------------------*/
-void DisplayBoundary_2D (void) {
-	unsigned int i, j;
-	int nodeid[2];
-	float BColor[3];
-	
-	for (i = 0; i < Boundary2D.NoBoCo; i++) {
-		BoundaryColor_2D(BColor, Boundary2D.BoCo[i].Type);
-		
-		glColor3f(BColor[0], BColor[1], BColor[2]);
-		glLineWidth(2.0);
-		glBegin(GL_LINES);
-		
-		for (j = 0; j < (Boundary2D.BoCo[i].Size - 1); j++) {
-			nodeid[0] = Boundary2D.BoCo[i].BPoints[j];
-			nodeid[1] = Boundary2D.BoCo[i].BPoints[j+1];
-			j++;
-			glVertex2d(Node2D[nodeid[0]].Coordinate[0], Node2D[nodeid[0]].Coordinate[1]);
-			glVertex2d(Node2D[nodeid[1]].Coordinate[0], Node2D[nodeid[1]].Coordinate[1]);
-		}
-		glEnd();
-	}
+void DisplayBoundary_2D(void) {
+    unsigned int i, j;
+    int nodeid[2];
+    float BColor[3];
+
+    for (i = 0; i < Boundary2D.NoBoCo; i++) {
+        BoundaryColor_2D(BColor, Boundary2D.BoCo[i].Type);
+
+        glColor3f(BColor[0], BColor[1], BColor[2]);
+        glLineWidth(2.0);
+        glBegin(GL_LINES);
+
+        for (j = 0; j < (Boundary2D.BoCo[i].Size - 1); j++) {
+            nodeid[0] = Boundary2D.BoCo[i].BPoints[j];
+            nodeid[1] = Boundary2D.BoCo[i].BPoints[j + 1];
+            j++;
+            glVertex2d(Node2D[nodeid[0]].Coordinate[0], Node2D[nodeid[0]].Coordinate[1]);
+            glVertex2d(Node2D[nodeid[1]].Coordinate[0], Node2D[nodeid[1]].Coordinate[1]);
+        }
+        glEnd();
+    }
 }

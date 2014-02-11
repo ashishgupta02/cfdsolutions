@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 
 #ifndef __ReferenceQuantities_H__
@@ -45,8 +45,8 @@ extern double Density_Ref, Pressure_Ref;
 extern double SpeedSound_Ref, Temperature_Ref;
 
 /* Functions Declearation */
-int CalculateReferenceQuantities (int);
-int GetReferenceQuantities (void);
-int CheckRefFlag (void);
+int CalculateReferenceQuantities(int);
+int GetReferenceQuantities(void);
+int CheckRefFlag(void);
 
 #endif

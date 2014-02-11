@@ -33,13 +33,13 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 
 #ifndef __Error_H__
 #define __Error_H__
 
-void Error_Exit (char *errmsg);
-void MSG (const char *msg);
+void Error_Exit(char *errmsg);
+void Warn(const char *msg);
 
 #endif

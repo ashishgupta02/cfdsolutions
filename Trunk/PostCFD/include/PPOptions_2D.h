@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 #ifndef __PPOptions_2D_H__
 #define __PPOptions_2D_H__
@@ -48,6 +48,6 @@ extern int MeshActivateFlag;
 extern int LegendActivateFlag;
 extern int BoundaryActivateFlag;
 
-void MainMenu_2D (void);
+void MainMenu_2D(void);
 
 #endif

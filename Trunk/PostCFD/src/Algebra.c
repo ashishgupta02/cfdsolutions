@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 /* User Defined */
 #include "Global.h"
@@ -43,102 +43,107 @@
 /******************/
 /*   2d Library	  */
 /******************/
+
 /* returns the centriod of the triangle */
 Vector2 *Triangle2Centroid(Vector2 *a, Vector2 *b, Vector2 *c, Vector2 *centroid) {
-	centroid->x = (a->x + b->x + c->x)/3;
-	centroid->y = (a->y + b->y + c->y)/3;
-	return(centroid);
+    centroid->x = (a->x + b->x + c->x) / 3;
+    centroid->y = (a->y + b->y + c->y) / 3;
+    return (centroid);
 }
 
 /* multiply a point by a projective matrix and return the transformed point */
 Point2 *V2MulPointByProjMatrix(Point2 *pin, Matrix3 *m, Point2 *pout) {
-	double w;
-	pout->x = (pin->x * m->element[0][0]) + (pin->y * m->element[1][0]) + m->element[2][0];
-	pout->y = (pin->x * m->element[0][1]) + (pin->y * m->element[1][1]) + m->element[2][1];
-	w = (pin->x * m->element[0][2]) + (pin->y * m->element[1][2]) + m->element[2][2];
-	if (w != 0.0) {
-		pout->x /= w;
-		pout->y /= w;
-	}
-	return(pout);
+    double w;
+    pout->x = (pin->x * m->element[0][0]) + (pin->y * m->element[1][0]) + m->element[2][0];
+    pout->y = (pin->x * m->element[0][1]) + (pin->y * m->element[1][1]) + m->element[2][1];
+    w = (pin->x * m->element[0][2]) + (pin->y * m->element[1][2]) + m->element[2][2];
+    if (w != 0.0) {
+        pout->x /= w;
+        pout->y /= w;
+    }
+    return (pout);
 }
 
 /* multiply together matrices c = ab */
+
 /* note that c must not point to either of the input matrices */
 Matrix3 *V2MatMul(Matrix3 *a, Matrix3 *b, Matrix3 *c) {
-	int i, j, k;
-	for (i=0; i<3; i++) {
-		for (j=0; j<3; j++) {
-			c->element[i][j] = 0;
-			for (k=0; k<3; k++)
-				c->element[i][j] += a->element[i][k] * b->element[k][j];
-		}
-	}
-	return(c);
+    int i, j, k;
+    for (i = 0; i < 3; i++) {
+        for (j = 0; j < 3; j++) {
+            c->element[i][j] = 0;
+            for (k = 0; k < 3; k++)
+                c->element[i][j] += a->element[i][k] * b->element[k][j];
+        }
+    }
+    return (c);
 }
 
 /* transpose matrix a, return b */
 Matrix3 *TransposeMatrix3(Matrix3 *a, Matrix3 *b) {
-	int i, j;
-	for (i=0; i<3; i++) {
-		for (j=0; j<3; j++)
-			b->element[i][j] = a->element[j][i];
-	}
-	return(b);
+    int i, j;
+    for (i = 0; i < 3; i++) {
+        for (j = 0; j < 3; j++)
+            b->element[i][j] = a->element[j][i];
+    }
+    return (b);
 }
 
 /******************/
 /*   3d Library	  */
 /******************/
+
 /* returns the centroid of triangle 3d */
 Vector3 *Triangle3Centroid(Vector3 *a, Vector3 *b, Vector3 *c, Vector3 *centroid) {
-	centroid->x =  (a->x + b->x + c->x)/3;
-	centroid->y =  (a->y + b->y + c->y)/3;
-	centroid->z = (a->z + b->z + c->z)/3;
-	return(centroid);
+    centroid->x = (a->x + b->x + c->x) / 3;
+    centroid->y = (a->y + b->y + c->y) / 3;
+    centroid->z = (a->z + b->z + c->z) / 3;
+    return (centroid);
 }
 
 /* multiply a point by a matrix and return the transformed point */
 Point3 *V3MulPointByMatrix(Point3 *pin, Matrix3 *m, Point3 *pout) {
-	pout->x = (pin->x * m->element[0][0]) + (pin->y * m->element[1][0]) + (pin->z * m->element[2][0]);
-	pout->y = (pin->x * m->element[0][1]) + (pin->y * m->element[1][1]) + (pin->z * m->element[2][1]);
-	pout->z = (pin->x * m->element[0][2]) + (pin->y * m->element[1][2]) + (pin->z * m->element[2][2]);
-	return(pout);
+    pout->x = (pin->x * m->element[0][0]) + (pin->y * m->element[1][0]) + (pin->z * m->element[2][0]);
+    pout->y = (pin->x * m->element[0][1]) + (pin->y * m->element[1][1]) + (pin->z * m->element[2][1]);
+    pout->z = (pin->x * m->element[0][2]) + (pin->y * m->element[1][2]) + (pin->z * m->element[2][2]);
+    return (pout);
 }
 
 /* multiply a point by a projective matrix and return the transformed point */
 Point3 *V3MulPointByProjMatrix(Point3 *pin, Matrix4 *m, Point3 *pout) {
-	double w;
-	pout->x = (pin->x * m->element[0][0]) + (pin->y * m->element[1][0]) + (pin->z * m->element[2][0]) + m->element[3][0];
-	pout->y = (pin->x * m->element[0][1]) + (pin->y * m->element[1][1]) + (pin->z * m->element[2][1]) + m->element[3][1];
-	pout->z = (pin->x * m->element[0][2]) + (pin->y * m->element[1][2]) + (pin->z * m->element[2][2]) + m->element[3][2];
-	w = (pin->x * m->element[0][3]) + (pin->y * m->element[1][3]) + (pin->z * m->element[2][3]) + m->element[3][3];
-	if (w != 0.0) {
-		pout->x /= w;
-		pout->y /= w;
-		pout->z /= w;
-	}
-	return(pout);
+    double w;
+    pout->x = (pin->x * m->element[0][0]) + (pin->y * m->element[1][0]) + (pin->z * m->element[2][0]) + m->element[3][0];
+    pout->y = (pin->x * m->element[0][1]) + (pin->y * m->element[1][1]) + (pin->z * m->element[2][1]) + m->element[3][1];
+    pout->z = (pin->x * m->element[0][2]) + (pin->y * m->element[1][2]) + (pin->z * m->element[2][2]) + m->element[3][2];
+    w = (pin->x * m->element[0][3]) + (pin->y * m->element[1][3]) + (pin->z * m->element[2][3]) + m->element[3][3];
+    if (w != 0.0) {
+        pout->x /= w;
+        pout->y /= w;
+        pout->z /= w;
+    }
+    return (pout);
 }
 
 /* multiply together matrices c = ab */
+
 /* note that c must not point to either of the input matrices */
 Matrix4 *V3MatMul(Matrix4 *a, Matrix4 *b, Matrix4 *c) {
-	int i, j, k;
-	for (i=0; i<4; i++) {
-		for (j=0; j<4; j++) {
-			c->element[i][j] = 0;
-			for (k=0; k<4; k++)
-				c->element[i][j] += a->element[i][k] * b->element[k][j];
-		}
-	}
-	return(c);
+    int i, j, k;
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 4; j++) {
+            c->element[i][j] = 0;
+            for (k = 0; k < 4; k++)
+                c->element[i][j] += a->element[i][k] * b->element[k][j];
+        }
+    }
+    return (c);
 }
 
 /***********************/
 /*   Useful Routines   */
 /***********************/
 /*--------------------------------------------------------------*/
+
 /*
 Purpose:
 
@@ -174,23 +179,24 @@ Purpose:
 
     Output, double ACOSH2, the inverse hyperbolic cosine of X.  The
     principal value (that is, the positive value of the two ) is returned.
-*/
-double acosh2 (double x) {
-	double a;
-	
-	if ( x < 1.0 ) {
-		printf ( "ACOSH2 - Fatal error!\n" );
-		printf ( "  Argument X must be >= 1.\n" );
-		printf ( "  The input X = %f\n", x );
-		exit ( 1 );
-	}
-	
-	a = 2.0 * log ( sqrt ( 0.5 * ( x + 1.0 ) ) + sqrt ( 0.5 * ( x - 1.0 ) ) );
-	
-	return a;
+ */
+double acosh2(double x) {
+    double a;
+
+    if (x < 1.0) {
+        printf("ACOSH2 - Fatal error!\n");
+        printf("  Argument X must be >= 1.\n");
+        printf("  The input X = %f\n", x);
+        exit(1);
+    }
+
+    a = 2.0 * log(sqrt(0.5 * (x + 1.0)) + sqrt(0.5 * (x - 1.0)));
+
+    return a;
 }
 
 /*--------------------------------------------------------------*/
+
 /*
   Purpose:
 
@@ -206,16 +212,17 @@ double acosh2 (double x) {
     Input, double X, the number whose inverse hyperbolic sine is desired.
 
     Output, double ASINH2, the inverse hyperbolic sine of X.
-*/
-double asinh2 (double x) {
-	double value;
-	
-	value = log ( x + sqrt ( x * x + 1.0 ) );
-	
-	return value;
+ */
+double asinh2(double x) {
+    double value;
+
+    value = log(x + sqrt(x * x + 1.0));
+
+    return value;
 }
 
 /*--------------------------------------------------------------*/
+
 /*
   Purpose:
 
@@ -237,23 +244,24 @@ double asinh2 (double x) {
     The absolute value of X should be less than or equal to 1.
 
     Output, double ATANH2, the inverse hyperbolic tangent of X.
-*/
-double atanh2 (double x) {
-	double value;
-	
-	if ( fabs ( x ) >= 1.0 ) {
-		printf ( "ATANH2 - Fatal error\n" );
-		printf ( "  ABS(X) must be < 1.\n" );
-		printf ( "  Your input is X = %f\n", x );
-		exit (1);
-	}
-	
-	value = 0.5 * log ( ( 1.0 + x ) / ( 1.0 - x ) );
-	
-	return value;
+ */
+double atanh2(double x) {
+    double value;
+
+    if (fabs(x) >= 1.0) {
+        printf("ATANH2 - Fatal error\n");
+        printf("  ABS(X) must be < 1.\n");
+        printf("  Your input is X = %f\n", x);
+        exit(1);
+    }
+
+    value = 0.5 * log((1.0 + x) / (1.0 - x));
+
+    return value;
 }
 
 /*--------------------------------------------------------------*/
+
 /*
   Purpose:
 
@@ -266,11 +274,11 @@ double atanh2 (double x) {
 
     However:
 
-    * ATAN4 always returns a positive angle, between 0 and 2 PI, 
+ * ATAN4 always returns a positive angle, between 0 and 2 PI, 
       while ATAN and ATAN2 return angles in the interval [-PI/2,+PI/2]
       and [-PI,+PI] respectively;
 
-    * ATAN4 accounts for the signs of X and Y, (as does ATAN2).  The ATAN 
+ * ATAN4 accounts for the signs of X and Y, (as does ATAN2).  The ATAN 
      function by contrast always returns an angle in the first or fourth
      quadrants.
 
@@ -282,59 +290,52 @@ double atanh2 (double x) {
     Output, double ATAN4, a positive angle whose tangent is (Y/X), and
     which lies in the appropriate quadrant so that the signs of its
     cosine and sine match those of X and Y.
-*/
-double atan4 (double y, double x) {
-	double abs_x, abs_y;
-	double theta = 0, theta_0;
-	
-	/* Special cases: */
-	if ( x == 0.0 ) {
-		if ( y > 0.0 ) {
-			theta = PI / 2.0;
-		}
-		else if ( y < 0.0 ) {
-			theta = 3.0 * PI / 2.0;
-		}
-		else {
-			theta = 0.0;
-		}
-	}
-	else if ( y == 0.0 ) {
-		if ( x > 0.0 ) {
-			theta = 0.0;
-		}
-		else if ( x < 0.0 ) {
-			theta = PI;
-		}
-	}
-	
-	/*
-	We assume that ATAN2 is correct when both arguments are positive.
-	*/
-	else {
-		abs_y = fabs ( y );
-		abs_x = fabs ( x );
-		
-		theta_0 = atan2 ( abs_y, abs_x );
-		
-		if ( x > 0.0 && y > 0.0 ) {
-			theta = theta_0;
-		}
-		else if ( x < 0.0 && y > 0.0 ) {
-			theta = PI - theta_0;
-		}
-		else if ( x < 0.0 && y < 0.0 ) {
-			theta = PI + theta_0;
-		}
-		else if ( x > 0.0 && y < 0.0 ) {
-			theta = 2.0 * PI - theta_0;
-		}
-	}
-	
-	return theta;
+ */
+double atan4(double y, double x) {
+    double abs_x, abs_y;
+    double theta = 0, theta_0;
+
+    /* Special cases: */
+    if (x == 0.0) {
+        if (y > 0.0) {
+            theta = PI / 2.0;
+        } else if (y < 0.0) {
+            theta = 3.0 * PI / 2.0;
+        } else {
+            theta = 0.0;
+        }
+    } else if (y == 0.0) {
+        if (x > 0.0) {
+            theta = 0.0;
+        } else if (x < 0.0) {
+            theta = PI;
+        }
+    }
+        /*
+        We assume that ATAN2 is correct when both arguments are positive.
+         */
+    else {
+        abs_y = fabs(y);
+        abs_x = fabs(x);
+
+        theta_0 = atan2(abs_y, abs_x);
+
+        if (x > 0.0 && y > 0.0) {
+            theta = theta_0;
+        } else if (x < 0.0 && y > 0.0) {
+            theta = PI - theta_0;
+        } else if (x < 0.0 && y < 0.0) {
+            theta = PI + theta_0;
+        } else if (x > 0.0 && y < 0.0) {
+            theta = 2.0 * PI - theta_0;
+        }
+    }
+
+    return theta;
 }
 
 /*--------------------------------------------------------------*/
+
 /*
   Purpose:
 
@@ -345,16 +346,17 @@ double atan4 (double y, double x) {
     Input, double ANGLE, the angle, in radians.
 
     Output, double COT, the cotangent of the angle.
-*/
-double cot (double angle) {
-	double value;
-	
-	value = cos ( angle ) / sin ( angle );
-	
-	return value;
+ */
+double cot(double angle) {
+    double value;
+
+    value = cos(angle) / sin(angle);
+
+    return value;
 }
 
 /*--------------------------------------------------------------*/
+
 /*
   Purpose:
 
@@ -377,16 +379,17 @@ double cot (double angle) {
     Input, double GAMMA, the value of the Gudermannian.
 
     Output, double AGUD, the argument of the Gudermannian.
-*/
-double agud (double gamma) {
-	double value;
-	
-	value = log ( tan ( 0.25 * PI + 0.5 * gamma ) );
-	
-	return value;
+ */
+double agud(double gamma) {
+    double value;
+
+    value = log(tan(0.25 * PI + 0.5 * gamma));
+
+    return value;
 }
 
 /*--------------------------------------------------------------*/
+
 /*
   Purpose:
 
@@ -408,48 +411,47 @@ double agud (double gamma) {
 
     Otherwise, using the Euclidean algorithm, I_GCF is the
     largest common factor of I and J.
-*/
-int i_gcf (int i, int j) {
-	int ip, iq, ir;
-	
-	i = abs ( i );
-	j = abs ( j );
-	
-	/* Return immediately if either I or J is zero. */
-	if ( i == 0 ) {
-		return j;
-	}
-	else if ( j == 0 ) {
-		return i;
-	}
-	
-	/* 
-	Set IP to the larger of I and J, IQ to the smaller.
-	This way, we can alter IP and IQ as we go.
-	*/
-	if ( i > j ) {
-		ip = i;
-		iq = j;
-	}
-	else {
-		ip = j;
-		iq = i;
-	}
-	
-	/* Carry out the Euclidean algorithm. */
-	for ( ;; ) {
-		ir = ip % iq;
-		
-		if ( ir == 0 ) {
-			return iq;
-		}
-		
-		ip = iq;
-		iq = ir;
-	}
+ */
+int i_gcf(int i, int j) {
+    int ip, iq, ir;
+
+    i = abs(i);
+    j = abs(j);
+
+    /* Return immediately if either I or J is zero. */
+    if (i == 0) {
+        return j;
+    } else if (j == 0) {
+        return i;
+    }
+
+    /* 
+    Set IP to the larger of I and J, IQ to the smaller.
+    This way, we can alter IP and IQ as we go.
+     */
+    if (i > j) {
+        ip = i;
+        iq = j;
+    } else {
+        ip = j;
+        iq = i;
+    }
+
+    /* Carry out the Euclidean algorithm. */
+    for (;;) {
+        ir = ip % iq;
+
+        if (ir == 0) {
+            return iq;
+        }
+
+        ip = iq;
+        iq = ir;
+    }
 }
 
 /*--------------------------------------------------------------*/
+
 /*
   Purpose:
 
@@ -469,12 +471,13 @@ int i_gcf (int i, int j) {
 
     Output, int I_LCM, the least common multiple of I and J.
     I_LCM is never negative.  I_LCM is 0 if either I or J is zero.
-*/
-int i_lcm (int i, int j) {
-	return abs (i * (j / i_gcf(i, j)));
+ */
+int i_lcm(int i, int j) {
+    return abs(i * (j / i_gcf(i, j)));
 }
 
 /*--------------------------------------------------------------*/
+
 /*
   Purpose:
 
@@ -491,17 +494,18 @@ int i_lcm (int i, int j) {
     Input, Matrix2 *M, the matrix whose determinant is desired.
 
     Output, double Matrix2_Det, the determinant of the matrix.
-*/
-double Matrix2_Det (Matrix2  *m) {
-	double det;
-	
-	det = (m->element[0][0] * m->element[1][1]) 
-		- (m->element[0][1] * m->element[1][0]);
-	
-	return det;
+ */
+double Matrix2_Det(Matrix2 *m) {
+    double det;
+
+    det = (m->element[0][0] * m->element[1][1])
+            - (m->element[0][1] * m->element[1][0]);
+
+    return det;
 }
 
 /*--------------------------------------------------------------*/
+
 /*
   Purpose:
 
@@ -521,38 +525,39 @@ double Matrix2_Det (Matrix2  *m) {
 
     If the determinant is nonzero, then its value is roughly an estimate
     of how nonsingular the matrix M is.
-*/
-double Matrix2_Inverse (Matrix2 *m, Matrix2 *n) {
-	double det;
-	int i, j;
-	
-	/* Compute the determinant of M.*/
-	det = (m->element[0][0] * m->element[1][1]) 
-		- (m->element[0][1] * m->element[1][0]);
-	
-	/* If the determinant is zero, bail out.*/
-	if ( det == 0.0 ) {
-		for ( i = 0; i < 2; i++ ) {
-			for ( j = 0; j < 2; j++ ) {
-				n->element[i][j] = 0.0;
-			}
-		}
-		
-		return det;
-	}
-	
-	/*
-	Compute the entries of the inverse matrix using an explicit formula.
-	*/
-	n->element[0][0] = + m->element[1][1] / det;
-	n->element[0][1] = - m->element[0][1] / det;
-	n->element[1][0] = - m->element[1][0] / det;
-	n->element[1][1] = + m->element[0][0] / det;
-	
-	return det;
+ */
+double Matrix2_Inverse(Matrix2 *m, Matrix2 *n) {
+    double det;
+    int i, j;
+
+    /* Compute the determinant of M.*/
+    det = (m->element[0][0] * m->element[1][1])
+            - (m->element[0][1] * m->element[1][0]);
+
+    /* If the determinant is zero, bail out.*/
+    if (det == 0.0) {
+        for (i = 0; i < 2; i++) {
+            for (j = 0; j < 2; j++) {
+                n->element[i][j] = 0.0;
+            }
+        }
+
+        return det;
+    }
+
+    /*
+    Compute the entries of the inverse matrix using an explicit formula.
+     */
+    n->element[0][0] = +m->element[1][1] / det;
+    n->element[0][1] = -m->element[0][1] / det;
+    n->element[1][0] = -m->element[1][0] / det;
+    n->element[1][1] = +m->element[0][0] / det;
+
+    return det;
 }
 
 /*--------------------------------------------------------------*/
+
 /*
   Purpose:
 
@@ -571,21 +576,22 @@ double Matrix2_Inverse (Matrix2 *m, Matrix2 *n) {
     Input, Matrix3 *A, the matrix whose determinant is desired.
 
     Output, double Matrix3_Det, the determinant of the matrix.
-*/
-double Matrix3_Det (Matrix3 *a) {
-	double det;
-	
-	det = a->element[0][0] * (a->element[1][1] * a->element[2][2] 
-					- a->element[1][2] * a->element[2][1])
-		+ a->element[0][1] * (a->element[1][2] * a->element[2][0] 
-					- a->element[1][0] * a->element[2][2])
-		+ a->element[0][2] * (a->element[1][0] * a->element[2][1] 
-					- a->element[1][1] * a->element[2][0]);
-	
-	return det;
+ */
+double Matrix3_Det(Matrix3 *a) {
+    double det;
+
+    det = a->element[0][0] * (a->element[1][1] * a->element[2][2]
+            - a->element[1][2] * a->element[2][1])
+            + a->element[0][1] * (a->element[1][2] * a->element[2][0]
+            - a->element[1][0] * a->element[2][2])
+            + a->element[0][2] * (a->element[1][0] * a->element[2][1]
+            - a->element[1][1] * a->element[2][0]);
+
+    return det;
 }
 
 /*--------------------------------------------------------------*/
+
 /*
   Purpose:
 
@@ -604,54 +610,54 @@ double Matrix3_Det (Matrix3 *a) {
 
     If the determinant is nonzero, its value is an estimate
     of how nonsingular the matrix A is.
-*/
-double Matrix3_Inverse (Matrix3 *a, Matrix3 *b) {
-	double det;
-	int i, j;
-	
-	/* Compute the determinant of A.*/
-	det =
-		a->element[0][0] * (a->element[1][1] * a->element[2][2] 
-			- a->element[1][2] * a->element[2][1])
-		+ a->element[0][1] * (a->element[1][2] * a->element[2][0] 
-			- a->element[1][0] * a->element[2][2] )
-		+ a->element[0][2] * (a->element[1][0] * a->element[2][1] 
-			- a->element[1][1] * a->element[2][0]);
-	
-	if ( det == 0.0 ) {
-		for ( i = 0; i < 3; i++ ) {
-			for ( j = 0; j < 3; j++ ) {
-				b->element[i][j] = 0.0;
-			}
-		}
-	}
-	else {
-		b->element[0][0] = (a->element[1][1] * a->element[2][2] 
-					- a->element[1][2] * a->element[2][1]) / det;
-		b->element[0][1] = - (a->element[0][1] * a->element[2][2] 
-					- a->element[0][2] * a->element[2][1]) / det;
-		b->element[0][2] = (a->element[0][1] * a->element[1][2] 
-					- a->element[0][2] * a->element[1][1]) / det;
-		
-		b->element[1][0] = - (a->element[1][0] * a->element[2][2] 
-					- a->element[1][2] * a->element[2][0]) / det;
-		b->element[1][1] = (a->element[0][0] * a->element[2][2] 
-					- a->element[0][2] * a->element[2][0]) / det;
-		b->element[1][2] = - (a->element[0][0] * a->element[1][2] 
-					- a->element[0][2] * a->element[1][0]) / det;
-		
-		b->element[2][0] = (a->element[1][0] * a->element[2][1] 
-					- a->element[1][1] * a->element[2][0]) / det;
-		b->element[2][1] = - (a->element[0][0] * a->element[2][1] 
-					- a->element[0][1] * a->element[2][0]) / det;
-		b->element[2][2] =   (a->element[0][0] * a->element[1][1] 
-					- a->element[0][1] * a->element[1][0]) / det;
-	}
-	
-	return det;
+ */
+double Matrix3_Inverse(Matrix3 *a, Matrix3 *b) {
+    double det;
+    int i, j;
+
+    /* Compute the determinant of A.*/
+    det =
+            a->element[0][0] * (a->element[1][1] * a->element[2][2]
+            - a->element[1][2] * a->element[2][1])
+            + a->element[0][1] * (a->element[1][2] * a->element[2][0]
+            - a->element[1][0] * a->element[2][2])
+            + a->element[0][2] * (a->element[1][0] * a->element[2][1]
+            - a->element[1][1] * a->element[2][0]);
+
+    if (det == 0.0) {
+        for (i = 0; i < 3; i++) {
+            for (j = 0; j < 3; j++) {
+                b->element[i][j] = 0.0;
+            }
+        }
+    } else {
+        b->element[0][0] = (a->element[1][1] * a->element[2][2]
+                - a->element[1][2] * a->element[2][1]) / det;
+        b->element[0][1] = -(a->element[0][1] * a->element[2][2]
+                - a->element[0][2] * a->element[2][1]) / det;
+        b->element[0][2] = (a->element[0][1] * a->element[1][2]
+                - a->element[0][2] * a->element[1][1]) / det;
+
+        b->element[1][0] = -(a->element[1][0] * a->element[2][2]
+                - a->element[1][2] * a->element[2][0]) / det;
+        b->element[1][1] = (a->element[0][0] * a->element[2][2]
+                - a->element[0][2] * a->element[2][0]) / det;
+        b->element[1][2] = -(a->element[0][0] * a->element[1][2]
+                - a->element[0][2] * a->element[1][0]) / det;
+
+        b->element[2][0] = (a->element[1][0] * a->element[2][1]
+                - a->element[1][1] * a->element[2][0]) / det;
+        b->element[2][1] = -(a->element[0][0] * a->element[2][1]
+                - a->element[0][1] * a->element[2][0]) / det;
+        b->element[2][2] = (a->element[0][0] * a->element[1][1]
+                - a->element[0][1] * a->element[1][0]) / det;
+    }
+
+    return det;
 }
 
 /*--------------------------------------------------------------*/
+
 /*
   Purpose:
 
@@ -662,32 +668,33 @@ double Matrix3_Inverse (Matrix3 *a, Matrix3 *b) {
     Input, Matrix4 *A, the matrix whose determinant is desired.
 
     Output, double Matrix4_Det, the determinant of the matrix.
-*/
-double Matrix4_Det (Matrix4 *a) {
-	double det;
-	
-	det =
-		a->element[0][0] * (
-			a->element[1][1] * (a->element[2][2] * a->element[3][3] - a->element[2][3] * a->element[3][2])
-			- a->element[1][2] * (a->element[2][1] * a->element[3][3] - a->element[2][3] * a->element[3][1])
-			+ a->element[1][3] * (a->element[2][1] * a->element[3][2] - a->element[2][2] * a->element[3][1]))
-		- a->element[0][1] * (
-			a->element[1][0] * (a->element[2][2] * a->element[3][3] - a->element[2][3] * a->element[3][2])
-			- a->element[1][2] * (a->element[2][0] * a->element[3][3] - a->element[2][3] * a->element[3][0])
-			+ a->element[1][3] * (a->element[2][0] * a->element[3][2] - a->element[2][2] * a->element[3][0]))
-		+ a->element[0][2] * (
-			a->element[1][0] * (a->element[2][1] * a->element[3][3] - a->element[2][3] * a->element[3][1])
-			- a->element[1][1] * (a->element[2][0] * a->element[3][3] - a->element[2][3] * a->element[3][0])
-			+ a->element[1][3] * (a->element[2][0] * a->element[3][1] - a->element[2][1] * a->element[3][0]))
-		- a->element[0][3] * (
-			a->element[1][0] * (a->element[2][1] * a->element[3][2] - a->element[2][2] * a->element[3][1])
-			- a->element[1][1] * (a->element[2][0] * a->element[3][2] - a->element[2][2] * a->element[3][0])
-			+ a->element[1][2] * (a->element[2][0] * a->element[3][1] - a->element[2][1] * a->element[3][0]));
-	
-	return det;
+ */
+double Matrix4_Det(Matrix4 *a) {
+    double det;
+
+    det =
+            a->element[0][0] * (
+            a->element[1][1] * (a->element[2][2] * a->element[3][3] - a->element[2][3] * a->element[3][2])
+            - a->element[1][2] * (a->element[2][1] * a->element[3][3] - a->element[2][3] * a->element[3][1])
+            + a->element[1][3] * (a->element[2][1] * a->element[3][2] - a->element[2][2] * a->element[3][1]))
+            - a->element[0][1] * (
+            a->element[1][0] * (a->element[2][2] * a->element[3][3] - a->element[2][3] * a->element[3][2])
+            - a->element[1][2] * (a->element[2][0] * a->element[3][3] - a->element[2][3] * a->element[3][0])
+            + a->element[1][3] * (a->element[2][0] * a->element[3][2] - a->element[2][2] * a->element[3][0]))
+            + a->element[0][2] * (
+            a->element[1][0] * (a->element[2][1] * a->element[3][3] - a->element[2][3] * a->element[3][1])
+            - a->element[1][1] * (a->element[2][0] * a->element[3][3] - a->element[2][3] * a->element[3][0])
+            + a->element[1][3] * (a->element[2][0] * a->element[3][1] - a->element[2][1] * a->element[3][0]))
+            - a->element[0][3] * (
+            a->element[1][0] * (a->element[2][1] * a->element[3][2] - a->element[2][2] * a->element[3][1])
+            - a->element[1][1] * (a->element[2][0] * a->element[3][2] - a->element[2][2] * a->element[3][0])
+            + a->element[1][2] * (a->element[2][0] * a->element[3][1] - a->element[2][1] * a->element[3][0]));
+
+    return det;
 }
 
 /*--------------------------------------------------------------*/
+
 /*
   Purpose:
 
@@ -700,140 +707,140 @@ double Matrix4_Det (Matrix4 *a) {
     Output, Matrix4 *B, the inverse of the matrix A.
 
     Output, double Matrix4_Inverse, the determinant of the matrix A.
-*/
-double Matrix4_Inverse (Matrix4 *a, Matrix4 *b) {
-	int i, j;
-	double det;
-	
-	/* Compute the determinant of A.*/
-	det = Matrix4_Det (a);
-	
-	/* If the determinant is zero, bail out.*/
-	if ( det == 0.0 ) {
-		for ( i = 0; i < 4; i++ ) {
-			for ( j = 0; j < 4; j++ ) {
-				b->element[i][j] = 0.0;
-			}
-		}
-		
-		return det;
-	}
-	
-	/*
-	Compute the entries of the inverse matrix using an explicit formula.
-	*/
-	b->element[0][0] =
-		+(
-			+ a->element[1][1] * ( a->element[2][2] * a->element[3][3] - a->element[2][3] * a->element[3][2] )
-			+ a->element[1][2] * ( a->element[2][3] * a->element[3][1] - a->element[2][1] * a->element[3][3] )
-			+ a->element[1][3] * ( a->element[2][1] * a->element[3][2] - a->element[2][2] * a->element[3][1] )
-		) / det;
-	
-	b->element[1][0] =
-		-(
-			+ a->element[1][0] * ( a->element[2][2] * a->element[3][3] - a->element[2][3] * a->element[3][2] )
-			+ a->element[1][2] * ( a->element[2][3] * a->element[3][0] - a->element[2][0] * a->element[3][3] )
-			+ a->element[1][3] * ( a->element[2][0] * a->element[3][2] - a->element[2][2] * a->element[3][0] )
-		) / det;
-	
-	b->element[2][0] =
-		+(
-			+ a->element[1][0] * ( a->element[2][1] * a->element[3][3] - a->element[2][3] * a->element[3][1] )
-			+ a->element[1][1] * ( a->element[2][3] * a->element[3][0] - a->element[2][0] * a->element[3][3] )
-			+ a->element[1][3] * ( a->element[2][0] * a->element[3][1] - a->element[2][1] * a->element[3][0] )
-		) / det;
-	
-	b->element[3][0] =
-		-(
-    			+ a->element[1][0] * ( a->element[2][1] * a->element[3][2] - a->element[2][2] * a->element[3][1] )
-    			+ a->element[1][1] * ( a->element[2][2] * a->element[3][0] - a->element[2][0] * a->element[3][2] )
-    			+ a->element[1][2] * ( a->element[2][0] * a->element[3][1] - a->element[2][1] * a->element[3][0] )
-    		) / det;
+ */
+double Matrix4_Inverse(Matrix4 *a, Matrix4 *b) {
+    int i, j;
+    double det;
 
-  	b->element[0][1] =
-    		-(
-    			+ a->element[0][1] * ( a->element[2][2] * a->element[3][3] - a->element[2][3] * a->element[3][2] )
-    			+ a->element[0][2] * ( a->element[2][3] * a->element[3][1] - a->element[2][1] * a->element[3][3] )
-    			+ a->element[0][3] * ( a->element[2][1] * a->element[3][2] - a->element[2][2] * a->element[3][1] )
-    		) / det;
+    /* Compute the determinant of A.*/
+    det = Matrix4_Det(a);
 
-  	b->element[1][1] =
-    		+(
-    			+ a->element[0][0] * ( a->element[2][2] * a->element[3][3] - a->element[2][3] * a->element[3][2] )
-    			+ a->element[0][2] * ( a->element[2][3] * a->element[3][0] - a->element[2][0] * a->element[3][3] )
-    			+ a->element[0][3] * ( a->element[2][0] * a->element[3][2] - a->element[2][2] * a->element[3][0] )
-    		) / det;
+    /* If the determinant is zero, bail out.*/
+    if (det == 0.0) {
+        for (i = 0; i < 4; i++) {
+            for (j = 0; j < 4; j++) {
+                b->element[i][j] = 0.0;
+            }
+        }
 
-  	b->element[2][1] =
-    		-(
-    			+ a->element[0][0] * ( a->element[2][1] * a->element[3][3] - a->element[2][3] * a->element[3][1] )
-    			+ a->element[0][1] * ( a->element[2][3] * a->element[3][0] - a->element[2][0] * a->element[3][3] )
-    			+ a->element[0][3] * ( a->element[2][0] * a->element[3][1] - a->element[2][1] * a->element[3][0] )
-    		) / det;
+        return det;
+    }
 
- 	b->element[3][1] =
-    		+(
-    			+ a->element[0][0] * ( a->element[2][1] * a->element[3][2] - a->element[2][2] * a->element[3][1] )
-    			+ a->element[0][1] * ( a->element[2][2] * a->element[3][0] - a->element[2][0] * a->element[3][2] )
-    			+ a->element[0][2] * ( a->element[2][0] * a->element[3][1] - a->element[2][1] * a->element[3][0] )
-    		) / det;
+    /*
+    Compute the entries of the inverse matrix using an explicit formula.
+     */
+    b->element[0][0] =
+            +(
+            +a->element[1][1] * (a->element[2][2] * a->element[3][3] - a->element[2][3] * a->element[3][2])
+            + a->element[1][2] * (a->element[2][3] * a->element[3][1] - a->element[2][1] * a->element[3][3])
+            + a->element[1][3] * (a->element[2][1] * a->element[3][2] - a->element[2][2] * a->element[3][1])
+            ) / det;
 
-  	b->element[0][2] =
-    		+(
-    			+ a->element[0][1] * ( a->element[1][2] * a->element[3][3] - a->element[1][3] * a->element[3][2] )
-    			+ a->element[0][2] * ( a->element[1][3] * a->element[3][1] - a->element[1][1] * a->element[3][3] )
-    			+ a->element[0][3] * ( a->element[1][1] * a->element[3][2] - a->element[1][2] * a->element[3][1] )
-    		) / det;
+    b->element[1][0] =
+            -(
+            +a->element[1][0] * (a->element[2][2] * a->element[3][3] - a->element[2][3] * a->element[3][2])
+            + a->element[1][2] * (a->element[2][3] * a->element[3][0] - a->element[2][0] * a->element[3][3])
+            + a->element[1][3] * (a->element[2][0] * a->element[3][2] - a->element[2][2] * a->element[3][0])
+            ) / det;
 
-  	b->element[1][2] =
-    		-(
-    			+ a->element[0][0] * ( a->element[1][2] * a->element[3][3] - a->element[1][3] * a->element[3][2] )
-    			+ a->element[0][2] * ( a->element[1][3] * a->element[3][0] - a->element[1][0] * a->element[3][3] )
-    			+ a->element[0][3] * ( a->element[1][0] * a->element[3][2] - a->element[1][2] * a->element[3][0] )
-   		) / det;
+    b->element[2][0] =
+            +(
+            +a->element[1][0] * (a->element[2][1] * a->element[3][3] - a->element[2][3] * a->element[3][1])
+            + a->element[1][1] * (a->element[2][3] * a->element[3][0] - a->element[2][0] * a->element[3][3])
+            + a->element[1][3] * (a->element[2][0] * a->element[3][1] - a->element[2][1] * a->element[3][0])
+            ) / det;
 
-  	b->element[2][2] =
-    		+(
-    			+ a->element[0][0] * ( a->element[1][1] * a->element[3][3] - a->element[1][3] * a->element[3][1] )
-    			+ a->element[0][1] * ( a->element[1][3] * a->element[3][0] - a->element[1][0] * a->element[3][3] )
-    			+ a->element[0][3] * ( a->element[1][0] * a->element[3][1] - a->element[1][1] * a->element[3][0] )
-    		) / det;
+    b->element[3][0] =
+            -(
+            +a->element[1][0] * (a->element[2][1] * a->element[3][2] - a->element[2][2] * a->element[3][1])
+            + a->element[1][1] * (a->element[2][2] * a->element[3][0] - a->element[2][0] * a->element[3][2])
+            + a->element[1][2] * (a->element[2][0] * a->element[3][1] - a->element[2][1] * a->element[3][0])
+            ) / det;
 
-  	b->element[3][2] =
-    		-(
-    			+ a->element[0][0] * ( a->element[1][1] * a->element[3][2] - a->element[1][2] * a->element[3][1] )
-    			+ a->element[0][1] * ( a->element[1][2] * a->element[3][0] - a->element[1][0] * a->element[3][2] )
-    			+ a->element[0][2] * ( a->element[1][0] * a->element[3][1] - a->element[1][1] * a->element[3][0] )
-    		) / det;
+    b->element[0][1] =
+            -(
+            +a->element[0][1] * (a->element[2][2] * a->element[3][3] - a->element[2][3] * a->element[3][2])
+            + a->element[0][2] * (a->element[2][3] * a->element[3][1] - a->element[2][1] * a->element[3][3])
+            + a->element[0][3] * (a->element[2][1] * a->element[3][2] - a->element[2][2] * a->element[3][1])
+            ) / det;
 
-  	b->element[0][3] =
-    		-(
-    			+ a->element[0][1] * ( a->element[1][2] * a->element[2][3] - a->element[1][3] * a->element[2][2] )
-    			+ a->element[0][2] * ( a->element[1][3] * a->element[2][1] - a->element[1][1] * a->element[2][3] )
-    			+ a->element[0][3] * ( a->element[1][1] * a->element[2][2] - a->element[1][2] * a->element[2][1] )
-    		) / det;
+    b->element[1][1] =
+            +(
+            +a->element[0][0] * (a->element[2][2] * a->element[3][3] - a->element[2][3] * a->element[3][2])
+            + a->element[0][2] * (a->element[2][3] * a->element[3][0] - a->element[2][0] * a->element[3][3])
+            + a->element[0][3] * (a->element[2][0] * a->element[3][2] - a->element[2][2] * a->element[3][0])
+            ) / det;
 
-  	b->element[1][3] =
-    		+(
-    			+ a->element[0][0] * ( a->element[1][2] * a->element[2][3] - a->element[1][3] * a->element[2][2] )
-    			+ a->element[0][2] * ( a->element[1][3] * a->element[2][0] - a->element[1][0] * a->element[2][3] )
-    			+ a->element[0][3] * ( a->element[1][0] * a->element[2][2] - a->element[1][2] * a->element[2][0] )
-   		) / det;
+    b->element[2][1] =
+            -(
+            +a->element[0][0] * (a->element[2][1] * a->element[3][3] - a->element[2][3] * a->element[3][1])
+            + a->element[0][1] * (a->element[2][3] * a->element[3][0] - a->element[2][0] * a->element[3][3])
+            + a->element[0][3] * (a->element[2][0] * a->element[3][1] - a->element[2][1] * a->element[3][0])
+            ) / det;
 
-  	b->element[2][3] =
-    		-(
-    			+ a->element[0][0] * ( a->element[1][1] * a->element[2][3] - a->element[1][3] * a->element[2][1] )
-    			+ a->element[0][1] * ( a->element[1][3] * a->element[2][0] - a->element[1][0] * a->element[2][3] )
-    			+ a->element[0][3] * ( a->element[1][0] * a->element[2][1] - a->element[1][1] * a->element[2][0] )
-    		) / det;
+    b->element[3][1] =
+            +(
+            +a->element[0][0] * (a->element[2][1] * a->element[3][2] - a->element[2][2] * a->element[3][1])
+            + a->element[0][1] * (a->element[2][2] * a->element[3][0] - a->element[2][0] * a->element[3][2])
+            + a->element[0][2] * (a->element[2][0] * a->element[3][1] - a->element[2][1] * a->element[3][0])
+            ) / det;
 
-  	b->element[3][3] =
-    		+(
-    			+ a->element[0][0] * ( a->element[1][1] * a->element[2][2] - a->element[1][2] * a->element[2][1] )
-    			+ a->element[0][1] * ( a->element[1][2] * a->element[2][0] - a->element[1][0] * a->element[2][2] )
-    			+ a->element[0][2] * ( a->element[1][0] * a->element[2][1] - a->element[1][1] * a->element[2][0] )
-    		) / det;
-	
-	return det;
+    b->element[0][2] =
+            +(
+            +a->element[0][1] * (a->element[1][2] * a->element[3][3] - a->element[1][3] * a->element[3][2])
+            + a->element[0][2] * (a->element[1][3] * a->element[3][1] - a->element[1][1] * a->element[3][3])
+            + a->element[0][3] * (a->element[1][1] * a->element[3][2] - a->element[1][2] * a->element[3][1])
+            ) / det;
+
+    b->element[1][2] =
+            -(
+            +a->element[0][0] * (a->element[1][2] * a->element[3][3] - a->element[1][3] * a->element[3][2])
+            + a->element[0][2] * (a->element[1][3] * a->element[3][0] - a->element[1][0] * a->element[3][3])
+            + a->element[0][3] * (a->element[1][0] * a->element[3][2] - a->element[1][2] * a->element[3][0])
+            ) / det;
+
+    b->element[2][2] =
+            +(
+            +a->element[0][0] * (a->element[1][1] * a->element[3][3] - a->element[1][3] * a->element[3][1])
+            + a->element[0][1] * (a->element[1][3] * a->element[3][0] - a->element[1][0] * a->element[3][3])
+            + a->element[0][3] * (a->element[1][0] * a->element[3][1] - a->element[1][1] * a->element[3][0])
+            ) / det;
+
+    b->element[3][2] =
+            -(
+            +a->element[0][0] * (a->element[1][1] * a->element[3][2] - a->element[1][2] * a->element[3][1])
+            + a->element[0][1] * (a->element[1][2] * a->element[3][0] - a->element[1][0] * a->element[3][2])
+            + a->element[0][2] * (a->element[1][0] * a->element[3][1] - a->element[1][1] * a->element[3][0])
+            ) / det;
+
+    b->element[0][3] =
+            -(
+            +a->element[0][1] * (a->element[1][2] * a->element[2][3] - a->element[1][3] * a->element[2][2])
+            + a->element[0][2] * (a->element[1][3] * a->element[2][1] - a->element[1][1] * a->element[2][3])
+            + a->element[0][3] * (a->element[1][1] * a->element[2][2] - a->element[1][2] * a->element[2][1])
+            ) / det;
+
+    b->element[1][3] =
+            +(
+            +a->element[0][0] * (a->element[1][2] * a->element[2][3] - a->element[1][3] * a->element[2][2])
+            + a->element[0][2] * (a->element[1][3] * a->element[2][0] - a->element[1][0] * a->element[2][3])
+            + a->element[0][3] * (a->element[1][0] * a->element[2][2] - a->element[1][2] * a->element[2][0])
+            ) / det;
+
+    b->element[2][3] =
+            -(
+            +a->element[0][0] * (a->element[1][1] * a->element[2][3] - a->element[1][3] * a->element[2][1])
+            + a->element[0][1] * (a->element[1][3] * a->element[2][0] - a->element[1][0] * a->element[2][3])
+            + a->element[0][3] * (a->element[1][0] * a->element[2][1] - a->element[1][1] * a->element[2][0])
+            ) / det;
+
+    b->element[3][3] =
+            +(
+            +a->element[0][0] * (a->element[1][1] * a->element[2][2] - a->element[1][2] * a->element[2][1])
+            + a->element[0][1] * (a->element[1][2] * a->element[2][0] - a->element[1][0] * a->element[2][2])
+            + a->element[0][2] * (a->element[1][0] * a->element[2][1] - a->element[1][1] * a->element[2][0])
+            ) / det;
+
+    return det;
 }
 

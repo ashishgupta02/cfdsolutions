@@ -33,7 +33,7 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 /* User Defined */
 #include "Global.h"
@@ -46,6 +46,6 @@
 /* Externs From PPTensorFlowVariables_2D.h */
 
 /*---------------------------------------------------------------*/
-int TensorFlowVariableOptions_2D (void) {
-	return 0;
+int TensorFlowVariableOptions_2D(void) {
+    return 0;
 }

@@ -33,17 +33,17 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 #ifndef __PrePostProcessing_2D_H__
 #define __PrePostProcessing_2D_H__
 
-int MinMaxEdge_2D (double *, double *);
-int PolyCentroid_2D (double*, double*, int, double*, double*, double*);
+int MinMaxEdge_2D(double *, double *);
+int PolyCentroid_2D(double*, double*, int, double*, double*, double*);
 int CounterClockCellNodes_2D(void);
-int CellCentroid_2D (void);
-int CellArea_2D (void);
-int EdgeNormal_2D (void);
-int PrePostProcessing_2D (void);
+int CellCentroid_2D(void);
+int CellArea_2D(void);
+int EdgeNormal_2D(void);
+int PrePostProcessing_2D(void);
 
 #endif

@@ -33,59 +33,59 @@
  * Author	Ashish Gupta
  * Date		26/06/2006
  * Version	0.1
-*/
+ */
 
 
 #ifndef __PPScalarFlowVariables_2D_H__
 #define __PPScalarFlowVariables_2D_H__
 
-int CalculateDensity_2D (void);
-int CalculatePressure_2D (void);
-int CalculateTemperature_2D (void);
-int CalculateSpeedSound_2D (void);
-int CalculateMachNumber_2D (void);
-int CalculateStagnationDensity_2D (void);
-int CalculateStagnationPressure_2D (void);
-int CalculateStagnationTemperature_2D (void);
-int CalculatePressureCoefficient_2D (void);
-int CalculateStagnationPressureCoef_2D (void);
-int CalculatePitotPressure_2D (void);
-int CalculatePitotPressureRatio_2D (void);
-int CalculateDynamicPressure_2D (void);
-int CalculateEnthalpy_2D (void);
-int CalculateStagnationEnthalpy_2D (void);
-int CalculateInternalEnergy_2D (void);
-int CalculateStagnationEnergy_2D (void);
-int CalculateStagnationEnergyDensity_2D (void);
-int CalculateKineticEnergy_2D (void);
-int CalculateVelocityX_2D (void);
-int CalculateVelocityY_2D (void);
-int CalculateVelocityMagnitude_2D (void);
-int CalculateEquivalentPotentialVelocityRatio_2D (void);
-int CalculateMomentumX_2D (void);
-int CalculateMomentumY_2D (void);
-int CalculateMomentumMagnitude_2D (void);
-int CalculateEntropy_2D (void);
-int CalculateEntropyMeasureS1_2D (void);
-int CalculateVorticityX_2D (void);
-int CalculateVorticityY_2D (void);
-int CalculateVorticityMagnitude_2D (void);
-int CalculateDensityGradientMagnitude_2D (void);
-int CalculatePressureGradientMagnitude_2D (void);
-int CalculateTemperatureGradientMagnitude_2D (void);
-int CalculateDivergenceVelocity_2D (void);
-int CalulateIsentropicDensityRatio_2D (void);
-int CalculateIsentropicPressureRatio_2D (void);
-int CalculateIsentropicTemperatureRatio_2D (void);
-int CalculateShock_2D (void);
-int CalculateFilteredShock_2D (void);
-int CalculateSwirl_2D (void);
-int CalculateHelicity_2D (void);
-int CalculateRelativeHelicity_2D (void);
-int CalculateFilteredRelativeHelicity_2D (void);
-int CalculateSutherlandsLaw_2D (void);
+int CalculateDensity_2D(void);
+int CalculatePressure_2D(void);
+int CalculateTemperature_2D(void);
+int CalculateSpeedSound_2D(void);
+int CalculateMachNumber_2D(void);
+int CalculateStagnationDensity_2D(void);
+int CalculateStagnationPressure_2D(void);
+int CalculateStagnationTemperature_2D(void);
+int CalculatePressureCoefficient_2D(void);
+int CalculateStagnationPressureCoef_2D(void);
+int CalculatePitotPressure_2D(void);
+int CalculatePitotPressureRatio_2D(void);
+int CalculateDynamicPressure_2D(void);
+int CalculateEnthalpy_2D(void);
+int CalculateStagnationEnthalpy_2D(void);
+int CalculateInternalEnergy_2D(void);
+int CalculateStagnationEnergy_2D(void);
+int CalculateStagnationEnergyDensity_2D(void);
+int CalculateKineticEnergy_2D(void);
+int CalculateVelocityX_2D(void);
+int CalculateVelocityY_2D(void);
+int CalculateVelocityMagnitude_2D(void);
+int CalculateEquivalentPotentialVelocityRatio_2D(void);
+int CalculateMomentumX_2D(void);
+int CalculateMomentumY_2D(void);
+int CalculateMomentumMagnitude_2D(void);
+int CalculateEntropy_2D(void);
+int CalculateEntropyMeasureS1_2D(void);
+int CalculateVorticityX_2D(void);
+int CalculateVorticityY_2D(void);
+int CalculateVorticityMagnitude_2D(void);
+int CalculateDensityGradientMagnitude_2D(void);
+int CalculatePressureGradientMagnitude_2D(void);
+int CalculateTemperatureGradientMagnitude_2D(void);
+int CalculateDivergenceVelocity_2D(void);
+int CalulateIsentropicDensityRatio_2D(void);
+int CalculateIsentropicPressureRatio_2D(void);
+int CalculateIsentropicTemperatureRatio_2D(void);
+int CalculateShock_2D(void);
+int CalculateFilteredShock_2D(void);
+int CalculateSwirl_2D(void);
+int CalculateHelicity_2D(void);
+int CalculateRelativeHelicity_2D(void);
+int CalculateFilteredRelativeHelicity_2D(void);
+int CalculateSutherlandsLaw_2D(void);
 
-int ScalarFlowVariableOptions_2D (void);
+int ScalarFlowVariableOptions_2D(void);
 
 #endif
 
