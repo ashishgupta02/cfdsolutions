@@ -44,13 +44,13 @@
 #undef MacOS
 #undef UNIX
 
-#define WIN32
+//#define WIN32
 //#define LINUX
 //#define MacOS
 //#define UNIX
 
 #ifdef WIN32
-//#include <windows.h>
+#include <windows.h>
 #else
 #include <unistd.h>
 #endif
@@ -73,4 +73,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+extern int*   pargc;
+extern char** pargv;
+
 #endif
+
