@@ -236,6 +236,9 @@ void InitializeDrawArea_2D(void) {
 
 /*--------------------------------------------------------------*/
 void Graphics_2D(void) {
+    char window_title [ 80 ];
+    strcpy(window_title, "PostCFD");
+
     /* Get Min-Max of World Window */
     CoordinateMinMax_2D();
     printf("MinX = %lf, MaxX = %lf, MinY = %lf, MaxY = %lf\n", MinMaxX[0], MinMaxX[1], MinMaxY[0], MinMaxY[1]);
@@ -247,8 +250,9 @@ void Graphics_2D(void) {
 
     glutInitWindowSize(windowWidth, windowHeight);
     glutInitWindowPosition(winPositionX, winPositionY);
-    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
-    MainWindowID = glutCreateWindow("PostCFD");
+    glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE);
+    glutInit(pargc, pargv);
+    MainWindowID = glutCreateWindow(window_title);
     MainMenu_2D();
     glutReshapeFunc(Reshape_2D);
     glutDisplayFunc(DrawMesh_2D);

@@ -44,6 +44,8 @@
 #include "PostProcessing_2D.h"
 
 /* Command line options */
+int*    pargc = NULL;
+char**  pargv = NULL;
 
 static char options[] = "acirput";
 
@@ -110,6 +112,8 @@ int main(int argc, char *argv[]) {
     char File[100], File1[100];
 
     sel = arguments(argc, argv);
+    pargc = &argc;
+    pargv = argv;
     strcpy(File, argv[2]);
 
     /* Selecting the module */
