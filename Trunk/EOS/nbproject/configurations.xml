@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="89">
+<configurationDescriptor version="90">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -44,7 +44,6 @@
   <confs>
     <conf name="Release" type="2">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -164,7 +163,6 @@
     </conf>
     <conf name="Debug" type="2">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>true</rebuildPropChanged>
@@ -280,7 +278,6 @@
     </conf>
     <conf name="Release_Intel" type="2">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>Intel|Intel</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -399,7 +396,6 @@
     </conf>
     <conf name="Debug_Intel" type="2">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>Intel|Intel</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -514,7 +510,6 @@
     </conf>
     <conf name="Release_Intel_MPI" type="2">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>Intel|Intel</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -635,7 +630,6 @@
     </conf>
     <conf name="Debug_Intel_MPI" type="2">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>Intel|Intel</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -752,7 +746,6 @@
     </conf>
     <conf name="Release_GUPC_x86_64" type="2">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GUPC_x86_64|GNU</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -872,7 +865,6 @@
     </conf>
     <conf name="Debug_GUPC_x86_64" type="2">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GUPC_x86_64|GNU</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>true</rebuildPropChanged>
@@ -988,7 +980,6 @@
     </conf>
     <conf name="Release_GUPC_ppc64" type="2">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GUPC_ppc64|GNU</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -1108,7 +1099,6 @@
     </conf>
     <conf name="Debug_GUPC_ppc64" type="2">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GUPC_ppc64|GNU</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>true</rebuildPropChanged>
@@ -1224,7 +1214,6 @@
     </conf>
     <conf name="Release_Cygwin" type="2">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>Cygwin_4.x|Cygwin_4.x</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -1344,7 +1333,6 @@
     </conf>
     <conf name="Debug_Cygwin" type="2">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>Cygwin_4.x|Cygwin_4.x</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>true</rebuildPropChanged>
@@ -1456,6 +1444,228 @@
       <item path="src/EOS_Pressure_Temperature.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="src/Test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Release_MinGW" type="2">
+      <toolsSet>
+        <compilerSet>MinGW|MinGW</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>../NISTThermo/NISTThermo/include</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
+            <pElem>../</pElem>
+          </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>../NISTThermo/NISTThermo/include</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
+            <pElem>../</pElem>
+          </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fpermissive -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+          <commandLine>-march=native -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2 -fdefault-double-8 -fdefault-real-8 -I./include</commandLine>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Release_MinGW"
+                            AC="true"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Release_MinGW"
+                            CC="${MAKE}  -f Makefile CONF=Release_MinGW clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.${CND_DLIB_EXT}">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../MATH"
+                            CT="2"
+                            CN="Release_MinGW"
+                            AC="true"
+                            BL="true"
+                            WD="../MATH"
+                            BC="${MAKE}  -f Makefile CONF=Release_MinGW"
+                            CC="${MAKE}  -f Makefile CONF=Release_MinGW clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.${CND_DLIB_EXT}">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../NISTThermo/NISTThermo"
+                            CT="2"
+                            CN="Release_MinGW"
+                            AC="true"
+                            BL="true"
+                            WD="../NISTThermo/NISTThermo"
+                            BC="${MAKE}  -f Makefile CONF=Release_MinGW"
+                            CC="${MAKE}  -f Makefile CONF=Release_MinGW clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libNISTThermo.${CND_DLIB_EXT}">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
+          <commandLine>-march=native -lgfortran</commandLine>
+        </linkerTool>
+      </compileType>
+      <item path="include/EOS.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Density_Pressure.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Density_Temperature.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_IdealGas.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Internal.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_NIST.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Pressure_Temperature.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/EOS.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/EOS_Density_Pressure.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/EOS_Density_Temperature.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/EOS_IdealGas.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/EOS_Internal.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/EOS_NIST.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/EOS_Pressure_Temperature.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Test.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+    </conf>
+    <conf name="Debug_MinGW" type="2">
+      <toolsSet>
+        <compilerSet>MinGW|MinGW</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>true</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>../NISTThermo/NISTThermo/include</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
+            <pElem>../</pElem>
+          </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>../NISTThermo/NISTThermo/include</pElem>
+            <pElem>../UTILS/include</pElem>
+            <pElem>../MATH/include</pElem>
+            <pElem>../</pElem>
+          </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fpermissive -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <commandLine>-march=native -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2 -fdefault-double-8 -fdefault-real-8 -I./include</commandLine>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../UTILS"
+                            CT="2"
+                            CN="Debug_MinGW"
+                            AC="false"
+                            BL="true"
+                            WD="../UTILS"
+                            BC="${MAKE}  -f Makefile CONF=Debug_MinGW"
+                            CC="${MAKE}  -f Makefile CONF=Debug_MinGW clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libUTILS.${CND_DLIB_EXT}">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../MATH"
+                            CT="2"
+                            CN="Debug_MinGW"
+                            AC="false"
+                            BL="true"
+                            WD="../MATH"
+                            BC="${MAKE}  -f Makefile CONF=Debug_MinGW"
+                            CC="${MAKE}  -f Makefile CONF=Debug_MinGW clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMATH.${CND_DLIB_EXT}">
+              </makeArtifact>
+            </linkerLibProjectItem>
+            <linkerLibProjectItem>
+              <makeArtifact PL="../NISTThermo/NISTThermo"
+                            CT="2"
+                            CN="Debug_MinGW"
+                            AC="false"
+                            BL="true"
+                            WD="../NISTThermo/NISTThermo"
+                            BC="${MAKE}  -f Makefile CONF=Debug_MinGW"
+                            CC="${MAKE}  -f Makefile CONF=Debug_MinGW clean"
+                            OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libNISTThermo.${CND_DLIB_EXT}">
+              </makeArtifact>
+            </linkerLibProjectItem>
+          </linkerLibItems>
+          <commandLine>-march=native -lgfortran</commandLine>
+        </linkerTool>
+      </compileType>
+      <item path="include/EOS.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Density_Pressure.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Density_Temperature.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_IdealGas.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Internal.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_NIST.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EOS_Pressure_Temperature.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/EOS.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/EOS_Density_Pressure.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/EOS_Density_Temperature.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/EOS_IdealGas.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/EOS_Internal.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/EOS_NIST.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/EOS_Pressure_Temperature.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Test.cpp" ex="false" tool="1" flavor2="9">
       </item>
     </conf>
   </confs>
