@@ -82,7 +82,7 @@ static int arguments(int argc, char **argv) {
             rcode = EXIT_FAILURE;
         } else if(argv[1][0] == options[0] && argv[1][1] == options[2]) {
             printf("%s Utility, Version %s \n", PACKAGE, VERSION);
-            printf("Copyright (C) 2010-13 Ashish Gupta. All rights reserved.\n");
+            printf("Copyright (C) 2010-14 Ashish Gupta. All rights reserved.\n");
             printf("Contact for Help or Bugs %s \n", PACKAGE_BUGREPORT);
             rcode = EXIT_FAILURE;
         }
