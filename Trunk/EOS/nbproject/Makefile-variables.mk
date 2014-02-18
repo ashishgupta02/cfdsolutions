@@ -102,6 +102,22 @@ CND_ARTIFACT_PATH_Debug_Cygwin=dist/Debug_Cygwin/Cygwin_4.x-Windows/libEOS.dll
 CND_PACKAGE_DIR_Debug_Cygwin=dist/Debug_Cygwin/Cygwin_4.x-Windows/package
 CND_PACKAGE_NAME_Debug_Cygwin=libEOS.dll.tar
 CND_PACKAGE_PATH_Debug_Cygwin=dist/Debug_Cygwin/Cygwin_4.x-Windows/package/libEOS.dll.tar
+# Release_MinGW configuration
+CND_PLATFORM_Release_MinGW=MinGW-Windows
+CND_ARTIFACT_DIR_Release_MinGW=dist/Release_MinGW/MinGW-Windows
+CND_ARTIFACT_NAME_Release_MinGW=libEOS.dll
+CND_ARTIFACT_PATH_Release_MinGW=dist/Release_MinGW/MinGW-Windows/libEOS.dll
+CND_PACKAGE_DIR_Release_MinGW=dist/Release_MinGW/MinGW-Windows/package
+CND_PACKAGE_NAME_Release_MinGW=libEOS.dll.tar
+CND_PACKAGE_PATH_Release_MinGW=dist/Release_MinGW/MinGW-Windows/package/libEOS.dll.tar
+# Debug_MinGW configuration
+CND_PLATFORM_Debug_MinGW=MinGW-Windows
+CND_ARTIFACT_DIR_Debug_MinGW=dist/Debug_MinGW/MinGW-Windows
+CND_ARTIFACT_NAME_Debug_MinGW=libEOS.dll
+CND_ARTIFACT_PATH_Debug_MinGW=dist/Debug_MinGW/MinGW-Windows/libEOS.dll
+CND_PACKAGE_DIR_Debug_MinGW=dist/Debug_MinGW/MinGW-Windows/package
+CND_PACKAGE_NAME_Debug_MinGW=libEOS.dll.tar
+CND_PACKAGE_PATH_Debug_MinGW=dist/Debug_MinGW/MinGW-Windows/package/libEOS.dll.tar
 #
 # include compiler specific variables
 #
