@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="89">
+<configurationDescriptor version="90">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -70,7 +70,6 @@
   <confs>
     <conf name="Release" type="2">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -203,7 +202,6 @@
     </conf>
     <conf name="Debug" type="2">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GNU|GNU</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -333,7 +331,6 @@
     </conf>
     <conf name="Release_Intel" type="2">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>Intel|Intel</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -463,7 +460,6 @@
     </conf>
     <conf name="Debug_Intel" type="2">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>Intel|Intel</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -590,7 +586,6 @@
     </conf>
     <conf name="Release_Intel_MPI" type="2">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>Intel|Intel</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -738,7 +733,6 @@
     </conf>
     <conf name="Debug_Intel_MPI" type="2">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>Intel|Intel</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -882,7 +876,6 @@
     </conf>
     <conf name="Release_GUPC_x86_64" type="2">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GUPC_x86_64|GNU</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -1015,7 +1008,6 @@
     </conf>
     <conf name="Debug_GUPC_x86_64" type="2">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GUPC_x86_64|GNU</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -1145,7 +1137,6 @@
     </conf>
     <conf name="Release_GUPC_ppc64" type="2">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GUPC_ppc64|GNU</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -1278,7 +1269,6 @@
     </conf>
     <conf name="Debug_GUPC_ppc64" type="2">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>GUPC_ppc64|GNU</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -1408,7 +1398,6 @@
     </conf>
     <conf name="Release_Cygwin" type="2">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>Cygwin_4.x|Cygwin_4.x</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -1541,7 +1530,6 @@
     </conf>
     <conf name="Debug_Cygwin" type="2">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>Cygwin_4.x|Cygwin_4.x</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -1667,6 +1655,279 @@
       <item path="src/Utils.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="src/Warn_Error.c" ex="false" tool="0" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Release_MinGW" type="2">
+      <toolsSet>
+        <compilerSet>MinGW|MinGW</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
+          <preprocessorList>
+            <Elem>HAS_NO_EXCEPTION</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
+          <preprocessorList>
+            <Elem>HAS_NO_EXCEPTION</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+          <commandLine>-march=native -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2 -fdefault-double-8 -fdefault-real-8 -I./include</commandLine>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <commandLine>-march=native</commandLine>
+        </linkerTool>
+      </compileType>
+      <item path="include/Check_Malloc.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Check_Scanf.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Check_String.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Command_Line.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/DoubleList.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Formatting_Control.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Interface_MPI.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Interface_MPI_Lib.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Interface_MPI_Set.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Linked_List.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/List.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Log.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Logging.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/MUtils.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Machine_Parameters.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/MathError.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/MemUtils.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/NDM_Dimensions.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/NDM_TypeDefs.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Output_Level.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Stopwatch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Timing.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Trim_Utils.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Utils.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Warn_Error.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/Check_Malloc.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Check_Scanf.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Check_String.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Command_Line.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/DoubleList.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="src/Formatting_Control.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Interface_MPI.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Interface_MPI_Lib.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Interface_MPI_Set.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Linked_List.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="src/List.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="src/Log.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Logging.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/MUtils.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Machine_Parameters.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/MathError.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/MemUtils.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="src/Stopwatch.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Timing.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Trim_Utils.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Utils.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Warn_Error.c" ex="false" tool="0" flavor2="9">
+      </item>
+    </conf>
+    <conf name="Debug_MinGW" type="2">
+      <toolsSet>
+        <compilerSet>MinGW|MinGW</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
+          <preprocessorList>
+            <Elem>HAS_NO_EXCEPTION</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </cTool>
+        <ccTool>
+          <incDir>
+            <pElem>..</pElem>
+            <pElem>include</pElem>
+          </incDir>
+          <commandLine>-march=native -Wno-write-strings -fno-math-errno -fno-trapping-math -ffinite-math-only -fno-signaling-nans -fstrict-aliasing -fomit-frame-pointer -fpermissive -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2</commandLine>
+          <preprocessorList>
+            <Elem>HAS_NO_EXCEPTION</Elem>
+          </preprocessorList>
+          <warningLevel>2</warningLevel>
+        </ccTool>
+        <fortranCompilerTool>
+          <commandLine>-march=native -fexpensive-optimizations -funroll-all-loops -ffast-math -finline-limit=150000 -Winline -mfpmath=sse -msse2 -fdefault-double-8 -fdefault-real-8 -I./include</commandLine>
+          <warningLevel>2</warningLevel>
+        </fortranCompilerTool>
+        <asmTool>
+          <warningLevel>2</warningLevel>
+        </asmTool>
+        <linkerTool>
+          <commandLine>-march=native</commandLine>
+        </linkerTool>
+      </compileType>
+      <item path="include/Check_Malloc.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Check_Scanf.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Check_String.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Command_Line.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/DoubleList.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Formatting_Control.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Interface_MPI.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Interface_MPI_Lib.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Interface_MPI_Set.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Linked_List.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/List.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Log.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Logging.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/MUtils.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Machine_Parameters.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/MathError.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/MemUtils.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/NDM_Dimensions.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/NDM_TypeDefs.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Output_Level.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Stopwatch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Timing.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Trim_Utils.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Utils.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Warn_Error.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/Check_Malloc.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Check_Scanf.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Check_String.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Command_Line.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/DoubleList.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="src/Formatting_Control.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Interface_MPI.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Interface_MPI_Lib.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Interface_MPI_Set.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Linked_List.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="src/List.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="src/Log.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Logging.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/MUtils.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Machine_Parameters.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/MathError.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/MemUtils.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="src/Stopwatch.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Timing.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Trim_Utils.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Utils.c" ex="false" tool="0" flavor2="9">
+      </item>
+      <item path="src/Warn_Error.c" ex="false" tool="0" flavor2="9">
       </item>
     </conf>
   </confs>

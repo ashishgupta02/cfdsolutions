@@ -8,7 +8,9 @@
 
 #include <stdio.h>
 #include <sys/time.h>
+#ifndef __MINGW32__
 #include <sys/resource.h>
+#endif
 #include <time.h>
 
 #include "Timing.h"
@@ -185,12 +187,16 @@ static NDMDouble user_time(void) {
     }
 #else
     {
+#ifdef __MINGW32__
+        return 0;
+#else
         typedef struct rusage rusage_type;
         rusage_type r;
 
         if (getrusage(RUSAGE_SELF, &r) != 0)
             ndm_msg("Cannot get system time\n");
         return r.ru_utime.tv_sec + 1e-6 * r.ru_utime.tv_usec;
+#endif
     }
 #endif
 } /** user_time() **/
@@ -210,12 +216,16 @@ static NDMDouble system_time(void) {
     }
 #else
     {
+#ifdef __MINGW32__
+        return 0;
+#else
         typedef struct rusage rusage_type;
         rusage_type r;
 
         if (getrusage(RUSAGE_SELF, &r) != 0)
             ndm_msg("Cannot get system time\n");
         return r.ru_stime.tv_sec + 1e-6 * r.ru_stime.tv_usec;
+#endif
     }
 #endif
 

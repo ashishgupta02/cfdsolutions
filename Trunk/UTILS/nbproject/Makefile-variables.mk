@@ -102,6 +102,22 @@ CND_ARTIFACT_PATH_Debug_Cygwin=dist/Debug_Cygwin/Cygwin_4.x-Windows/libUTILS.dll
 CND_PACKAGE_DIR_Debug_Cygwin=dist/Debug_Cygwin/Cygwin_4.x-Windows/package
 CND_PACKAGE_NAME_Debug_Cygwin=libUTILS.dll.tar
 CND_PACKAGE_PATH_Debug_Cygwin=dist/Debug_Cygwin/Cygwin_4.x-Windows/package/libUTILS.dll.tar
+# Release_MinGW configuration
+CND_PLATFORM_Release_MinGW=MinGW-Windows
+CND_ARTIFACT_DIR_Release_MinGW=dist/Release_MinGW/MinGW-Windows
+CND_ARTIFACT_NAME_Release_MinGW=libUTILS.dll
+CND_ARTIFACT_PATH_Release_MinGW=dist/Release_MinGW/MinGW-Windows/libUTILS.dll
+CND_PACKAGE_DIR_Release_MinGW=dist/Release_MinGW/MinGW-Windows/package
+CND_PACKAGE_NAME_Release_MinGW=libUTILS.dll.tar
+CND_PACKAGE_PATH_Release_MinGW=dist/Release_MinGW/MinGW-Windows/package/libUTILS.dll.tar
+# Debug_MinGW configuration
+CND_PLATFORM_Debug_MinGW=MinGW-Windows
+CND_ARTIFACT_DIR_Debug_MinGW=dist/Debug_MinGW/MinGW-Windows
+CND_ARTIFACT_NAME_Debug_MinGW=libUTILS.dll
+CND_ARTIFACT_PATH_Debug_MinGW=dist/Debug_MinGW/MinGW-Windows/libUTILS.dll
+CND_PACKAGE_DIR_Debug_MinGW=dist/Debug_MinGW/MinGW-Windows/package
+CND_PACKAGE_NAME_Debug_MinGW=libUTILS.dll.tar
+CND_PACKAGE_PATH_Debug_MinGW=dist/Debug_MinGW/MinGW-Windows/package/libUTILS.dll.tar
 #
 # include compiler specific variables
 #

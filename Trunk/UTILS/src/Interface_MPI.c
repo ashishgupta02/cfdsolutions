@@ -404,9 +404,14 @@ void mpi_parallel_end(void) {
         /*--------------------------------------------------------------------------
         | reset signal handler messages
         --------------------------------------------------------------------------*/
+#ifdef __MINGW32__
+        signal(SIGBREAK, term_signal_handler);
+        signal(SIGBREAK, term_signal_handler);
+#else
         signal(SIGUSR1, term_signal_handler);
         signal(SIGUSR2, term_signal_handler);
-
+#endif
+        
         /*--------------------------------------------------------------------------
         | finalize mpi
         --------------------------------------------------------------------------*/
