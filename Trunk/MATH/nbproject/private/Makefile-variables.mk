@@ -15,3 +15,5 @@
 # Debug_GUPC_ppc64 configuration
 # Release_Cygwin configuration
 # Debug_Cygwin configuration
+# Release_MinGW configuration
+# Debug_MinGW configuration
