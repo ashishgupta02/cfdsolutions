@@ -3,5 +3,5 @@
 #
 # NOCDDL
 #
-# Debug configuration
-# Release configuration
+# Debug_MinGW configuration
+# Release_MinGW configuration

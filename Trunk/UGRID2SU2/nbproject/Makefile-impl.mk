@@ -27,11 +27,11 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 PROJECTNAME=UGRID2SU2
 
 # Active Configuration
-DEFAULTCONF=Debug
+DEFAULTCONF=Debug_MinGW
 CONF=${DEFAULTCONF}
 
 # All Configurations
-ALLCONFS=Debug Release 
+ALLCONFS=Debug_MinGW Release_MinGW 
 
 
 # build
