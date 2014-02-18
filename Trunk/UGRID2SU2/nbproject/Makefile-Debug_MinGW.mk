@@ -21,8 +21,9 @@ FC=gfortran
 AS=as
 
 # Macros
-CND_PLATFORM=GNU-Linux-x86
-CND_CONF=Debug
+CND_PLATFORM=MinGW-Windows
+CND_DLIB_EXT=dll
+CND_CONF=Debug_MinGW
 CND_DISTDIR=dist
 CND_BUILDDIR=build
 
@@ -51,17 +52,17 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-Wl,-rpath ../UTILS/dist/Debug/GNU-Linux-x86 -L../UTILS/dist/Debug/GNU-Linux-x86 -lUTILS
+LDLIBSOPTIONS=-L../UTILS/dist/Debug_MinGW/MinGW-Windows -lUTILS
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ugrid2su2
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ugrid2su2.exe
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ugrid2su2: ../UTILS/dist/Debug/GNU-Linux-x86/libUTILS.so
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ugrid2su2.exe: ../UTILS/dist/Debug_MinGW/MinGW-Windows/libUTILS.dll
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ugrid2su2: ${OBJECTFILES}
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ugrid2su2.exe: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ugrid2su2 ${OBJECTFILES} ${LDLIBSOPTIONS} 
+	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ugrid2su2 ${OBJECTFILES} ${LDLIBSOPTIONS}
 
 ${OBJECTDIR}/main.o: main.cpp 
 	${MKDIR} -p ${OBJECTDIR}
@@ -70,16 +71,16 @@ ${OBJECTDIR}/main.o: main.cpp
 
 # Subprojects
 .build-subprojects:
-	cd ../UTILS && ${MAKE}  -f Makefile CONF=Debug
+	cd ../UTILS && ${MAKE}  -f Makefile CONF=Debug_MinGW
 
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ugrid2su2
+	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/ugrid2su2.exe
 
 # Subprojects
 .clean-subprojects:
-	cd ../UTILS && ${MAKE}  -f Makefile CONF=Debug clean
+	cd ../UTILS && ${MAKE}  -f Makefile CONF=Debug_MinGW clean
 
 # Enable dependency checking
 .dep.inc: .depcheck-impl
