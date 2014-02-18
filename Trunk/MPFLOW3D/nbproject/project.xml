@@ -67,7 +67,18 @@
                     <name>Debug_Cygwin</name>
                     <type>1</type>
                 </confElem>
+                <confElem>
+                    <name>Release_MinGW</name>
+                    <type>1</type>
+                </confElem>
+                <confElem>
+                    <name>Debug_MinGW</name>
+                    <type>1</type>
+                </confElem>
             </confList>
+            <formatting>
+                <project-formatting-style>false</project-formatting-style>
+            </formatting>
         </data>
     </configuration>
 </project>
