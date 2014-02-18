@@ -16,6 +16,12 @@
 #define NISTTHERMO_MAX_COEFFICIENT  50
 
 /* For windows applications */
+#ifdef WIN32
+#ifdef __MINGW32__
+#undef WIN32
+#endif
+#endif
+
 #if defined(WIN32)
 #ifdef ABSOFT
 #undef WIN32
@@ -33,7 +39,7 @@
 /* For non windows applications:
   (i)  Change case of routine names
   (ii) Add underscores where appropriate */
-#if defined(mips) || defined(__mips)  || defined(__MACH__) || defined(__alpha) || defined(__linux) || defined(__sparc)
+#if defined(mips) || defined(__mips)  || defined(__MACH__) || defined(__alpha) || defined(__linux) || defined(__sparc) || defined (__MINGW32__)
 /* SGI & DECStation; SGI;  MAC OS X; DEC Alpha; Linux; SUN */
 #define PREFIX extern void
 #define UNDERSCORE
