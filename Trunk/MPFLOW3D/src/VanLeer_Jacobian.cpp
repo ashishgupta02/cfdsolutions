@@ -23,7 +23,7 @@ static int VanLeerJac_DB   = 0;
 //! Create VanLeer Jacobian Data Structure
 //------------------------------------------------------------------------------
 void VanLeerJac_Init(void) {
-    
+
     // Check if VanLeer Data Structure is required
     if (VanLeerJac_DB == 0) {
         VanLeerJac_DB = 1;
@@ -41,10 +41,10 @@ void VanLeerJac_Finalize(void) {
 //! Reset VanLeer Jacobian Data Structure
 //------------------------------------------------------------------------------
 void VanLeerJac_Reset(void) {
-    
+
     if (VanLeerJac_DB == 0)
         VanLeerJac_Init();
-    
+
     // Initialization
 }
 
@@ -52,13 +52,13 @@ void VanLeerJac_Reset(void) {
 //! Computes the Jacobian for all Edges Internal and Boundary
 //------------------------------------------------------------------------------
 void Compute_Jacobian_VanLeer_Exact(int AddTime, int Iteration) {
-    
+
 }
 
 //------------------------------------------------------------------------------
 //! Computes the Jacobian for all Edges Internal and Boundary
 //------------------------------------------------------------------------------
 void Compute_Jacobian_VanLeer_Approximate(int AddTime, int Iteration) {
-    
+
 }
 

@@ -53,7 +53,7 @@ int Solver_Unsteady_Explicit_Todo(void) {
     double *Qn11, *Qn12, *Qn13, *Qn14, *Qn15;
     int giter;
     double RMS_Res;
-    
+
     // Check if Unsteady Computations
     Qn01 = Qn02 = Qn03 = Qn04 = Qn05 = NULL;
     Qn11 = Qn12 = Qn13 = Qn14 = Qn15 = NULL;
@@ -70,7 +70,7 @@ int Solver_Unsteady_Explicit_Todo(void) {
     Qn13 = new double[nNode];
     Qn14 = new double[nNode];
     Qn15 = new double[nNode];
-    
+
     // Check if Euler or Runge-Kutta Scheme
     W01 = W02 = W03 = W04 = W05 = NULL;
     WDeltaT = NULL;
@@ -81,33 +81,33 @@ int Solver_Unsteady_Explicit_Todo(void) {
         W03 = new double[nNode];
         W04 = new double[nNode];
         W05 = new double[nNode];
-        
+
         // WDeltaT : Needed because DeltaT computations is inside Residual Computation
         WDeltaT = new double[nNode];
     }
-    
-    // Coefficients for First Order Physical Time Discretization 
+
+    // Coefficients for First Order Physical Time Discretization
     alpha = 1.0;
     beta  = 1.0;
     theta = 0.0;
-    
+
     // Helper Variables
     eta  = 0.0;
     reta = 0.0;
     zeta = 0.0;
-    
+
     // RK4 Coefficients
     phi1 = 0.25;
     phi2 = 0.333333333333333333;
     phi3 = 0.5;
     phi4 = 1.0;
-    
+
     // Save Solver Parameters
     SaveOrder   = SolverOrder;
     SaveLimiter = LimiterMethod;
-    
+
     Unsteady_Initialization();
-    
+
     // Set Qn
     for (int i = 0; i < nNode; i++) {
         Qn01[i] = Q1[i];
@@ -120,14 +120,14 @@ int Solver_Unsteady_Explicit_Todo(void) {
     giter = 0;
     // Physical Time Loop
     for (int t_iter = 0; t_iter < SolverNIteration; t_iter++) {
-        
+
         // Second Order Physical Time Coefficients
         if (t_iter > 0) {
             alpha = 3.0;
             beta  = 4.0;
             theta = 1.0;
         }
-        
+
         // Set Qn and Qn-1
         for (int i = 0; i < nNode; i++) {
             // Qn-1
@@ -136,7 +136,7 @@ int Solver_Unsteady_Explicit_Todo(void) {
             Qn13[i] = Qn03[i];
             Qn14[i] = Qn04[i];
             Qn15[i] = Qn05[i];
-            
+
             // Qn
             Qn01[i] = Q1[i];
             Qn02[i] = Q2[i];
@@ -144,7 +144,7 @@ int Solver_Unsteady_Explicit_Todo(void) {
             Qn04[i] = Q4[i];
             Qn05[i] = Q5[i];
         }
-        
+
         // Inner Iterations: Dual Time Iterations
         for (int iter = 0; iter < InnerNIteration; iter++) {
             giter++;
@@ -209,10 +209,10 @@ int Solver_Unsteady_Explicit_Todo(void) {
             AddTime = TRUE;
             // Compute Residuals
             Compute_Residual(AddTime);
-            
+
             // Compute Local Time Stepping
             Compute_DeltaT(iter);
-            
+
             // Write RMS
             RMS_Res = RMS_Writer(giter);
 
@@ -434,7 +434,7 @@ int Solver_Unsteady_Explicit_Todo(void) {
         delete[] Qn04;
     if (Qn05 != NULL)
         delete[] Qn05;
-    
+
     // Qn1
     if (Qn11 != NULL)
         delete[] Qn11;
@@ -446,7 +446,7 @@ int Solver_Unsteady_Explicit_Todo(void) {
         delete[] Qn14;
     if (Qn15 != NULL)
         delete[] Qn15;
-    
+
     if (TimeIntegrationMethod == TIME_INTEGRATION_METHOD_EXPLICIT_RK4) {
         // Wo
         if (W01 != NULL)
@@ -480,7 +480,7 @@ int Solver_Unsteady_Explicit_Todo(void) {
 //------------------------------------------------------------------------------
 int Solver_Unsteady_Explicit(void) {
     int rvalue = EXIT_FAILURE;
-    
+
     // Select the Explicit Time Integration Method Type
     switch (TimeIntegrationMethod) {
         case TIME_INTEGRATION_METHOD_EXPLICIT_EULER_EULER:
@@ -517,7 +517,7 @@ int Solver_Unsteady_Explicit(void) {
             error("Solver_Steady_Explicit: Invalid Time Integration Method - %d", TimeIntegrationMethod);
             break;
     }
-    
+
     return rvalue;
 }
 
