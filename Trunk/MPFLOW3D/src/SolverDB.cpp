@@ -31,7 +31,7 @@ CSolverDBCore::CSolverDBCore() {
     dvQ2            = 0.0;
     dvSpeedSound    = 0.0;
     dvMach          = 0.0;
-    dvTotalEnergy   = 0.0; 
+    dvTotalEnergy   = 0.0;
     dvTotalEnthalpy = 0.0;
     dvDPDRho        = 0.0;
     dvDPDT          = 0.0;
@@ -54,7 +54,7 @@ CSolverDBCore::~CSolverDBCore() {
 //------------------------------------------------------------------------------
 CSolverDB::CSolverDB() {
     for (int i = 0; i < NEQUATIONS; i++) {
-        daQ[i]           = 0.0; 
+        daQ[i]           = 0.0;
         daQx[i]          = 0.0;
         daQy[i]          = 0.0;
         daQz[i]          = 0.0;
@@ -87,14 +87,14 @@ void CSolverDB::Set_BoundaryFlag(int BndFlag) {
 void CSolverDB::Compute_Properties() {
     double tmp;
     double daProperty[EOS_THERM_DIM];
-    // Get the Q's 
+    // Get the Q's
     daQ[0] = Q1[ivNodeID];
     daQ[1] = Q2[ivNodeID];
     daQ[2] = Q3[ivNodeID];
     daQ[3] = Q4[ivNodeID];
     daQ[4] = Q5[ivNodeID];
     Material_Get_Properties(daQ, daProperty);
-    
+
     // Update the values
     Properties.dvRho           = daProperty[ 0];
     Properties.dvRhoL          = daProperty[ 1];
@@ -109,7 +109,7 @@ void CSolverDB::Compute_Properties() {
     Properties.dvMach          = daProperty[10];
     Properties.dvTotalEnthalpy = daProperty[14];
     Properties.dvTotalEnergy   = daProperty[15];
-    
+
 //    // Fix the Pressure Bounce
 //    tmp = Inf_U*Inf_U + Inf_V*Inf_V + Inf_W*Inf_W;
 //    tmp = Inf_Rho*tmp;
@@ -122,14 +122,14 @@ void CSolverDB::Compute_Properties() {
 void CSolverDB::Compute_Extended_Properties() {
     double tmp;
     double daProperty[EOS_EX_THERM_DIM];
-    // Get the Q's 
+    // Get the Q's
     daQ[0] = Q1[ivNodeID];
     daQ[1] = Q2[ivNodeID];
     daQ[2] = Q3[ivNodeID];
     daQ[3] = Q4[ivNodeID];
     daQ[4] = Q5[ivNodeID];
     Material_Get_Extended_Properties(daQ, daProperty);
-    
+
     // Update the values
     Properties.dvRho           = daProperty[ 0];
     Properties.dvRhoL          = daProperty[ 1];
@@ -151,7 +151,7 @@ void CSolverDB::Compute_Extended_Properties() {
     Properties.dvDEDRho_T      = daProperty[33];
     Properties.dvDEDRho_P      = daProperty[34];
     Properties.dvDEDP_Rho      = daProperty[36];
-    
+
 //    // Fix the Pressure Bounce
 //    tmp = Inf_U*Inf_U + Inf_V*Inf_V + Inf_W*Inf_W;
 //    tmp = Inf_Rho*tmp;
@@ -164,7 +164,7 @@ void CSolverDB::Compute_Extended_Properties() {
 void CSolverDB::Get_Properties(double &Rho, double &RhoL, double &RhoV, double &Pressure,
         double &Temperature, double &Velocity_U, double &Velocity_V, double &Velocity_W, double &Q2,
         double &SpeedSound, double &Mach, double &TotalEnergy, double &TotalEnthalpy) {
-    
+
     Rho           = Properties.dvRho;
     RhoL          = Properties.dvRhoL;
     RhoV          = Properties.dvRhoV;
@@ -186,9 +186,9 @@ void CSolverDB::Get_Properties(double &Rho, double &RhoL, double &RhoV, double &
 void CSolverDB::Get_Extended_Properties(double &Rho, double &RhoL, double &RhoV, double &Pressure,
         double &Temperature, double &Velocity_U, double &Velocity_V, double &Velocity_W, double &Q2,
         double &SpeedSound, double &Mach, double &TotalEnergy, double &TotalEnthalpy,
-        double &DPDRho, double &DPDT, double &DRhoDT, double &DEDRho_P, 
+        double &DPDRho, double &DPDT, double &DRhoDT, double &DEDRho_P,
         double &DEDRho_T, double &DEDP_Rho, double &DEDT_Rho) {
-    
+
     Rho           = Properties.dvRho;
     RhoL          = Properties.dvRhoL;
     RhoV          = Properties.dvRhoV;
@@ -202,10 +202,10 @@ void CSolverDB::Get_Extended_Properties(double &Rho, double &RhoL, double &RhoV,
     Mach          = Properties.dvMach;
     TotalEnergy   = Properties.dvTotalEnergy;
     TotalEnthalpy = Properties.dvTotalEnthalpy;
-    DPDRho        = Properties.dvDPDRho;  
+    DPDRho        = Properties.dvDPDRho;
     DPDT          = Properties.dvDPDT;
     DRhoDT        = Properties.dvDRhoDT;
-    DEDRho_P      = Properties.dvDEDRho_P; 
+    DEDRho_P      = Properties.dvDEDRho_P;
     DEDRho_T      = Properties.dvDEDRho_T;
     DEDP_Rho      = Properties.dvDEDP_Rho;
     DEDT_Rho      = Properties.dvDEDT_Rho;
@@ -218,13 +218,13 @@ void CSolverDB::Get_Recomputed_Properties(double *dpVariableIn, double &Rho, dou
     double &Pressure, double &Temperature,
     double &Velocity_U, double &Velocity_V, double &Velocity_W, double &Q2,
     double &SpeedSound, double &Mach, double &TotalEnergy, double &TotalEnthalpy) {
-    
+
     double tmp;
     double daProperty[EOS_THERM_DIM];
-    
+
     // Recompute the Material Properties
     Material_Get_Properties(dpVariableIn, daProperty);
-    
+
     // Update the values
     Rho           = daProperty[ 0];
     RhoL          = daProperty[ 1];
@@ -239,7 +239,7 @@ void CSolverDB::Get_Recomputed_Properties(double *dpVariableIn, double &Rho, dou
     Mach          = daProperty[10];
     TotalEnthalpy = daProperty[14];
     TotalEnergy   = daProperty[15];
-    
+
 //    // Fix the Pressure Bounce
 //    tmp = Inf_U*Inf_U + Inf_V*Inf_V + Inf_W*Inf_W;
 //    tmp = Inf_Rho*tmp;
@@ -250,18 +250,18 @@ void CSolverDB::Get_Recomputed_Properties(double *dpVariableIn, double &Rho, dou
 //! Compute the Thermodynamic Extended Properties: Q's are Input
 //------------------------------------------------------------------------------
 void CSolverDB::Get_Recomputed_Extended_Properties(double *dpVariableIn, double &Rho, double &RhoL, double &RhoV,
-    double &Pressure, double &Temperature, 
+    double &Pressure, double &Temperature,
     double &Velocity_U, double &Velocity_V, double &Velocity_W, double &Q2,
     double &SpeedSound, double &Mach, double &TotalEnergy, double &TotalEnthalpy,
-    double &DPDRho, double &DPDT, double &DRhoDT, double &DEDRho_P, 
+    double &DPDRho, double &DPDT, double &DRhoDT, double &DEDRho_P,
     double &DEDRho_T, double &DEDP_Rho, double &DEDT_Rho) {
-    
+
     double tmp;
     double daProperty[EOS_EX_THERM_DIM];
-    
+
     // Recompute the Material Extended Properties
     Material_Get_Extended_Properties(dpVariableIn, daProperty);
-    
+
     // Update the values
     Rho           = daProperty[ 0];
     RhoL          = daProperty[ 1];
@@ -283,7 +283,7 @@ void CSolverDB::Get_Recomputed_Extended_Properties(double *dpVariableIn, double 
     DEDRho_T      = daProperty[33];
     DEDRho_P      = daProperty[34];
     DEDP_Rho      = daProperty[36];
-    
+
 //    // Fix the Pressure Bounce
 //    tmp = Inf_U*Inf_U + Inf_V*Inf_V + Inf_W*Inf_W;
 //    tmp = Inf_Rho*tmp;
@@ -473,7 +473,7 @@ void CSolver::Create(int ivNodes) {
     // Create and Initialize the Node Data Base
     ivNodeDBDim = ivNodes;
     CpNodeDB    = new CSolverDB[ivNodes];
-    
+
     for (int i = 0; i < ivNodes; i++) {
         CpNodeDB[i].ivNodeID  = i;
         CpNodeDB[i].ivBndFlag = -2; // Default All to Interior Node
@@ -488,11 +488,11 @@ void CSolver::Create(int ivNodes) {
 //------------------------------------------------------------------------------
 void CSolver::Set_BoundaryFlag () {
     int node_L, node_R;
-    
-    // Initialize all Nodes to Interior 
+
+    // Initialize all Nodes to Interior
     for (int i = 0; i < ivNodeDBDim; i++)
         CpNodeDB[i].ivBndFlag = -2;
-    
+
     // Loop over all Boundary Edges and Set the Appropriate Flags
     for (int iBEdge = 0; iBEdge < nBEdge; iBEdge++) {
         node_L = bndEdge[iBEdge].node[0]; // Physical Node
@@ -569,10 +569,10 @@ void CSolver::Smooth_Solution() {
     double *Q_Old = NULL;
     double *Q_New = NULL;
     double *Qswap = NULL;
-    
+
     Q_Old = new double [NEQUATIONS*nNode];
     Q_New = new double [NEQUATIONS*nNode];
-    
+
     // Get the Old Q's
     for (int inode = 0; inode < nNode; inode++) {
         Q_Old[NEQUATIONS*inode + 0] = Q1[inode];
@@ -581,7 +581,7 @@ void CSolver::Smooth_Solution() {
         Q_Old[NEQUATIONS*inode + 3] = Q4[inode];
         Q_Old[NEQUATIONS*inode + 4] = Q5[inode];
     }
-    
+
     Coeff1 = SolutionSmoothRelaxation;
     for (int iSmooth = 0; iSmooth < SolutionSmoothNIteration; iSmooth++) {
         for (int inode = 0; inode < nNode; inode++) {
@@ -612,7 +612,7 @@ void CSolver::Smooth_Solution() {
         Q4[inode] = Q_Old[NEQUATIONS*inode + 3];
         Q5[inode] = Q_Old[NEQUATIONS*inode + 4];
     }
-    
+
     // Free Memory
     delete[] Q_Old;
     delete[] Q_New;
@@ -631,7 +631,7 @@ void CSolver::Smooth_Solution_Gradient() {
     double *Qz_Old = NULL;
     double *Qz_New = NULL;
     double *Qswap = NULL;
-    
+
     Qx_Old = new double [NEQUATIONS*nNode];
     Qx_New = new double [NEQUATIONS*nNode];
     Qy_Old = new double [NEQUATIONS*nNode];
@@ -647,14 +647,14 @@ void CSolver::Smooth_Solution_Gradient() {
         Qx_Old[NEQUATIONS*inode + 2] = Q3x[inode];
         Qx_Old[NEQUATIONS*inode + 3] = Q4x[inode];
         Qx_Old[NEQUATIONS*inode + 4] = Q5x[inode];
-        
+
         // Y
         Qy_Old[NEQUATIONS*inode + 0] = Q1y[inode];
         Qy_Old[NEQUATIONS*inode + 1] = Q2y[inode];
         Qy_Old[NEQUATIONS*inode + 2] = Q3y[inode];
         Qy_Old[NEQUATIONS*inode + 3] = Q4y[inode];
         Qy_Old[NEQUATIONS*inode + 4] = Q5y[inode];
-        
+
         // Z
         Qz_Old[NEQUATIONS*inode + 0] = Q1z[inode];
         Qz_Old[NEQUATIONS*inode + 1] = Q2z[inode];
@@ -689,13 +689,13 @@ void CSolver::Smooth_Solution_Gradient() {
         Qx_New = Qx_Old;
         Qx_Old = Qswap; // Old is Now New solution
         Qswap  = NULL;
-        
+
         // Y
         Qswap  = Qy_New;
         Qy_New = Qy_Old;
         Qy_Old = Qswap; // Old is Now New solution
         Qswap  = NULL;
-        
+
         // Z
         Qswap  = Qz_New;
         Qz_New = Qz_Old;
@@ -711,14 +711,14 @@ void CSolver::Smooth_Solution_Gradient() {
         Q3x[inode] = Qx_Old[NEQUATIONS*inode + 2];
         Q4x[inode] = Qx_Old[NEQUATIONS*inode + 3];
         Q5x[inode] = Qx_Old[NEQUATIONS*inode + 4];
-        
+
         // Y
         Q1y[inode] = Qy_Old[NEQUATIONS*inode + 0];
         Q2y[inode] = Qy_Old[NEQUATIONS*inode + 1];
         Q3y[inode] = Qy_Old[NEQUATIONS*inode + 2];
         Q4y[inode] = Qy_Old[NEQUATIONS*inode + 3];
         Q5y[inode] = Qy_Old[NEQUATIONS*inode + 4];
-        
+
         // Z
         Q1z[inode] = Qz_Old[NEQUATIONS*inode + 0];
         Q2z[inode] = Qz_Old[NEQUATIONS*inode + 1];
@@ -746,11 +746,11 @@ void CSolver::Smooth_Stagnation_Solution() {
     double *Q_Old = NULL;
     double *Q_New = NULL;
     double *Qswap = NULL;
-    
+
     SmoothNode = new int [nNode];
     Q_Old = new double [NEQUATIONS*nNode];
     Q_New = new double [NEQUATIONS*nNode];
-    
+
     // Get the Old Q's and Set the Flags
     Coeff2 = PrecondGlobalMach/10.0;
     for (int inode = 0; inode < nNode; inode++) {
@@ -768,7 +768,7 @@ void CSolver::Smooth_Stagnation_Solution() {
         Q_Old[NEQUATIONS*inode + 3] = Q4[inode];
         Q_Old[NEQUATIONS*inode + 4] = Q5[inode];
     }
-    
+
     Coeff1 = SolutionSmoothRelaxation;
     for (int iSmooth = 0; iSmooth < SolutionSmoothNIteration; iSmooth++) {
         for (int inode = 0; inode < nNode; inode++) {
@@ -804,7 +804,7 @@ void CSolver::Smooth_Stagnation_Solution() {
 //        Q4[inode] = Q_Old[NEQUATIONS*inode + 3];
         Q5[inode] = Q_Old[NEQUATIONS*inode + 4];
     }
-    
+
     // Free Memory
     delete[] Q_Old;
     delete[] Q_New;

@@ -50,7 +50,7 @@ int Solver_Unsteady_Implicit(void) {
     double *Qn11, *Qn12, *Qn13, *Qn14, *Qn15;
     int giter;
     double RMS_Res;
-    
+
     // Check if Unsteady Computations
     Qn01 = Qn02 = Qn03 = Qn04 = Qn05 = NULL;
     Qn11 = Qn12 = Qn13 = Qn14 = Qn15 = NULL;
@@ -70,10 +70,10 @@ int Solver_Unsteady_Implicit(void) {
         Qn14 = new double[nNode];
         Qn15 = new double[nNode];
     }
-    
-     // Coefficients for First Order Physical Time Discretization 
+
+     // Coefficients for First Order Physical Time Discretization
     theta = 0.0;
-    
+
     // Save Solver Parameters
     SaveOrder   = SolverOrder;
     SaveLimiter = LimiterMethod;
@@ -92,12 +92,12 @@ int Solver_Unsteady_Implicit(void) {
     giter = 0;
     // Physical Time Loop
     for (int t_iter = 0; t_iter < SolverNIteration; t_iter++) {
-        
+
         // Check if Second Order in Time Requested
         if (TimeIntegrationMethod == TIME_INTEGRATION_METHOD_IMPLICIT_EULER_BDF)
             if (t_iter > 0)
                 theta = 0.5;
-        
+
         // Set Qn and Qn-1
         for (int i = 0; i < nNode; i++) {
             // Check if Second Order in Time Requested
@@ -109,7 +109,7 @@ int Solver_Unsteady_Implicit(void) {
                 Qn14[i] = Qn04[i];
                 Qn15[i] = Qn05[i];
             }
-            
+
             // Qn
             Qn01[i] = Q1[i];
             Qn02[i] = Q2[i];
@@ -117,7 +117,7 @@ int Solver_Unsteady_Implicit(void) {
             Qn04[i] = Q4[i];
             Qn05[i] = Q5[i];
         }
-        
+
         // Inner Iterations: Newton Iterations
         for (int iter = 0; iter < InnerNIteration; iter++) {
             giter++;
@@ -185,13 +185,13 @@ int Solver_Unsteady_Implicit(void) {
 
 //            // Compute Local Time Stepping
 //            Compute_DeltaT(iter);
-            
+
             // Compute Jacobian and Fill CRS Matrix
             AddTime = FALSE;
             Compute_Jacobian(AddTime, iter);
 
             // Add Physical Time Contribution to Residual and Jacobian
-            // And Compute RMS with Time Term 
+            // And Compute RMS with Time Term
             int idgn;
             for (int i = 0; i < nNode; i++) {
                 // Get the diagonal location
@@ -205,7 +205,7 @@ int Solver_Unsteady_Implicit(void) {
                     SolverBlockMatrix.B[i][2] -= eta*((1.0 + theta)*(Q3[i] - Qn03[i]) - theta*(Qn03[i] - Qn13[i]));
                     SolverBlockMatrix.B[i][3] -= eta*((1.0 + theta)*(Q4[i] - Qn04[i]) - theta*(Qn04[i] - Qn14[i]));
                     SolverBlockMatrix.B[i][4] -= eta*((1.0 + theta)*(Q5[i] - Qn05[i]) - theta*(Qn05[i] - Qn15[i]));
-                    
+
                     Res1_Conv[i] += eta*((1.0 + theta)*(Q1[i] - Qn01[i]) - theta*(Qn01[i] - Qn11[i]));
                     Res2_Conv[i] += eta*((1.0 + theta)*(Q2[i] - Qn02[i]) - theta*(Qn02[i] - Qn12[i]));
                     Res3_Conv[i] += eta*((1.0 + theta)*(Q3[i] - Qn03[i]) - theta*(Qn03[i] - Qn13[i]));
@@ -217,21 +217,21 @@ int Solver_Unsteady_Implicit(void) {
                     SolverBlockMatrix.B[i][2] -= eta*(Q3[i] - Qn03[i]);
                     SolverBlockMatrix.B[i][3] -= eta*(Q4[i] - Qn04[i]);
                     SolverBlockMatrix.B[i][4] -= eta*(Q5[i] - Qn05[i]);
-                    
+
                     Res1_Conv[i] += eta*(Q1[i] - Qn01[i]);
                     Res2_Conv[i] += eta*(Q2[i] - Qn02[i]);
                     Res3_Conv[i] += eta*(Q3[i] - Qn03[i]);
                     Res4_Conv[i] += eta*(Q4[i] - Qn04[i]);
                     Res5_Conv[i] += eta*(Q5[i] - Qn05[i]);
                 }
-                
+
                 for (int j = 0; j < SolverBlockMatrix.Block_nRow; j++) {
                     for (int k = 0; k < SolverBlockMatrix.Block_nCol; k++)
                         if (k == j)
                             SolverBlockMatrix.A[idgn][j][k] += (1.0 + theta)*eta;
                 }
             }
-            
+
             // Write RMS
             RMS_Res = RMS_Writer(giter);
 
@@ -243,11 +243,11 @@ int Solver_Unsteady_Implicit(void) {
                 VTK_Writer("SolutionBeforeNAN.vtk", 1);
                 break;
             }
-            
+
             // Solve for Solution
             lrms = MC_Iterative_Block_LU_Jacobi_CRS(LinearSolverNIteration, 0, SolverBlockMatrix);
             printf("Titer: %d, GIter: %d, NIter: %d, LRMS: %10.5e\n", t_iter, giter, iter, lrms);
-            
+
             // Check for Linear Solver NAN
             if (isnan(lrms)) {
                 info("Solve_Implicit_Unsteady: Linear Solver Iteration: NAN Encountered ! - Abort");
@@ -266,7 +266,7 @@ int Solver_Unsteady_Implicit(void) {
                 Q5[i] += Relaxation*SolverBlockMatrix.X[i][4];
             }
         }
-        
+
         // Check for NAN
         if (CheckNAN == 1) {
             t_iter = SolverNIteration + 1;
@@ -277,7 +277,7 @@ int Solver_Unsteady_Implicit(void) {
         RestartIteration = t_iter+1;
         Check_Restart(t_iter);
     }
-    
+
     // Check if Solution Restart is Requested
     if (RestartOutput && CheckNAN != 1)
         Restart_Writer(RestartOutputFilename, 1);
@@ -285,7 +285,7 @@ int Solver_Unsteady_Implicit(void) {
     // Debug the NAN
     if (CheckNAN)
         DebugNAN();
-    
+
     // Free Memory
     // Qn0
     if (Qn01 != NULL)
