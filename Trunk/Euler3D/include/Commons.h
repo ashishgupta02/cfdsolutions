@@ -13,12 +13,6 @@
 #include "List.h"
 #include "Vector3D.h"
 
-#ifndef isnan
-inline bool isnan(double x) {
-    return x != x;
-}
-#endif
-
 #define PHY_DIM                         3
 #define CELL_DIM                        3
 

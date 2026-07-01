@@ -13,13 +13,18 @@
 #include "Utils.h"
 #include "Log.h"
 
+#if defined(_WIN32) && !defined(HAS_NO_EXCEPTION)
+#include <float.h>
+#define finite _finite
+#endif
+
 int math_err_msg_level = 0;
 int math_err_check_finite = 0;
 int math_err_max_msg = 100;
 int math_err_count = 0;
 int math_err_nan = 0;
 
-#ifndef HAS_NO_EXCEPTION
+#if !defined(HAS_NO_EXCEPTION) && !defined(_WIN32)
 /*******************************************************************************
  * mathematical error handling -> found in math.h
  * struct exception
@@ -41,6 +46,12 @@ struct exception math_err_exception = {0, NULL, 0.0, 0.0, 0.0};
  *
  * do _not_ change the name of this function, it's defined in libm
  *******************************************************************************/
+#if defined(_WIN32)
+int matherr(void *e) {
+    (void)e;
+    return 1;
+}
+#else
 int matherr(struct exception *e) {
     const int type = e->type;
     const int exit_status = 1;
@@ -87,6 +98,7 @@ int matherr(struct exception *e) {
     return exit_status;
 
 } /** matherr() **/
+#endif
 
 /*******************************************************************************
  * print result of math exception

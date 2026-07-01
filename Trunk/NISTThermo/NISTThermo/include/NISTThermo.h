@@ -16,7 +16,10 @@
 #define NISTTHERMO_MAX_COEFFICIENT  50
 
 /* For windows applications */
-#ifdef WIN32
+#if defined(_WIN32) || defined(WIN32)
+#ifndef WIN32
+#define WIN32 1
+#endif
 #ifdef __MINGW32__
 #undef WIN32
 #endif

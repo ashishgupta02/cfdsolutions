@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <vector>
 #include "Utils.h"
 #include "List.h"
 #include "TriangleMesh.h"
@@ -25,7 +26,7 @@ int trimesh(int nn, int tdim, int nb, int nbs[], int*** bs,
     cell2cell = new int[tdim][3];
     
     // Data Stucture to store Node2Cell Connectivity
-    List * node2cell[nn+4];
+    std::vector<List*> node2cell(nn + 4);
     for (i = 0; i < nn + 4; i++)
         node2cell[i] = new List();
     
@@ -62,19 +63,19 @@ int trimesh(int nn, int tdim, int nb, int nbs[], int*** bs,
     ntri = 2;
     
     // Create Node to Cell Connectivity - Brute Force Method
-    Create_Node2Cell_Connectivity(4, ntri, tri, node2cell);
+    Create_Node2Cell_Connectivity(4, ntri, tri, node2cell.data());
 
     // Remove Duplicate Entries in Node2Cell List
     for (i = 0; i < nn; i++)
         node2cell[i]->RemoveDuplicates();
     
     // Create Cell to Cell Connectivity - Brute Force Method
-    Create_Cell2Cell_Connectivity(ntri, tri, cell2cell, node2cell);
+    Create_Cell2Cell_Connectivity(ntri, tri, cell2cell, node2cell.data());
 
     // Start Bowyer Watson Triangulation Algorithm
     int success = 0;
     success = Bowyer_Watson_Triangulation(nn, tdim, BBoxX, BBoxY,
-            ntri, tri, cell2cell, node2cell);
+            ntri, tri, cell2cell, node2cell.data());
     if (success == -1) {
         if (BBoxX != NULL)
             free(BBoxX);
@@ -101,14 +102,14 @@ int trimesh(int nn, int tdim, int nb, int nbs[], int*** bs,
     
     // Start Boundary Edge Recovery
     Boundary_Edge_Recovery(nn, nb, nbs, bs, BBoxX, BBoxY,
-            ntri, tri, cell2cell, node2cell);
+            ntri, tri, cell2cell, node2cell.data());
 
     // Remove Duplicate Entries in Node2Cell List
     for (i = 0; i < nn; i++)
         node2cell[i]->RemoveDuplicates();
 
     // Start Flood Fill Algorithm to delete the external Triangles
-    Flood_Fill_Algorithm(nb, nbs, bs, ntri, tri, cell2cell, node2cell);
+    Flood_Fill_Algorithm(nb, nbs, bs, ntri, tri, cell2cell, node2cell.data());
 
     // Decrement the Node IDs to Take care of Bounding Box Nodes
     for (bndry = 0; bndry < nb; bndry++) {

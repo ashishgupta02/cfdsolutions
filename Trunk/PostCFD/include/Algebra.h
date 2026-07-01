@@ -39,6 +39,7 @@
 #define __Algebra_H__
 
 #include "Vector.h"
+#include <math.h>
 
 /* 2-by-2 matrix */
 typedef struct Matrix2Struct {
@@ -81,7 +82,9 @@ typedef struct Matrix4Struct {
 #define RAD(x)	((x)/180.0*(PI))
 
 /* absolute value of a */
+#ifndef ABS
 #define ABS(a)		(((a)<0) ? -(a) : (a))
+#endif
 
 /* round a to nearest int */
 #define ROUND(a)	floor((a)+0.5)
@@ -100,16 +103,22 @@ if (!(x)) fprintf(stderr," Assert failed: x\n");
 #define SQR(a)		((a)*(a))
 
 /* Magnitude of a times sign of b */
+#ifndef SIGN
 #define SIGN(a, b)	((b) > 0.0 ? fabs(a) : -fabs(a))
+#endif
 
 /***********************/
 /* two-argument macros */
 /***********************/
 /* find minimum of a and b */
+#ifndef MIN
 #define MIN(a,b)	(((a)<(b))?(a):(b))
+#endif
 
 /* find maximum of a and b */
+#ifndef MAX
 #define MAX(a,b)	(((a)>(b))?(a):(b))
+#endif
 
 /* swap int a and b */
 #define SWAP(a,b)	{ a^=b; b^=a; a^=b; }
@@ -133,13 +142,27 @@ if (!(x)) fprintf(stderr," Assert failed: x\n");
 /************/
 /* booleans */
 /************/
+#ifndef TRUE
 #define TRUE		1
+#endif
+#ifndef FALSE
 #define FALSE		0
+#endif
+#ifndef ON
 #define ON		1
+#endif
+#ifndef OFF
 #define OFF		0
+#endif
+#ifndef ERROR
 #define ERROR		0
+#endif
+#ifndef SUCCESS
 #define SUCCESS		1
+#endif
+#ifndef FAIL
 #define FAIL		0
+#endif
 typedef int boolean; /* boolean data type */
 typedef boolean flag; /* flag data type */
 

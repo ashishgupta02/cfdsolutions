@@ -7,9 +7,13 @@
 #include "License.h"
 
 #include <stdio.h>
+#if defined(_WIN32)
+#include <windows.h>
+#else
 #include <sys/time.h>
 #ifndef __MINGW32__
 #include <sys/resource.h>
+#endif
 #endif
 #include <time.h>
 
@@ -187,7 +191,9 @@ static NDMDouble user_time(void) {
     }
 #else
     {
-#ifdef __MINGW32__
+#if defined(_WIN32)
+        return 0;
+#elif defined(__MINGW32__)
         return 0;
 #else
         typedef struct rusage rusage_type;
@@ -216,7 +222,9 @@ static NDMDouble system_time(void) {
     }
 #else
     {
-#ifdef __MINGW32__
+#if defined(_WIN32)
+        return 0;
+#elif defined(__MINGW32__)
         return 0;
 #else
         typedef struct rusage rusage_type;

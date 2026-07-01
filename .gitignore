@@ -1,0 +1,43 @@
+# ---------------------------------------------------------------------------
+# CMake / build artifacts
+# ---------------------------------------------------------------------------
+# Out-of-source build directories
+build/
+build_*/
+cmake-build-*/
+
+# In-source CMake configure output (should never be committed)
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+compile_commands.json
+Testing/
+
+# CMake user preset overrides
+CMakeUserPresets.json
+
+# ---------------------------------------------------------------------------
+# Compiled objects, libraries and executables
+# ---------------------------------------------------------------------------
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.mod
+*.smod
+
+# ---------------------------------------------------------------------------
+# Editor / OS noise
+# ---------------------------------------------------------------------------
+.vs/
+.vscode/
+*.swp
+*~
+.DS_Store
+Thumbs.db

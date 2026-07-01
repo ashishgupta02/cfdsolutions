@@ -1,0 +1,78 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 16,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "_base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "ENABLE_MPI": "OFF"
+      }
+    },
+    {
+      "name": "_gnu",
+      "hidden": true,
+      "inherits": "_base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "gcc",
+        "CMAKE_CXX_COMPILER": "g++",
+        "CMAKE_Fortran_COMPILER": "gfortran"
+      }
+    },
+    {
+      "name": "_intel",
+      "hidden": true,
+      "inherits": "_base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "icx",
+        "CMAKE_CXX_COMPILER": "icpx",
+        "CMAKE_Fortran_COMPILER": "ifx"
+      }
+    },
+    {
+      "name": "_clang",
+      "hidden": true,
+      "inherits": "_base",
+      "description": "Clang has no bundled Fortran; Fortran sources use the auto-detected Fortran compiler (typically gfortran).",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++"
+      }
+    },
+
+    { "name": "gnu-debug",       "displayName": "GNU Debug",             "inherits": "_gnu",   "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" } },
+    { "name": "gnu-release",     "displayName": "GNU Release",           "inherits": "_gnu",   "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" } },
+    { "name": "gnu-debug-mpi",   "displayName": "GNU Debug (MPI)",       "inherits": "_gnu",   "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug",   "ENABLE_MPI": "ON" } },
+    { "name": "gnu-release-mpi", "displayName": "GNU Release (MPI)",     "inherits": "_gnu",   "cacheVariables": { "CMAKE_BUILD_TYPE": "Release", "ENABLE_MPI": "ON" } },
+
+    { "name": "intel-debug",       "displayName": "Intel Debug",         "inherits": "_intel", "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" } },
+    { "name": "intel-release",     "displayName": "Intel Release",       "inherits": "_intel", "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" } },
+    { "name": "intel-debug-mpi",   "displayName": "Intel Debug (MPI)",   "inherits": "_intel", "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug",   "ENABLE_MPI": "ON" } },
+    { "name": "intel-release-mpi", "displayName": "Intel Release (MPI)", "inherits": "_intel", "cacheVariables": { "CMAKE_BUILD_TYPE": "Release", "ENABLE_MPI": "ON" } },
+
+    { "name": "clang-debug",       "displayName": "Clang Debug",         "inherits": "_clang", "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" } },
+    { "name": "clang-release",     "displayName": "Clang Release",       "inherits": "_clang", "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" } },
+    { "name": "clang-debug-mpi",   "displayName": "Clang Debug (MPI)",   "inherits": "_clang", "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug",   "ENABLE_MPI": "ON" } },
+    { "name": "clang-release-mpi", "displayName": "Clang Release (MPI)", "inherits": "_clang", "cacheVariables": { "CMAKE_BUILD_TYPE": "Release", "ENABLE_MPI": "ON" } }
+  ],
+  "buildPresets": [
+    { "name": "gnu-debug",         "configurePreset": "gnu-debug" },
+    { "name": "gnu-release",       "configurePreset": "gnu-release" },
+    { "name": "gnu-debug-mpi",     "configurePreset": "gnu-debug-mpi" },
+    { "name": "gnu-release-mpi",   "configurePreset": "gnu-release-mpi" },
+    { "name": "intel-debug",       "configurePreset": "intel-debug" },
+    { "name": "intel-release",     "configurePreset": "intel-release" },
+    { "name": "intel-debug-mpi",   "configurePreset": "intel-debug-mpi" },
+    { "name": "intel-release-mpi", "configurePreset": "intel-release-mpi" },
+    { "name": "clang-debug",       "configurePreset": "clang-debug" },
+    { "name": "clang-release",     "configurePreset": "clang-release" },
+    { "name": "clang-debug-mpi",   "configurePreset": "clang-debug-mpi" },
+    { "name": "clang-release-mpi", "configurePreset": "clang-release-mpi" }
+  ]
+}

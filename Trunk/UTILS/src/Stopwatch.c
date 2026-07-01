@@ -6,7 +6,11 @@
 
 #include "License.h"
 
+#if defined(_WIN32)
+#include <windows.h>
+#else
 #include <sys/time.h>
+#endif
 
 #include "Stopwatch.h"
 #include "Utils.h"
@@ -16,11 +20,19 @@
  * point in the past, e.g. in POSIX 1.1.1970, 00:00:00 UTC)
  ****************************************************************************/
 static double system_time(void) {
+#if defined(_WIN32)
+    LARGE_INTEGER frequency;
+    LARGE_INTEGER counter;
+    if (!QueryPerformanceFrequency(&frequency) || !QueryPerformanceCounter(&counter))
+        return 0.0;
+    return (double)counter.QuadPart / (double)frequency.QuadPart;
+#else
     struct timeval tv;
     if (gettimeofday(&tv, NULL) != 0)
         return 0.0;
     else
         return (double) tv.tv_sec + 1e-6 * (double) tv.tv_usec;
+#endif
 }
 
 /*******************************************************************************

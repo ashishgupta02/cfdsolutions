@@ -21,15 +21,6 @@
 #endif
 #endif
 
-#ifdef NEEDS_IEEEFP_H
-#include <ieeefp.h>
-#endif
-
-#ifdef _HPUX_SOURCE
-#define finite(x) isfinite(x)
-#endif
-
-
 /*******************************************************************************
 * Keep C++ compilers from getting confused
 *******************************************************************************/
@@ -64,7 +55,7 @@ void fprint_math_err(void);
 * check if value is not finite
 *******************************************************************************/
 #ifndef HAS_NO_FINITE
-#define value_not_finite(d) (finite(d) ? 0 : 1)
+#define value_not_finite(d) (isfinite(d) ? 0 : 1)
 #else
 #define value_not_finite(d) 0
 #endif

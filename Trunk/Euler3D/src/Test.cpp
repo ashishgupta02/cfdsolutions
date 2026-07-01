@@ -21,6 +21,7 @@
 #include "CompressibleUtils.h"
 #include "Material.h"
 #include "DebugSolver.h"
+#include "Residual_Smoothing.h"
 
 //------------------------------------------------------------------------------
 //!
